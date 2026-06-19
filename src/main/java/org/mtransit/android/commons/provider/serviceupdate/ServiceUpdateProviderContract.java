@@ -108,8 +108,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			return LOG_TAG;
 		}
 
-		private static final boolean IN_FOCUS_DEFAULT = false;
-
 		@Nullable
 		private final POI poi; // RouteDirectionStop or DefaultPOI
 		@Nullable
@@ -121,8 +119,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 		@Nullable
 		private Long cacheValidityInMs = null;
-		@Nullable
-		private Boolean inFocus = null;
 		@Nullable
 		private Map<String, String> providedEncryptKeysMap = null;
 
@@ -152,9 +148,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		public String toString() {
 			final StringBuilder sb = new StringBuilder();
 			sb.append(Filter.class.getSimpleName())
-					.append("cacheOnly:").append(getCacheOnlyOrNull()).append(',')
-					.append("asyncOnly:").append(getAsyncOnlyOrNull()).append(',')
-					.append("inFocus:").append(this.inFocus).append(',')
+					.append(super.toStringParts())
 					.append("cacheValidityInMs:").append(this.cacheValidityInMs).append(',');
 			if (this.poi != null) {
 				sb.append("poi:").append(this.poi).append(',');
@@ -261,19 +255,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			return routeDirection;
 		}
 
-		public void setInFocus(@Nullable Boolean inFocus) {
-			this.inFocus = inFocus;
-		}
-
-		public boolean isInFocusOrDefault() {
-			return this.inFocus == null ? IN_FOCUS_DEFAULT : this.inFocus;
-		}
-
-		@Nullable
-		public Boolean getInFocusOrNull() {
-			return this.inFocus;
-		}
-
 		@Nullable
 		public Long getCacheValidityInMsOrNull() {
 			return this.cacheValidityInMs;
@@ -342,7 +323,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		private static final String JSON_ROUTE = "route";
 		private static final String JSON_ROUTE_DIRECTION = "routeDirection";
 		private static final String JSON_AUTHORITY = "authority";
-		private static final String JSON_IN_FOCUS = "inFocus";
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
 		private static final String JSON_PROVIDED_ENCRYPT_KEYS_MAP = "providedEncryptKeysMap";
 
@@ -366,7 +346,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 					return null; // WTF?
 				}
 				ProviderContract.Filter.fromJSON(serviceUpdateFilter, json);
-				serviceUpdateFilter.inFocus = JSONUtils.optBoolean(json, JSON_IN_FOCUS);
 				if (json.has(JSON_CACHE_VALIDITY_IN_MS)) {
 					serviceUpdateFilter.cacheValidityInMs = json.getLong(JSON_CACHE_VALIDITY_IN_MS);
 				}
@@ -407,9 +386,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 				}
 				if (serviceUpdateFilter.authority != null) {
 					json.put(JSON_AUTHORITY, serviceUpdateFilter.authority);
-				}
-				if (serviceUpdateFilter.getInFocusOrNull() != null) {
-					json.put(JSON_IN_FOCUS, serviceUpdateFilter.getInFocusOrNull());
 				}
 				if (serviceUpdateFilter.getCacheValidityInMsOrNull() != null) {
 					json.put(JSON_CACHE_VALIDITY_IN_MS, serviceUpdateFilter.getCacheValidityInMsOrNull());

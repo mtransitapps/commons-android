@@ -38,11 +38,14 @@ public interface ProviderContract extends MTLog.Loggable {
 
 		private static final boolean CACHE_ONLY_DEFAULT = false;
 		private static final boolean ASYNC_ONLY_DEFAULT = false;
+		private static final boolean IN_FOCUS_DEFAULT = false;
 
 		@Nullable
 		private Boolean cacheOnly = null;
 		@Nullable
 		private Boolean asyncOnly = null;
+		@Nullable
+		private Boolean inFocus = null;
 
 		public boolean isCacheOnlyOrDefault() {
 			return this.cacheOnly == null ? CACHE_ONLY_DEFAULT : this.cacheOnly;
@@ -71,8 +74,22 @@ public interface ProviderContract extends MTLog.Loggable {
 			return this.asyncOnly;
 		}
 
+		public boolean isInFocusOrDefault() {
+			return this.inFocus == null ? IN_FOCUS_DEFAULT : this.inFocus;
+		}
+
+		@Nullable
+		public Boolean getInFocusOrNull() {
+			return this.inFocus;
+		}
+
+		public void setInFocus(@Nullable Boolean inFocus) {
+			this.inFocus = inFocus;
+		}
+
 		private static final String JSON_CACHE_ONLY = "cacheOnly";
 		private static final String JSON_ASYNC_ONLY = "asyncOnly";
+		private static final String JSON_IN_FOCUS = "inFocus";
 
 		public static void toJSON(@NonNull Filter filter, @NonNull JSONObject json) throws JSONException {
 			if (filter.getCacheOnlyOrNull() != null) {
@@ -80,6 +97,9 @@ public interface ProviderContract extends MTLog.Loggable {
 			}
 			if (filter.getAsyncOnlyOrNull() != null) {
 				json.put(JSON_ASYNC_ONLY, filter.getAsyncOnlyOrNull());
+			}
+			if (filter.getInFocusOrNull() != null) {
+				json.put(JSON_IN_FOCUS, filter.getInFocusOrNull());
 			}
 		}
 
@@ -90,6 +110,18 @@ public interface ProviderContract extends MTLog.Loggable {
 			if (json.has(JSON_ASYNC_ONLY)) {
 				filter.asyncOnly = json.getBoolean(JSON_ASYNC_ONLY);
 			}
+			if (json.has(JSON_IN_FOCUS)) {
+				filter.inFocus = json.getBoolean(JSON_IN_FOCUS);
+			}
+		}
+
+		@NonNull
+		public String toStringParts() {
+			final StringBuilder sb = new StringBuilder();
+			sb.append("cacheOnly:").append(this.cacheOnly).append(',');
+			sb.append("asyncOnly:").append(this.asyncOnly).append(',');
+			sb.append("inFocus:").append(this.inFocus).append(",");
+			return sb.toString();
 		}
 	}
 }

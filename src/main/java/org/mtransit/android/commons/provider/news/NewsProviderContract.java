@@ -145,16 +145,12 @@ public interface NewsProviderContract extends ProviderContract {
 			return LOG_TAG;
 		}
 
-		private static final boolean IN_FOCUS_DEFAULT = false;
-
 		@Nullable
 		private List<String> uuids;
 		@Nullable
 		private List<String> targets;
 		@Nullable
 		private Long cacheValidityInMs = null;
-		@Nullable
-		private Boolean inFocus = null;
 		@Nullable
 		private Long minCreatedAtInMs = null;
 		@Nullable
@@ -248,15 +244,13 @@ public interface NewsProviderContract extends ProviderContract {
 		@NonNull
 		@Override
 		public String toString() {
-			StringBuilder sb = new StringBuilder(Filter.class.getSimpleName()).append('[');
+			final StringBuilder sb = new StringBuilder(Filter.class.getSimpleName()).append('[');
 			if (isUUIDFilter(this)) {
 				sb.append("uuids:").append(this.uuids).append(',');
 			} else if (isTargetFilter(this)) {
 				sb.append("targets:").append(this.targets).append(',');
 			}
-			sb.append("cacheOnly:").append(getCacheOnlyOrNull()).append(',');
-			sb.append("asyncOnly:").append(getAsyncOnlyOrNull()).append(',');
-			sb.append("inFocus:").append(this.inFocus).append(',');
+			sb.append(super.toStringParts());
 			sb.append("cacheValidityInMs:").append(this.cacheValidityInMs).append(',');
 			sb.append("minCreatedAtInMs:").append(this.minCreatedAtInMs);
 			sb.append(']');
@@ -299,28 +293,6 @@ public interface NewsProviderContract extends ProviderContract {
 				sb.append(SqlUtils.getWhereSuperior(createdAtColumn, getMinCreatedAtInMsOrNull()));
 			}
 			return sb.toString();
-		}
-
-		@SuppressWarnings("unused")
-		@NonNull
-		public Filter setCacheOnlyAnd(@Nullable Boolean cacheOnly) {
-			super.setCacheOnly(cacheOnly);
-			return this;
-		}
-
-		@NonNull
-		public Filter setInFocusAnd(@Nullable Boolean inFocus) {
-			this.inFocus = inFocus;
-			return this;
-		}
-
-		public boolean isInFocusOrDefault() {
-			return this.inFocus == null ? IN_FOCUS_DEFAULT : this.inFocus;
-		}
-
-		@Nullable
-		public Boolean getInFocusOrNull() {
-			return this.inFocus;
 		}
 
 		@Nullable
@@ -390,7 +362,6 @@ public interface NewsProviderContract extends ProviderContract {
 
 		private static final String JSON_UUIDS = "uuids";
 		private static final String JSON_TARGETS = "targets";
-		private static final String JSON_IN_FOCUS = "inFocus";
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
 		private static final String JSON_MIN_CREATED_AT_IN_MS = "minCreatedAtInMs";
 		private static final String JSON_PROVIDED_ENCRYPT_KEYS_MAP = "providedEncryptKeysMap";
@@ -414,9 +385,6 @@ public interface NewsProviderContract extends ProviderContract {
 						targets.add(jTargets.getString(i));
 					}
 					newsFilter.setTargets(targets);
-				}
-				if (json.has(JSON_IN_FOCUS)) {
-					newsFilter.inFocus = json.getBoolean(JSON_IN_FOCUS);
 				}
 				if (json.has(JSON_CACHE_VALIDITY_IN_MS)) {
 					newsFilter.cacheValidityInMs = json.getLong(JSON_CACHE_VALIDITY_IN_MS);
@@ -452,9 +420,6 @@ public interface NewsProviderContract extends ProviderContract {
 				ProviderContract.Filter.toJSON(newsFilter, json);
 				if (newsFilter.getMinCreatedAtInMsOrNull() != null) {
 					json.put(JSON_MIN_CREATED_AT_IN_MS, newsFilter.getMinCreatedAtInMsOrNull());
-				}
-				if (newsFilter.getInFocusOrNull() != null) {
-					json.put(JSON_IN_FOCUS, newsFilter.getInFocusOrNull());
 				}
 				if (newsFilter.getCacheValidityInMsOrNull() != null) {
 					json.put(JSON_CACHE_VALIDITY_IN_MS, newsFilter.getCacheValidityInMsOrNull());

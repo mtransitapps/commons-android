@@ -97,9 +97,6 @@ interface VehicleLocationProviderContract : ProviderContract {
         override val routeDirection: RouteDirection? = null,
     ) : ProviderContract.Filter(), GTFSRealTimeProviderFilter, MTLog.Loggable {
 
-        var inFocus: Boolean? = null
-        val inFocusOrDefault get() = inFocus ?: false
-
         var providedEncryptKeysMap: Map<String, String>? = null
             private set
 
@@ -135,7 +132,6 @@ interface VehicleLocationProviderContract : ProviderContract {
             private const val JSON_POI = "poi"
             private const val JSON_ROUTE = "route"
             private const val JSON_ROUTE_DIRECTION = "routeDirection"
-            private const val JSON_IN_FOCUS = "inFocus"
             private const val JSON_PROVIDED_ENCRYPT_KEYS_MAP = "providedEncryptKeysMap"
 
             fun fromJSONString(jsonString: String?): Filter? {
@@ -159,7 +155,6 @@ interface VehicleLocationProviderContract : ProviderContract {
                 val routeDirection = json.optJSONObject(JSON_ROUTE_DIRECTION)?.let { jRouteDirection ->
                     authority?.let { RouteDirection.fromJSON(jRouteDirection, it) }
                 }
-                val inFocus = JSONUtils.optBoolean(json, JSON_IN_FOCUS)
                 val providedEncryptKeysMap: Map<String, String>? = json.optJSONObject(JSON_PROVIDED_ENCRYPT_KEYS_MAP)?.let { jProvidedEncryptKeysMap ->
                     JSONUtils.toMapOfStrings(jProvidedEncryptKeysMap)
                 }
@@ -167,7 +162,6 @@ interface VehicleLocationProviderContract : ProviderContract {
                     ?: route?.let { Filter(authority = route.authority, route = it) }
                     ?: routeDirection?.let { Filter(authority = routeDirection.authority, routeDirection = it) })
                     ?.apply {
-                        this.inFocus = inFocus
                         fromJSON(this, json)
                         this.providedEncryptKeysMap = providedEncryptKeysMap
                     }
@@ -184,7 +178,6 @@ interface VehicleLocationProviderContract : ProviderContract {
                         vehicleLocationFilter.poi?.let { put(JSON_POI, it.toJSON()) }
                         vehicleLocationFilter.route?.let { put(JSON_ROUTE, Route.toJSON(it)) }
                         vehicleLocationFilter.routeDirection?.let { put(JSON_ROUTE_DIRECTION, RouteDirection.toJSON(it)) }
-                        vehicleLocationFilter.inFocus?.let { put(JSON_IN_FOCUS, it) }
                         vehicleLocationFilter.providedEncryptKeysMap?.let { put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, JSONUtils.toJSONObject(it)) }
                     }
                 } catch (jsone: JSONException) {

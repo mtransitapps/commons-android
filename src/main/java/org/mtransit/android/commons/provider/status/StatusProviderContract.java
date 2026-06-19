@@ -78,15 +78,11 @@ public interface StatusProviderContract extends ProviderContract {
 			return LOG_TAG;
 		}
 
-		private static final boolean IN_FOCUS_DEFAULT = false;
-
 		@NonNull
 		private String targetUUID;
 		private int type;
 		@Nullable
 		private Long cacheValidityInMs = null;
-		@Nullable
-		private Boolean inFocus = null;
 		@Nullable
 		private Map<String, String> providedEncryptKeysMap = null;
 
@@ -102,19 +98,6 @@ public interface StatusProviderContract extends ProviderContract {
 
 		public int getType() {
 			return this.type;
-		}
-
-		public void setInFocus(@Nullable Boolean inFocus) {
-			this.inFocus = inFocus;
-		}
-
-		public boolean isInFocusOrDefault() {
-			return this.inFocus == null ? IN_FOCUS_DEFAULT : this.inFocus;
-		}
-
-		@Nullable
-		public Boolean getInFocusOrNull() {
-			return this.inFocus;
 		}
 
 		@Nullable
@@ -198,9 +181,6 @@ public interface StatusProviderContract extends ProviderContract {
 			ProviderContract.Filter.toJSON(statusFilter, json);
 			json.put(JSON_TYPE, statusFilter.getType());
 			json.put(JSON_TARGET, statusFilter.getTargetUUID());
-			if (statusFilter.getInFocusOrNull() != null) {
-				json.put(JSON_IN_FOCUS, statusFilter.getInFocusOrNull());
-			}
 			if (statusFilter.getCacheValidityInMsOrNull() != null) {
 				json.put(JSON_CACHE_VALIDITY_IN_MS, statusFilter.getCacheValidityInMsOrNull());
 			}
@@ -211,7 +191,6 @@ public interface StatusProviderContract extends ProviderContract {
 
 		private static final String JSON_TYPE = "type";
 		private static final String JSON_TARGET = "target";
-		private static final String JSON_IN_FOCUS = "inFocus";
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
 		private static final String JSON_PROVIDED_ENCRYPT_KEYS_MAP = "providedEncryptKeysMap";
 
@@ -219,9 +198,6 @@ public interface StatusProviderContract extends ProviderContract {
 			ProviderContract.Filter.fromJSON(statusFilter, json);
 			statusFilter.type = json.getInt(JSON_TYPE);
 			statusFilter.targetUUID = json.getString(JSON_TARGET);
-			if (json.has(JSON_IN_FOCUS)) {
-				statusFilter.inFocus = json.getBoolean(JSON_IN_FOCUS);
-			}
 			if (json.has(JSON_CACHE_VALIDITY_IN_MS)) {
 				statusFilter.cacheValidityInMs = json.getLong(JSON_CACHE_VALIDITY_IN_MS);
 			}
@@ -244,10 +220,8 @@ public interface StatusProviderContract extends ProviderContract {
 			return Filter.class.getSimpleName() + "{" +
 					"targetUUID='" + targetUUID + '\'' +
 					", type=" + type +
-					", cacheOnly=" + getCacheOnlyOrNull() +
-					", asyncOnly=" + getAsyncOnlyOrNull() +
 					", cacheValidityInMs=" + cacheValidityInMs +
-					", inFocus=" + inFocus +
+					super.toStringParts() +
 					'}';
 		}
 	}

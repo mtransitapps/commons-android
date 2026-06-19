@@ -144,7 +144,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
 
     @JvmStatic
     fun GTFSRealTimeProvider.getNew(filter: VehicleLocationProviderContract.Filter): List<VehicleLocation>? {
-        updateAgencyDataIfRequired(filter.inFocusOrDefault)
+        updateAgencyDataIfRequired(filter.isInFocusOrDefault)
         return getCached(filter)
     }
 
