@@ -8,11 +8,8 @@ data class ServiceUpdates @JvmOverloads constructor(
 ) : MutableCollection<ServiceUpdate> by list {
 
     companion object {
-        @JvmField
-        val EMPTY = ServiceUpdates()
-
         @JvmStatic
-        fun from(serviceUpdates: Iterable<ServiceUpdate>) = serviceUpdates.toMutableList().toServiceUpdates()
+        fun empty() = ServiceUpdates()
     }
 
     fun areUseful() = any { it.isUseful }
@@ -27,14 +24,22 @@ data class ServiceUpdates @JvmOverloads constructor(
     }
 
     @Suppress("unused") // main app only
-    fun distinctByOriginalId(): ServiceUpdates = this.distinctBy { it.originalId ?: it.id }.toServiceUpdates() // keep 1st occurrence from sorted list (in *Manager)
+    fun distinctByOriginalId(): ServiceUpdates = ServiceUpdates(this.distinctBy { it.originalId ?: it.id }.toMutableList())
 
-    fun distinct() = this.list.toSet().toMutableList().toServiceUpdates()
+    fun distinct(): ServiceUpdates {
+        val set = LinkedHashSet<ServiceUpdate>()
+        return buildServiceUpdates {
+            for (element in this@ServiceUpdates) {
+                if (!set.add(element)) continue // already in the list
+                add(element)
+            }
+        }
+    }
 
-    fun filter(filter: (ServiceUpdate) -> Boolean): ServiceUpdates = filterTo(mutableListOf(), filter).toServiceUpdates()
-    fun filterNot(filter: (ServiceUpdate) -> Boolean): ServiceUpdates = filterNotTo(mutableListOf(), filter).toServiceUpdates()
+    fun filter(filter: (ServiceUpdate) -> Boolean) = ServiceUpdates(filterTo(mutableListOf(), filter))
+    fun filterNot(filter: (ServiceUpdate) -> Boolean) = ServiceUpdates(filterNotTo(mutableListOf(), filter))
 
-    fun map(transform: (ServiceUpdate) -> ServiceUpdate) = mapTo(mutableListOf(), transform).toServiceUpdates()
+    fun map(transform: (ServiceUpdate) -> ServiceUpdate) = ServiceUpdates(mapTo(mutableListOf(), transform))
 
     fun sortWith(comparator: Comparator<ServiceUpdate>) = apply { this.list.sortWith(comparator) }
 
@@ -50,7 +55,4 @@ inline fun buildServiceUpdates(builderAction: MutableCollection<ServiceUpdate>.(
     return ServiceUpdates().apply(builderAction)
 }
 
-fun ServiceUpdates?.orEmpty(): ServiceUpdates = this ?: ServiceUpdates()
-
-private fun MutableList<ServiceUpdate>.toServiceUpdates(): ServiceUpdates = ServiceUpdates(this)
-private fun Collection<ServiceUpdate>.toServiceUpdates(): ServiceUpdates = ServiceUpdates.from(this)
+fun ServiceUpdates?.orEmpty(): ServiceUpdates = this ?: ServiceUpdates.empty()
