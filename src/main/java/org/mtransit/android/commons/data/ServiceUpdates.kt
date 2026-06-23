@@ -44,10 +44,10 @@ class ServiceUpdates @JvmOverloads constructor(
     fun sortWith(comparator: Comparator<ServiceUpdate>) = apply { this.list.sortWith(comparator) }
 
     @SuppressLint("DeprecatedCall")
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION", "PLATFORM_CLASS_MAPPED_TO_KOTLIN", "UNCHECKED_CAST")
     @Deprecated("deprecated in Collection")
     override fun <T> toArray(generator: IntFunction<Array<out T?>?>): Array<out T?> {
-        return super.toArray(generator)
+        return (this.list as java.util.Collection<T?>).toArray(generator)
     }
 }
 
