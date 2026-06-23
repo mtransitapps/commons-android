@@ -17,13 +17,12 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirection;
 import org.mtransit.android.commons.data.RouteDirectionStop;
-import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.android.commons.data.ServiceUpdates;
 import org.mtransit.android.commons.data.Targetable;
 import org.mtransit.android.commons.provider.common.ProviderContract;
 import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderFilter;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public interface ServiceUpdateProviderContract extends ProviderContract {
@@ -42,13 +41,13 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 	long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus);
 
-	void cacheServiceUpdates(@NonNull List<ServiceUpdate> newServiceUpdates);
+	void cacheServiceUpdates(@NonNull ServiceUpdates newServiceUpdates);
 
 	@Nullable
-	List<ServiceUpdate> getCachedServiceUpdates(@NonNull Filter serviceUpdateFilter);
+	ServiceUpdates getCachedServiceUpdates(@NonNull Filter serviceUpdateFilter);
 
 	@Nullable
-	List<ServiceUpdate> getNewServiceUpdates(@NonNull Filter serviceUpdateFilter);
+	ServiceUpdates getNewServiceUpdates(@NonNull Filter serviceUpdateFilter);
 
 	@SuppressWarnings("UnusedReturnValue")
 	boolean deleteCachedServiceUpdate(@NonNull Integer serviceUpdateId);

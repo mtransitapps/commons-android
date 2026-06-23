@@ -36,6 +36,7 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.android.commons.data.ServiceUpdates;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.android.commons.provider.common.MTContentProvider;
@@ -71,7 +72,6 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -728,14 +728,14 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Override
-	public void cacheServiceUpdates(@NonNull List<ServiceUpdate> newServiceUpdates) {
+	public void cacheServiceUpdates(@NonNull ServiceUpdates newServiceUpdates) {
 		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
 	@Nullable
 	@Override
-	public List<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		final List<ServiceUpdate> cachedServiceUpdates = GTFSRealTimeServiceAlertsProvider.getCached(this, serviceUpdateFilter);
+	public ServiceUpdates getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+		final ServiceUpdates cachedServiceUpdates = GTFSRealTimeServiceAlertsProvider.getCached(this, serviceUpdateFilter);
 		GTFSRealTimeServiceAlertsProvider.enhanceServiceUpdate(this, cachedServiceUpdates);
 		// if (org.mtransit.android.commons.Constants.DEBUG) {
 		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates == null ? null : cachedServiceUpdates.size(), serviceUpdateFilter.getTargetUUID());
@@ -815,7 +815,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Override
-	public @Nullable List<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+	public @Nullable ServiceUpdates getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		this.providedAgencyUrlToken = SecureStringUtils.dec(serviceUpdateFilter.getProvidedEncryptKey(KeysIds.GTFS_REAL_TIME_URL_TOKEN));
 		this.providedAgencyUrlSecret = SecureStringUtils.dec(serviceUpdateFilter.getProvidedEncryptKey(KeysIds.GTFS_REAL_TIME_URL_SECRET));
 		return GTFSRealTimeServiceAlertsProvider.getNew(this, serviceUpdateFilter);
@@ -874,7 +874,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		final List<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context);
+		final ServiceUpdates newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context);
 		if (newServiceUpdates != null) { // empty is OK
 			if (!deleteAllDone) {
 				deleteAllAgencyServiceUpdateData();
@@ -919,7 +919,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	private List<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
+	private ServiceUpdates loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
 		try {
 			final Request urlRequest = GTFSRealTimeProviderExtKt.makeRequest(this,
 					this,
@@ -934,7 +934,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 				switch (response.code()) {
 				case HttpURLConnection.HTTP_OK:
 					final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-					final List<ServiceUpdate> serviceUpdates = new ArrayList<>();
+					final ServiceUpdates serviceUpdates = new ServiceUpdates();
 					final String sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
 							getAgencyServiceAlertsUrlString(context, "T")
 					);
@@ -949,7 +949,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 							if (Constants.DEBUG) {
 								MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS - [%s] %s", feedEntityId, GtfsRealtimeExt.toStringExt(gAlert));
 							}
-							final Set<ServiceUpdate> alertsServiceUpdates = processAlerts(context, sourceLabel, feedEntityId, newLastUpdateInMs, gAlert, ignoreDirection);
+							final ServiceUpdates alertsServiceUpdates = processAlerts(context, sourceLabel, feedEntityId, newLastUpdateInMs, gAlert, ignoreDirection);
 							if (alertsServiceUpdates != null && !alertsServiceUpdates.isEmpty()) {
 								serviceUpdates.addAll(alertsServiceUpdates);
 							}
@@ -1024,7 +1024,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	private HashSet<ServiceUpdate> processAlerts(
+	private ServiceUpdates processAlerts(
 			@NonNull Context context,
 			@NonNull String sourceLabel,
 			@Nullable String feedEntityId,
@@ -1074,7 +1074,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		languages.addAll(urlTexts.keySet());
 		setServiceUpdateLanguages(languages);
 		final boolean noService = gEffect == GtfsRealtime.Alert.Effect.NO_SERVICE;
-		HashSet<ServiceUpdate> serviceUpdates = new HashSet<>();
+		final ServiceUpdates serviceUpdates = new ServiceUpdates();
 		long serviceUpdateMaxValidityInMs = getServiceUpdateMaxValidityInMs();
 		for (Map.Entry<String, String> entry : targetUUIDAndTripId.entrySet()) {
 			final String targetUUID = entry.getKey();
@@ -1099,7 +1099,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 				serviceUpdates.add(newServiceUpdate);
 			}
 		}
-		return serviceUpdates;
+		return serviceUpdates.distinct();
 	}
 
 	@Nullable

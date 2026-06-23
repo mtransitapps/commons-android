@@ -16,13 +16,12 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.android.commons.data.ServiceUpdates;
 import org.mtransit.android.commons.provider.common.ContentProviderConstants;
 import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.commons.CollectionUtils;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 public abstract class ServiceUpdateProvider extends MTContentProvider implements ServiceUpdateProviderContract {
 
@@ -87,11 +86,10 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			return getServiceUpdateCursor(null);
 		}
 		final long nowInMs = TimeUtils.currentTimeMillis();
-		final List<ServiceUpdate> unmutableList = provider.getCachedServiceUpdates(serviceUpdateFilter);
-		final ArrayList<ServiceUpdate> cachedServiceUpdates = unmutableList == null ? null : new ArrayList<>(unmutableList); // need to be mutable
+		final ServiceUpdates cachedServiceUpdates = provider.getCachedServiceUpdates(serviceUpdateFilter);
 		boolean purgeNecessary = false;
 		if (cachedServiceUpdates != null) {
-			Iterator<ServiceUpdate> it = cachedServiceUpdates.iterator();
+			final Iterator<ServiceUpdate> it = cachedServiceUpdates.iterator();
 			while (it.hasNext()) {
 				ServiceUpdate cachedServiceUpdate = it.next();
 				if (cachedServiceUpdate.getLastUpdateInMs() + provider.getServiceUpdateMaxValidityInMs() < nowInMs) {
@@ -104,7 +102,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			provider.purgeUselessCachedServiceUpdates();
 		}
 		if (cachedServiceUpdates != null) {
-			Iterator<ServiceUpdate> it = cachedServiceUpdates.iterator();
+			final Iterator<ServiceUpdate> it = cachedServiceUpdates.iterator();
 			while (it.hasNext()) {
 				ServiceUpdate cachedServiceUpdate = it.next();
 				if (!cachedServiceUpdate.isUseful()) {
@@ -139,7 +137,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			}
 		}
 		if (loadNewServiceUpdates) {
-			final List<ServiceUpdate> newServiceUpdates = provider.getNewServiceUpdates(serviceUpdateFilter);
+			final ServiceUpdates newServiceUpdates = provider.getNewServiceUpdates(serviceUpdateFilter);
 			if (CollectionUtils.getSize(newServiceUpdates) != 0) {
 				return getServiceUpdateCursor(newServiceUpdates);
 			}
@@ -151,7 +149,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	@NonNull
-	private static Cursor getServiceUpdateCursor(@Nullable List<ServiceUpdate> serviceUpdates) {
+	private static Cursor getServiceUpdateCursor(@Nullable ServiceUpdates serviceUpdates) {
 		if (serviceUpdates == null) {
 			return ContentProviderConstants.EMPTY_CURSOR;
 		}
@@ -163,7 +161,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	@SuppressWarnings("UnusedReturnValue")
-	public static synchronized int cacheServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, @Nullable List<ServiceUpdate> newServiceUpdates) {
+	public static synchronized int cacheServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, @Nullable ServiceUpdates newServiceUpdates) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {
