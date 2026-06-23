@@ -132,31 +132,6 @@ public class ServiceUpdate implements MTLog.Loggable {
 				|| severity == SEVERITY_INFO_POI);
 	}
 
-	public static boolean isSeverityWarning(@Nullable Iterable<ServiceUpdate> serviceUpdates) {
-		if (serviceUpdates != null) {
-			for (ServiceUpdate serviceUpdate : serviceUpdates) {
-				if (serviceUpdate.isSeverityWarning()) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	public static boolean isSeverityInfo(@Nullable Iterable<ServiceUpdate> serviceUpdates) {
-		if (serviceUpdates != null) {
-			for (ServiceUpdate serviceUpdate : serviceUpdates) {
-				if (serviceUpdate.isSeverityWarning()) {
-					return false;
-				}
-				if (serviceUpdate.isSeverityInfo()) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
 	@SuppressWarnings("unused")
 	public boolean hasMessage() {
 		return this.severity != SEVERITY_NONE;

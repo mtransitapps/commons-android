@@ -17,22 +17,10 @@ fun ServiceUpdate.syncTargetUUID(targetUUIDs: Map<String, String>?) {
         }
 }
 
-@Suppress("unused") // main app only
-fun Iterable<ServiceUpdate>?.isSeverityWarningInfo(): Pair<Boolean, Boolean> {
-    this ?: return false to false
-    if (any { it.isSeverityWarning }) return true to false
-    if (any { it.isSeverityInfo }) return false to true
-    return false to false
-}
-
-@Suppress("unused") // main app only
-fun Iterable<ServiceUpdate>.distinctByOriginalId() =
-    this.distinctBy { it.originalId ?: it.id } // keep 1st occurrence from sorted list (in *Manager)
-
 fun ServiceUpdateProviderContract.makeServiceUpdateNoneList(targetable: Targetable, sourceId: String) =
     buildList {
         add(makeServiceUpdateNone(targetable.uuid, sourceId))
-    }
+    }.toServiceUpdates()
 
 fun ServiceUpdateProviderContract.makeServiceUpdateNone(targetUUID: String, sourceId: String) =
     makeServiceUpdate(

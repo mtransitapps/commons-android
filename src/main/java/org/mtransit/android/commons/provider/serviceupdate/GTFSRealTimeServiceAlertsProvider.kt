@@ -2,8 +2,9 @@ package org.mtransit.android.commons.provider.serviceupdate
 
 import androidx.annotation.VisibleForTesting
 import org.mtransit.android.commons.MTLog
-import org.mtransit.android.commons.data.ServiceUpdate
+import org.mtransit.android.commons.data.ServiceUpdates
 import org.mtransit.android.commons.data.makeServiceUpdateNoneList
+import org.mtransit.android.commons.data.toServiceUpdates
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.AGENCY_SOURCE_ID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionStopTagTargetUUID
@@ -59,8 +60,8 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
         filter: ServiceUpdateProviderContract.Filter,
         tripIdsOutOfSync: Boolean?,
         getTripIds: (authority: String, routeId: Long, directionId: Long?) -> List<String>?,
-        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> List<ServiceUpdate>?,
-    ): List<ServiceUpdate>? {
+        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> ServiceUpdates?,
+    ): ServiceUpdates? {
         val tripIdsOutOfSync = tripIdsOutOfSync == true
         return filter.getTargetUUIDs(this, includeAgencyTag = true, includeRouteType = true, includeStopTags = true)
             ?.let { targetUUIDs ->
@@ -83,7 +84,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
                         return@let cache.filterNot { serviceUpdate ->
                             // remove service updates targeted to the entire agency or all route type for a specific trip ID
                             serviceUpdate.targetUUID in targetUUIDsToBroad && serviceUpdate.targetTripId != null
-                        }
+                        }.toServiceUpdates()
                     }
             }
     }
@@ -91,16 +92,18 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
     private fun getCached(
         targetUUIDs: Map<String, String>,
         tripIds: List<String>?,
-        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> List<ServiceUpdate>?,
+        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> ServiceUpdates?,
     ) = buildList {
         getCachedServiceUpdates(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
             ?.let {
                 addAll(it)
             }
-    }.map { it.apply { targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID } }
+    }.map {
+        it.apply { targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID }
+    }.toServiceUpdates()
 
     @JvmStatic
-    fun GTFSRealTimeProvider.getNew(filter: ServiceUpdateProviderContract.Filter): List<ServiceUpdate>? {
+    fun GTFSRealTimeProvider.getNew(filter: ServiceUpdateProviderContract.Filter): ServiceUpdates? {
         updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), filter.isInFocusOrDefault)
         return getCached(filter)
             ?: filter.target?.let { enhanceServiceUpdate(makeServiceUpdateNoneList(it, AGENCY_SOURCE_ID)) }
@@ -141,15 +144,15 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
     }
 
     @JvmStatic
-    fun GTFSRealTimeProvider.enhanceServiceUpdate(cachedServiceUpdates: List<ServiceUpdate>?) =
+    fun GTFSRealTimeProvider.enhanceServiceUpdate(cachedServiceUpdates: ServiceUpdates?) =
         cachedServiceUpdates?.map { serviceUpdate ->
             serviceUpdate.apply {
                 setTextHTML(enhanceHtmlDateTime(requireContextCompat(), serviceUpdate.textHTML))
             }
-        }
+        }?.toServiceUpdates()
 
     @JvmStatic
-    fun GTFSRealTimeProvider.setTripIdsOutOfSync(serviceUpdates: Iterable<ServiceUpdate>) {
+    fun GTFSRealTimeProvider.setTripIdsOutOfSync(serviceUpdates: ServiceUpdates) {
         setTripIdsOutOfSync(
             getOneTripId = { serviceUpdates.firstOrNull { it.targetTripId != null }?.targetTripId },
             saveTripIdsOutOfSync = { tripIdsOutOfSync ->

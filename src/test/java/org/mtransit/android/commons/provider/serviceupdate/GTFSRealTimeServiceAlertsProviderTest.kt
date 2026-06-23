@@ -4,12 +4,13 @@ import com.google.transit.realtime.entitySelector
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import org.mtransit.android.commons.data.ServiceUpdate
+import org.mtransit.android.commons.data.ServiceUpdates
 import org.mtransit.android.commons.data.clone
 import org.mtransit.android.commons.data.getGTFSRTTargetUUID
 import org.mtransit.android.commons.data.makeRDS
 import org.mtransit.android.commons.data.makeServiceUpdate
 import org.mtransit.android.commons.data.toRouteDirection
+import org.mtransit.android.commons.data.toServiceUpdates
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionStopTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionTagTargetUUID
@@ -75,11 +76,11 @@ class GTFSRealTimeServiceAlertsProviderTest {
             add(makeServiceUpdate(targetUUID = rds3.toRouteDirection().getGTFSRTTargetUUID(), targetTripId = null, text = "Text 31"))
         }
         val staticTripIds = (cachedServiceUpdates.mapNotNull { it.targetTripId } + "tripId22" + "tripId31").toSet()
-        val getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> List<ServiceUpdate>? = { targetUUIDs, tripIds ->
+        val getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> ServiceUpdates? = { targetUUIDs, tripIds ->
             cachedServiceUpdates.filter { serviceUpdate ->
                 targetUUIDs.contains(serviceUpdate.targetUUID)
                         && serviceUpdate.targetTripId?.let { tripIds?.contains(it) } != false // ignore if target tripID or local trip ID null
-            }.map { it.clone() }
+            }.map { it.clone() }.toServiceUpdates()
         }
         gtfsRealTimeProvider.getCached(
             filter = ServiceUpdateProviderContract.Filter(rds1),

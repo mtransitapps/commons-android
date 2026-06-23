@@ -21,6 +21,7 @@ import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.android.commons.data.ServiceUpdates;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.provider.StmInfoApiProvider.JArrivals;
 import org.mtransit.android.commons.provider.StmInfoApiProvider.JMessages;
@@ -218,7 +219,7 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
+		ServiceUpdates serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(3, serviceUpdates.size());
@@ -285,7 +286,7 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
+		ServiceUpdates serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(3, serviceUpdates.size());
@@ -392,7 +393,7 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
+		ServiceUpdates serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(10, serviceUpdates.size());
@@ -495,7 +496,7 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
+		ServiceUpdates serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(6, serviceUpdates.size());
@@ -562,7 +563,7 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
+		ServiceUpdates serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(2, serviceUpdates.size());
@@ -596,7 +597,7 @@ public class StmInfoApiProviderTests {
 		ArrayList<Map<String, List<JMessages.JResult.JResultRoute>>> shortNameResultRoutes = new ArrayList<>();
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
+		ServiceUpdates serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(1, serviceUpdates.size());

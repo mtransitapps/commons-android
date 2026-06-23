@@ -15,7 +15,9 @@ import org.mtransit.android.commons.data.Route
 import org.mtransit.android.commons.data.RouteDirection
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.ServiceUpdate
+import org.mtransit.android.commons.data.ServiceUpdates
 import org.mtransit.android.commons.data.makeServiceUpdate
+import org.mtransit.android.commons.data.toServiceUpdates
 import org.mtransit.android.commons.provider.StmInfoApiProvider
 import org.mtransit.android.commons.provider.StmInfoApiProvider.getSERVICE_UPDATES_URL_CACHED
 import org.mtransit.android.commons.provider.StmInfoApiProvider.getSERVICE_UPDATE_DESC_INFO_REGEXES
@@ -65,7 +67,7 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
         if (inFocus) SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS else SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS
 
     @JvmStatic
-    fun StmInfoApiProvider.getCached(filter: ServiceUpdateProviderContract.Filter): List<ServiceUpdate>? {
+    fun StmInfoApiProvider.getCached(filter: ServiceUpdateProviderContract.Filter): ServiceUpdates? {
         return ((filter.poi as? RouteDirectionStop)?.getTargetUUIDs(includeStopTags = true)
             ?: filter.routeDirection?.getTargetUUIDs()
             ?: filter.route?.getTargetUUIDs())
@@ -78,10 +80,12 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
         getCachedServiceUpdatesS(targetUUIDs.keys)?.let {
             addAll(it)
         }
-    }.map { it.apply { targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID } }
+    }.map {
+        it.apply { targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID }
+    }.toServiceUpdates()
 
     @JvmStatic
-    fun StmInfoApiProvider.getNew(filter: ServiceUpdateProviderContract.Filter): List<ServiceUpdate>? {
+    fun StmInfoApiProvider.getNew(filter: ServiceUpdateProviderContract.Filter): ServiceUpdates? {
         updateAgencyDataIfRequired(filter.isInFocusOrDefault)
         return getCached(filter)
     }
@@ -129,7 +133,7 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
             if (!deleteAllDone) {
                 deleteAllAgencyServiceUpdateData()
             }
-            cacheServiceUpdates(newServiceUpdates.toList())
+            cacheServiceUpdates(newServiceUpdates)
         } // else keep whatever we have until max validity reached
     }
 
@@ -161,7 +165,7 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
 
     private const val SERVICE_UPDATE_URL = "https://api.stm.info/pub/od/i3/v2/messages/etatservice"
 
-    private fun StmInfoApiProvider.loadAgencyDataFromWWW(context: Context): Collection<ServiceUpdate>? {
+    private fun StmInfoApiProvider.loadAgencyDataFromWWW(context: Context): ServiceUpdates? {
         try {
             val call = getSERVICE_UPDATES_URL_CACHED(context).takeIf { it.isNotBlank() }?.let { urlCachedString ->
                 getStmInfoApi(context).getV2MessageEtatService(urlCachedString)
@@ -253,8 +257,8 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
         noneDescRegex: List<Regex>? = null,
         infoDescRegex: List<Regex>? = null,
         warningDescRegex: List<Regex>? = null,
-    ): Collection<ServiceUpdate> {
-        val serviceUpdates = mutableSetOf<ServiceUpdate>()
+    ): ServiceUpdates {
+        val serviceUpdates = ServiceUpdates()
         val alerts = this?.alerts?.takeIf { it.isNotEmpty() } ?: return serviceUpdates
         val headerTimestamp = this.header?.timestamp ?: now
         alerts.forEach { alert ->
