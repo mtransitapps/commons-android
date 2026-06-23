@@ -33,8 +33,6 @@ class ServiceUpdates @JvmOverloads constructor(
 
     fun map(transform: (ServiceUpdate) -> ServiceUpdate) = ServiceUpdates(mapTo(mutableListOf(), transform))
 
-    fun sortWith(comparator: Comparator<ServiceUpdate>) = apply { this.list.sortWith(comparator) }
-
     @SuppressLint("DeprecatedCall")
     @Suppress("DEPRECATION", "PLATFORM_CLASS_MAPPED_TO_KOTLIN", "UNCHECKED_CAST")
     @Deprecated("deprecated in Collection")
@@ -44,11 +42,8 @@ class ServiceUpdates @JvmOverloads constructor(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is ServiceUpdates) return false
-
-        if (list != other.list) return false
-
-        return true
+        if (other !is List<*>) return false
+        return list == other
     }
 
     override fun hashCode() = list.hashCode()
