@@ -5,7 +5,7 @@ import java.util.function.IntFunction
 
 data class ServiceUpdates @JvmOverloads constructor(
     val list: MutableList<ServiceUpdate> = mutableListOf(),
-) : MutableList<ServiceUpdate> by list {
+) : MutableCollection<ServiceUpdate> by list {
 
     companion object {
         @JvmField
@@ -29,12 +29,14 @@ data class ServiceUpdates @JvmOverloads constructor(
     @Suppress("unused") // main app only
     fun distinctByOriginalId(): ServiceUpdates = this.distinctBy { it.originalId ?: it.id }.toServiceUpdates() // keep 1st occurrence from sorted list (in *Manager)
 
-    fun distinct() = this.list.toSet().toServiceUpdates()
+    fun distinct() = this.list.toSet().toMutableList().toServiceUpdates()
 
     fun filter(filter: (ServiceUpdate) -> Boolean): ServiceUpdates = filterTo(mutableListOf(), filter).toServiceUpdates()
     fun filterNot(filter: (ServiceUpdate) -> Boolean): ServiceUpdates = filterNotTo(mutableListOf(), filter).toServiceUpdates()
 
     fun map(transform: (ServiceUpdate) -> ServiceUpdate) = mapTo(mutableListOf(), transform).toServiceUpdates()
+
+    fun sortWith(comparator: Comparator<ServiceUpdate>) = apply { this.list.sortWith(comparator) }
 
     @SuppressLint("DeprecatedCall")
     @Suppress("DEPRECATION")
@@ -44,7 +46,7 @@ data class ServiceUpdates @JvmOverloads constructor(
     }
 }
 
-inline fun buildServiceUpdates(builderAction: MutableList<ServiceUpdate>.() -> Unit): ServiceUpdates {
+inline fun buildServiceUpdates(builderAction: MutableCollection<ServiceUpdate>.() -> Unit): ServiceUpdates {
     return ServiceUpdates().apply(builderAction)
 }
 
