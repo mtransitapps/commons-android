@@ -38,7 +38,7 @@ data class ServiceUpdates @JvmOverloads constructor(
     }
 }
 
-fun ServiceUpdates?.orEmpty(): ServiceUpdates = this?.list.orEmpty().toServiceUpdates()
+fun ServiceUpdates?.orEmpty(): ServiceUpdates = this ?: ServiceUpdates()
 @Suppress("unused") // main app only
 fun ServiceUpdates.distinctByOriginalId(): ServiceUpdates = this.distinctBy { it.originalId ?: it.id }.toServiceUpdates() // keep 1st occurrence from sorted list (in *Manager)
 
