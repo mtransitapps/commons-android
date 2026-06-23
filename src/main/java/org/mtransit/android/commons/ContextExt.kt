@@ -17,7 +17,7 @@ fun Context.dimensionFromAttribute(attribute: Int, defaultValue: Int = -1): Int 
 fun Context.getStringRes(@StringRes resId: Int, vararg formatArgsStringRes: Int): String =
     getString(resId, formatArgsStringRes.map { getString(it) })
 
-fun Context.getText(@StringRes resId: Int, vararg formatArgs: Any?): CharSequence = resources.getText(resId, formatArgs)
+fun Context.getText(@StringRes resId: Int, vararg formatArgs: Any?): CharSequence = resources.getText(resId, *formatArgs)
 
 fun PowerManager.isIgnoringBatteryOpt(packageName: String): Boolean {
     return this.isIgnoringBatteryOptimizations(packageName)
