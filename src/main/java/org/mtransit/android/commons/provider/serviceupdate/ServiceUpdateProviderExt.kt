@@ -7,7 +7,6 @@ import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.data.ServiceUpdate
 import org.mtransit.android.commons.data.ServiceUpdates
 import org.mtransit.android.commons.data.buildServiceUpdates
-import org.mtransit.android.commons.data.toServiceUpdates
 import org.mtransit.commons.FeatureFlags
 
 private const val LOG_TAG: String = "ServiceUpdateProviderExt"
