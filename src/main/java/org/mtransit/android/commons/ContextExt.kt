@@ -19,8 +19,7 @@ fun Context.getStringRes(@StringRes resId: Int, vararg formatArgsStringRes: Int)
     else getString(resId, *Array(formatArgsStringRes.size) { getString(formatArgsStringRes[it]) })
 
 fun Context.getText(@StringRes resId: Int, vararg formatArgs: Any?): CharSequence =
-    if (formatArgs.isEmpty()) resources.getText(resId)
-    else resources.getText(resId, *formatArgs)
+    resources.getText(resId, *formatArgs)
 
 fun PowerManager.isIgnoringBatteryOpt(packageName: String): Boolean {
     return this.isIgnoringBatteryOptimizations(packageName)
