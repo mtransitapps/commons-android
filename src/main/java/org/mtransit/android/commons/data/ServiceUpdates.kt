@@ -37,7 +37,11 @@ class ServiceUpdates @JvmOverloads constructor(
     @Suppress("DEPRECATION", "PLATFORM_CLASS_MAPPED_TO_KOTLIN", "UNCHECKED_CAST")
     @Deprecated("deprecated in Collection")
     override fun <T> toArray(generator: IntFunction<Array<out T?>?>): Array<out T?> {
-        return (this.list as java.util.Collection<T?>).toArray(generator)
+        val array = generator.apply(this.size) ?: throw NullPointerException("generator returned null")
+        for (i in indices) {
+            (array as Array<Any?>)[i] = this.list[i]
+        }
+        return array
     }
 
     override fun equals(other: Any?): Boolean {
@@ -48,6 +52,7 @@ class ServiceUpdates @JvmOverloads constructor(
 
     override fun hashCode() = list.hashCode()
 
+    override fun toString() = list.toString()
 }
 
 inline fun buildServiceUpdates(builderAction: MutableCollection<ServiceUpdate>.() -> Unit): ServiceUpdates {
