@@ -13,15 +13,11 @@ data class ServiceUpdates @JvmOverloads constructor(
 
         @JvmStatic
         fun from(serviceUpdates: Iterable<ServiceUpdate>) = serviceUpdates.toMutableList().toServiceUpdates()
-
-        @JvmStatic
-        fun fromDistinct(serviceUpdates: Iterable<ServiceUpdate>) = serviceUpdates.distinct().toServiceUpdates()
     }
 
     fun areUseful() = any { it.isUseful }
 
     fun isSeverityWarning(): Boolean = any { it.isSeverityWarning }
-    fun isSeverityInfo(): Boolean = !isSeverityWarning() && any { it.isSeverityInfo }
 
     @Suppress("unused") // main app only
     fun isSeverityWarningXorInfo(): Pair<Boolean, Boolean> {
@@ -29,6 +25,8 @@ data class ServiceUpdates @JvmOverloads constructor(
         if (any { it.isSeverityInfo }) return false to true
         return false to false
     }
+
+    fun distinct() = this.list.toSet().toServiceUpdates()
 
     fun filter(filter: (ServiceUpdate) -> Boolean): ServiceUpdates = filterTo(mutableListOf(), filter).toServiceUpdates()
 

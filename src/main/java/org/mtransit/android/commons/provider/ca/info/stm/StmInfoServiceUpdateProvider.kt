@@ -343,7 +343,7 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
                 }
             }
         }
-        return serviceUpdates
+        return serviceUpdates.distinct()
     }
 
     @VisibleForTesting

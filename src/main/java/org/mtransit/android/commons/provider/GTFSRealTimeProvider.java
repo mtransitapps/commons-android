@@ -1099,7 +1099,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 				serviceUpdates.add(newServiceUpdate);
 			}
 		}
-		return ServiceUpdates.fromDistinct(serviceUpdates);
+		return serviceUpdates.distinct();
 	}
 
 	@Nullable
