@@ -49,6 +49,18 @@ class ServiceUpdates @JvmOverloads constructor(
     override fun <T> toArray(generator: IntFunction<Array<out T?>?>): Array<out T?> {
         return super.toArray(generator)
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ServiceUpdates) return false
+
+        if (list != other.list) return false
+
+        return true
+    }
+
+    override fun hashCode() = list.hashCode()
+
 }
 
 inline fun buildServiceUpdates(builderAction: MutableCollection<ServiceUpdate>.() -> Unit): ServiceUpdates {
