@@ -98,8 +98,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
             ?.let {
                 addAll(it)
             }
-    }.map {
-        it.apply { targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID }
+        forEach { it.apply { targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID } }
     }
 
     @JvmStatic
@@ -144,12 +143,8 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
     }
 
     @JvmStatic
-    fun GTFSRealTimeProvider.enhanceServiceUpdate(cachedServiceUpdates: ServiceUpdates?) =
-        cachedServiceUpdates?.map { serviceUpdate ->
-            serviceUpdate.apply {
-                setTextHTML(enhanceHtmlDateTime(requireContextCompat(), serviceUpdate.textHTML))
-            }
-        }
+    fun GTFSRealTimeProvider.enhanceServiceUpdate(cachedServiceUpdates: ServiceUpdates?): ServiceUpdates? =
+        cachedServiceUpdates?.apply { forEach { it.setTextHTML(enhanceHtmlDateTime(requireContextCompat(), it.textHTML)) } }
 
     @JvmStatic
     fun GTFSRealTimeProvider.setTripIdsOutOfSync(serviceUpdates: ServiceUpdates) {

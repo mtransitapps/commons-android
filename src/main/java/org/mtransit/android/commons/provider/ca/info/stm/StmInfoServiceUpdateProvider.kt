@@ -80,8 +80,7 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
         getCachedServiceUpdatesS(targetUUIDs.keys)?.let {
             addAll(it)
         }
-    }.map {
-        it.apply { targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID }
+        forEach { it.apply { targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID } }
     }
 
     @JvmStatic

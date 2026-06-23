@@ -3,9 +3,9 @@ package org.mtransit.android.commons.data
 import android.annotation.SuppressLint
 import java.util.function.IntFunction
 
-data class ServiceUpdates @JvmOverloads constructor(
+class ServiceUpdates @JvmOverloads constructor(
     val list: MutableList<ServiceUpdate> = mutableListOf(),
-) : MutableCollection<ServiceUpdate> by list {
+) : MutableList<ServiceUpdate> by list {
 
     companion object {
         @JvmStatic
@@ -45,7 +45,7 @@ data class ServiceUpdates @JvmOverloads constructor(
 
     @SuppressLint("DeprecatedCall")
     @Suppress("DEPRECATION")
-    @Deprecated("deprecated in MutableList")
+    @Deprecated("deprecated in Collection")
     override fun <T> toArray(generator: IntFunction<Array<out T?>?>): Array<out T?> {
         return super.toArray(generator)
     }
