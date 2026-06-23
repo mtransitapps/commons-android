@@ -26,9 +26,15 @@ data class ServiceUpdates @JvmOverloads constructor(
         return false to false
     }
 
+    @Suppress("unused") // main app only
+    fun distinctByOriginalId(): ServiceUpdates = this.distinctBy { it.originalId ?: it.id }.toServiceUpdates() // keep 1st occurrence from sorted list (in *Manager)
+
     fun distinct() = this.list.toSet().toServiceUpdates()
 
     fun filter(filter: (ServiceUpdate) -> Boolean): ServiceUpdates = filterTo(mutableListOf(), filter).toServiceUpdates()
+    fun filterNot(filter: (ServiceUpdate) -> Boolean): ServiceUpdates = filterNotTo(mutableListOf(), filter).toServiceUpdates()
+
+    fun map(transform: (ServiceUpdate) -> ServiceUpdate) = mapTo(mutableListOf(), transform).toServiceUpdates()
 
     @SuppressLint("DeprecatedCall")
     @Suppress("DEPRECATION")
@@ -38,9 +44,11 @@ data class ServiceUpdates @JvmOverloads constructor(
     }
 }
 
-fun ServiceUpdates?.orEmpty(): ServiceUpdates = this ?: ServiceUpdates()
-@Suppress("unused") // main app only
-fun ServiceUpdates.distinctByOriginalId(): ServiceUpdates = this.distinctBy { it.originalId ?: it.id }.toServiceUpdates() // keep 1st occurrence from sorted list (in *Manager)
+inline fun buildServiceUpdates(builderAction: MutableList<ServiceUpdate>.() -> Unit): ServiceUpdates {
+    return ServiceUpdates().apply(builderAction)
+}
 
-fun MutableList<ServiceUpdate>.toServiceUpdates(): ServiceUpdates = ServiceUpdates(this)
-fun Collection<ServiceUpdate>.toServiceUpdates(): ServiceUpdates = ServiceUpdates.from(this)
+fun ServiceUpdates?.orEmpty(): ServiceUpdates = this ?: ServiceUpdates()
+
+private fun MutableList<ServiceUpdate>.toServiceUpdates(): ServiceUpdates = ServiceUpdates(this)
+private fun Collection<ServiceUpdate>.toServiceUpdates(): ServiceUpdates = ServiceUpdates.from(this)

@@ -3,8 +3,8 @@ package org.mtransit.android.commons.provider.serviceupdate
 import androidx.annotation.VisibleForTesting
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.data.ServiceUpdates
+import org.mtransit.android.commons.data.buildServiceUpdates
 import org.mtransit.android.commons.data.makeServiceUpdateNoneList
-import org.mtransit.android.commons.data.toServiceUpdates
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.AGENCY_SOURCE_ID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionStopTagTargetUUID
@@ -84,7 +84,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
                         return@let cache.filterNot { serviceUpdate ->
                             // remove service updates targeted to the entire agency or all route type for a specific trip ID
                             serviceUpdate.targetUUID in targetUUIDsToBroad && serviceUpdate.targetTripId != null
-                        }.toServiceUpdates()
+                        }
                     }
             }
     }
@@ -93,14 +93,14 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
         targetUUIDs: Map<String, String>,
         tripIds: List<String>?,
         getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> ServiceUpdates?,
-    ) = buildList {
+    ) = buildServiceUpdates {
         getCachedServiceUpdates(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
             ?.let {
                 addAll(it)
             }
     }.map {
         it.apply { targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID }
-    }.toServiceUpdates()
+    }
 
     @JvmStatic
     fun GTFSRealTimeProvider.getNew(filter: ServiceUpdateProviderContract.Filter): ServiceUpdates? {
@@ -149,7 +149,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
             serviceUpdate.apply {
                 setTextHTML(enhanceHtmlDateTime(requireContextCompat(), serviceUpdate.textHTML))
             }
-        }?.toServiceUpdates()
+        }
 
     @JvmStatic
     fun GTFSRealTimeProvider.setTripIdsOutOfSync(serviceUpdates: ServiceUpdates) {

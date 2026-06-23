@@ -5,12 +5,12 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mtransit.android.commons.data.ServiceUpdates
+import org.mtransit.android.commons.data.buildServiceUpdates
 import org.mtransit.android.commons.data.clone
 import org.mtransit.android.commons.data.getGTFSRTTargetUUID
 import org.mtransit.android.commons.data.makeRDS
 import org.mtransit.android.commons.data.makeServiceUpdate
 import org.mtransit.android.commons.data.toRouteDirection
-import org.mtransit.android.commons.data.toServiceUpdates
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionStopTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionTagTargetUUID
@@ -65,7 +65,7 @@ class GTFSRealTimeServiceAlertsProviderTest {
             stopId = 30,
         )
         gtfsRealTimeProvider.setupProviderForRDS(rds3)
-        val cachedServiceUpdates = buildList {
+        val cachedServiceUpdates = buildServiceUpdates {
             add(makeServiceUpdate(targetUUID = rds1.getGTFSRTTargetUUID(true), targetTripId = "tripId10", text = "Text 10"))
             add(makeServiceUpdate(targetUUID = rds1.getGTFSRTTargetUUID(true), targetTripId = "tripId11", text = "Text 11"))
             add(makeServiceUpdate(targetUUID = rds1.toRouteDirection().getGTFSRTTargetUUID(), targetTripId = "tripId12", text = "Text 12"))
@@ -80,7 +80,7 @@ class GTFSRealTimeServiceAlertsProviderTest {
             cachedServiceUpdates.filter { serviceUpdate ->
                 targetUUIDs.contains(serviceUpdate.targetUUID)
                         && serviceUpdate.targetTripId?.let { tripIds?.contains(it) } != false // ignore if target tripID or local trip ID null
-            }.map { it.clone() }.toServiceUpdates()
+            }.map { it.clone() }
         }
         gtfsRealTimeProvider.getCached(
             filter = ServiceUpdateProviderContract.Filter(rds1),

@@ -16,8 +16,8 @@ import org.mtransit.android.commons.data.RouteDirection
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.ServiceUpdate
 import org.mtransit.android.commons.data.ServiceUpdates
+import org.mtransit.android.commons.data.buildServiceUpdates
 import org.mtransit.android.commons.data.makeServiceUpdate
-import org.mtransit.android.commons.data.toServiceUpdates
 import org.mtransit.android.commons.provider.StmInfoApiProvider
 import org.mtransit.android.commons.provider.StmInfoApiProvider.getSERVICE_UPDATES_URL_CACHED
 import org.mtransit.android.commons.provider.StmInfoApiProvider.getSERVICE_UPDATE_DESC_INFO_REGEXES
@@ -76,13 +76,13 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
             }
     }
 
-    fun StmInfoApiProvider.getCached(targetUUIDs: Map<String, String>) = buildList {
+    fun StmInfoApiProvider.getCached(targetUUIDs: Map<String, String>) = buildServiceUpdates {
         getCachedServiceUpdatesS(targetUUIDs.keys)?.let {
             addAll(it)
         }
     }.map {
         it.apply { targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID }
-    }.toServiceUpdates()
+    }
 
     @JvmStatic
     fun StmInfoApiProvider.getNew(filter: ServiceUpdateProviderContract.Filter): ServiceUpdates? {

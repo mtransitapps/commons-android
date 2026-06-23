@@ -6,6 +6,7 @@ import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.data.ServiceUpdate
 import org.mtransit.android.commons.data.ServiceUpdates
+import org.mtransit.android.commons.data.buildServiceUpdates
 import org.mtransit.android.commons.data.toServiceUpdates
 import org.mtransit.commons.FeatureFlags
 
@@ -56,7 +57,7 @@ private fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
             }.query(
                 getReadDB(), ServiceUpdateProviderContract.PROJECTION_SERVICE_UPDATE, selection, null, null, null, null, null
             ).use { cursor ->
-                buildList {
+                buildServiceUpdates {
                     if (cursor != null && cursor.count > 0) {
                         if (cursor.moveToFirst()) {
                             do {
@@ -64,7 +65,7 @@ private fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
                             } while (cursor.moveToNext())
                         }
                     }
-                }.toServiceUpdates()
+                }
             }
     } catch (e: Exception) {
         MTLog.w(LOG_TAG, e, "Error!")

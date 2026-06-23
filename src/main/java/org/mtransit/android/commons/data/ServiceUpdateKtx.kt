@@ -18,9 +18,9 @@ fun ServiceUpdate.syncTargetUUID(targetUUIDs: Map<String, String>?) {
 }
 
 fun ServiceUpdateProviderContract.makeServiceUpdateNoneList(targetable: Targetable, sourceId: String) =
-    buildList {
+    buildServiceUpdates {
         add(makeServiceUpdateNone(targetable.uuid, sourceId))
-    }.toServiceUpdates()
+    }
 
 fun ServiceUpdateProviderContract.makeServiceUpdateNone(targetUUID: String, sourceId: String) =
     makeServiceUpdate(
