@@ -9,7 +9,7 @@ class ServiceUpdates @JvmOverloads constructor(
 
     companion object {
         @JvmStatic
-        fun empty() = ServiceUpdates()
+        fun newEmpty() = ServiceUpdates()
     }
 
     fun areUseful() = any { it.isUseful }
@@ -26,15 +26,7 @@ class ServiceUpdates @JvmOverloads constructor(
     @Suppress("unused") // main app only
     fun distinctByOriginalId(): ServiceUpdates = ServiceUpdates(this.distinctBy { it.originalId ?: it.id }.toMutableList())
 
-    fun distinct(): ServiceUpdates {
-        val set = LinkedHashSet<ServiceUpdate>()
-        return buildServiceUpdates {
-            for (element in this@ServiceUpdates) {
-                if (!set.add(element)) continue // already in the list
-                add(element)
-            }
-        }
-    }
+    fun distinct(): ServiceUpdates = ServiceUpdates(this.toSet().toMutableList())
 
     fun filter(filter: (ServiceUpdate) -> Boolean) = ServiceUpdates(filterTo(mutableListOf(), filter))
     fun filterNot(filter: (ServiceUpdate) -> Boolean) = ServiceUpdates(filterNotTo(mutableListOf(), filter))
@@ -67,4 +59,4 @@ inline fun buildServiceUpdates(builderAction: MutableCollection<ServiceUpdate>.(
     return ServiceUpdates().apply(builderAction)
 }
 
-fun ServiceUpdates?.orEmpty(): ServiceUpdates = this ?: ServiceUpdates.empty()
+fun ServiceUpdates?.orNewEmpty(): ServiceUpdates = this ?: ServiceUpdates.newEmpty()
