@@ -10,7 +10,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.SecureStringUtils;
 import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
@@ -21,9 +20,6 @@ import org.mtransit.android.commons.data.ServiceUpdates;
 import org.mtransit.android.commons.data.Targetable;
 import org.mtransit.android.commons.provider.common.ProviderContract;
 import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderFilter;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public interface ServiceUpdateProviderContract extends ProviderContract {
 
@@ -97,7 +93,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 	}
 
 	@SuppressWarnings("WeakerAccess")
-	class Filter implements GTFSRealTimeProviderFilter, MTLog.Loggable {
+	class Filter extends ProviderContract.Filter implements GTFSRealTimeProviderFilter, MTLog.Loggable {
 
 		private static final String LOG_TAG = ServiceUpdateProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
@@ -107,10 +103,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			return LOG_TAG;
 		}
 
-		private static final boolean CACHE_ONLY_DEFAULT = false;
-
-		private static final boolean IN_FOCUS_DEFAULT = false;
-
 		@Nullable
 		private final POI poi; // RouteDirectionStop or DefaultPOI
 		@Nullable
@@ -119,15 +111,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		private final Route route;
 		@Nullable
 		private final RouteDirection routeDirection;
-
-		@Nullable
-		private Boolean cacheOnly = null;
-		@Nullable
-		private Long cacheValidityInMs = null;
-		@Nullable
-		private Boolean inFocus = null;
-		@Nullable
-		private Map<String, String> providedEncryptKeysMap = null;
 
 		public Filter(@NonNull POI poi) {
 			this.poi = poi;
@@ -153,11 +136,8 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		@NonNull
 		@Override
 		public String toString() {
-			final StringBuilder sb = new StringBuilder();
-			sb.append(Filter.class.getSimpleName())
-					.append("cacheOnly:").append(this.cacheOnly).append(',')
-					.append("inFocus:").append(this.inFocus).append(',')
-					.append("cacheValidityInMs:").append(this.cacheValidityInMs).append(',');
+			final StringBuilder sb = new StringBuilder(Filter.class.getSimpleName());
+			sb.append(super.toStringParts());
 			if (this.poi != null) {
 				sb.append("poi:").append(this.poi).append(',');
 			}
@@ -263,87 +243,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			return routeDirection;
 		}
 
-		@SuppressWarnings("unused")
-		public void setCacheOnly(@Nullable Boolean cacheOnly) {
-			this.cacheOnly = cacheOnly;
-		}
-
-		public boolean isCacheOnlyOrDefault() {
-			return this.cacheOnly == null ? CACHE_ONLY_DEFAULT : this.cacheOnly;
-		}
-
-		@Nullable
-		public Boolean getCacheOnlyOrNull() {
-			return this.cacheOnly;
-		}
-
-		public void setInFocus(@Nullable Boolean inFocus) {
-			this.inFocus = inFocus;
-		}
-
-		public boolean isInFocusOrDefault() {
-			return this.inFocus == null ? IN_FOCUS_DEFAULT : this.inFocus;
-		}
-
-		@Nullable
-		public Boolean getInFocusOrNull() {
-			return this.inFocus;
-		}
-
-		@Nullable
-		public Long getCacheValidityInMsOrNull() {
-			return this.cacheValidityInMs;
-		}
-
-		@SuppressWarnings("unused")
-		public boolean hasCacheValidityInMs() {
-			return this.cacheValidityInMs != null && this.cacheValidityInMs > 0;
-		}
-
-		@SuppressWarnings("unused")
-		public void setCacheValidityInMs(@Nullable Long cacheValidityInMs) {
-			this.cacheValidityInMs = cacheValidityInMs;
-		}
-
-		@NonNull
-		public Filter setProvidedEncryptKeysMap(@Nullable Map<String, String> providedEncryptKeysMap) {
-			this.providedEncryptKeysMap = providedEncryptKeysMap;
-			return this;
-		}
-
-		@SuppressWarnings("unused")
-		public boolean hasProvidedEncryptKeysMap() {
-			return this.providedEncryptKeysMap != null && !this.providedEncryptKeysMap.isEmpty();
-		}
-
-		@Nullable
-		public Map<String, String> getProvidedEncryptKeysMap() {
-			return this.providedEncryptKeysMap;
-		}
-
-		@Nullable
-		public String getProvidedEncryptKey(@NonNull String key) {
-			if (this.providedEncryptKeysMap == null) {
-				return null;
-			}
-			final String value = this.providedEncryptKeysMap.get(key);
-			if (value == null || value.trim().isEmpty()) {
-				return null;
-			}
-			return value;
-		}
-
-		@NonNull
-		public Filter appendProvidedKeys(@Nullable Map<String, String> keysMap) {
-			final Map<String, String> providedEncryptKeysMap = new HashMap<>();
-			if (keysMap != null) {
-				for (Map.Entry<String, String> entry : keysMap.entrySet()) {
-					providedEncryptKeysMap.put(entry.getKey(), SecureStringUtils.enc(entry.getValue()));
-				}
-			}
-			return setProvidedEncryptKeysMap(providedEncryptKeysMap);
-		}
-
 		@Nullable
 		public static Filter fromJSONString(@Nullable String jsonString) {
 			try {
@@ -358,10 +257,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		private static final String JSON_ROUTE = "route";
 		private static final String JSON_ROUTE_DIRECTION = "routeDirection";
 		private static final String JSON_AUTHORITY = "authority";
-		private static final String JSON_CACHE_ONLY = "cacheOnly";
-		private static final String JSON_IN_FOCUS = "inFocus";
-		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
-		private static final String JSON_PROVIDED_ENCRYPT_KEYS_MAP = "providedEncryptKeysMap";
 
 		@Nullable
 		public static Filter fromJSON(@NonNull JSONObject json) {
@@ -382,14 +277,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 				} else {
 					return null; // WTF?
 				}
-				serviceUpdateFilter.cacheOnly = JSONUtils.optBoolean(json, JSON_CACHE_ONLY);
-				serviceUpdateFilter.inFocus = JSONUtils.optBoolean(json, JSON_IN_FOCUS);
-				if (json.has(JSON_CACHE_VALIDITY_IN_MS)) {
-					serviceUpdateFilter.cacheValidityInMs = json.getLong(JSON_CACHE_VALIDITY_IN_MS);
-				}
-				if (json.has(JSON_PROVIDED_ENCRYPT_KEYS_MAP)) {
-					serviceUpdateFilter.providedEncryptKeysMap = JSONUtils.toMapOfStrings(json.getJSONObject(JSON_PROVIDED_ENCRYPT_KEYS_MAP));
-				}
+				ProviderContract.Filter.fromJSON(serviceUpdateFilter, json);
 				return serviceUpdateFilter;
 			} catch (JSONException jsone) {
 				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", json);
@@ -404,14 +292,15 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 		@Nullable
 		public static String toJSONString(@NonNull Filter serviceUpdateFilter) {
-			JSONObject json = toJSON(serviceUpdateFilter);
+			final JSONObject json = toJSON(serviceUpdateFilter);
 			return json == null ? null : json.toString();
 		}
 
 		@Nullable
 		public static JSONObject toJSON(@NonNull Filter serviceUpdateFilter) {
 			try {
-				JSONObject json = new JSONObject();
+				final JSONObject json = new JSONObject();
+				ProviderContract.Filter.toJSON(serviceUpdateFilter, json);
 				if (serviceUpdateFilter.poi != null) {
 					json.put(JSON_POI, serviceUpdateFilter.poi.toJSON());
 				}
@@ -423,18 +312,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 				}
 				if (serviceUpdateFilter.authority != null) {
 					json.put(JSON_AUTHORITY, serviceUpdateFilter.authority);
-				}
-				if (serviceUpdateFilter.getCacheOnlyOrNull() != null) {
-					json.put(JSON_CACHE_ONLY, serviceUpdateFilter.getCacheOnlyOrNull());
-				}
-				if (serviceUpdateFilter.getInFocusOrNull() != null) {
-					json.put(JSON_IN_FOCUS, serviceUpdateFilter.getInFocusOrNull());
-				}
-				if (serviceUpdateFilter.getCacheValidityInMsOrNull() != null) {
-					json.put(JSON_CACHE_VALIDITY_IN_MS, serviceUpdateFilter.getCacheValidityInMsOrNull());
-				}
-				if (serviceUpdateFilter.getProvidedEncryptKeysMap() != null) {
-					json.put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, JSONUtils.toJSONObject(serviceUpdateFilter.getProvidedEncryptKeysMap()));
 				}
 				return json;
 			} catch (JSONException jsone) {

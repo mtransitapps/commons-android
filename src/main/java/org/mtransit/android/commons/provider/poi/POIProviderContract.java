@@ -106,7 +106,7 @@ public interface POIProviderContract extends ProviderContract {
 	}
 
 	@SuppressWarnings({"WeakerAccess", "unused"})
-	class Filter implements MTLog.Loggable {
+	class Filter extends ProviderContract.Filter implements MTLog.Loggable {
 
 		private static final String LOG_TAG = POIProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
@@ -262,10 +262,10 @@ public interface POIProviderContract extends ProviderContract {
 				sb.append("maxLat:").append(this.maxLat).append(',');
 				sb.append("minLng:").append(this.minLng).append(',');
 				sb.append("maxLng:").append(this.maxLng).append(',');
-				sb.append("optLoadedMinLat:").append(this.optLoadedMinLat).append(',');
-				sb.append("optLoadedMaxLat:").append(this.optLoadedMaxLat).append(',');
-				sb.append("optLoadedMinLng").append(this.optLoadedMinLng).append(',');
-				sb.append("optLoadedMaxLng:").append(this.optLoadedMaxLng).append(',');
+				if (optLoadedMinLat != null) sb.append("optLoadedMinLat:").append(this.optLoadedMinLat).append(',');
+				if (optLoadedMaxLat != null) sb.append("optLoadedMaxLat:").append(this.optLoadedMaxLat).append(',');
+				if (optLoadedMinLng != null) sb.append("optLoadedMinLng:").append(this.optLoadedMinLng).append(',');
+				if (optLoadedMaxLng != null) sb.append("optLoadedMaxLng:").append(this.optLoadedMaxLng).append(',');
 			} else if (isUUIDFilter(this)) {
 				sb.append("uuids:").append(this.uuids).append(',');
 			} else if (isSearchKeywords(this)) {
@@ -274,6 +274,7 @@ public interface POIProviderContract extends ProviderContract {
 				sb.append("sqlSelection:").append(this.sqlSelection).append(',');
 			}
 			sb.append("extras:").append(this.extras).append(',');
+			sb.append(super.toStringParts());
 			sb.append(']');
 			return sb.toString();
 		}
@@ -506,7 +507,8 @@ public interface POIProviderContract extends ProviderContract {
 		@SuppressWarnings("ConstantConditions")
 		private static Filter fromJSON(JSONObject json) {
 			try {
-				Filter poiFilter = new Filter();
+				final Filter poiFilter = new Filter();
+				ProviderContract.Filter.fromJSON(poiFilter, json);
 				Double lat;
 				Double lng;
 				Double aroundDiff;
@@ -647,6 +649,7 @@ public interface POIProviderContract extends ProviderContract {
 				}
 				JSONArray jExtras = new JSONArray();
 				if (poiFilter != null) {
+					ProviderContract.Filter.toJSON(poiFilter, json);
 					for (int i = 0; i < poiFilter.extras.size(); i++) {
 						JSONObject jExtra = new JSONObject();
 						jExtra.put(JSON_EXTRAS_KEY, poiFilter.extras.keyAt(i));

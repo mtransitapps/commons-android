@@ -94,7 +94,7 @@ object NextBusVehicleLocationsProvider {
 
     @JvmStatic
     fun NextBusProvider.getNew(filter: VehicleLocationProviderContract.Filter): List<VehicleLocation>? {
-        updateAgencyDataIfRequired(filter.inFocusOrDefault)
+        updateAgencyDataIfRequired(filter.isInFocusOrDefault)
         return getCached(filter)
     }
 

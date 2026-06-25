@@ -135,7 +135,7 @@ public interface NewsProviderContract extends ProviderContract {
 	};
 
 	@SuppressWarnings("WeakerAccess")
-	class Filter implements MTLog.Loggable {
+	class Filter extends ProviderContract.Filter implements MTLog.Loggable {
 
 		private static final String LOG_TAG = NewsProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
@@ -145,24 +145,12 @@ public interface NewsProviderContract extends ProviderContract {
 			return LOG_TAG;
 		}
 
-		private static final boolean CACHE_ONLY_DEFAULT = false;
-
-		private static final boolean IN_FOCUS_DEFAULT = false;
-
 		@Nullable
-		private List<String> uuids;
+		private List<String> articleUUIDs; // article UUIDs
 		@Nullable
-		private List<String> targets;
-		@Nullable
-		private Boolean cacheOnly = null;
-		@Nullable
-		private Long cacheValidityInMs = null;
-		@Nullable
-		private Boolean inFocus = null;
+		private List<String> targetUUIDs; // POI UUIDs
 		@Nullable
 		private Long minCreatedAtInMs = null;
-		@Nullable
-		private Map<String, String> providedEncryptKeysMap = null;
 
 		private Filter() {
 		}
@@ -173,37 +161,37 @@ public interface NewsProviderContract extends ProviderContract {
 		}
 
 		@NonNull
-		public static Filter getNewUUIDFilter(@NonNull String uuid) {
-			return getNewUUIDsFilter(Collections.singletonList(uuid));
+		public static Filter getNewArticleUUIDFilter(@NonNull String uuid) {
+			return getNewArticleUUIDsFilter(Collections.singletonList(uuid));
 		}
 
 		@NonNull
-		public static Filter getNewUUIDsFilter(@Nullable List<String> uuids) {
-			return new Filter().setUUIDs(uuids);
+		public static Filter getNewArticleUUIDsFilter(@Nullable List<String> uuids) {
+			return new Filter().setArticleUUIDs(uuids);
 		}
 
 		@NonNull
-		private Filter setUUIDs(@Nullable List<String> uuids) {
-			if (uuids == null || uuids.isEmpty()) {
-				throw new UnsupportedOperationException("Need at least 1 uuid!");
+		private Filter setArticleUUIDs(@Nullable List<String> articleUUIDs) {
+			if (articleUUIDs == null || articleUUIDs.isEmpty()) {
+				throw new UnsupportedOperationException("Need at least 1 article uuid!");
 			}
-			this.uuids = uuids;
+			this.articleUUIDs = articleUUIDs;
 			return this;
 		}
 
 		@SuppressWarnings("unused")
 		@Nullable
-		public List<String> getUUIDs() {
-			return uuids;
+		public List<String> getArticleUUIDs() {
+			return articleUUIDs;
 		}
 
 		@NonNull
-		public static Filter getNewTargetFilter(@NonNull POI poi) {
-			return getNewTargetsFilter(makeTargets(poi));
+		public static Filter getNewTargetUUIDsFilter(@NonNull POI poi) {
+			return getNewTargetsUUIDsFilter(makeTargetUUIDs(poi));
 		}
 
 		@NonNull
-		public static ArrayList<String> makeTargets(@NonNull POI poi) {
+		public static ArrayList<String> makeTargetUUIDs(@NonNull POI poi) {
 			final ArrayList<String> targets = new ArrayList<>();
 			targets.add(poi.getAuthority());
 			if (poi instanceof RouteDirectionStop) {
@@ -214,28 +202,28 @@ public interface NewsProviderContract extends ProviderContract {
 
 		@SuppressWarnings("unused")
 		@NonNull
-		public static Filter getNewTargetFilter(@NonNull String targets) {
-			return getNewUUIDsFilter(Collections.singletonList(targets));
+		public static Filter getNewTargetUUIDsFilter(@NonNull String targets) {
+			return getNewArticleUUIDsFilter(Collections.singletonList(targets));
 		}
 
 		@NonNull
-		public static Filter getNewTargetsFilter(@Nullable List<String> targets) {
-			return new Filter().setTargets(targets);
+		public static Filter getNewTargetsUUIDsFilter(@Nullable List<String> targets) {
+			return new Filter().setTargetUUIDs(targets);
 		}
 
 		@NonNull
-		private Filter setTargets(List<String> targets) {
-			if (targets == null || targets.isEmpty()) {
+		private Filter setTargetUUIDs(List<String> targetUUIDs) {
+			if (targetUUIDs == null || targetUUIDs.isEmpty()) {
 				throw new UnsupportedOperationException("Need at least 1 target!");
 			}
-			this.targets = targets;
+			this.targetUUIDs = targetUUIDs;
 			return this;
 		}
 
 		@SuppressWarnings("unused")
 		@Nullable
-		public List<String> getTargets() {
-			return targets;
+		public List<String> getTargetUUIDs() {
+			return targetUUIDs;
 		}
 
 		@NonNull
@@ -254,13 +242,11 @@ public interface NewsProviderContract extends ProviderContract {
 		public String toString() {
 			StringBuilder sb = new StringBuilder(Filter.class.getSimpleName()).append('[');
 			if (isUUIDFilter(this)) {
-				sb.append("uuids:").append(this.uuids).append(',');
+				sb.append("articleUUIDs:").append(this.articleUUIDs).append(',');
 			} else if (isTargetFilter(this)) {
-				sb.append("targets:").append(this.targets).append(',');
+				sb.append("targetsUUIDs:").append(this.targetUUIDs).append(',');
 			}
-			sb.append("cacheOnly:").append(this.cacheOnly).append(',');
-			sb.append("inFocus:").append(this.inFocus).append(',');
-			sb.append("cacheValidityInMs:").append(this.cacheValidityInMs).append(',');
+			sb.append(super.toStringParts());
 			sb.append("minCreatedAtInMs:").append(this.minCreatedAtInMs);
 			sb.append(']');
 			return sb.toString();
@@ -271,29 +257,29 @@ public interface NewsProviderContract extends ProviderContract {
 		public String toStringTargetsAndUuid() {
 			final StringBuilder sb = new StringBuilder(Filter.class.getSimpleName()).append('[');
 			if (isUUIDFilter(this)) {
-				sb.append("uuids:").append(this.uuids).append(',');
+				sb.append("articleUUIDs:").append(this.articleUUIDs).append(',');
 			} else if (isTargetFilter(this)) {
-				sb.append("targets:").append(this.targets).append(',');
+				sb.append("targetsUUIDs:").append(this.targetUUIDs).append(',');
 			}
 			sb.append(']');
 			return sb.toString();
 		}
 
 		public static boolean isUUIDFilter(@Nullable Filter newsFilter) {
-			return newsFilter != null && CollectionUtils.getSize(newsFilter.uuids) > 0;
+			return newsFilter != null && CollectionUtils.getSize(newsFilter.articleUUIDs) > 0;
 		}
 
 		public static boolean isTargetFilter(@Nullable Filter newsFilter) {
-			return newsFilter != null && CollectionUtils.getSize(newsFilter.targets) > 0;
+			return newsFilter != null && CollectionUtils.getSize(newsFilter.targetUUIDs) > 0;
 		}
 
 		@NonNull
 		public String getSqlSelection(@NonNull String uuidTableColumn, @NonNull String targetColumn, @NonNull String createdAtColumn) {
 			StringBuilder sb = new StringBuilder();
 			if (isUUIDFilter(this)) {
-				sb.append(SqlUtils.getWhereInString(uuidTableColumn, this.uuids));
+				sb.append(SqlUtils.getWhereInString(uuidTableColumn, this.articleUUIDs));
 			} else if (isTargetFilter(this)) {
-				sb.append(SqlUtils.getWhereInString(targetColumn, this.targets));
+				sb.append(SqlUtils.getWhereInString(targetColumn, this.targetUUIDs));
 			}
 			if (getMinCreatedAtInMsOrNull() != null) {
 				if (sb.length() > 0) {
@@ -302,92 +288,6 @@ public interface NewsProviderContract extends ProviderContract {
 				sb.append(SqlUtils.getWhereSuperior(createdAtColumn, getMinCreatedAtInMsOrNull()));
 			}
 			return sb.toString();
-		}
-
-		@SuppressWarnings("unused")
-		@NonNull
-		public Filter setCacheOnly(@Nullable Boolean cacheOnly) {
-			this.cacheOnly = cacheOnly;
-			return this;
-		}
-
-		public boolean isCacheOnlyOrDefault() {
-			return this.cacheOnly == null ? CACHE_ONLY_DEFAULT : this.cacheOnly;
-		}
-
-		@Nullable
-		public Boolean getCacheOnlyOrNull() {
-			return this.cacheOnly;
-		}
-
-		@NonNull
-		public Filter setInFocus(@Nullable Boolean inFocus) {
-			this.inFocus = inFocus;
-			return this;
-		}
-
-		public boolean isInFocusOrDefault() {
-			return this.inFocus == null ? IN_FOCUS_DEFAULT : this.inFocus;
-		}
-
-		@Nullable
-		public Boolean getInFocusOrNull() {
-			return this.inFocus;
-		}
-
-		@Nullable
-		public Long getCacheValidityInMsOrNull() {
-			return this.cacheValidityInMs;
-		}
-
-		@SuppressWarnings("unused")
-		public boolean hasCacheValidityInMs() {
-			return this.cacheValidityInMs != null && this.cacheValidityInMs > 0;
-		}
-
-		@SuppressWarnings("unused")
-		@NonNull
-		public Filter setCacheValidityInMs(@Nullable Long cacheValidityInMs) {
-			this.cacheValidityInMs = cacheValidityInMs;
-			return this;
-		}
-
-		@NonNull
-		public Filter setProvidedEncryptKeysMap(@Nullable Map<String, String> providedEncryptKeysMap) {
-			this.providedEncryptKeysMap = providedEncryptKeysMap;
-			return this;
-		}
-
-		public boolean hasProvidedEncryptKeysMap() {
-			return this.providedEncryptKeysMap != null && !this.providedEncryptKeysMap.isEmpty();
-		}
-
-		@Nullable
-		public Map<String, String> getProvidedEncryptKeysMap() {
-			return this.providedEncryptKeysMap;
-		}
-
-		@Nullable
-		public String getProvidedEncryptKey(@NonNull String key) {
-			if (this.providedEncryptKeysMap == null) {
-				return null;
-			}
-			final String value = this.providedEncryptKeysMap.get(key);
-			if (value == null || value.trim().isEmpty()) {
-				return null;
-			}
-			return value;
-		}
-
-		@NonNull
-		public Filter appendProvidedKeys(@Nullable Map<String, String> keysMap) {
-			final Map<String, String> providedEncryptKeysMap = new HashMap<>();
-			if (keysMap != null) {
-				for (Map.Entry<String, String> entry : keysMap.entrySet()) {
-					providedEncryptKeysMap.put(entry.getKey(), SecureStringUtils.enc(entry.getValue()));
-				}
-			}
-			return setProvidedEncryptKeysMap(providedEncryptKeysMap);
 		}
 
 		@Nullable
@@ -400,47 +300,32 @@ public interface NewsProviderContract extends ProviderContract {
 			}
 		}
 
-		private static final String JSON_UUIDS = "uuids";
-		private static final String JSON_TARGETS = "targets";
-		private static final String JSON_CACHE_ONLY = "cacheOnly";
-		private static final String JSON_IN_FOCUS = "inFocus";
-		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
+		private static final String JSON_ARTICLE_UUIDS = "uuids"; // article UUIDs
+		private static final String JSON_TARGETS_UUIDS = "targets"; // POI UUIDs
 		private static final String JSON_MIN_CREATED_AT_IN_MS = "minCreatedAtInMs";
-		private static final String JSON_PROVIDED_ENCRYPT_KEYS_MAP = "providedEncryptKeysMap";
 
 		@Nullable
 		public static Filter fromJSON(@NonNull JSONObject json) {
 			try {
-				Filter newsFilter = new Filter();
-				JSONArray jUUIDs = json.optJSONArray(JSON_UUIDS);
-				JSONArray jTargets = json.optJSONArray(JSON_TARGETS);
-				if (jUUIDs != null && jUUIDs.length() > 0) {
-					ArrayList<String> uuids = new ArrayList<>();
-					for (int i = 0; i < jUUIDs.length(); i++) {
-						uuids.add(jUUIDs.getString(i));
+				final Filter newsFilter = new Filter();
+				ProviderContract.Filter.fromJSON(newsFilter, json);
+				final JSONArray jArticleUUIDs = json.optJSONArray(JSON_ARTICLE_UUIDS);
+				final JSONArray jTargetsUUIDs = json.optJSONArray(JSON_TARGETS_UUIDS);
+				if (jArticleUUIDs != null && jArticleUUIDs.length() > 0) {
+					final ArrayList<String> articleUUIDs = new ArrayList<>();
+					for (int i = 0; i < jArticleUUIDs.length(); i++) {
+						articleUUIDs.add(jArticleUUIDs.getString(i));
 					}
-					newsFilter.setUUIDs(uuids);
-				} else if (jTargets != null && jTargets.length() > 0) {
-					ArrayList<String> targets = new ArrayList<>();
-					for (int i = 0; i < jTargets.length(); i++) {
-						targets.add(jTargets.getString(i));
+					newsFilter.setArticleUUIDs(articleUUIDs);
+				} else if (jTargetsUUIDs != null && jTargetsUUIDs.length() > 0) {
+					final ArrayList<String> targetsUUIDs = new ArrayList<>();
+					for (int i = 0; i < jTargetsUUIDs.length(); i++) {
+						targetsUUIDs.add(jTargetsUUIDs.getString(i));
 					}
-					newsFilter.setTargets(targets);
-				}
-				if (json.has(JSON_CACHE_ONLY)) {
-					newsFilter.cacheOnly = json.getBoolean(JSON_CACHE_ONLY);
-				}
-				if (json.has(JSON_IN_FOCUS)) {
-					newsFilter.inFocus = json.getBoolean(JSON_IN_FOCUS);
-				}
-				if (json.has(JSON_CACHE_VALIDITY_IN_MS)) {
-					newsFilter.cacheValidityInMs = json.getLong(JSON_CACHE_VALIDITY_IN_MS);
+					newsFilter.setTargetUUIDs(targetsUUIDs);
 				}
 				if (json.has(JSON_MIN_CREATED_AT_IN_MS)) {
 					newsFilter.minCreatedAtInMs = json.getLong(JSON_MIN_CREATED_AT_IN_MS);
-				}
-				if (json.has(JSON_PROVIDED_ENCRYPT_KEYS_MAP)) {
-					newsFilter.providedEncryptKeysMap = JSONUtils.toMapOfStrings(json.getJSONObject(JSON_PROVIDED_ENCRYPT_KEYS_MAP));
 				}
 				return newsFilter;
 			} catch (JSONException jsone) {
@@ -456,41 +341,30 @@ public interface NewsProviderContract extends ProviderContract {
 
 		@Nullable
 		public static String toJSONString(@NonNull Filter newsFilter) {
-			JSONObject json = toJSON(newsFilter);
+			final JSONObject json = toJSON(newsFilter);
 			return json == null ? null : json.toString();
 		}
 
 		@Nullable
 		public static JSONObject toJSON(@NonNull Filter newsFilter) {
 			try {
-				JSONObject json = new JSONObject();
+				final JSONObject json = new JSONObject();
+				ProviderContract.Filter.toJSON(newsFilter, json);
 				if (newsFilter.getMinCreatedAtInMsOrNull() != null) {
 					json.put(JSON_MIN_CREATED_AT_IN_MS, newsFilter.getMinCreatedAtInMsOrNull());
 				}
-				if (newsFilter.getCacheOnlyOrNull() != null) {
-					json.put(JSON_CACHE_ONLY, newsFilter.getCacheOnlyOrNull());
-				}
-				if (newsFilter.getInFocusOrNull() != null) {
-					json.put(JSON_IN_FOCUS, newsFilter.getInFocusOrNull());
-				}
-				if (newsFilter.getCacheValidityInMsOrNull() != null) {
-					json.put(JSON_CACHE_VALIDITY_IN_MS, newsFilter.getCacheValidityInMsOrNull());
-				}
-				if (isUUIDFilter(newsFilter) && newsFilter.uuids != null) {
-					JSONArray jUUIDs = new JSONArray();
-					for (String uuid : newsFilter.uuids) {
-						jUUIDs.put(uuid);
+				if (isUUIDFilter(newsFilter) && newsFilter.articleUUIDs != null) {
+					final JSONArray jArticleUUIDs = new JSONArray();
+					for (String articleUUID : newsFilter.articleUUIDs) {
+						jArticleUUIDs.put(articleUUID);
 					}
-					json.put(JSON_UUIDS, jUUIDs);
-				} else if (isTargetFilter(newsFilter) && newsFilter.targets != null) {
-					JSONArray jTargets = new JSONArray();
-					for (String uuid : newsFilter.targets) {
-						jTargets.put(uuid);
+					json.put(JSON_ARTICLE_UUIDS, jArticleUUIDs);
+				} else if (isTargetFilter(newsFilter) && newsFilter.targetUUIDs != null) {
+					final JSONArray jTargetUUIDs = new JSONArray();
+					for (String targetUUID : newsFilter.targetUUIDs) {
+						jTargetUUIDs.put(targetUUID);
 					}
-					json.put(JSON_TARGETS, jTargets);
-				}
-				if (newsFilter.getProvidedEncryptKeysMap() != null) {
-					json.put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, JSONUtils.toJSONObject(newsFilter.getProvidedEncryptKeysMap()));
+					json.put(JSON_TARGETS_UUIDS, jTargetUUIDs);
 				}
 				return json;
 			} catch (JSONException jsone) {

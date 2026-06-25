@@ -72,13 +72,13 @@ abstract class VehicleLocationProvider : MTContentProvider(),
                     }
                 }
             }
-            if (filter.cacheOnlyOrDefault) {
+            if (filter.isCacheOnlyOrDefault) {
                 if (cachedVehicleLocations.isNullOrEmpty()) {
                     MTLog.w(this, "getVehicleLocations() > No useful cache found!")
                 }
                 return getVehicleLocationCursor(cachedVehicleLocations)
             }
-            val cacheValidityInMs = getVehicleLocationValidityInMs(filter.inFocusOrDefault)
+            val cacheValidityInMs = getVehicleLocationValidityInMs(filter.isInFocusOrDefault)
             // TODO filter cache validity override like service update?
             var loadNewVehicleLocations = false
             if (cachedVehicleLocations.isNullOrEmpty()) {
