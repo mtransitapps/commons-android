@@ -654,6 +654,12 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 		@Nullable
 		@Override
+		public String toJSONString() {
+			return toJSONString(this);
+		}
+
+		@Nullable
+		@Override
 		public String toJSONStringStatic(@NonNull StatusProviderContract.Filter statusFilter) {
 			return toJSONString(statusFilter);
 		}

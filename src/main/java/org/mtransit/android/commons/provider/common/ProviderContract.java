@@ -90,14 +90,16 @@ public interface ProviderContract extends MTLog.Loggable {
 			this.inFocus = inFocus;
 		}
 
-		public void setProvidedEncryptKeysMap(@Nullable Map<String, String> providedEncryptKeysMap) {
+		void setProvidedEncryptKeysMap(@Nullable Map<String, String> providedEncryptKeysMap) {
 			this.providedEncryptKeysMap = providedEncryptKeysMap;
 		}
 
+		@SuppressWarnings("unused")
 		public boolean hasProvidedEncryptKeysMap() {
 			return this.providedEncryptKeysMap != null && !this.providedEncryptKeysMap.isEmpty();
 		}
 
+		@SuppressWarnings("unused")
 		@Nullable
 		public Map<String, String> getProvidedEncryptKeysMap() {
 			return this.providedEncryptKeysMap;
@@ -115,7 +117,9 @@ public interface ProviderContract extends MTLog.Loggable {
 			final Map<String, String> providedEncryptKeysMap = new HashMap<>();
 			if (keysMap != null) {
 				for (Map.Entry<String, String> entry : keysMap.entrySet()) {
-					providedEncryptKeysMap.put(entry.getKey(), SecureStringUtils.enc(entry.getValue()));
+					final String enc = SecureStringUtils.enc(entry.getValue());
+					if (enc == null) continue;
+					providedEncryptKeysMap.put(entry.getKey(), enc);
 				}
 			}
 			setProvidedEncryptKeysMap(providedEncryptKeysMap);
@@ -132,6 +136,10 @@ public interface ProviderContract extends MTLog.Loggable {
 			return json.has(JSON_CACHE_VALIDITY_IN_MS) ? json.getLong(JSON_CACHE_VALIDITY_IN_MS) : null;
 		}
 
+		@SuppressWarnings("unused")
+		@Nullable
+		public abstract String toJSONString();
+
 		public static void toJSON(@NonNull Filter filter, @NonNull JSONObject json) throws JSONException {
 			if (filter.cacheOnly != null) {
 				json.put(JSON_CACHE_ONLY, filter.cacheOnly);
@@ -142,8 +150,8 @@ public interface ProviderContract extends MTLog.Loggable {
 			if (filter.inFocus != null) {
 				json.put(JSON_IN_FOCUS, filter.inFocus);
 			}
-			if (filter.getProvidedEncryptKeysMap() != null) {
-				json.put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, JSONUtils.toJSONObject(filter.getProvidedEncryptKeysMap()));
+			if (filter.providedEncryptKeysMap != null) {
+				json.put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, JSONUtils.toJSONObject(filter.providedEncryptKeysMap));
 			}
 		}
 

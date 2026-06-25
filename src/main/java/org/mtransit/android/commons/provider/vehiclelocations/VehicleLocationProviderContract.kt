@@ -166,7 +166,7 @@ interface VehicleLocationProviderContract : ProviderContract {
         override fun getLogTag() = LOG_TAG
 
         @Suppress("unused") // used from main app
-        fun toJSONString() = toJSONString(this)
+        override fun toJSONString() = toJSONString(this)
 
         private val _route: Route?
             get() = (poi as? RouteDirectionStop)?.route

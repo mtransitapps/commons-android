@@ -249,23 +249,29 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 
 		@Nullable
 		@Override
+		public String toJSONString() {
+			return toJSONString(this);
+		}
+
+		@Nullable
+		@Override
 		public String toJSONStringStatic(@NonNull StatusProviderContract.Filter statusFilter) {
 			return toJSONString(statusFilter);
 		}
 
 		@Nullable
 		private static String toJSONString(@NonNull StatusProviderContract.Filter statusFilter) {
-			JSONObject json = toJSON(statusFilter);
+			final JSONObject json = toJSON(statusFilter);
 			return json == null ? null : json.toString();
 		}
 
 		@Nullable
 		private static JSONObject toJSON(@NonNull StatusProviderContract.Filter statusFilter) {
 			try {
-				JSONObject json = new JSONObject();
+				final JSONObject json = new JSONObject();
 				StatusProviderContract.Filter.toJSON(statusFilter, json);
 				if (statusFilter instanceof AppStatusFilter) {
-					AppStatusFilter appStatusFilter = (AppStatusFilter) statusFilter;
+					final AppStatusFilter appStatusFilter = (AppStatusFilter) statusFilter;
 					json.put(JSON_PKG, appStatusFilter.pkg);
 				}
 				return json;

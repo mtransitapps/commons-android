@@ -331,6 +331,7 @@ public interface NewsProviderContract extends ProviderContract {
 		}
 
 		@Nullable
+		@Override
 		public String toJSONString() {
 			return toJSONString(this);
 		}
