@@ -141,7 +141,7 @@ public interface StatusProviderContract extends ProviderContract {
 			return Filter.class.getSimpleName() + "{" +
 					"targetUUID='" + targetUUID + '\'' +
 					", type=" + type +
-					super.toStringParts() +
+					", " + super.toStringParts() +
 					'}';
 		}
 	}

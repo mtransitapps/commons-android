@@ -606,9 +606,21 @@ public interface POIProviderContract extends ProviderContract {
 		private static final String JSON_EXTRAS_VALUE = "value";
 
 		@Nullable
+		@Override
+		public String toJSONString() {
+			return toJSONString(this);
+		}
+
+		@Nullable
+		private static String toJSONString(@NonNull Filter statusFilter) {
+			final JSONObject json = toJSON(statusFilter);
+			return json == null ? null : json.toString();
+		}
+
+		@Nullable
 		public static JSONObject toJSON(@Nullable Filter poiFilter) {
 			try {
-				JSONObject json = new JSONObject();
+				final JSONObject json = new JSONObject();
 				if (isAreaFilter(poiFilter)) {
 					json.put(JSON_LAT, poiFilter.lat);
 					json.put(JSON_LNG, poiFilter.lng);
@@ -647,7 +659,7 @@ public interface POIProviderContract extends ProviderContract {
 				} else {
 					MTLog.w(LOG_TAG, "Empty POI filter '%s' converted to JSON!", poiFilter);
 				}
-				JSONArray jExtras = new JSONArray();
+				final JSONArray jExtras = new JSONArray();
 				if (poiFilter != null) {
 					ProviderContract.Filter.toJSON(poiFilter, json);
 					for (int i = 0; i < poiFilter.extras.size(); i++) {
