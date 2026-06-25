@@ -111,7 +111,7 @@ public interface ProviderContract extends MTLog.Loggable {
 			return value;
 		}
 
-		public void appendProvidedKeys(@Nullable Map<String, String> keysMap) {
+		public void setProvidedKeys(@Nullable Map<String, String> keysMap) {
 			final Map<String, String> providedEncryptKeysMap = new HashMap<>();
 			if (keysMap != null) {
 				for (Map.Entry<String, String> entry : keysMap.entrySet()) {

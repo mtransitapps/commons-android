@@ -11,9 +11,7 @@ import androidx.collection.ArrayMap;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.SecureStringUtils;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.data.POI;
@@ -24,9 +22,7 @@ import org.mtransit.commons.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public interface NewsProviderContract extends ProviderContract {
 
@@ -146,9 +142,9 @@ public interface NewsProviderContract extends ProviderContract {
 		}
 
 		@Nullable
-		private List<String> articleUUIDs; // article UUIDs
+		private List<String> articlesUUIDs; // article UUIDs
 		@Nullable
-		private List<String> targetUUIDs; // POI UUIDs
+		private List<String> targetsUUIDs; // POI UUIDs
 		@Nullable
 		private Long minCreatedAtInMs = null;
 
@@ -161,69 +157,69 @@ public interface NewsProviderContract extends ProviderContract {
 		}
 
 		@NonNull
-		public static Filter getNewArticleUUIDFilter(@NonNull String uuid) {
-			return getNewArticleUUIDsFilter(Collections.singletonList(uuid));
+		public static Filter getNewArticleUUIDFilter(@NonNull String articleUUID) {
+			return getNewArticlesUUIDsFilter(Collections.singletonList(articleUUID));
 		}
 
 		@NonNull
-		public static Filter getNewArticleUUIDsFilter(@Nullable List<String> uuids) {
-			return new Filter().setArticleUUIDs(uuids);
+		public static Filter getNewArticlesUUIDsFilter(@Nullable List<String> articlesUUIDs) {
+			return new Filter().setArticlesUUIDs(articlesUUIDs);
 		}
 
 		@NonNull
-		private Filter setArticleUUIDs(@Nullable List<String> articleUUIDs) {
-			if (articleUUIDs == null || articleUUIDs.isEmpty()) {
+		private Filter setArticlesUUIDs(@Nullable List<String> articlesUUIDs) {
+			if (articlesUUIDs == null || articlesUUIDs.isEmpty()) {
 				throw new UnsupportedOperationException("Need at least 1 article uuid!");
 			}
-			this.articleUUIDs = articleUUIDs;
+			this.articlesUUIDs = articlesUUIDs;
 			return this;
 		}
 
 		@SuppressWarnings("unused")
 		@Nullable
-		public List<String> getArticleUUIDs() {
-			return articleUUIDs;
+		public List<String> getArticlesUUIDs() {
+			return articlesUUIDs;
 		}
 
 		@NonNull
 		public static Filter getNewTargetUUIDsFilter(@NonNull POI poi) {
-			return getNewTargetsUUIDsFilter(makeTargetUUIDs(poi));
+			return getNewTargetsUUIDsFilter(makeTargetsUUIDs(poi));
 		}
 
 		@NonNull
-		public static ArrayList<String> makeTargetUUIDs(@NonNull POI poi) {
-			final ArrayList<String> targets = new ArrayList<>();
-			targets.add(poi.getAuthority());
+		public static ArrayList<String> makeTargetsUUIDs(@NonNull POI poi) {
+			final ArrayList<String> targetsUUIDs = new ArrayList<>();
+			targetsUUIDs.add(poi.getAuthority());
 			if (poi instanceof RouteDirectionStop) {
-				targets.add(POI.POIUtils.makeUUID(poi.getAuthority(), ((RouteDirectionStop) poi).getRoute().getId()));
+				targetsUUIDs.add(POI.POIUtils.makeUUID(poi.getAuthority(), ((RouteDirectionStop) poi).getRoute().getId()));
 			}
-			return targets;
+			return targetsUUIDs;
 		}
 
 		@SuppressWarnings("unused")
 		@NonNull
-		public static Filter getNewTargetUUIDsFilter(@NonNull String targets) {
-			return getNewArticleUUIDsFilter(Collections.singletonList(targets));
+		public static Filter getNewTargetUUIDsFilter(@NonNull String targetUUID) {
+			return getNewTargetsUUIDsFilter(Collections.singletonList(targetUUID));
 		}
 
 		@NonNull
-		public static Filter getNewTargetsUUIDsFilter(@Nullable List<String> targets) {
-			return new Filter().setTargetUUIDs(targets);
+		public static Filter getNewTargetsUUIDsFilter(@Nullable List<String> targetsUUIDs) {
+			return new Filter().setTargetsUUIDs(targetsUUIDs);
 		}
 
 		@NonNull
-		private Filter setTargetUUIDs(List<String> targetUUIDs) {
-			if (targetUUIDs == null || targetUUIDs.isEmpty()) {
+		private Filter setTargetsUUIDs(List<String> targetsUUIDs) {
+			if (targetsUUIDs == null || targetsUUIDs.isEmpty()) {
 				throw new UnsupportedOperationException("Need at least 1 target!");
 			}
-			this.targetUUIDs = targetUUIDs;
+			this.targetsUUIDs = targetsUUIDs;
 			return this;
 		}
 
 		@SuppressWarnings("unused")
 		@Nullable
-		public List<String> getTargetUUIDs() {
-			return targetUUIDs;
+		public List<String> getTargetsUUIDs() {
+			return targetsUUIDs;
 		}
 
 		@NonNull
@@ -242,9 +238,9 @@ public interface NewsProviderContract extends ProviderContract {
 		public String toString() {
 			StringBuilder sb = new StringBuilder(Filter.class.getSimpleName()).append('[');
 			if (isUUIDFilter(this)) {
-				sb.append("articleUUIDs:").append(this.articleUUIDs).append(',');
+				sb.append("articleUUIDs:").append(this.articlesUUIDs).append(',');
 			} else if (isTargetFilter(this)) {
-				sb.append("targetsUUIDs:").append(this.targetUUIDs).append(',');
+				sb.append("targetsUUIDs:").append(this.targetsUUIDs).append(',');
 			}
 			sb.append(super.toStringParts());
 			sb.append("minCreatedAtInMs:").append(this.minCreatedAtInMs);
@@ -257,29 +253,29 @@ public interface NewsProviderContract extends ProviderContract {
 		public String toStringTargetsAndUuid() {
 			final StringBuilder sb = new StringBuilder(Filter.class.getSimpleName()).append('[');
 			if (isUUIDFilter(this)) {
-				sb.append("articleUUIDs:").append(this.articleUUIDs).append(',');
+				sb.append("articleUUIDs:").append(this.articlesUUIDs).append(',');
 			} else if (isTargetFilter(this)) {
-				sb.append("targetsUUIDs:").append(this.targetUUIDs).append(',');
+				sb.append("targetsUUIDs:").append(this.targetsUUIDs).append(',');
 			}
 			sb.append(']');
 			return sb.toString();
 		}
 
 		public static boolean isUUIDFilter(@Nullable Filter newsFilter) {
-			return newsFilter != null && CollectionUtils.getSize(newsFilter.articleUUIDs) > 0;
+			return newsFilter != null && CollectionUtils.getSize(newsFilter.articlesUUIDs) > 0;
 		}
 
 		public static boolean isTargetFilter(@Nullable Filter newsFilter) {
-			return newsFilter != null && CollectionUtils.getSize(newsFilter.targetUUIDs) > 0;
+			return newsFilter != null && CollectionUtils.getSize(newsFilter.targetsUUIDs) > 0;
 		}
 
 		@NonNull
 		public String getSqlSelection(@NonNull String uuidTableColumn, @NonNull String targetColumn, @NonNull String createdAtColumn) {
 			StringBuilder sb = new StringBuilder();
 			if (isUUIDFilter(this)) {
-				sb.append(SqlUtils.getWhereInString(uuidTableColumn, this.articleUUIDs));
+				sb.append(SqlUtils.getWhereInString(uuidTableColumn, this.articlesUUIDs));
 			} else if (isTargetFilter(this)) {
-				sb.append(SqlUtils.getWhereInString(targetColumn, this.targetUUIDs));
+				sb.append(SqlUtils.getWhereInString(targetColumn, this.targetsUUIDs));
 			}
 			if (getMinCreatedAtInMsOrNull() != null) {
 				if (sb.length() > 0) {
@@ -316,13 +312,13 @@ public interface NewsProviderContract extends ProviderContract {
 					for (int i = 0; i < jArticleUUIDs.length(); i++) {
 						articleUUIDs.add(jArticleUUIDs.getString(i));
 					}
-					newsFilter.setArticleUUIDs(articleUUIDs);
+					newsFilter.setArticlesUUIDs(articleUUIDs);
 				} else if (jTargetsUUIDs != null && jTargetsUUIDs.length() > 0) {
 					final ArrayList<String> targetsUUIDs = new ArrayList<>();
 					for (int i = 0; i < jTargetsUUIDs.length(); i++) {
 						targetsUUIDs.add(jTargetsUUIDs.getString(i));
 					}
-					newsFilter.setTargetUUIDs(targetsUUIDs);
+					newsFilter.setTargetsUUIDs(targetsUUIDs);
 				}
 				if (json.has(JSON_MIN_CREATED_AT_IN_MS)) {
 					newsFilter.minCreatedAtInMs = json.getLong(JSON_MIN_CREATED_AT_IN_MS);
@@ -353,15 +349,15 @@ public interface NewsProviderContract extends ProviderContract {
 				if (newsFilter.getMinCreatedAtInMsOrNull() != null) {
 					json.put(JSON_MIN_CREATED_AT_IN_MS, newsFilter.getMinCreatedAtInMsOrNull());
 				}
-				if (isUUIDFilter(newsFilter) && newsFilter.articleUUIDs != null) {
+				if (isUUIDFilter(newsFilter) && newsFilter.articlesUUIDs != null) {
 					final JSONArray jArticleUUIDs = new JSONArray();
-					for (String articleUUID : newsFilter.articleUUIDs) {
+					for (String articleUUID : newsFilter.articlesUUIDs) {
 						jArticleUUIDs.put(articleUUID);
 					}
 					json.put(JSON_ARTICLE_UUIDS, jArticleUUIDs);
-				} else if (isTargetFilter(newsFilter) && newsFilter.targetUUIDs != null) {
+				} else if (isTargetFilter(newsFilter) && newsFilter.targetsUUIDs != null) {
 					final JSONArray jTargetUUIDs = new JSONArray();
-					for (String targetUUID : newsFilter.targetUUIDs) {
+					for (String targetUUID : newsFilter.targetsUUIDs) {
 						jTargetUUIDs.put(targetUUID);
 					}
 					json.put(JSON_TARGETS_UUIDS, jTargetUUIDs);
