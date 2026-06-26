@@ -120,7 +120,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			return getServiceUpdateCursor(cachedServiceUpdates);
 		}
 		long cacheValidityInMs = provider.getServiceUpdateValidityInMs(serviceUpdateFilter.isInFocusOrDefault());
-		Long filterCacheValidityInMs = serviceUpdateFilter.getCacheValidityInMsOrNull();
+		Long filterCacheValidityInMs = serviceUpdateFilter.getCacheValidityInMs();
 		if (filterCacheValidityInMs != null
 				&& filterCacheValidityInMs > provider.getMinDurationBetweenServiceUpdateRefreshInMs(serviceUpdateFilter.isInFocusOrDefault())) {
 			cacheValidityInMs = filterCacheValidityInMs;
@@ -153,7 +153,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		if (serviceUpdates == null) {
 			return ContentProviderConstants.EMPTY_CURSOR;
 		}
-		MatrixCursor matrixCursor = new MatrixCursor(ServiceUpdateProviderContract.PROJECTION_SERVICE_UPDATE);
+		MatrixCursor matrixCursor = new MatrixCursor(ServiceUpdateProviderContract.getPROJECTION_SERVICE_UPDATE());
 		for (ServiceUpdate serviceUpdate : serviceUpdates) {
 			matrixCursor.addRow(serviceUpdate.getCursorRow());
 		}

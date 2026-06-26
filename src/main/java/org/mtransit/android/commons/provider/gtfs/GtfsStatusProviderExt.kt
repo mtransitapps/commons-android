@@ -6,6 +6,7 @@ import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
+import org.mtransit.android.commons.data.ScheduleStatusFilter
 import org.mtransit.android.commons.provider.status.StatusProviderContract
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
@@ -42,11 +43,12 @@ fun Context.getRDSSchedule(
             StatusProviderContract.STATUS_PATH
         ),
         StatusProviderContract.PROJECTION_STATUS,
-        Schedule.ScheduleStatusFilter(rds).apply {
-            setLookBehindInMs(lookBehind.inWholeMilliseconds)
-            setMaxDataRequests(maxDataRequest)
-            setIncludeCancelledTimestamps(includeCancelledTimestamps)
-        }.let { it.toJSONStringStatic(it) },
+        ScheduleStatusFilter(
+            routeDirectionStop = rds,
+            lookBehindInMs = lookBehind.inWholeMilliseconds,
+            maxDataRequests = maxDataRequest,
+            includeCancelledTimestamps = includeCancelledTimestamps
+        ).toJSONString(),
         null,
         null
     ).use { cursor ->

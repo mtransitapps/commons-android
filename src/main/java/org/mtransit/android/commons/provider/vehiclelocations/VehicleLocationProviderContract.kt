@@ -6,19 +6,18 @@ import android.provider.BaseColumns
 import androidx.annotation.Discouraged
 import org.json.JSONException
 import org.json.JSONObject
-import org.mtransit.android.commons.JSONUtils
 import org.mtransit.android.commons.MTLog
-import org.mtransit.android.commons.SecureStringUtils
 import org.mtransit.android.commons.data.DefaultPOI
 import org.mtransit.android.commons.data.Direction
 import org.mtransit.android.commons.data.POI
 import org.mtransit.android.commons.data.Route
 import org.mtransit.android.commons.data.RouteDirection
 import org.mtransit.android.commons.data.RouteDirectionStop
+import org.mtransit.android.commons.optString
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderFilter
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
-import org.mtransit.commons.mapNotNullToMap
+import org.mtransit.commons.model.Secret
 
 interface VehicleLocationProviderContract : ProviderContract {
 
@@ -91,45 +90,24 @@ interface VehicleLocationProviderContract : ProviderContract {
     }
 
     data class Filter @Discouraged("use secondary constructor() instead") constructor(
+        override val cacheOnly: Boolean? = null,
+        override val cacheValidityInMs: Long? = null,
+        override val inFocus: Boolean? = null,
+        override val providedEncryptKeysMap: Secret<Map<String, String>>? = null,
         val authority: String,
         override val poi: POI? = null, // RouteDirectionStop or DefaultPOI
         override val route: Route? = null,
         override val routeDirection: RouteDirection? = null,
-    ) : GTFSRealTimeProviderFilter, MTLog.Loggable {
-
-        var inFocus: Boolean? = null
-        val inFocusOrDefault get() = inFocus ?: false
-
-        var cacheOnly: Boolean? = null
-        val cacheOnlyOrDefault get() = cacheOnly ?: false
-
-        var providedEncryptKeysMap: Map<String, String>? = null
-            private set
+    ) : ProviderContract.Filter(), GTFSRealTimeProviderFilter, MTLog.Loggable {
 
         @SuppressLint("DiscouragedApi")
-        constructor(poi: POI) :
-                this(authority = poi.authority, poi = poi)
+        constructor(poi: POI) : this(authority = poi.authority, poi = poi)
 
         @SuppressLint("DiscouragedApi")
-        constructor(route: Route) :
-                this(authority = route.authority, route = route)
+        constructor(route: Route) : this(authority = route.authority, route = route)
 
         @SuppressLint("DiscouragedApi")
-        constructor(routeDirection: RouteDirection) :
-                this(authority = routeDirection.authority, routeDirection = routeDirection)
-
-        @Suppress("unused") // main app only
-        fun appendProvidedKeys(keysMap: Map<String, String>?): Filter {
-            keysMap?.mapNotNullToMap { (key, value) ->
-                SecureStringUtils.enc(value)?.let { encValue -> key to encValue }
-            }?.let {
-                providedEncryptKeysMap = it
-            }
-            return this
-        }
-
-        fun getProvidedEncryptKey(key: String) =
-            this.providedEncryptKeysMap?.get(key)?.takeIf { it.isNotBlank() }
+        constructor(routeDirection: RouteDirection) : this(authority = routeDirection.authority, routeDirection = routeDirection)
 
         companion object {
             private val LOG_TAG: String = VehicleLocationProviderContract::class.java.simpleName + ">" + Filter::class.java.simpleName
@@ -138,9 +116,6 @@ interface VehicleLocationProviderContract : ProviderContract {
             private const val JSON_POI = "poi"
             private const val JSON_ROUTE = "route"
             private const val JSON_ROUTE_DIRECTION = "routeDirection"
-            private const val JSON_CACHE_ONLY = "cacheOnly"
-            private const val JSON_IN_FOCUS = "inFocus"
-            private const val JSON_PROVIDED_ENCRYPT_KEYS_MAP = "providedEncryptKeysMap"
 
             fun fromJSONString(jsonString: String?): Filter? {
                 try {
@@ -153,29 +128,20 @@ interface VehicleLocationProviderContract : ProviderContract {
 
             @SuppressLint("DiscouragedApi")
             fun fromJSON(json: JSONObject): Filter? {
-                val poi = json.optJSONObject(JSON_POI)?.let { jPoi ->
-                    DefaultPOI.fromJSONStatic(jPoi)
-                }
-                val authority = JSONUtils.optString(json, JSON_AUTHORITY)
-                val route = json.optJSONObject(JSON_ROUTE)?.let { jRoute ->
-                    authority?.let { Route.fromJSON(jRoute, it) }
-                }
-                val routeDirection = json.optJSONObject(JSON_ROUTE_DIRECTION)?.let { jRouteDirection ->
-                    authority?.let { RouteDirection.fromJSON(jRouteDirection, it) }
-                }
-                val inFocus = JSONUtils.optBoolean(json, JSON_IN_FOCUS)
-                val cacheOnly = JSONUtils.optBoolean(json, JSON_CACHE_ONLY)
-                val providedEncryptKeysMap: Map<String, String>? = json.optJSONObject(JSON_PROVIDED_ENCRYPT_KEYS_MAP)?.let { jProvidedEncryptKeysMap ->
-                    JSONUtils.toMapOfStrings(jProvidedEncryptKeysMap)
-                }
-                return (poi?.let { Filter(authority = it.authority, poi = it) }
-                    ?: route?.let { Filter(authority = route.authority, route = it) }
-                    ?: routeDirection?.let { Filter(authority = routeDirection.authority, routeDirection = it) })
-                    ?.apply {
-                        this.inFocus = inFocus
-                        this.cacheOnly = cacheOnly
-                        this.providedEncryptKeysMap = providedEncryptKeysMap
-                    }
+                val poi = json.optJSONObject(JSON_POI)?.let { DefaultPOI.fromJSONStatic(it) }
+                val authority = json.optString(JSON_AUTHORITY, fallback = null) ?: poi?.authority ?: return null
+                val route = json.optJSONObject(JSON_ROUTE)?.let { Route.fromJSON(it, authority) }
+                val routeDirection = json.optJSONObject(JSON_ROUTE_DIRECTION)?.let { RouteDirection.fromJSON(it, authority) }
+                return Filter(
+                    cacheOnly = getCacheOnlyFromJSON(json),
+                    cacheValidityInMs = getCacheValidityInMsFromJSON(json),
+                    inFocus = getInFocusFromJSON(json),
+                    providedEncryptKeysMap = getProvidedEncryptKeysMapFromJSON(json),
+                    authority = authority,
+                    poi = poi,
+                    route = route,
+                    routeDirection = routeDirection
+                )
             }
 
             fun toJSONString(vehicleLocationFilter: Filter) =
@@ -184,13 +150,11 @@ interface VehicleLocationProviderContract : ProviderContract {
             fun toJSON(vehicleLocationFilter: Filter): JSONObject? {
                 return try {
                     JSONObject().apply {
+                        toJSON(vehicleLocationFilter, this)
                         put(JSON_AUTHORITY, vehicleLocationFilter.authority)
                         vehicleLocationFilter.poi?.let { put(JSON_POI, it.toJSON()) }
                         vehicleLocationFilter.route?.let { put(JSON_ROUTE, Route.toJSON(it)) }
                         vehicleLocationFilter.routeDirection?.let { put(JSON_ROUTE_DIRECTION, RouteDirection.toJSON(it)) }
-                        vehicleLocationFilter.inFocus?.let { put(JSON_IN_FOCUS, it) }
-                        vehicleLocationFilter.cacheOnly?.let { put(JSON_CACHE_ONLY, it) }
-                        vehicleLocationFilter.providedEncryptKeysMap?.let { put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, JSONUtils.toJSONObject(it)) }
                     }
                 } catch (jsone: JSONException) {
                     MTLog.w(LOG_TAG, jsone, "Error while making JSON object '$vehicleLocationFilter'!")
@@ -202,22 +166,22 @@ interface VehicleLocationProviderContract : ProviderContract {
         override fun getLogTag() = LOG_TAG
 
         @Suppress("unused") // used from main app
-        fun toJSONString() = toJSONString(this)
+        override fun toJSONString() = toJSONString(this)
+
+        val rds: RouteDirectionStop? get() = poi as? RouteDirectionStop
 
         private val _route: Route?
-            get() = (poi as? RouteDirectionStop)?.route
+            get() = rds?.route
                 ?: route
                 ?: routeDirection?.route
 
         private val _direction: Direction?
-            get() = (poi as? RouteDirectionStop)?.direction
+            get() = rds?.direction
                 ?: routeDirection?.direction
 
-        val routeId: Long?
-            get() = _route?.id
+        val routeId: Long? get() = _route?.id
 
-        val directionId: Long?
-            get() = _direction?.id
+        val directionId: Long? get() = _direction?.id
 
         val targetAuthority: String?
             get() = poi?.authority

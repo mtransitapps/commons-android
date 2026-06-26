@@ -23,6 +23,7 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.ScheduleStatusFilter;
 import org.mtransit.android.commons.provider.GTFSProvider;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.android.commons.provider.status.StatusProvider;
@@ -143,11 +144,11 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 
 	@Nullable
 	public static POIStatus getNewStatus(@NonNull GTFSProvider provider, @NonNull StatusProviderContract.Filter statusFilter) {
-		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof ScheduleStatusFilter)) {
 			MTLog.w(LOG_TAG, "Can't find new schedule without schedule filter!");
 			return null;
 		}
-		final Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
+		final ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
 		final Schedule schedule = new Schedule(
 				null,
 				scheduleStatusFilter.getTargetUUID(),
@@ -235,7 +236,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_COUNT = 5;
 
 	@NonNull
-	private static ArrayList<Schedule.Timestamp> findTimestamps(@NonNull GTFSProvider provider, @NonNull Schedule.ScheduleStatusFilter filter) {
+	private static ArrayList<Schedule.Timestamp> findTimestamps(@NonNull GTFSProvider provider, @NonNull ScheduleStatusFilter filter) {
 		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<>();
 		final RouteDirectionStop rds = filter.getRouteDirectionStop();
 		final int maxDataRequests = filter.getMaxDataRequestsOrDefault();
@@ -596,7 +597,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	}
 
 	@NonNull
-	private static ArrayList<Schedule.Frequency> findFrequencies(@NonNull GTFSProvider provider, @NonNull Schedule.ScheduleStatusFilter filter) {
+	private static ArrayList<Schedule.Frequency> findFrequencies(@NonNull GTFSProvider provider, @NonNull ScheduleStatusFilter filter) {
 		final ArrayList<Schedule.Frequency> allFrequencies = new ArrayList<>();
 		final RouteDirectionStop rds = filter.getRouteDirectionStop();
 		final int maxDataRequests = filter.getMaxDataRequestsOrDefault();

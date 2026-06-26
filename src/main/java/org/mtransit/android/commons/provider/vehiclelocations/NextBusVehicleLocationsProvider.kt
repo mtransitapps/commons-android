@@ -57,7 +57,7 @@ object NextBusVehicleLocationsProvider {
 
     @JvmStatic
     fun NextBusProvider.getCached(filter: VehicleLocationProviderContract.Filter): List<VehicleLocation>? =
-        ((filter.poi as? RouteDirectionStop)?.getTargetUUIDs(this)
+        (filter.rds?.getTargetUUIDs(this)
             ?: filter.routeDirection?.getTargetUUIDs(this)
             ?: filter.route?.getTargetUUIDs(this))
             ?.let { targetUUIDs ->
@@ -94,7 +94,7 @@ object NextBusVehicleLocationsProvider {
 
     @JvmStatic
     fun NextBusProvider.getNew(filter: VehicleLocationProviderContract.Filter): List<VehicleLocation>? {
-        updateAgencyDataIfRequired(filter.inFocusOrDefault)
+        updateAgencyDataIfRequired(filter.isInFocusOrDefault)
         return getCached(filter)
     }
 

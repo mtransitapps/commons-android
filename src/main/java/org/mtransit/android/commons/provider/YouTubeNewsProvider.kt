@@ -24,6 +24,7 @@ import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.linkifyAllURLs
 import org.mtransit.android.commons.provider.agency.AgencyUtils
+import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.news.NewsProvider
 import org.mtransit.android.commons.provider.news.NewsProviderContract
 import org.mtransit.android.commons.provider.news.NewsTextFormatter
@@ -51,7 +52,7 @@ class YouTubeNewsProvider : NewsProvider() {
         private const val FORCE_REFRESH = false
         // private const val FORCE_REFRESH = true // DEBUG
 
-        private val NEWS_MAX_VALIDITY_IN_MS = MAX_CACHE_VALIDITY_MS
+        private val NEWS_MAX_VALIDITY_IN_MS = ProviderContract.MAX_CACHE_VALIDITY_MS
         private val NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(14L)
         private val NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.DAYS.toMillis(7L)
         private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.HOURS.toMillis(48L)
@@ -194,7 +195,7 @@ class YouTubeNewsProvider : NewsProvider() {
 
     override fun getLogTag() = LOG_TAG
 
-    override fun getURI_MATCHER() = _uriMatcher
+    override val URI_MATCHER: UriMatcher get() = _uriMatcher
 
     private var _dbHelper: YouTubeNewsDbHelper? = null
     private var _currentDbVersion: Int = -1
@@ -236,14 +237,13 @@ class YouTubeNewsProvider : NewsProvider() {
 
     fun getDBHelper() = getDBHelper(ContentProviderCompat.requireContext(this))
 
-    override fun getMinDurationBetweenNewsRefreshInMs(inFocus: Boolean) = if (inFocus) {
+    override fun getMinDurationBetweenNewsRefreshInMs(inFocusOrDefault: Boolean) = if (inFocusOrDefault) {
         NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS
     } else NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS
 
-    override fun getNewsMaxValidityInMs() = NEWS_MAX_VALIDITY_IN_MS
-        .takeUnless { FORCE_REFRESH } ?: 0L
+    override val newsMaxValidityInMs: Long get() = NEWS_MAX_VALIDITY_IN_MS.takeUnless { FORCE_REFRESH } ?: 0L
 
-    override fun getNewsValidityInMs(inFocus: Boolean) = if (inFocus) {
+    override fun getNewsValidityInMs(inFocusOrDefault: Boolean) = if (inFocusOrDefault) {
         NEWS_VALIDITY_IN_FOCUS_IN_MS
     } else NEWS_VALIDITY_IN_MS
 
@@ -251,8 +251,8 @@ class YouTubeNewsProvider : NewsProvider() {
         return purgeUselessCachedNews(this)
     }
 
-    override fun deleteCachedNews(newsId: Int?): Boolean {
-        return deleteCachedNews(this, newsId)
+    override fun deleteCachedNews(id: Int?): Boolean {
+        return deleteCachedNews(this, id)
     }
 
     private fun deleteAllAgencyNewsData(): Int {
@@ -273,9 +273,9 @@ class YouTubeNewsProvider : NewsProvider() {
         return affectedRows
     }
 
-    override fun getAuthority() = _authority
+    override val authority: String get() = _authority
 
-    override fun getAuthorityUri() = _authorityUri
+    override val authorityUri: Uri get() = _authorityUri
 
     override fun cacheNews(newNews: ArrayList<News>) {
         cacheNewsS(this, newNews)
@@ -575,5 +575,5 @@ class YouTubeNewsProvider : NewsProvider() {
             }
     }
 
-    override fun getNewsLanguages() = _languages
+    override val newsLanguages: Collection<String> get() = _languages
 }

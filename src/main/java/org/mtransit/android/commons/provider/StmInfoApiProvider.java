@@ -46,6 +46,7 @@ import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirection;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.ScheduleStatusFilter;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
 import org.mtransit.android.commons.data.ServiceUpdates;
@@ -242,11 +243,11 @@ public class StmInfoApiProvider extends MTContentProvider implements
 	@Nullable
 	@Override
 	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
-		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof ScheduleStatusFilter)) {
 			MTLog.w(this, "getCachedStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
-		final Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
+		final ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
 		final RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
 		if (rds.getStop().getCode().isEmpty() //
 				|| rds.getDirection().getHeadsignValue().isEmpty() //
@@ -534,7 +535,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 	}
 
 	@Override
-	public boolean deleteCachedServiceUpdate(@NonNull Integer serviceUpdateId) {
+	public boolean deleteCachedServiceUpdate(int serviceUpdateId) {
 		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, serviceUpdateId);
 	}
 
@@ -563,11 +564,11 @@ public class StmInfoApiProvider extends MTContentProvider implements
 	@Nullable
 	@Override
 	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
-		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
-		final Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
+		final ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
 		final RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
 		if (rds.getStop().getCode().isEmpty()
 				|| rds.getRoute().getShortName().isEmpty()) {

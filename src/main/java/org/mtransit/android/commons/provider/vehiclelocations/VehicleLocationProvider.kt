@@ -32,7 +32,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
 
         @JvmStatic
         fun <P : VehicleLocationProviderContract> P.queryS(uri: Uri, selection: String?): Cursor? {
-            return when (getURI_MATCHER().match(uri)) {
+            return when (URI_MATCHER.match(uri)) {
                 ContentProviderConstants.PING -> ContentProviderConstants.EMPTY_CURSOR // empty cursor = processed
                 ContentProviderConstants.VEHICLE_LOCATION -> getVehicleLocations(selection)
                 else -> null // not processed
@@ -72,13 +72,13 @@ abstract class VehicleLocationProvider : MTContentProvider(),
                     }
                 }
             }
-            if (filter.cacheOnlyOrDefault) {
+            if (filter.isCacheOnlyOrDefault) {
                 if (cachedVehicleLocations.isNullOrEmpty()) {
                     MTLog.w(this, "getVehicleLocations() > No useful cache found!")
                 }
                 return getVehicleLocationCursor(cachedVehicleLocations)
             }
-            val cacheValidityInMs = getVehicleLocationValidityInMs(filter.inFocusOrDefault)
+            val cacheValidityInMs = getVehicleLocationValidityInMs(filter.isInFocusOrDefault)
             // TODO filter cache validity override like service update?
             var loadNewVehicleLocations = false
             if (cachedVehicleLocations.isNullOrEmpty()) {
@@ -117,7 +117,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
 
         @JvmStatic
         fun <P : VehicleLocationProviderContract> P.getTypeS(uri: Uri): String? {
-            return when (getURI_MATCHER().match(uri)) {
+            return when (URI_MATCHER.match(uri)) {
                 ContentProviderConstants.PING,
                 ContentProviderConstants.VEHICLE_LOCATION -> StringUtils.EMPTY // empty string = processed
                 else -> null // not processed
@@ -198,7 +198,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
         fun cacheVehicleLocationsS(provider: VehicleLocationProviderContract, newVehicleLocations: List<VehicleLocation>?): Int {
             var affectedRows = 0
             try {
-                provider.getWriteDB().transaction {
+                provider.writeDB.transaction {
                     newVehicleLocations?.forEach { vehicleLocation ->
                         insert(provider.dbTableName, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_ID, vehicleLocation.toContentValues())
                             .let { rowId ->
@@ -216,7 +216,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
         fun deleteAllCachedVehicleLocations(provider: VehicleLocationProviderContract): Boolean {
             var deletedRows = 0
             try {
-                deletedRows = provider.getWriteDB().delete(provider.dbTableName, null, null)
+                deletedRows = provider.writeDB.delete(provider.dbTableName, null, null)
             } catch (e: Exception) {
                 MTLog.w(LOG_TAG, e, "Error while deleting ALL cached vehicle locations!")
             }
@@ -229,7 +229,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
             val selection = SqlUtils.getWhereEquals(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_ID, vehicleLocationId)
             var deletedRows = 0
             try {
-                deletedRows = provider.getWriteDB().delete(provider.dbTableName, selection, null)
+                deletedRows = provider.writeDB.delete(provider.dbTableName, selection, null)
             } catch (e: Exception) {
                 MTLog.w(LOG_TAG, e, "Error while deleting cached vehicle location '%s'!", vehicleLocationId)
             }
@@ -242,7 +242,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
             val selection = SqlUtils.getWhereInferior(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LAST_UPDATE, oldestLastUpdate)
             var deletedRows = 0
             try {
-                deletedRows = provider.getWriteDB().delete(provider.dbTableName, selection, null)
+                deletedRows = provider.writeDB.delete(provider.dbTableName, selection, null)
             } catch (e: Exception) {
                 MTLog.w(LOG_TAG, e, "Error while deleting cached vehicle locations!")
             }

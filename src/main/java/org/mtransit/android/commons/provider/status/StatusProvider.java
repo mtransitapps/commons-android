@@ -17,10 +17,13 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.data.AppStatus;
+import org.mtransit.android.commons.data.AppStatusFilter;
 import org.mtransit.android.commons.data.AvailabilityPercent;
+import org.mtransit.android.commons.data.AvailabilityPercentStatusFilter;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.ScheduleStatusFilter;
 import org.mtransit.android.commons.provider.common.ContentProviderConstants;
 import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
@@ -116,7 +119,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		}
 		// 3 - check if usable cache still valid (or if it could be refreshed)
 		long cacheValidityInMs = provider.getStatusValidityInMs(statusFilter.isInFocusOrDefault());
-		Long filterCacheValidityInMs = statusFilter.getCacheValidityInMsOrNull();
+		Long filterCacheValidityInMs = statusFilter.getCacheValidityInMs();
 		if (filterCacheValidityInMs != null && filterCacheValidityInMs > provider.getMinDurationBetweenRefreshInMs(statusFilter.isInFocusOrDefault())) {
 			cacheValidityInMs = filterCacheValidityInMs;
 		}
@@ -140,13 +143,13 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			statusFilter = null;
 			break;
 		case POI.ITEM_STATUS_TYPE_SCHEDULE:
-			statusFilter = Schedule.ScheduleStatusFilter.fromJSONString(selection);
+			statusFilter = ScheduleStatusFilter.fromJSONString(selection);
 			break;
 		case POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT:
-			statusFilter = AvailabilityPercent.AvailabilityPercentStatusFilter.fromJSONString(selection);
+			statusFilter = AvailabilityPercentStatusFilter.fromJSONString(selection);
 			break;
 		case POI.ITEM_STATUS_TYPE_APP:
-			statusFilter = AppStatus.AppStatusFilter.fromJSONString(selection);
+			statusFilter = AppStatusFilter.fromJSONString(selection);
 			break;
 		default:
 			MTLog.w(LOG_TAG, "Unexpected status filter type '%s'!", type);
@@ -215,7 +218,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getStatusDbTableName());
 			qb.setProjectionMap(STATUS_PROJECTION_MAP);
-			cursor = qb.query(provider.getReadDB(), PROJECTION_STATUS, selection, null, null, null, STATUS_SORT_ORDER, STATUS_LIMIT);
+			cursor = qb.query(provider.getReadDB(), StatusProviderContract.getPROJECTION_STATUS(), selection, null, null, null, STATUS_SORT_ORDER, STATUS_LIMIT);
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					final int type = POIStatus.getTypeFromCursor(cursor);

@@ -156,7 +156,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		if (newsFilter == null) {
 			return getNewsCursor(null);
 		}
-		if (NewsProviderContract.Filter.isUUIDFilter(newsFilter)) {
+		if (newsFilter.isArticlesUUIDFilter()) {
 			return provider.getNewsFromDB(newsFilter);
 		}
 		final long nowInMs = TimeUtils.currentTimeMillis();
@@ -189,7 +189,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			return getNewsCursor(cachedNews);
 		}
 		long cacheValidityInMs = provider.getNewsValidityInMs(newsFilter.isInFocusOrDefault());
-		final Long filterCacheValidityInMs = newsFilter.getCacheValidityInMsOrNull();
+		final Long filterCacheValidityInMs = newsFilter.getCacheValidityInMs();
 		if (filterCacheValidityInMs != null && filterCacheValidityInMs > provider.getMinDurationBetweenNewsRefreshInMs(newsFilter.isInFocusOrDefault())) {
 			cacheValidityInMs = filterCacheValidityInMs;
 		}
@@ -246,7 +246,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		if (news == null) {
 			return ContentProviderConstants.EMPTY_CURSOR;
 		}
-		MatrixCursor matrixCursor = new MatrixCursor(NewsProviderContract.PROJECTION_NEWS);
+		MatrixCursor matrixCursor = new MatrixCursor(NewsProviderContract.getPROJECTION_NEWS());
 		for (News oneNews : news) {
 			matrixCursor.addRow(oneNews.getCursorRow());
 		}
@@ -262,7 +262,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	@NonNull
 	@Override
 	public String[] getNewsProjection() {
-		return NewsProviderContract.PROJECTION_NEWS;
+		return NewsProviderContract.getPROJECTION_NEWS();
 	}
 
 	@Nullable
@@ -349,7 +349,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	@SuppressWarnings("UnusedReturnValue")
-	public static synchronized int cacheNewsS(NewsProviderContract provider, ArrayList<News> newNews) {
+	public static synchronized int cacheNewsS(@NonNull NewsProviderContract provider, @Nullable ArrayList<News> newNews) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {
