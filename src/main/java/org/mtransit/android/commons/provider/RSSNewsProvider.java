@@ -30,6 +30,7 @@ import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
+import org.mtransit.android.commons.provider.common.ProviderContract;
 import org.mtransit.android.commons.provider.news.NewsProvider;
 import org.mtransit.android.commons.provider.news.NewsTextFormatter;
 import org.mtransit.android.commons.provider.news.rss.RssNewProviderUtils;
@@ -308,7 +309,7 @@ public class RSSNewsProvider extends NewsProvider {
 		return getDBHelper().getWritableDatabase();
 	}
 
-	private static final long NEWS_MAX_VALIDITY_IN_MS = MAX_CACHE_VALIDITY_MS;
+	private static final long NEWS_MAX_VALIDITY_IN_MS = ProviderContract.getMAX_CACHE_VALIDITY_MS();
 	private static final long NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
 	private static final long NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1L);
 	private static final long NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(30L);

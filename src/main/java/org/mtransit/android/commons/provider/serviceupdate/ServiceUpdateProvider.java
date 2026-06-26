@@ -153,7 +153,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		if (serviceUpdates == null) {
 			return ContentProviderConstants.EMPTY_CURSOR;
 		}
-		MatrixCursor matrixCursor = new MatrixCursor(ServiceUpdateProviderContract.PROJECTION_SERVICE_UPDATE);
+		MatrixCursor matrixCursor = new MatrixCursor(ServiceUpdateProviderContract.getPROJECTION_SERVICE_UPDATE());
 		for (ServiceUpdate serviceUpdate : serviceUpdates) {
 			matrixCursor.addRow(serviceUpdate.getCursorRow());
 		}

@@ -30,6 +30,7 @@ import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JEdgeOwnerToTimelineMediaNode
 import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JProfileUser
 import org.mtransit.android.commons.provider.agency.AgencyUtils
+import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.news.NewsProvider
 import org.mtransit.android.commons.provider.news.NewsProviderContract
 import retrofit2.Call
@@ -57,7 +58,7 @@ class InstagramNewsProvider : NewsProvider() {
          */
         private const val PREF_KEY_AGENCY_LAST_UPDATE_LANG = InstagramNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_LANG
 
-        private val NEWS_MAX_VALIDITY_IN_MS = MAX_CACHE_VALIDITY_MS
+        private val NEWS_MAX_VALIDITY_IN_MS = ProviderContract.MAX_CACHE_VALIDITY_MS
         private val NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L)
         private val NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1L)
         private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(30L)
@@ -157,7 +158,7 @@ class InstagramNewsProvider : NewsProvider() {
 
     override fun getLogTag() = LOG_TAG
 
-    override fun getURI_MATCHER() = _uriMatcher
+    override val URI_MATCHER: UriMatcher get() = _uriMatcher
 
     private var _dbHelper: InstagramNewsDbHelper? = null
     private var _currentDbVersion: Int = -1
@@ -199,13 +200,13 @@ class InstagramNewsProvider : NewsProvider() {
     // override
     fun getDBHelper() = getDBHelper(ContentProviderCompat.requireContext(this))
 
-    override fun getMinDurationBetweenNewsRefreshInMs(inFocus: Boolean) = if (inFocus) {
+    override fun getMinDurationBetweenNewsRefreshInMs(inFocusOrDefault: Boolean) = if (inFocusOrDefault) {
         NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS
     } else NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS
 
-    override fun getNewsMaxValidityInMs() = NEWS_MAX_VALIDITY_IN_MS
+    override val newsMaxValidityInMs: Long get() = NEWS_MAX_VALIDITY_IN_MS
 
-    override fun getNewsValidityInMs(inFocus: Boolean) = if (inFocus) {
+    override fun getNewsValidityInMs(inFocusOrDefault: Boolean) = if (inFocusOrDefault) {
         NEWS_VALIDITY_IN_FOCUS_IN_MS
     } else NEWS_VALIDITY_IN_MS
 
@@ -213,8 +214,8 @@ class InstagramNewsProvider : NewsProvider() {
         return purgeUselessCachedNews(this)
     }
 
-    override fun deleteCachedNews(newsId: Int?): Boolean {
-        return deleteCachedNews(this, newsId)
+    override fun deleteCachedNews(id: Int?): Boolean {
+        return deleteCachedNews(this, id)
     }
 
     private fun deleteAllAgencyNewsData(): Int {
@@ -235,9 +236,9 @@ class InstagramNewsProvider : NewsProvider() {
         return affectedRows
     }
 
-    override fun getAuthority() = _authority
+    override val authority: String get() = _authority
 
-    override fun getAuthorityUri() = _authorityUri
+    override val authorityUri: Uri get() = _authorityUri
 
     override fun cacheNews(newNews: ArrayList<News>) {
         cacheNewsS(this, newNews)
@@ -626,7 +627,7 @@ class InstagramNewsProvider : NewsProvider() {
         )
     }
 
-    override fun getNewsLanguages() = _languages
+    override val newsLanguages: Collection<String> get() = _languages
 
     class InstagramNewsDbHelper(
         val context: Context,

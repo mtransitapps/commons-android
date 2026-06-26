@@ -26,12 +26,12 @@ fun ServiceUpdateProviderContract.makeServiceUpdateNone(targetUUID: String, sour
     makeServiceUpdate(
         targetUUID = targetUUID,
         lastUpdateMs = TimeUtils.currentTimeMillis(),
-        maxValidityMs = getServiceUpdateMaxValidityInMs(),
+        maxValidityMs = serviceUpdateMaxValidityInMs,
         text = StringUtils.EMPTY,
         severity = ServiceUpdate.SEVERITY_NONE,
         sourceId = sourceId,
         sourceLabel = StringUtils.EMPTY,
-        language = getServiceUpdateLanguage(),
+        language = serviceUpdateLanguage,
     )
 
 fun makeServiceUpdate(

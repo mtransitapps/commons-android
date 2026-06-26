@@ -122,7 +122,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 			}
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(GTFSRDSProvider.ROUTE_DIRECTION_DIRECTION_STOPS_STOP_JOIN);
-			ArrayMap<String, String> poiProjectionMap = provider.getPOIProjectionMap();
+			ArrayMap<String, String> poiProjectionMap = provider.getPoiProjectionMap();
 			boolean searchKeywordsAdded = false;
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter) && poiFilter.getSearchKeywords() != null) {
 				poiProjectionMap = new ArrayMap<>(poiProjectionMap); // clone to avoid updating shared static map
@@ -133,7 +133,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 			}
 			qb.setProjectionMap(poiProjectionMap);
 
-			String[] poiProjection = provider.getPOIProjection();
+			String[] poiProjection = provider.getPoiProjection();
 			if (searchKeywordsAdded) {
 				poiProjection = ArrayUtils.addAllNonNull(poiProjection, new String[]{POIProviderContract.Columns.T_POI_K_SCORE_META_OPT}); // makes new array
 			}
@@ -238,13 +238,13 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 		return null; // USING CUSTOM TABLE
 	}
 
-	private static final long POI_MAX_VALIDITY_IN_MS = ProviderContract.MAX_CACHE_VALIDITY_MS;
+	private static final long POI_MAX_VALIDITY_IN_MS = ProviderContract.getMAX_CACHE_VALIDITY_MS();
 
 	public static long getPOIMaxValidityInMs(@SuppressWarnings("unused") @NonNull GTFSProvider provider) {
 		return POI_MAX_VALIDITY_IN_MS;
 	}
 
-	private static final long POI_VALIDITY_IN_MS = ProviderContract.MAX_CACHE_VALIDITY_MS;
+	private static final long POI_VALIDITY_IN_MS = ProviderContract.getMAX_CACHE_VALIDITY_MS();
 
 	public static long getPOIValidityInMs(@SuppressWarnings("unused") @NonNull GTFSProvider provider) {
 		return POI_VALIDITY_IN_MS;

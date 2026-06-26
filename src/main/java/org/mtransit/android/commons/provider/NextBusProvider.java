@@ -32,6 +32,7 @@ import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirection;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.ScheduleStatusFilter;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
 import org.mtransit.android.commons.data.ServiceUpdates;
@@ -662,8 +663,9 @@ public class NextBusProvider extends MTContentProvider implements
 		return cachedServiceUpdates;
 	}
 
-	private void enhanceRDServiceUpdateForStop(@Nullable ServiceUpdates serviceUpdates,
-											   @NonNull Map<String, String> targetUUIDs // different UUID from provider target UUID
+	private void enhanceRDServiceUpdateForStop(
+			@Nullable ServiceUpdates serviceUpdates,
+			@NonNull Map<String, String> targetUUIDs // different UUID from provider target UUID
 	) {
 		try {
 			if (serviceUpdates != null) {
@@ -808,7 +810,7 @@ public class NextBusProvider extends MTContentProvider implements
 	}
 
 	@Override
-	public boolean deleteCachedServiceUpdate(@NonNull Integer serviceUpdateId) {
+	public boolean deleteCachedServiceUpdate(int serviceUpdateId) {
 		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, serviceUpdateId);
 	}
 
@@ -1062,11 +1064,11 @@ public class NextBusProvider extends MTContentProvider implements
 	@Nullable
 	@Override
 	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
-		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule w/o schedule filter!");
 			return null;
 		}
-		final Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
+		final ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
 		final RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
 		final String targetUUID = getAgencyRouteStopTagTargetUUID(requireContextCompat(), rds);
 		final POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, targetUUID);
@@ -1106,11 +1108,11 @@ public class NextBusProvider extends MTContentProvider implements
 	@Nullable
 	@Override
 	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
-		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule w/o schedule filter!");
 			return null;
 		}
-		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
+		ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
 		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
 		loadPredictionsFromWWW(requireContextCompat(), rds);
 		return getCachedStatus(statusFilter);
@@ -1661,11 +1663,16 @@ public class NextBusProvider extends MTContentProvider implements
 
 		private final NextBusProvider provider;
 
-		NextBusMessagesDataHandler(NextBusProvider provider, @NonNull String sourceLabel, long newLastUpdateInMs,
-								   String agencyTag,
-								   long serviceUpdateMaxValidityInMs,
-								   String textLanguageCode, String textSecondaryLanguageCode,
-								   String textBoldWordsRegex, String textSecondaryBoldWordsRegex
+		NextBusMessagesDataHandler(
+				NextBusProvider provider,
+				@NonNull String sourceLabel,
+				long newLastUpdateInMs,
+				String agencyTag,
+				long serviceUpdateMaxValidityInMs,
+				String textLanguageCode,
+				String textSecondaryLanguageCode,
+				String textBoldWordsRegex,
+				String textSecondaryBoldWordsRegex
 		) {
 			this.provider = provider;
 			this.sourceLabel = sourceLabel;

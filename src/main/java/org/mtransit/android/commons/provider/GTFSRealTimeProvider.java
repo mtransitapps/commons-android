@@ -1488,7 +1488,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Override
-	public boolean deleteCachedServiceUpdate(@NonNull Integer serviceUpdateId) {
+	public boolean deleteCachedServiceUpdate(int serviceUpdateId) {
 		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, serviceUpdateId);
 	}
 

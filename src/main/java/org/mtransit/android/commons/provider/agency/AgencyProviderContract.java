@@ -4,6 +4,8 @@ import org.mtransit.android.commons.provider.common.ProviderContract;
 
 public interface AgencyProviderContract extends ProviderContract {
 
+	String PING_PATH = ProviderContract.PING_PATH;
+
 	String ALL_PATH = "all";
 	String VERSION_PATH = "version";
 	String LABEL_PATH = "label";

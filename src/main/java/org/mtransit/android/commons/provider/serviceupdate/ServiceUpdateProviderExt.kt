@@ -54,7 +54,7 @@ private fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
                 tables = dbTableName
                 projectionMap = ServiceUpdateProvider.SERVICE_UPDATE_PROJECTION_MAP
             }.query(
-                getReadDB(), ServiceUpdateProviderContract.PROJECTION_SERVICE_UPDATE, selection, null, null, null, null, null
+                readDB, ServiceUpdateProviderContract.PROJECTION_SERVICE_UPDATE, selection, null, null, null, null, null
             ).use { cursor ->
                 buildServiceUpdates {
                     if (cursor != null && cursor.count > 0) {

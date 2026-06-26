@@ -5,7 +5,7 @@ import android.provider.BaseColumns;
 import androidx.annotation.NonNull;
 
 import org.mtransit.android.commons.ArrayUtils;
-import org.mtransit.android.commons.provider.poi.POIProvider;
+import org.mtransit.android.commons.provider.poi.POIProviderContract;
 import org.mtransit.commons.FeatureFlags;
 
 import java.util.ArrayList;
@@ -79,7 +79,7 @@ public interface GTFSProviderContract {
 			DirectionColumns.T_DIRECTION_K_ROUTE_ID
 	};
 
-	String[] PROJECTION_RDS_POI = ArrayUtils.addAllNonNull(POIProvider.PROJECTION_POI, PROJECTION_ROUTE_DIRECTION_STOP);
+	String[] PROJECTION_RDS_POI = ArrayUtils.addAllNonNull(POIProviderContract.getPROJECTION_POI(), PROJECTION_ROUTE_DIRECTION_STOP);
 
 	String[] PROJECTION_TRIP = new String[] {
 			TripColumns.T_TRIP_K_TRIP_ID,
