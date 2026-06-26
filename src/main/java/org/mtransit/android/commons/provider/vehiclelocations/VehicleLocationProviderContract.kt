@@ -6,7 +6,6 @@ import android.provider.BaseColumns
 import androidx.annotation.Discouraged
 import org.json.JSONException
 import org.json.JSONObject
-import org.mtransit.android.commons.JSONUtils
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.data.DefaultPOI
 import org.mtransit.android.commons.data.Direction
