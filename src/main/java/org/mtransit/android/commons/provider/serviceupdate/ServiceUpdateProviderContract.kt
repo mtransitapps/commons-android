@@ -121,7 +121,7 @@ interface ServiceUpdateProviderContract : ProviderContract {
             fun fromJSON(json: JSONObject): Filter? {
                 try {
                     val poi = json.optJSONObject(JSON_POI)?.let { DefaultPOI.fromJSONStatic(it) }
-                    val authority = json.optString(JSON_AUTHORITY, fallback = null)
+                    val authority = json.optString(JSON_AUTHORITY, fallback = null)?: poi?.authority
                     val route = authority?.let { authority ->
                         json.optJSONObject(JSON_ROUTE)?.let { Route.fromJSON(it, authority) }
                     }

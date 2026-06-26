@@ -3,11 +3,14 @@ package org.mtransit.android.commons.provider.common;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 
+import kotlin.text.Regex;
+
 public final class ContentProviderConstants {
 
 	public static final Cursor EMPTY_CURSOR = new MatrixCursor(new String[]{});
 
 	public static final String SEARCH_SPLIT_ON = "[\\s\\W]";
+	public static final Regex SEARCH_SPLIT_ON_REGEX = new Regex(SEARCH_SPLIT_ON);
 
 	// shared URI Matcher constants (> 100) here
 	public static final int PING = 100;

@@ -14,6 +14,7 @@ import org.mtransit.android.commons.data.POI
 import org.mtransit.android.commons.data.Route
 import org.mtransit.android.commons.data.RouteDirection
 import org.mtransit.android.commons.data.RouteDirectionStop
+import org.mtransit.android.commons.optString
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderFilter
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
@@ -129,7 +130,7 @@ interface VehicleLocationProviderContract : ProviderContract {
             @SuppressLint("DiscouragedApi")
             fun fromJSON(json: JSONObject): Filter? {
                 val poi = json.optJSONObject(JSON_POI)?.let { DefaultPOI.fromJSONStatic(it) }
-                val authority = JSONUtils.optString(json, JSON_AUTHORITY) ?: poi?.authority ?: return null
+                val authority = json.optString(JSON_AUTHORITY, fallback = null) ?: poi?.authority ?: return null
                 val route = json.optJSONObject(JSON_ROUTE)?.let { Route.fromJSON(it, authority) }
                 val routeDirection = json.optJSONObject(JSON_ROUTE_DIRECTION)?.let { RouteDirection.fromJSON(it, authority) }
                 return Filter(

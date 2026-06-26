@@ -167,12 +167,8 @@ interface POIProviderContract : ProviderContract {
                 if (searchableLikeColumns?.isNotEmpty() != true && searchableEqualColumns?.isNotEmpty() != true) {
                     throw UnsupportedOperationException("SQL search selection needs at least 1 searchable columns (${searchableLikeColumns?.size}|${searchableEqualColumns?.size})!")
                 }
-                for (searchKeyword in searchKeywords) {
-                    if (searchKeyword.isEmpty()) continue
-                    val keywords =
-                        searchKeyword.lowercase().split(ContentProviderConstants.SEARCH_SPLIT_ON.toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                    for (keyword in keywords) {
-                        if (keyword.isEmpty()) continue
+                searchKeywords.filter { it.isNotEmpty() }.forEach { searchKeyword ->
+                    searchKeyword.lowercase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON_REGEX).filter { it.isNotEmpty() }.forEach { keyword->
                         if (isNotEmpty()) append(SqlUtils.AND)
                         append(SqlUtils.P1)
                         var c = 0
@@ -216,13 +212,10 @@ interface POIProviderContract : ProviderContract {
                         throw UnsupportedOperationException("SQL search selection score needs at least 1 searchable columns (${searchableLikeColumns?.size}|${searchableEqualColumns?.size})!")
                     }
                     var c = 0
-                    for (searchKeyword in searchKeywords) {
-                        if (searchKeyword.isEmpty()) continue
-                        val keywords = searchKeyword.lowercase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON.toRegex())
-                        for (keyword in keywords) {
-                            if (searchKeyword.isEmpty()) continue
-                            c = getSearchSelectionScoreLikeColumns(searchableLikeColumns, keyword, c)
-                            c = getSearchSelectionScoreEqualColumns(searchableEqualColumns, keyword, c)
+                    searchKeywords.filter { it.isNotEmpty() }.forEach { searchKeyword ->
+                        searchKeyword.lowercase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON_REGEX).filter { it.isNotEmpty() }.forEach { keyword->
+                            c = getSearchSelectionLikeColumns(searchableLikeColumns, keyword, c)
+                            c = getSearchSelectionEqualColumns(searchableEqualColumns, keyword, c)
                         }
                     }
                 }
@@ -326,16 +319,14 @@ interface POIProviderContract : ProviderContract {
                                 }
                             }
                         },
-                        extras = json.getJSONArray(JSON_EXTRAS).let { jExtras ->
+                        extras = json.optJSONArray(JSON_EXTRAS)?.let { jExtras ->
                             val extras = SimpleArrayMap<String, Any>()
                             for (i in 0..<jExtras.length()) {
                                 val jExtra = jExtras.getJSONObject(i)
-                                val key = jExtra.getString(JSON_EXTRAS_KEY)
-                                val value = jExtra.get(JSON_EXTRAS_VALUE)
-                                extras.put(key, value)
+                                extras.put(jExtra.getString(JSON_EXTRAS_KEY), jExtra.get(JSON_EXTRAS_VALUE))
                             }
                             extras
-                        },
+                        } ?: SimpleArrayMap(),
                         sqlSelection = json.optString(JSON_SQL_SELECTION),
                         searchKeywords = json.optJSONArray(JSON_SEARCH_KEYWORDS)?.let { jSearchKeywords ->
                             buildList {
