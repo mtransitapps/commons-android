@@ -162,7 +162,7 @@ interface POIProviderContract : ProviderContract {
             @JvmStatic
             fun getSearchSelection(searchKeywords: List<String>?, searchableLikeColumns: Array<String>?, searchableEqualColumns: Array<String>?) = buildString {
                 if (searchKeywords.isNullOrEmpty() || searchKeywords[0].isEmpty()) {
-                    throw UnsupportedOperationException("SQL search selection needs at least 1 keyword ($searchKeywords.size)!")
+                    throw UnsupportedOperationException("SQL search selection needs at least 1 keyword (${searchKeywords?.size})!")
                 }
                 if (searchableLikeColumns?.isNotEmpty() != true && searchableEqualColumns?.isNotEmpty() != true) {
                     throw UnsupportedOperationException("SQL search selection needs at least 1 searchable columns (${searchableLikeColumns?.size}|${searchableEqualColumns?.size})!")

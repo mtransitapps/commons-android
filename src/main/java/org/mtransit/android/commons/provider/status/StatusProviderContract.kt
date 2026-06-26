@@ -94,7 +94,7 @@ interface StatusProviderContract : ProviderContract {
                             includeCancelledTimestamps = scheduleIncludeCancelledTimestamps
                         )
                     } ?: run {
-                        MTLog.w(this, "Schedule filter w/o '$poi'!")
+                        MTLog.w(LOG_TAG, "Schedule filter w/o '$poi'!")
                         null
                     }
                 }
@@ -108,13 +108,13 @@ interface StatusProviderContract : ProviderContract {
                     getAppPkg()?.let { pkg ->
                         AppStatusFilter(inFocus = inFocus, targetUUID = poi.uuid, pkg = pkg)
                     } ?: run {
-                        MTLog.w(this, "App status filter w/o '$poi'!")
+                        MTLog.w(LOG_TAG, "App status filter w/o '$poi'!")
                         null
                     }
                 }
 
                 else -> {
-                    MTLog.w(this, "Unexpected status type '${poi.statusType}' for filter!")
+                    MTLog.w(LOG_TAG, "Unexpected status type '${poi.statusType}' for filter!")
                     null
                 }
             }
