@@ -114,8 +114,7 @@ interface POIProviderContract : ProviderContract {
         companion object {
             private val LOG_TAG = POIProviderContract::class.java.getSimpleName() + ">" + Filter::class.java.getSimpleName()
 
-            @SuppressLint("DiscouragedApi")
-            fun getNewEmptyFilter() = Filter()
+            fun getNewEmptyFilter() = getNewSqlSelectionFilter("") // need empty SQL selection to be valid
 
             @SuppressLint("DiscouragedApi")
             fun getNewSqlSelectionFilter(sqlSelection: String) = Filter(sqlSelection = sqlSelection)
@@ -140,8 +139,8 @@ interface POIProviderContract : ProviderContract {
                 minLat: Double, maxLat: Double, minLng: Double, maxLng: Double,
                 optLoadedMinLat: Double?, optLoadedMaxLat: Double?, optLoadedMinLng: Double?, optLoadedMaxLng: Double?
             ) = Filter(
-                minLat = minLat, maxLat =  maxLat, minLng =  minLng, maxLng =  maxLng,
-                optLoadedMinLat =  optLoadedMinLat, optLoadedMaxLat =  optLoadedMaxLat, optLoadedMinLng =  optLoadedMinLng, optLoadedMaxLng =  optLoadedMaxLng
+                minLat = minLat, maxLat = maxLat, minLng = minLng, maxLng = maxLng,
+                optLoadedMinLat = optLoadedMinLat, optLoadedMaxLat = optLoadedMaxLat, optLoadedMinLng = optLoadedMinLng, optLoadedMaxLng = optLoadedMaxLng
             )
 
             fun isUUIDFilter(poiFilter: Filter?) = poiFilter?.uuids?.isNotEmpty() == true
@@ -167,17 +166,20 @@ interface POIProviderContract : ProviderContract {
                 if (searchableLikeColumns?.isNotEmpty() != true && searchableEqualColumns?.isNotEmpty() != true) {
                     throw UnsupportedOperationException("SQL search selection needs at least 1 searchable columns (${searchableLikeColumns?.size}|${searchableEqualColumns?.size})!")
                 }
-                searchKeywords.filter { it.isNotEmpty() }.forEach { searchKeyword ->
-                    searchKeyword.lowercase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON_REGEX).filter { it.isNotEmpty() }.forEach { keyword->
-                        if (isNotEmpty()) append(SqlUtils.AND)
-                        append(SqlUtils.P1)
-                        var c = 0
-                        c = getSearchSelectionLikeColumns(searchableLikeColumns, keyword, c)
-                        @Suppress("AssignedValueIsNeverRead")
-                        c = getSearchSelectionEqualColumns(searchableEqualColumns, keyword, c)
-                        append(SqlUtils.P2)
+                searchKeywords
+                    .filter { it.isNotEmpty() }
+                    .forEach { searchKeyword ->
+                        searchKeyword.lowercase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON_REGEX).filter { it.isNotEmpty() }
+                            .forEach { keyword ->
+                                if (isNotEmpty()) append(SqlUtils.AND)
+                                append(SqlUtils.P1)
+                                var c = 0
+                                c = getSearchSelectionLikeColumns(searchableLikeColumns, keyword, c)
+                                @Suppress("AssignedValueIsNeverRead")
+                                c = getSearchSelectionEqualColumns(searchableEqualColumns, keyword, c)
+                                append(SqlUtils.P2)
+                            }
                     }
-                }
             }
 
             private fun StringBuilder.getSearchSelectionEqualColumns(searchableEqualColumns: Array<String>?, keyword: String, c: Int): Int {
@@ -212,12 +214,16 @@ interface POIProviderContract : ProviderContract {
                         throw UnsupportedOperationException("SQL search selection score needs at least 1 searchable columns (${searchableLikeColumns?.size}|${searchableEqualColumns?.size})!")
                     }
                     var c = 0
-                    searchKeywords.filter { it.isNotEmpty() }.forEach { searchKeyword ->
-                        searchKeyword.lowercase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON_REGEX).filter { it.isNotEmpty() }.forEach { keyword->
-                            c = getSearchSelectionLikeColumns(searchableLikeColumns, keyword, c)
-                            c = getSearchSelectionEqualColumns(searchableEqualColumns, keyword, c)
+                    searchKeywords
+                        .filter { it.isNotEmpty() }
+                        .forEach { searchKeyword ->
+                            searchKeyword.lowercase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON_REGEX)
+                                .filter { it.isNotEmpty() }
+                                .forEach { keyword ->
+                                    c = getSearchSelectionLikeColumns(searchableLikeColumns, keyword, c)
+                                    c = getSearchSelectionEqualColumns(searchableEqualColumns, keyword, c)
+                                }
                         }
-                    }
                 }
 
             private const val PLUS = " + "
