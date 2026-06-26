@@ -134,13 +134,15 @@ interface NewsProviderContract : ProviderContract {
             @JvmStatic
             fun newEmptyFilter() = Filter()
 
-            @SuppressLint("DiscouragedApi")
             @JvmStatic
-            fun newArticleUUIDFilter(articleUUID: String) = Filter(articlesUUIDs = listOf(articleUUID))
+            fun newArticleUUIDFilter(articleUUID: String) = newArticlesUUIDsFilter(listOf(articleUUID))
 
             @SuppressLint("DiscouragedApi")
             @JvmStatic
-            fun newPOIFilter(poi: POI) = Filter(targetsUUIDs = poi.toTargetsUUIDs())
+            fun newArticlesUUIDsFilter(articlesUUIDs: List<String>) = Filter(articlesUUIDs = articlesUUIDs)
+
+            @JvmStatic
+            fun newPOIFilter(poi: POI) = newTargetsUUIDsFilter(poi.toTargetsUUIDs())
 
             @JvmStatic
             fun POI.toTargetsUUIDs(): List<String> = buildList {
@@ -149,6 +151,10 @@ interface NewsProviderContract : ProviderContract {
                     add(POI.POIUtils.makeUUID(authority, route.id))
                 }
             }
+
+            @SuppressLint("DiscouragedApi")
+            @JvmStatic
+            fun newTargetsUUIDsFilter(targetsUUIDs: List<String>) = Filter(targetsUUIDs = targetsUUIDs)
 
             @JvmStatic
             fun fromJSONString(jsonString: String?): Filter? {
