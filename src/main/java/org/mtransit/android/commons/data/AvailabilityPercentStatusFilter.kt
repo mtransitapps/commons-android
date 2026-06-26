@@ -4,12 +4,13 @@ import org.json.JSONException
 import org.json.JSONObject
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.provider.status.StatusProviderContract
+import org.mtransit.commons.model.Secret
 
 data class AvailabilityPercentStatusFilter(
     override val cacheOnly: Boolean? = null,
     override val cacheValidityInMs: Long? = null,
     override val inFocus: Boolean? = null,
-    override val providedEncryptKeysMap: Map<String, String>? = null,
+    override val providedEncryptKeysMap: Secret<Map<String, String>>? = null,
     override val targetUUID: String,
 ) : StatusProviderContract.Filter(POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, targetUUID) {
 
@@ -65,7 +66,7 @@ data class AvailabilityPercentStatusFilter(
 
     override fun getLogTag() = LOG_TAG
 
-    override fun copyWith(providedEncryptKeysMap: Map<String, String>?) = this.copy(providedEncryptKeysMap = providedEncryptKeysMap)
+    override fun copyWith(providedEncryptKeysMap: Secret<Map<String, String>>?) = this.copy(providedEncryptKeysMap = providedEncryptKeysMap)
 
     override fun fromJSONStringStatic(jsonString: String?) = fromJSONString(jsonString)
 

@@ -17,6 +17,7 @@ import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderFilter
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
+import org.mtransit.commons.model.Secret
 
 interface VehicleLocationProviderContract : ProviderContract {
 
@@ -92,7 +93,7 @@ interface VehicleLocationProviderContract : ProviderContract {
         override val cacheOnly: Boolean? = null,
         override val cacheValidityInMs: Long? = null,
         override val inFocus: Boolean? = null,
-        override val providedEncryptKeysMap: Map<String, String>? = null,
+        override val providedEncryptKeysMap: Secret<Map<String, String>>? = null,
         val authority: String,
         override val poi: POI? = null, // RouteDirectionStop or DefaultPOI
         override val route: Route? = null,

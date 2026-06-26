@@ -8,13 +8,14 @@ import org.mtransit.android.commons.optBoolean
 import org.mtransit.android.commons.optInt
 import org.mtransit.android.commons.optLong
 import org.mtransit.android.commons.provider.status.StatusProviderContract
+import org.mtransit.commons.model.Secret
 import java.util.concurrent.TimeUnit
 
 data class ScheduleStatusFilter(
     override val cacheOnly: Boolean? = null,
     override val cacheValidityInMs: Long? = null,
     override val inFocus: Boolean? = null,
-    override val providedEncryptKeysMap: Map<String, String>? = null,
+    override val providedEncryptKeysMap: Secret<Map<String, String>>? = null,
     val routeDirectionStop: RouteDirectionStop,
     private val lookBehindInMs: Long? = null,
     private val minUsefulDurationCoveredInMs: Long? = null,
@@ -125,7 +126,7 @@ data class ScheduleStatusFilter(
 
     override fun getLogTag() = LOG_TAG
 
-    override fun copyWith(providedEncryptKeysMap: Map<String, String>?) = this.copy(providedEncryptKeysMap = providedEncryptKeysMap)
+    override fun copyWith(providedEncryptKeysMap: Secret<Map<String, String>>?) = this.copy(providedEncryptKeysMap = providedEncryptKeysMap)
 
     val targetAuthority: String get() = this.routeDirectionStop.authority
 

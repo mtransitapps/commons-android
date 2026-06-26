@@ -16,6 +16,7 @@ import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.optDouble
 import org.mtransit.android.commons.provider.common.ContentProviderConstants
 import org.mtransit.android.commons.provider.common.ProviderContract
+import org.mtransit.commons.model.Secret
 import java.util.Locale
 
 interface POIProviderContract : ProviderContract {
@@ -92,7 +93,7 @@ interface POIProviderContract : ProviderContract {
         override val cacheOnly: Boolean? = null,
         override val cacheValidityInMs: Long? = null,
         override val inFocus: Boolean? = null,
-        override val providedEncryptKeysMap: Map<String, String>? = null,
+        override val providedEncryptKeysMap: Secret<Map<String, String>>? = null,
         val lat: Double? = null,
         val lng: Double? = null,
         val aroundDiff: Double? = null,

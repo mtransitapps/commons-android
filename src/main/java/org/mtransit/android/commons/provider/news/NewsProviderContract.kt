@@ -15,6 +15,7 @@ import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.data.POI
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.provider.common.ProviderContract
+import org.mtransit.commons.model.Secret
 
 interface NewsProviderContract : ProviderContract {
 
@@ -120,7 +121,7 @@ interface NewsProviderContract : ProviderContract {
         override val cacheOnly: Boolean? = null,
         override val cacheValidityInMs: Long? = null,
         override val inFocus: Boolean? = null,
-        override val providedEncryptKeysMap: Map<String, String>? = null,
+        override val providedEncryptKeysMap: Secret<Map<String, String>>? = null,
         private val articlesUUIDs: List<String>? = null,
         private val targetsUUIDs: List<String>? = null,
         private val minCreatedAtInMs: Long? = null,

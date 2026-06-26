@@ -12,6 +12,7 @@ import org.mtransit.android.commons.data.POIStatus
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.ScheduleStatusFilter
 import org.mtransit.android.commons.provider.common.ProviderContract
+import org.mtransit.commons.model.Secret
 
 interface StatusProviderContract : ProviderContract {
 
@@ -145,7 +146,7 @@ interface StatusProviderContract : ProviderContract {
 
         override fun getLogTag() = LOG_TAG
 
-        abstract fun copyWith(providedEncryptKeysMap: Map<String, String>?): Filter
+        abstract fun copyWith(providedEncryptKeysMap: Secret<Map<String, String>>?): Filter
 
         @Suppress("unused")
         abstract fun fromJSONStringStatic(jsonString: String?): Filter?

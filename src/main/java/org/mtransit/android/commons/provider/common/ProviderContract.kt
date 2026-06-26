@@ -12,6 +12,7 @@ import org.mtransit.android.commons.MTLog.Loggable
 import org.mtransit.android.commons.SecureStringUtils.enc
 import org.mtransit.android.commons.optBoolean
 import org.mtransit.android.commons.optLong
+import org.mtransit.commons.model.Secret
 import java.util.concurrent.TimeUnit
 
 interface ProviderContract : Loggable {
@@ -55,8 +56,8 @@ interface ProviderContract : Loggable {
             fun getCacheValidityInMsFromJSON(json: JSONObject) = json.optLong(JSON_CACHE_VALIDITY_IN_MS, null)
 
             @Throws(JSONException::class)
-            fun getProvidedEncryptKeysMapFromJSON(json: JSONObject): Map<String, String>? =
-                json.optJSONObject(JSON_PROVIDED_ENCRYPT_KEYS_MAP)?.let { JSONUtils.toMapOfStrings(it) }
+            fun getProvidedEncryptKeysMapFromJSON(json: JSONObject): Secret<Map<String, String>>? =
+                json.optJSONObject(JSON_PROVIDED_ENCRYPT_KEYS_MAP)?.let { JSONUtils.toMapOfStrings(it) }?.let { Secret(it) }
 
             @JvmStatic
             @Throws(JSONException::class)
@@ -64,13 +65,13 @@ interface ProviderContract : Loggable {
                 cacheOnly?.let { json.put(JSON_CACHE_ONLY, it) }
                 cacheValidityInMs?.let { json.put(JSON_CACHE_VALIDITY_IN_MS, it) }
                 inFocus?.let { json.put(JSON_IN_FOCUS, it) }
-                providedEncryptKeysMap?.let { json.put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, JSONUtils.toJSONObject(it)) }
+                providedEncryptKeysMap?.let { json.put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, JSONUtils.toJSONObject(it.data)) }
             }
 
             fun toProvidedKeys(keysMap: Map<String, String>?) = keysMap?.mapNotNull {
                 val enc = enc(it.value) ?: return@mapNotNull null
                 it.key to enc
-            }?.toMap()
+            }?.toMap()?.let { Secret(it) }
         }
 
         abstract val cacheOnly: Boolean?
@@ -81,10 +82,10 @@ interface ProviderContract : Loggable {
         abstract val inFocus: Boolean?
         val isInFocusOrDefault: Boolean get() = this.inFocus ?: IN_FOCUS_DEFAULT
 
-        abstract val providedEncryptKeysMap: Map<String, String>?
+        abstract val providedEncryptKeysMap: Secret<Map<String, String>>?
 
         fun getProvidedEncryptKey(key: String) =
-            this.providedEncryptKeysMap?.get(key = key)
+            this.providedEncryptKeysMap?.data?.get(key = key)
                 ?.takeIf { it.trim().isNotEmpty() }
 
         @Suppress("unused")
@@ -94,7 +95,7 @@ interface ProviderContract : Loggable {
             cacheOnly?.let { append("cacheOnly:").append(it).append(",") }
             cacheValidityInMs?.let { append("cacheValidityInMs:").append(MTLog.formatDuration(it)).append(",") }
             inFocus?.let { append("inFocus:").append(it).append(",") }
-            providedEncryptKeysMap?.let { append("providedEncryptKeysMap:").append(it.size).append(",") } // no not print keys
+            providedEncryptKeysMap?.let { append("providedEncryptKeysMap:").append(it.data.size).append(",") } // no not print keys
         }
     }
 }

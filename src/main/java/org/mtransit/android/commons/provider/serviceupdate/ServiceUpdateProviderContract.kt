@@ -18,6 +18,7 @@ import org.mtransit.android.commons.data.Targetable
 import org.mtransit.android.commons.optString
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderFilter
+import org.mtransit.commons.model.Secret
 
 interface ServiceUpdateProviderContract : ProviderContract {
 
@@ -88,7 +89,7 @@ interface ServiceUpdateProviderContract : ProviderContract {
         override val cacheOnly: Boolean? = null,
         override val cacheValidityInMs: Long? = null,
         override val inFocus: Boolean? = null,
-        override val providedEncryptKeysMap: Map<String, String>? = null,
+        override val providedEncryptKeysMap: Secret<Map<String, String>>? = null,
         val authority: String?,
         override val poi: POI? = null, // RouteDirectionStop or DefaultPOI
         override val route: Route? = null,
