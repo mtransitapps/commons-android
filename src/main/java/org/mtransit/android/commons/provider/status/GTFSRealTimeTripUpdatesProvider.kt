@@ -10,6 +10,7 @@ import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.TimeUtilsK
 import org.mtransit.android.commons.data.POIStatus
 import org.mtransit.android.commons.data.Schedule
+import org.mtransit.android.commons.data.ScheduleStatusFilter
 import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.makeSchedule
@@ -86,7 +87,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
     @JvmStatic
     fun GTFSRealTimeProvider.getCached(statusFilter: StatusProviderContract.Filter): POIStatus? {
-        val filter = statusFilter as? Schedule.ScheduleStatusFilter ?: run {
+        val filter = statusFilter as? ScheduleStatusFilter ?: run {
             MTLog.w(LOG_TAG, "getCached() > Can't find new schedule without schedule filter!")
             return null
         }
@@ -103,7 +104,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     private val tripUpdateLock = mutableMapOf<String, Any>()
 
     private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyDataLock(
-        filter: Schedule.ScheduleStatusFilter,
+        filter: ScheduleStatusFilter,
         tripIds: List<String>
     ): POIStatus? {
         val context = context ?: return null
@@ -132,7 +133,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
     private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData(
         context: Context,
-        filter: Schedule.ScheduleStatusFilter,
+        filter: ScheduleStatusFilter,
         staticTripIds: List<String>,
     ): POIStatus? {
         MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData(${filter.targetUUID}, ${staticTripIds.size})")
@@ -297,7 +298,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
     @JvmStatic
     fun GTFSRealTimeProvider.getNew(statusFilter: StatusProviderContract.Filter): POIStatus? {
-        val filter = statusFilter as? Schedule.ScheduleStatusFilter ?: run {
+        val filter = statusFilter as? ScheduleStatusFilter ?: run {
             MTLog.w(LOG_TAG, "getNew() > Can't find new schedule without schedule filter!")
             return null
         }

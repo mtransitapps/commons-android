@@ -401,12 +401,12 @@ public class GTFSProvider extends AgencyProvider implements
 	}
 
 	@Override
-	public long getPOIMaxValidityInMs() {
+	public long getPoiMaxValidityInMs() {
 		return GTFSPOIProvider.getPOIMaxValidityInMs(this);
 	}
 
 	@Override
-	public long getPOIValidityInMs() {
+	public long getPoiValidityInMs() {
 		return GTFSPOIProvider.getPOIValidityInMs(this);
 	}
 
@@ -424,13 +424,13 @@ public class GTFSProvider extends AgencyProvider implements
 
 	@NonNull
 	@Override
-	public String[] getPOIProjection() {
+	public String[] getPoiProjection() {
 		return GTFSPOIProvider.getPOIProjection(this);
 	}
 
 	@NonNull
 	@Override
-	public ArrayMap<String, String> getPOIProjectionMap() {
+	public ArrayMap<String, String> getPoiProjectionMap() {
 		return GTFSPOIProvider.getPOIProjectionMap(this);
 	}
 

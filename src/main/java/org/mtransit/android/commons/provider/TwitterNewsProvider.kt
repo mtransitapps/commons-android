@@ -25,17 +25,18 @@ import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.provider.agency.AgencyUtils
+import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.news.NewsProvider
 import org.mtransit.android.commons.provider.news.NewsProviderContract
 import org.mtransit.android.commons.provider.news.NewsTextFormatter
-import org.mtransit.android.commons.provider.news.twitter.model.Tweet
-import org.mtransit.android.commons.provider.news.twitter.model.TweetMediaType
-import org.mtransit.android.commons.provider.news.twitter.TwitterV2Api
 import org.mtransit.android.commons.provider.news.twitter.TwitterDateAdapter
 import org.mtransit.android.commons.provider.news.twitter.TwitterNewsDbHelper
 import org.mtransit.android.commons.provider.news.twitter.TwitterStorage
-import org.mtransit.android.commons.provider.news.twitter.model.TweetsResponse.TweetIncludes
+import org.mtransit.android.commons.provider.news.twitter.TwitterV2Api
+import org.mtransit.android.commons.provider.news.twitter.model.Tweet
 import org.mtransit.android.commons.provider.news.twitter.model.TweetMedia.TweetMediaVariant
+import org.mtransit.android.commons.provider.news.twitter.model.TweetMediaType
+import org.mtransit.android.commons.provider.news.twitter.model.TweetsResponse.TweetIncludes
 import retrofit2.create
 import java.io.IOException
 import java.util.Date
@@ -58,7 +59,7 @@ class TwitterNewsProvider : NewsProvider() {
         // https://docs.x.com/x-api/fundamentals/rate-limits (Basic)
         // - [GET /2/users/by/username/:username]   500 requests / 24 hours PER APP
         // - [GET /2/tweets]                        15 requests / 15 mins PER APP
-        private val NEWS_MAX_VALIDITY_IN_MS = MAX_CACHE_VALIDITY_MS
+        private val NEWS_MAX_VALIDITY_IN_MS = ProviderContract.MAX_CACHE_VALIDITY_MS
         private val NEWS_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(24L) * VALIDITY_EXPANSIVE_API_FACTOR
         private val NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1L) * VALIDITY_EXPANSIVE_API_FACTOR
         private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(30L) * VALIDITY_EXPANSIVE_API_FACTOR
@@ -234,7 +235,7 @@ class TwitterNewsProvider : NewsProvider() {
 
     override fun getLogTag() = LOG_TAG
 
-    override fun getURI_MATCHER() = _uriMatcher
+    override val URI_MATCHER: UriMatcher get() = _uriMatcher
 
     private var _dbHelper: TwitterNewsDbHelper? = null
     private var _currentDbVersion: Int = -1
@@ -276,14 +277,13 @@ class TwitterNewsProvider : NewsProvider() {
 
     fun getDBHelper() = getDBHelper(ContentProviderCompat.requireContext(this))
 
-    override fun getMinDurationBetweenNewsRefreshInMs(inFocus: Boolean) = if (inFocus) {
+    override fun getMinDurationBetweenNewsRefreshInMs(inFocusOrDefault: Boolean) = if (inFocusOrDefault) {
         NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS
     } else NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS
 
-    override fun getNewsMaxValidityInMs() = NEWS_MAX_VALIDITY_IN_MS
-        .takeUnless { FORCE_REFRESH } ?: 0L
+    override val newsMaxValidityInMs: Long get() = NEWS_MAX_VALIDITY_IN_MS.takeUnless { FORCE_REFRESH } ?: 0L
 
-    override fun getNewsValidityInMs(inFocus: Boolean) = if (inFocus) {
+    override fun getNewsValidityInMs(inFocusOrDefault: Boolean) = if (inFocusOrDefault) {
         NEWS_VALIDITY_IN_FOCUS_IN_MS
     } else NEWS_VALIDITY_IN_MS
 
@@ -291,8 +291,8 @@ class TwitterNewsProvider : NewsProvider() {
         return purgeUselessCachedNews(this)
     }
 
-    override fun deleteCachedNews(newsId: Int?): Boolean {
-        return deleteCachedNews(this, newsId)
+    override fun deleteCachedNews(id: Int?): Boolean {
+        return deleteCachedNews(this, id)
     }
 
     private fun deleteAllAgencyNewsData(): Int {
@@ -313,9 +313,9 @@ class TwitterNewsProvider : NewsProvider() {
         return affectedRows
     }
 
-    override fun getAuthority() = _authority
+    override val authority: String get() = _authority
 
-    override fun getAuthorityUri() = _authorityUri
+    override val authorityUri: Uri get() = _authorityUri
 
     override fun cacheNews(newNews: ArrayList<News>) {
         cacheNewsS(this, newNews)
@@ -599,6 +599,7 @@ class TwitterNewsProvider : NewsProvider() {
             return null
         }
         val author = includedExpansions?.users?.find { it.id == tweet.authorId }
+
         @Suppress("SpellCheckingInspection")
         val authorUserName = author?.username ?: userName // "montransit"
         val authorName = author?.name ?: authorUserName // "MonTransit"
@@ -615,7 +616,7 @@ class TwitterNewsProvider : NewsProvider() {
             }
         }
         val textHTML = buildString {
-            getHTMLText(tweet, includedExpansions, REMOVE_IMAGE_FROM_TEXT)?.let { append(it) }
+            getHTMLText(tweet, includedExpansions, NewsProviderContract.REMOVE_IMAGE_FROM_TEXT)?.let { append(it) }
             if (!TextUtils.isEmpty(link)) {
                 if (isNotEmpty()) {
                     append(HtmlUtils.BR).append(HtmlUtils.BR)
@@ -792,5 +793,5 @@ class TwitterNewsProvider : NewsProvider() {
         return selected
     }
 
-    override fun getNewsLanguages() = _languages
+    override val newsLanguages: Collection<String> get() = _languages
 }

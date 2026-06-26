@@ -15,7 +15,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.data.Area;
-import org.mtransit.android.commons.data.AvailabilityPercent;
+import org.mtransit.android.commons.data.AvailabilityPercentStatusFilter;
 import org.mtransit.android.commons.data.BikeStationAvailabilityPercent;
 import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI;
@@ -74,7 +74,7 @@ public class GBFSProvider extends BikeStationProvider {
 
 	@Nullable
 	@Override
-	public POIStatus getNewBikeStationStatus(@NonNull AvailabilityPercent.AvailabilityPercentStatusFilter statusFilter) {
+	public POIStatus getNewBikeStationStatus(@NonNull AvailabilityPercentStatusFilter statusFilter) {
 		updateBikeStationStatusDataIfRequired(statusFilter);
 		return getCachedStatus(statusFilter);
 	}
@@ -85,8 +85,8 @@ public class GBFSProvider extends BikeStationProvider {
 		final long lastUpdateInMs = getStorage(context).getLastUpdateInMs(); // POI
 		final long nowInMs = TimeUtils.currentTimeMillis();
 		// MAX VALIDITY (too old to display?)
-		if (lastUpdateInMs + getPOIValidityInMs() < nowInMs) { // try to update
-			if (lastUpdateInMs + getPOIMaxValidityInMs() < nowInMs) { // too old to display
+		if (lastUpdateInMs + getPoiValidityInMs() < nowInMs) { // try to update
+			if (lastUpdateInMs + getPoiMaxValidityInMs() < nowInMs) { // too old to display
 				deleteAllBikeStationData();
 				updateBikeStationDataFromWWW(context, lastUpdateInMs);
 				return;

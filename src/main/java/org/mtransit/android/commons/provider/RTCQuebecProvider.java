@@ -36,8 +36,10 @@ import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirection;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.ScheduleStatusFilter;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
+import org.mtransit.android.commons.data.ServiceUpdates;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.common.MTContentProvider;
@@ -235,7 +237,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@Override
-	public void cacheServiceUpdates(@NonNull List<ServiceUpdate> newServiceUpdates) {
+	public void cacheServiceUpdates(@NonNull ServiceUpdates newServiceUpdates) {
 		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
@@ -246,7 +248,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	@Nullable
 	@Override
-	public List<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+	public ServiceUpdates getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
 			return getCachedServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi());
 		} else if ((serviceUpdateFilter.getRouteDirection() != null)) {
@@ -260,30 +262,30 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@Nullable
-	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
+	private ServiceUpdates getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
 		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUID(rds);
-		List<ServiceUpdate> serviceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		ServiceUpdates serviceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceServiceUpdate(serviceUpdates, rds.getRoute(), rds.getStop(), targetUUIDs);
 		return serviceUpdates;
 	}
 
 	@Nullable
-	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirection rd) {
+	private ServiceUpdates getCachedServiceUpdates(@NonNull RouteDirection rd) {
 		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUID(rd);
-		List<ServiceUpdate> serviceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		ServiceUpdates serviceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceServiceUpdate(serviceUpdates, rd.getRoute(), null, targetUUIDs);
 		return serviceUpdates;
 	}
 
 	@Nullable
-	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
+	private ServiceUpdates getCachedServiceUpdates(@NonNull Route route) {
 		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUID(route);
-		List<ServiceUpdate> serviceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		ServiceUpdates serviceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceServiceUpdate(serviceUpdates, route, null, targetUUIDs);
 		return serviceUpdates;
 	}
 
-	private void enhanceServiceUpdate(List<ServiceUpdate> serviceUpdates,
+	private void enhanceServiceUpdate(ServiceUpdates serviceUpdates,
 									  @Nullable Route route,
 									  @Nullable Stop stop,
 									  @NonNull Map<String, String> targetUUIDs // different UUID from provider target UUID
@@ -462,11 +464,11 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	@Nullable
 	@Override
 	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
-		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
-		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
+		ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
 		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
 		if (TextUtils.isEmpty(rds.getStop().getCode())
 				|| rds.getDirection().getId() < 0L
@@ -525,7 +527,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@Override
-	public boolean deleteCachedServiceUpdate(@NonNull Integer serviceUpdateId) {
+	public boolean deleteCachedServiceUpdate(int serviceUpdateId) {
 		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, serviceUpdateId);
 	}
 
@@ -555,7 +557,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	@Nullable
 	@Override
-	public List<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+	public ServiceUpdates getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
 			return getNewServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi(), serviceUpdateFilter.isInFocusOrDefault());
 		} else if ((serviceUpdateFilter.getRouteDirection() != null)) {
@@ -569,21 +571,21 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@Nullable
-	private List<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirectionStop rds, boolean inFocus) {
+	private ServiceUpdates getNewServiceUpdates(@NonNull RouteDirectionStop rds, boolean inFocus) {
 		//noinspection deprecation // TODO fix & re-enable
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
 		return getCachedServiceUpdates(rds);
 	}
 
 	@Nullable
-	private List<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirection routeDirection, boolean inFocus) {
+	private ServiceUpdates getNewServiceUpdates(@NonNull RouteDirection routeDirection, boolean inFocus) {
 		//noinspection deprecation // TODO fix & re-enable
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
 		return getCachedServiceUpdates(routeDirection);
 	}
 
 	@Nullable
-	private List<ServiceUpdate> getNewServiceUpdates(@NonNull Route route, boolean inFocus) {
+	private ServiceUpdates getNewServiceUpdates(@NonNull Route route, boolean inFocus) {
 		//noinspection deprecation // TODO fix & re-enable
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
 		return getCachedServiceUpdates(route);
@@ -631,7 +633,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		List<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context);
+		ServiceUpdates newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -664,7 +666,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	@Deprecated
 	@Nullable
-	private List<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
+	private ServiceUpdates loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
 		try {
 			String urlString = AGENCY_URL;
 			MTLog.i(this, "Loading from '%s'...", urlString);
@@ -709,11 +711,11 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	@Nullable
 	@Override
 	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
-		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
-		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
+		ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
 		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
 		if (TextUtils.isEmpty(rds.getStop().getCode())
 				|| TextUtils.isEmpty(rds.getRoute().getShortName())) {
@@ -1152,7 +1154,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		private final StringBuilder currentContentSb = new StringBuilder();
 		private final StringBuilder currentGUIDSb = new StringBuilder();
 
-		private final List<ServiceUpdate> serviceUpdates = new ArrayList<>();
+		private final ServiceUpdates serviceUpdates = new ServiceUpdates();
 
 		private final String targetAuthority;
 		@NonNull
@@ -1167,7 +1169,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			this.serviceUpdateMaxValidityInMs = serviceUpdateMaxValidityInMs;
 		}
 
-		List<ServiceUpdate> getServiceUpdates() {
+		ServiceUpdates getServiceUpdates() {
 			return this.serviceUpdates;
 		}
 

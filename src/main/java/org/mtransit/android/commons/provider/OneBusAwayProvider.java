@@ -31,6 +31,7 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.ScheduleStatusFilter;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
@@ -252,11 +253,11 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	@Nullable
 	@Override
 	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
-		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
-		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
+		ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
 		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
 		String targetUUID = getAgencyRouteStopTagTargetUUID(rds);
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, targetUUID);
@@ -307,11 +308,11 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	@Nullable
 	@Override
 	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
-		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
-		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
+		ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
 		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
 		loadPredictionsFromWWW(requireContextCompat(), rds);
 		return getCachedStatus(statusFilter);
@@ -485,6 +486,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 			final String rdsDirectionHeading = rds.getDirection().getHeading(context);
 			final String routeLongName = rds.getRoute().getLongName();
 			tripHeadsign = CleanUtils.removeStrings(tripHeadsign, rdsDirectionHeading, routeLongName);
+			//noinspection deprecation
 			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
 			return tripHeadsign;
 		} catch (Exception e) {

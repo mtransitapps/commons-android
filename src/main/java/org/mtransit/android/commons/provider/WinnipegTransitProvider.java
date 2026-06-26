@@ -38,8 +38,10 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.ScheduleStatusFilter;
 import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
+import org.mtransit.android.commons.provider.common.ProviderContract;
 import org.mtransit.android.commons.provider.news.NewsProvider;
 import org.mtransit.android.commons.provider.news.NewsProviderContract;
 import org.mtransit.android.commons.provider.status.StatusProvider;
@@ -222,11 +224,11 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	@Nullable
 	@Override
 	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
-		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
-		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
+		ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
 		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, rds.getUUID());
 		if (cachedStatus != null) {
@@ -264,11 +266,11 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	@Nullable
 	@Override
 	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
-		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
-		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
+		ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
 		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
 		this.providedApiKey = SecureStringUtils.dec(statusFilter.getProvidedEncryptKey(KeysIds.CA_WINNIPEG_TRANSIT_API_KEY));
 		loadRealTimeStatusFromWWW(requireContextCompat(), rds);
@@ -561,7 +563,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	 */
 	private static final String PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS = WinnipegTransitDbHelper.PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS;
 
-	private static final long NEWS_MAX_VALIDITY_IN_MS = MAX_CACHE_VALIDITY_MS;
+	private static final long NEWS_MAX_VALIDITY_IN_MS = ProviderContract.getMAX_CACHE_VALIDITY_MS();
 	private static final long NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1);
 	private static final long NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1);
 	private static final long NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(30);
@@ -920,7 +922,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	@NonNull
 	@Override
 	public String[] getNewsProjection() {
-		return NewsProviderContract.PROJECTION_NEWS;
+		return NewsProviderContract.getPROJECTION_NEWS();
 	}
 
 	@Nullable

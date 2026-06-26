@@ -58,6 +58,9 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		uriMatcher.addURI(authority, SearchManager.SUGGEST_URI_PATH_QUERY + "/*", ContentProviderConstants.SEARCH_SUGGEST_QUERY);
 	}
 
+	@Nullable
+	public static final String[] PROJECTION_POI_ALL_COLUMNS = POIProviderContract.getPROJECTION_POI_ALL_COLUMNS();
+
 	private static final String[] SUGGEST_SEARCHABLE_COLUMNS = new String[]{SearchManager.SUGGEST_COLUMN_TEXT_1};
 
 	private static final String[] SEARCHABLE_LIKE_COLUMNS = new String[]{POIProviderContract.Columns.T_POI_K_NAME};
@@ -202,17 +205,17 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return cursor;
 	}
 
-	private static final long POI_MAX_VALIDITY_IN_MS = ProviderContract.MAX_CACHE_VALIDITY_MS;
+	private static final long POI_MAX_VALIDITY_IN_MS = ProviderContract.getMAX_CACHE_VALIDITY_MS();
 
-	private static final long POI_VALIDITY_IN_MS = ProviderContract.MAX_CACHE_VALIDITY_MS;
+	private static final long POI_VALIDITY_IN_MS = ProviderContract.getMAX_CACHE_VALIDITY_MS();
 
 	@Override
-	public long getPOIMaxValidityInMs() {
+	public long getPoiMaxValidityInMs() {
 		return POI_MAX_VALIDITY_IN_MS;
 	}
 
 	@Override
-	public long getPOIValidityInMs() {
+	public long getPoiValidityInMs() {
 		return POI_VALIDITY_IN_MS;
 	}
 
@@ -225,11 +228,11 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	@Nullable
 	public static Cursor getDefaultSearchSuggest(@Nullable String query, @NonNull POIProviderContract provider) {
 		try {
-			String selection = POIProviderContract.Filter.getSearchSelection(new String[]{query}, SUGGEST_SEARCHABLE_COLUMNS, null);
-			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+			final String selection = POIProviderContract.Filter.getSearchSelection(query, SUGGEST_SEARCHABLE_COLUMNS, null);
+			final SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getSearchSuggestTable());
 			qb.setProjectionMap(provider.getSearchSuggestProjectionMap());
-			return qb.query(provider.getReadDB(), PROJECTION_POI_SEARCH_SUGGEST, selection, null, null, null, null, null);
+			return qb.query(provider.getReadDB(), POIProviderContract.getPROJECTION_POI_SEARCH_SUGGEST(), selection, null, null, null, null, null);
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while loading search suggests '%s'!", query);
 			return null;
@@ -263,14 +266,14 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 					POIProviderContract.Columns.T_POI_K_LNG, SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUALS_COLUMNS);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getPOITable());
-			ArrayMap<String, String> poiProjectionMap = provider.getPOIProjectionMap();
+			ArrayMap<String, String> poiProjectionMap = provider.getPoiProjectionMap();
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter) && poiFilter.getSearchKeywords() != null) {
 				SqlUtils.appendProjection(poiProjectionMap,
 						POIProviderContract.Filter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUALS_COLUMNS),
 						POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
 			}
 			qb.setProjectionMap(poiProjectionMap);
-			String[] poiProjection = provider.getPOIProjection();
+			String[] poiProjection = provider.getPoiProjection();
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
 				poiProjection = ArrayUtils.addAll(poiProjection, new String[]{POIProviderContract.Columns.T_POI_K_SCORE_META_OPT});
 			}
@@ -291,15 +294,15 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 	@NonNull
 	@Override
-	public String[] getPOIProjection() {
-		return PROJECTION_POI;
+	public String[] getPoiProjection() {
+		return POIProviderContract.getPROJECTION_POI();
 	}
 
 	private static ArrayMap<String, String> poiProjectionMap;
 
 	@NonNull
 	@Override
-	public ArrayMap<String, String> getPOIProjectionMap() {
+	public ArrayMap<String, String> getPoiProjectionMap() {
 		if (poiProjectionMap == null) {
 			poiProjectionMap = getNewPoiProjectionMap(getAUTHORITY(requireContextCompat()), getTYPE_ID(requireContextCompat()));
 		}
@@ -388,12 +391,12 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 	@Nullable
 	@Override
-	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
 
-	public static synchronized int insertDefaultPOIs(@NonNull POIProviderContract provider, Collection<DefaultPOI> defaultPOIs) {
+	public static synchronized int insertDefaultPOIs(@NonNull POIProviderContract provider, @Nullable Collection<DefaultPOI> defaultPOIs) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {

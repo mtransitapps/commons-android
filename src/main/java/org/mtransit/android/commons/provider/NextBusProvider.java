@@ -32,8 +32,10 @@ import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirection;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.ScheduleStatusFilter;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
+import org.mtransit.android.commons.data.ServiceUpdates;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
@@ -66,7 +68,6 @@ import org.xml.sax.XMLReader;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -605,13 +606,13 @@ public class NextBusProvider extends MTContentProvider implements
 	}
 
 	@Override
-	public void cacheServiceUpdates(@NonNull List<ServiceUpdate> newServiceUpdates) {
+	public void cacheServiceUpdates(@NonNull ServiceUpdates newServiceUpdates) {
 		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
 	@Nullable
 	@Override
-	public List<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+	public ServiceUpdates getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		final Context context = requireContextCompat();
 		if (serviceUpdateFilter.getPoi() instanceof RouteDirectionStop) {
 			return getCachedServiceUpdates(context, (RouteDirectionStop) serviceUpdateFilter.getPoi());
@@ -625,16 +626,16 @@ public class NextBusProvider extends MTContentProvider implements
 		}
 	}
 
-	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull Context context, @NonNull RouteDirectionStop rds) {
+	private ServiceUpdates getCachedServiceUpdates(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUIDs(context, rds);
-		List<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		ServiceUpdates cachedServiceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(cachedServiceUpdates, targetUUIDs);
 		return cachedServiceUpdates;
 	}
 
-	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull Context context, @NonNull RouteDirection rd) {
+	private ServiceUpdates getCachedServiceUpdates(@NonNull Context context, @NonNull RouteDirection rd) {
 		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUIDs(context, rd);
-		List<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		ServiceUpdates cachedServiceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(cachedServiceUpdates, targetUUIDs);
 		// if (org.mtransit.android.commons.Constants.DEBUG) {
 		// MTLog.d(this, "getCachedServiceUpdates(%s) > %s", rd.getUUID(), cachedServiceUpdates == null ? null : cachedServiceUpdates.size());
@@ -647,9 +648,9 @@ public class NextBusProvider extends MTContentProvider implements
 		return cachedServiceUpdates;
 	}
 
-	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull Context context, @NonNull Route route) {
+	private ServiceUpdates getCachedServiceUpdates(@NonNull Context context, @NonNull Route route) {
 		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUIDs(context, route);
-		List<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		ServiceUpdates cachedServiceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(cachedServiceUpdates, targetUUIDs);
 		// if (org.mtransit.android.commons.Constants.DEBUG) {
 		// MTLog.d(this, "getCachedServiceUpdates(%s) > %s", route.getUUID(), cachedServiceUpdates == null ? null : cachedServiceUpdates.size());
@@ -662,8 +663,9 @@ public class NextBusProvider extends MTContentProvider implements
 		return cachedServiceUpdates;
 	}
 
-	private void enhanceRDServiceUpdateForStop(@Nullable List<ServiceUpdate> serviceUpdates,
-											   @NonNull Map<String, String> targetUUIDs // different UUID from provider target UUID
+	private void enhanceRDServiceUpdateForStop(
+			@Nullable ServiceUpdates serviceUpdates,
+			@NonNull Map<String, String> targetUUIDs // different UUID from provider target UUID
 	) {
 		try {
 			if (serviceUpdates != null) {
@@ -808,7 +810,7 @@ public class NextBusProvider extends MTContentProvider implements
 	}
 
 	@Override
-	public boolean deleteCachedServiceUpdate(@NonNull Integer serviceUpdateId) {
+	public boolean deleteCachedServiceUpdate(int serviceUpdateId) {
 		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, serviceUpdateId);
 	}
 
@@ -836,7 +838,7 @@ public class NextBusProvider extends MTContentProvider implements
 
 	@Nullable
 	@Override
-	public List<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+	public ServiceUpdates getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		final Context context = requireContextCompat();
 		if (serviceUpdateFilter.getPoi() instanceof RouteDirectionStop) {
 			return getNewServiceUpdates(context, (RouteDirectionStop) serviceUpdateFilter.getPoi(), serviceUpdateFilter.isInFocusOrDefault());
@@ -850,9 +852,9 @@ public class NextBusProvider extends MTContentProvider implements
 		}
 	}
 
-	private List<ServiceUpdate> getNewServiceUpdates(@NonNull Context context, @NonNull RouteDirectionStop rds, boolean inFocus) {
+	private ServiceUpdates getNewServiceUpdates(@NonNull Context context, @NonNull RouteDirectionStop rds, boolean inFocus) {
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
-		List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(context, rds);
+		ServiceUpdates cachedServiceUpdates = getCachedServiceUpdates(context, rds);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			cachedServiceUpdates = makeServiceUpdateNoneList(this, rds, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, Collections.emptyMap());
@@ -860,9 +862,9 @@ public class NextBusProvider extends MTContentProvider implements
 		return cachedServiceUpdates;
 	}
 
-	private List<ServiceUpdate> getNewServiceUpdates(@NonNull Context context, @NonNull RouteDirection rd, boolean inFocus) {
+	private ServiceUpdates getNewServiceUpdates(@NonNull Context context, @NonNull RouteDirection rd, boolean inFocus) {
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
-		List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(context, rd);
+		ServiceUpdates cachedServiceUpdates = getCachedServiceUpdates(context, rd);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			cachedServiceUpdates = makeServiceUpdateNoneList(this, rd, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, Collections.emptyMap());
@@ -870,9 +872,9 @@ public class NextBusProvider extends MTContentProvider implements
 		return cachedServiceUpdates;
 	}
 
-	private List<ServiceUpdate> getNewServiceUpdates(@NonNull Context context, @NonNull Route route, boolean inFocus) {
+	private ServiceUpdates getNewServiceUpdates(@NonNull Context context, @NonNull Route route, boolean inFocus) {
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
-		List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(context, route);
+		ServiceUpdates cachedServiceUpdates = getCachedServiceUpdates(context, route);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			cachedServiceUpdates = makeServiceUpdateNoneList(this, route, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, Collections.emptyMap());
@@ -912,7 +914,7 @@ public class NextBusProvider extends MTContentProvider implements
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		List<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context);
+		ServiceUpdates newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -944,7 +946,7 @@ public class NextBusProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	private List<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
+	private ServiceUpdates loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
 		try {
 			final String urlString = getAgencyUrlString(context);
 			MTLog.i(this, "Loading from '%s'...", urlString);
@@ -970,7 +972,7 @@ public class NextBusProvider extends MTContentProvider implements
 					);
 					xr.setContentHandler(handler);
 					xr.parse(new InputSource(response.body().byteStream()));
-					final List<ServiceUpdate> serviceUpdates = handler.getServiceUpdates();
+					final ServiceUpdates serviceUpdates = handler.getServiceUpdates();
 					MTLog.i(this, "Found %d service updates.", serviceUpdates.size());
 					return serviceUpdates;
 				default:
@@ -1062,11 +1064,11 @@ public class NextBusProvider extends MTContentProvider implements
 	@Nullable
 	@Override
 	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
-		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule w/o schedule filter!");
 			return null;
 		}
-		final Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
+		final ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
 		final RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
 		final String targetUUID = getAgencyRouteStopTagTargetUUID(requireContextCompat(), rds);
 		final POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, targetUUID);
@@ -1106,11 +1108,11 @@ public class NextBusProvider extends MTContentProvider implements
 	@Nullable
 	@Override
 	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
-		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule w/o schedule filter!");
 			return null;
 		}
-		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
+		ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
 		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
 		loadPredictionsFromWWW(requireContextCompat(), rds);
 		return getCachedStatus(statusFilter);
@@ -1627,7 +1629,7 @@ public class NextBusProvider extends MTContentProvider implements
 		private final long serviceUpdateMaxValidityInMs;
 
 		@NonNull
-		private final List<ServiceUpdate> serviceUpdates = new ArrayList<>();
+		private final ServiceUpdates serviceUpdates = new ServiceUpdates();
 
 		private final String agencyTag;
 
@@ -1661,11 +1663,16 @@ public class NextBusProvider extends MTContentProvider implements
 
 		private final NextBusProvider provider;
 
-		NextBusMessagesDataHandler(NextBusProvider provider, @NonNull String sourceLabel, long newLastUpdateInMs,
-								   String agencyTag,
-								   long serviceUpdateMaxValidityInMs,
-								   String textLanguageCode, String textSecondaryLanguageCode,
-								   String textBoldWordsRegex, String textSecondaryBoldWordsRegex
+		NextBusMessagesDataHandler(
+				NextBusProvider provider,
+				@NonNull String sourceLabel,
+				long newLastUpdateInMs,
+				String agencyTag,
+				long serviceUpdateMaxValidityInMs,
+				String textLanguageCode,
+				String textSecondaryLanguageCode,
+				String textBoldWordsRegex,
+				String textSecondaryBoldWordsRegex
 		) {
 			this.provider = provider;
 			this.sourceLabel = sourceLabel;
@@ -1689,7 +1696,7 @@ public class NextBusProvider extends MTContentProvider implements
 		}
 
 		@NonNull
-		List<ServiceUpdate> getServiceUpdates() {
+		ServiceUpdates getServiceUpdates() {
 			return this.serviceUpdates;
 		}
 

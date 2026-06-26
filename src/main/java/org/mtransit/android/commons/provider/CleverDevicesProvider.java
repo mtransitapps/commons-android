@@ -27,6 +27,7 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Schedule.Timestamp;
+import org.mtransit.android.commons.data.ScheduleStatusFilter;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.android.commons.provider.common.MTContentProvider;
@@ -210,11 +211,11 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 	@Nullable
 	@Override
 	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
-		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof ScheduleStatusFilter)) {
 			MTLog.w(this, "getCachedStatus() > Can't find new schedule w/o schedule filter!");
 			return null;
 		}
-		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
+		ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
 		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
 		if (TextUtils.isEmpty(rds.getStop().getCode())) {
 			return null;
@@ -262,11 +263,11 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 	@Nullable
 	@Override
 	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
-		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule w/o schedule filter!");
 			return null;
 		}
-		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
+		ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
 		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
 		if (TextUtils.isEmpty(rds.getStop().getCode())) {
 			return null;

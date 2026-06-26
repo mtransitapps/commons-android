@@ -26,7 +26,7 @@ import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.WordUtils;
 import org.mtransit.android.commons.data.Area;
-import org.mtransit.android.commons.data.AvailabilityPercent;
+import org.mtransit.android.commons.data.AvailabilityPercentStatusFilter;
 import org.mtransit.android.commons.data.DataSourceTypeId;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
@@ -279,16 +279,16 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@Nullable
 	@Override
 	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
-		if (!(statusFilter instanceof AvailabilityPercent.AvailabilityPercentStatusFilter)) {
+		if (!(statusFilter instanceof AvailabilityPercentStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without AvailabilityPercentStatusFilter!");
 			return null;
 		}
-		AvailabilityPercent.AvailabilityPercentStatusFilter availabilityPercentStatusFilter = (AvailabilityPercent.AvailabilityPercentStatusFilter) statusFilter;
+		AvailabilityPercentStatusFilter availabilityPercentStatusFilter = (AvailabilityPercentStatusFilter) statusFilter;
 		return getNewBikeStationStatus(availabilityPercentStatusFilter);
 	}
 
 	@Nullable
-	public abstract POIStatus getNewBikeStationStatus(@NonNull AvailabilityPercent.AvailabilityPercentStatusFilter filter);
+	public abstract POIStatus getNewBikeStationStatus(@NonNull AvailabilityPercentStatusFilter filter);
 
 	@Override
 	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
@@ -587,12 +587,12 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
-	public long getPOIMaxValidityInMs() {
+	public long getPoiMaxValidityInMs() {
 		return BIKE_STATION_MAX_VALIDITY_IN_MS;
 	}
 
 	@Override
-	public long getPOIValidityInMs() {
+	public long getPoiValidityInMs() {
 		return BIKE_STATION_VALIDITY_IN_MS;
 	}
 
@@ -622,7 +622,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@NonNull
 	@Override
-	public ArrayMap<String, String> getPOIProjectionMap() {
+	public ArrayMap<String, String> getPoiProjectionMap() {
 		if (poiProjectionMap == null) {
 			poiProjectionMap = POIProvider.getNewPoiProjectionMap(getAUTHORITY(requireContextCompat()), getAGENCY_TYPE_ID(requireContextCompat()));
 		}
@@ -631,8 +631,8 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@NonNull
 	@Override
-	public String[] getPOIProjection() {
-		return POIProvider.PROJECTION_POI;
+	public String[] getPoiProjection() {
+		return POIProviderContract.getPROJECTION_POI();
 	}
 
 	@NonNull

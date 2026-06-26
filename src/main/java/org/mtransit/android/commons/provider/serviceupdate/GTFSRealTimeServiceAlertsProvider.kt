@@ -2,7 +2,8 @@ package org.mtransit.android.commons.provider.serviceupdate
 
 import androidx.annotation.VisibleForTesting
 import org.mtransit.android.commons.MTLog
-import org.mtransit.android.commons.data.ServiceUpdate
+import org.mtransit.android.commons.data.ServiceUpdates
+import org.mtransit.android.commons.data.buildServiceUpdates
 import org.mtransit.android.commons.data.makeServiceUpdateNoneList
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.AGENCY_SOURCE_ID
@@ -59,8 +60,8 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
         filter: ServiceUpdateProviderContract.Filter,
         tripIdsOutOfSync: Boolean?,
         getTripIds: (authority: String, routeId: Long, directionId: Long?) -> List<String>?,
-        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> List<ServiceUpdate>?,
-    ): List<ServiceUpdate>? {
+        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> ServiceUpdates?,
+    ): ServiceUpdates? {
         val tripIdsOutOfSync = tripIdsOutOfSync == true
         return filter.getTargetUUIDs(this, includeAgencyTag = true, includeRouteType = true, includeStopTags = true)
             ?.let { targetUUIDs ->
@@ -91,16 +92,19 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
     private fun getCached(
         targetUUIDs: Map<String, String>,
         tripIds: List<String>?,
-        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> List<ServiceUpdate>?,
-    ) = buildList {
+        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> ServiceUpdates?,
+    ) = buildServiceUpdates {
         getCachedServiceUpdates(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
             ?.let {
                 addAll(it)
             }
-    }.map { it.apply { targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID } }
+        forEach { serviceUpdate ->
+            targetUUIDs[serviceUpdate.targetUUID]?.let { serviceUpdate.targetUUID = it }
+        }
+    }
 
     @JvmStatic
-    fun GTFSRealTimeProvider.getNew(filter: ServiceUpdateProviderContract.Filter): List<ServiceUpdate>? {
+    fun GTFSRealTimeProvider.getNew(filter: ServiceUpdateProviderContract.Filter): ServiceUpdates? {
         updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), filter.isInFocusOrDefault)
         return getCached(filter)
             ?: filter.target?.let { enhanceServiceUpdate(makeServiceUpdateNoneList(it, AGENCY_SOURCE_ID)) }
@@ -141,15 +145,11 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
     }
 
     @JvmStatic
-    fun GTFSRealTimeProvider.enhanceServiceUpdate(cachedServiceUpdates: List<ServiceUpdate>?) =
-        cachedServiceUpdates?.map { serviceUpdate ->
-            serviceUpdate.apply {
-                setTextHTML(enhanceHtmlDateTime(requireContextCompat(), serviceUpdate.textHTML))
-            }
-        }
+    fun GTFSRealTimeProvider.enhanceServiceUpdate(cachedServiceUpdates: ServiceUpdates?): ServiceUpdates? =
+        cachedServiceUpdates?.apply { forEach { it.setTextHTML(enhanceHtmlDateTime(requireContextCompat(), it.textHTML)) } }
 
     @JvmStatic
-    fun GTFSRealTimeProvider.setTripIdsOutOfSync(serviceUpdates: Iterable<ServiceUpdate>) {
+    fun GTFSRealTimeProvider.setTripIdsOutOfSync(serviceUpdates: ServiceUpdates) {
         setTripIdsOutOfSync(
             getOneTripId = { serviceUpdates.firstOrNull { it.targetTripId != null }?.targetTripId },
             saveTripIdsOutOfSync = { tripIdsOutOfSync ->
