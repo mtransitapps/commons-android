@@ -255,7 +255,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@Override
 	public Cursor getPOI(@Nullable POIProviderContract.Filter poiFilter) {
 		if (poiFilter != null && poiFilter.getExtraBoolean(POIProviderContract.POI_FILTER_EXTRA_AVOID_LOADING, false)) {
-			if (getLastUpdateInMs() + getPOIMaxValidityInMs() > TimeUtils.currentTimeMillis()) { // not too old to display
+			if (getLastUpdateInMs() + getPoiMaxValidityInMs() > TimeUtils.currentTimeMillis()) { // not too old to display
 				final Cursor cursor = getPOIFromDB(poiFilter);
 				if (cursor != null && cursor.getCount() > 0) {
 					return cursor; // returned cached results instead of loading while user is waiting

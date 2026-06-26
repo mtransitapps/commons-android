@@ -17,6 +17,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
@@ -221,7 +223,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 	@Nullable
 	@Override
-	public Cursor getSearchSuggest(String query) {
+	public Cursor getSearchSuggest(@Nullable String query) {
 		return getDefaultSearchSuggest(query, this);
 	}
 
@@ -245,8 +247,9 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return provider.getPOI(poiFilter);
 	}
 
+	@Nullable
 	@Override
-	public Cursor getPOI(POIProviderContract.Filter poiFilter) {
+	public Cursor getPOI(@Nullable POIProviderContract.Filter poiFilter) {
 		return getDefaultPOIFromDB(poiFilter, this);
 	}
 
@@ -259,9 +262,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	@Nullable
 	public static Cursor getDefaultPOIFromDB(@Nullable POIProviderContract.Filter poiFilter, @NonNull POIProviderContract provider) {
 		try {
-			if (poiFilter == null) {
-				return null;
-			}
+			if (poiFilter == null) return null;
 			String selection = poiFilter.getSqlSelection(POIProviderContract.Columns.T_POI_K_UUID_META, POIProviderContract.Columns.T_POI_K_LAT,
 					POIProviderContract.Columns.T_POI_K_LNG, SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUALS_COLUMNS);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
@@ -336,6 +337,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return POIDbHelper.T_POI;
 	}
 
+	@Nullable
 	@Override
 	public String getSearchSuggestTable() {
 		return getPOITable();
@@ -347,7 +349,8 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return POIProvider.POI_SEARCH_SUGGEST_PROJECTION_MAP;
 	}
 
-	public static String getSortOrderS(POIProviderContract provider, Uri uri) {
+	@Nullable
+	public static String getSortOrderS(@NonNull POIProviderContract provider, @NonNull Uri uri) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.POI:
@@ -359,12 +362,14 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		}
 	}
 
+	@Nullable
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		return getTypeS(this, uri);
 	}
 
-	public static String getTypeS(POIProviderContract provider, Uri uri) {
+	@Nullable
+	public static String getTypeS(@NonNull POIProviderContract provider, @NonNull Uri uri) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.POI:
@@ -396,6 +401,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return null;
 	}
 
+	@CanIgnoreReturnValue
 	public static synchronized int insertDefaultPOIs(@NonNull POIProviderContract provider, @Nullable Collection<DefaultPOI> defaultPOIs) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
@@ -444,7 +450,9 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		public static final String T_POI_K_LNG = "lng";
 		public static final String T_POI_K_ACCESSIBLE = "a11y";
 		public static final String T_POI_K_TYPE = "type";
+		@SuppressWarnings("SpellCheckingInspection")
 		public static final String T_POI_K_STATUS_TYPE = "statustype";
+		@SuppressWarnings("SpellCheckingInspection")
 		public static final String T_POI_K_ACTIONS_TYPE = "actionstype";
 
 		public static final String T_POI_SQL_CREATE = getSqlCreateBuilder(T_POI).build();

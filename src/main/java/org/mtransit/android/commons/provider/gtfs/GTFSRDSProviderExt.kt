@@ -37,7 +37,7 @@ fun Context.getRDS(
                         append(SqlUtils.getWhereEquals(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_ID, it))
                     }
                 }
-            ).apply { cacheOnly = true }
+            ).copy(cacheOnly = true)
         ).toString(),
         null,
         SqlUtils.getSortOrderAscending(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_STOP_SEQUENCE)

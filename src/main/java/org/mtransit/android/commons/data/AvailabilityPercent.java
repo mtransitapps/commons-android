@@ -481,18 +481,16 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 	@Nullable
 	public static AvailabilityPercent fromCursorWithExtra(@NonNull Cursor cursor) {
-		POIStatus status = POIStatus.fromCursor(cursor);
-		String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
+		final POIStatus status = POIStatus.fromCursor(cursor);
+		final String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
 		return fromExtraJSONString(status, extrasJSONString);
 	}
 
 	@Nullable
 	private static AvailabilityPercent fromExtraJSONString(@NonNull POIStatus status, @Nullable String extrasJSONString) {
 		try {
-			JSONObject json = extrasJSONString == null ? null : new JSONObject(extrasJSONString);
-			if (json == null) {
-				return null;
-			}
+			final JSONObject json = extrasJSONString == null ? null : new JSONObject(extrasJSONString);
+			if (json == null) return null;
 			return fromExtraJSON(status, json);
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while retrieving extras information from cursor.");
