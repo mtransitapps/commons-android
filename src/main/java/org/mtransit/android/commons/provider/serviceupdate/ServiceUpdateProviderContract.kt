@@ -218,6 +218,10 @@ interface ServiceUpdateProviderContract : ProviderContract {
 
         val targetDirectionId: Long? get() = this.targetDirection?.id
 
+        fun copyWithCacheOnly(cacheOnly: Boolean): Filter = this.copy(
+            cacheOnly = cacheOnly,
+        )
+
         override fun toJSONString() = toJSONString(this)
     }
 }

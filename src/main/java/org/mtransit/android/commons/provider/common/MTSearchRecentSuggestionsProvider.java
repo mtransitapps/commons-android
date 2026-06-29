@@ -28,7 +28,7 @@ public abstract class MTSearchRecentSuggestionsProvider extends SearchRecentSugg
 		super.setupSuggestions(authority, mode);
 	}
 
-	// INHERITED FROM CONTENTPROVIDER
+	// INHERITED FROM CONTENT PROVIDER
 
 	@Override
 	public boolean onCreate() {

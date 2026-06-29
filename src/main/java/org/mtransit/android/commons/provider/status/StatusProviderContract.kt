@@ -75,17 +75,16 @@ interface StatusProviderContract : ProviderContract {
             private const val JSON_TARGET_UUID = "target"
 
             @JvmStatic
-            fun from(
-                poi: POI,
+            fun POI.from(
                 inFocus: Boolean?,
                 scheduleBehindInMs: Long?,
                 scheduleMaxDataRequests: Int?,
                 scheduleIncludeCancelledTimestamps: Boolean?,
                 getAppPkg: () -> String?
-            ): Filter? = when (poi.statusType) {
+            ): Filter? = when (this.statusType) {
                 POI.ITEM_STATUS_TYPE_NONE -> null
                 POI.ITEM_STATUS_TYPE_SCHEDULE -> {
-                    (poi as? RouteDirectionStop)?.let {
+                    (this as? RouteDirectionStop)?.let {
                         ScheduleStatusFilter(
                             inFocus = inFocus,
                             routeDirectionStop = it,
@@ -94,27 +93,27 @@ interface StatusProviderContract : ProviderContract {
                             includeCancelledTimestamps = scheduleIncludeCancelledTimestamps
                         )
                     } ?: run {
-                        MTLog.w(LOG_TAG, "Schedule filter w/o '$poi'!")
+                        MTLog.w(LOG_TAG, "Schedule filter w/o RDS '$uuid'!")
                         null
                     }
                 }
 
                 POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT -> AvailabilityPercentStatusFilter(
-                    targetUUID = poi.uuid,
+                    targetUUID = uuid,
                     inFocus = inFocus,
                 )
 
                 POI.ITEM_STATUS_TYPE_APP -> {
                     getAppPkg()?.let { pkg ->
-                        AppStatusFilter(inFocus = inFocus, targetUUID = poi.uuid, pkg = pkg)
+                        AppStatusFilter(inFocus = inFocus, targetUUID = uuid, pkg = pkg)
                     } ?: run {
-                        MTLog.w(LOG_TAG, "App status filter w/o '$poi'!")
+                        MTLog.w(LOG_TAG, "App status filter w/o module '$uuid'!")
                         null
                     }
                 }
 
                 else -> {
-                    MTLog.w(LOG_TAG, "Unexpected status type '${poi.statusType}' for filter!")
+                    MTLog.w(LOG_TAG, "Unexpected status type '${this.statusType}' for filter!")
                     null
                 }
             }
@@ -146,7 +145,9 @@ interface StatusProviderContract : ProviderContract {
 
         override fun getLogTag() = LOG_TAG
 
-        abstract fun copyWith(providedEncryptKeysMap: Secret<Map<String, String>>?): Filter
+        abstract fun copyWithProvidedEncryptKeysMap(providedEncryptKeysMap: Secret<Map<String, String>>?): Filter
+
+        abstract fun copyWithCacheOnly(cacheOnly: Boolean): Filter
 
         @Suppress("unused")
         abstract fun fromJSONStringStatic(jsonString: String?): Filter?

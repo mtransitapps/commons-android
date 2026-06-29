@@ -361,7 +361,7 @@ public class News implements MTLog.Loggable {
 	}
 
 	/**
-	 * {@link NewsProviderContract#PROJECTION_NEWS}
+	 * {@link NewsProviderContract#getPROJECTION_NEWS()}
 	 */
 	@NonNull
 	public Object[] getCursorRow() {

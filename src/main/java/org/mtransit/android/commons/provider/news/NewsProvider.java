@@ -226,12 +226,12 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	@Nullable
 	public static Cursor getDefaultNewsFromDB(@NonNull NewsProviderContract.Filter newsFilter, @NonNull NewsProviderContract provider) {
 		try {
-			String selection = newsFilter.getSqlSelection(
+			final String selection = newsFilter.getSqlSelection(
 					NewsProviderContract.Columns.T_NEWS_K_UUID,
 					NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID,
 					NewsProviderContract.Columns.T_NEWS_K_CREATED_AT
 			);
-			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+			final SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getNewsDbTableName());
 			qb.setProjectionMap(provider.getNewsProjectionMap());
 			return qb.query(provider.getReadDB(), provider.getNewsProjection(), selection, null, null, null, LATEST_NEWS_SORT_ORDER,
