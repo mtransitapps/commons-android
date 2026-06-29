@@ -464,11 +464,6 @@ interface POIProviderContract : ProviderContract {
             return sb.toString()
         }
 
-        fun addExtra(key: String, value: Any) {
-            // TODO CRASH SimpleArrayMap ClassCastException: String cannot be cast to Object[]
-            this.extras.put(key, value)
-        }
-
         fun getSqlSelection(
             uuidTableColumn: String, latTableColumn: String,
             lngTableColumn: String, searchableLikeColumns: Array<String>,

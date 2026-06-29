@@ -41,7 +41,7 @@ class AgencyProviderDeployWorker(
 
     override fun getLogTag() = LOG_TAG
 
-    override suspend fun doWork() = withContext(Dispatchers.IO) {
+    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val agencyProviderMetaData = context.getString(R.string.agency_provider)
         val agencyProvider =
             PackageManagerUtils.findContentProvidersWithMetaData(context, context.packageName)
@@ -49,7 +49,7 @@ class AgencyProviderDeployWorker(
                     agencyProviderMetaData == provider.metaData?.getString(agencyProviderMetaData)
                 } ?: return@withContext Result.failure(Data.Builder().putString("reason", "no agency provider!").build())
         ping(agencyProvider)
-        Result.success()
+        return@withContext Result.success()
     }
 
     private fun ping(agencyProvider: ProviderInfo) {
