@@ -45,7 +45,7 @@ class AgencyProviderDeployWorker(
         val agencyProviderMetaData = context.getString(R.string.agency_provider)
         val agencyProvider =
             PackageManagerUtils.findContentProvidersWithMetaData(context, context.packageName)
-                ?.first { provider ->
+                ?.firstOrNull { provider ->
                     agencyProviderMetaData == provider.metaData?.getString(agencyProviderMetaData)
                 } ?: return@withContext Result.failure(Data.Builder().putString("reason", "no agency provider!").build())
         ping(agencyProvider)
