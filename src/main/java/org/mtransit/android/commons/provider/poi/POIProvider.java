@@ -17,8 +17,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 
-import com.google.errorprone.annotations.CanIgnoreReturnValue;
-
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
@@ -401,7 +399,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return null;
 	}
 
-	@CanIgnoreReturnValue
+	@SuppressWarnings("UnusedReturnValue")
 	public static synchronized int insertDefaultPOIs(@NonNull POIProviderContract provider, @Nullable Collection<DefaultPOI> defaultPOIs) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;

@@ -75,16 +75,17 @@ interface StatusProviderContract : ProviderContract {
             private const val JSON_TARGET_UUID = "target"
 
             @JvmStatic
-            fun POI.from(
+            fun from(
+                poi: POI,
                 inFocus: Boolean?,
                 scheduleBehindInMs: Long?,
                 scheduleMaxDataRequests: Int?,
                 scheduleIncludeCancelledTimestamps: Boolean?,
                 getAppPkg: () -> String?
-            ): Filter? = when (this.statusType) {
+            ): Filter? = when (poi.statusType) {
                 POI.ITEM_STATUS_TYPE_NONE -> null
                 POI.ITEM_STATUS_TYPE_SCHEDULE -> {
-                    (this as? RouteDirectionStop)?.let {
+                    (poi as? RouteDirectionStop)?.let {
                         ScheduleStatusFilter(
                             inFocus = inFocus,
                             routeDirectionStop = it,
@@ -93,27 +94,27 @@ interface StatusProviderContract : ProviderContract {
                             includeCancelledTimestamps = scheduleIncludeCancelledTimestamps
                         )
                     } ?: run {
-                        MTLog.w(LOG_TAG, "Schedule filter w/o RDS '$uuid'!")
+                        MTLog.w(LOG_TAG, "Schedule filter w/o RDS '${poi.uuid}'!")
                         null
                     }
                 }
 
                 POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT -> AvailabilityPercentStatusFilter(
-                    targetUUID = uuid,
+                    targetUUID = poi.uuid,
                     inFocus = inFocus,
                 )
 
                 POI.ITEM_STATUS_TYPE_APP -> {
                     getAppPkg()?.let { pkg ->
-                        AppStatusFilter(inFocus = inFocus, targetUUID = uuid, pkg = pkg)
+                        AppStatusFilter(inFocus = inFocus, targetUUID = poi.uuid, pkg = pkg)
                     } ?: run {
-                        MTLog.w(LOG_TAG, "App status filter w/o module '$uuid'!")
+                        MTLog.w(LOG_TAG, "App status filter w/o module '${poi.uuid}'!")
                         null
                     }
                 }
 
                 else -> {
-                    MTLog.w(LOG_TAG, "Unexpected status type '${this.statusType}' for filter!")
+                    MTLog.w(LOG_TAG, "Unexpected status type '${poi.statusType}' for filter!")
                     null
                 }
             }
