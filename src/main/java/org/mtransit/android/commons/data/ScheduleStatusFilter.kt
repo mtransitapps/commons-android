@@ -126,7 +126,11 @@ data class ScheduleStatusFilter(
 
     override fun getLogTag() = LOG_TAG
 
-    override fun copyWith(providedEncryptKeysMap: Secret<Map<String, String>>?) = this.copy(providedEncryptKeysMap = providedEncryptKeysMap)
+    override fun copyWithProvidedEncryptKeysMap(providedEncryptKeysMap: Secret<Map<String, String>>?) =
+        this.copy(providedEncryptKeysMap = providedEncryptKeysMap)
+
+    override fun copyWithCacheOnly(cacheOnly: Boolean) =
+        this.copy(cacheOnly = cacheOnly)
 
     val targetAuthority: String get() = this.routeDirectionStop.authority
 

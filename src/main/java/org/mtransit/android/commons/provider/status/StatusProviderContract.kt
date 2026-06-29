@@ -146,7 +146,9 @@ interface StatusProviderContract : ProviderContract {
 
         override fun getLogTag() = LOG_TAG
 
-        abstract fun copyWith(providedEncryptKeysMap: Secret<Map<String, String>>?): Filter
+        abstract fun copyWithProvidedEncryptKeysMap(providedEncryptKeysMap: Secret<Map<String, String>>?): Filter
+
+        abstract fun copyWithCacheOnly(cacheOnly: Boolean): Filter
 
         @Suppress("unused")
         abstract fun fromJSONStringStatic(jsonString: String?): Filter?
