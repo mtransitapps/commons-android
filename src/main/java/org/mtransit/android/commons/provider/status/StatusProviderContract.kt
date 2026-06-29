@@ -93,7 +93,7 @@ interface StatusProviderContract : ProviderContract {
                             includeCancelledTimestamps = scheduleIncludeCancelledTimestamps
                         )
                     } ?: run {
-                        MTLog.w(LOG_TAG, "Schedule filter w/o '$poi'!")
+                        MTLog.w(LOG_TAG, "Schedule filter w/o RDS '$uuid'!")
                         null
                     }
                 }
@@ -107,7 +107,7 @@ interface StatusProviderContract : ProviderContract {
                     getAppPkg()?.let { pkg ->
                         AppStatusFilter(inFocus = inFocus, targetUUID = uuid, pkg = pkg)
                     } ?: run {
-                        MTLog.w(LOG_TAG, "App status filter w/o '$poi'!")
+                        MTLog.w(LOG_TAG, "App status filter w/o module '$uuid'!")
                         null
                     }
                 }
