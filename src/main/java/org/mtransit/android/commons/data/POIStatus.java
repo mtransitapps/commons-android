@@ -169,7 +169,7 @@ public class POIStatus implements MTLog.Loggable {
 	}
 
 	public boolean isUseful() {
-		return this.lastUpdateInMs + this.validityInMs >= TimeUtils.currentTimeMillis();
+		return TimeUtils.currentTimeMillis() <= this.lastUpdateInMs + this.validityInMs;
 	}
 
 	public boolean isNoData() {

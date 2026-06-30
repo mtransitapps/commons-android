@@ -94,7 +94,7 @@ interface StatusProviderContract : ProviderContract {
                             includeCancelledTimestamps = scheduleIncludeCancelledTimestamps
                         )
                     } ?: run {
-                        MTLog.w(LOG_TAG, "Schedule filter w/o '$poi'!")
+                        MTLog.w(LOG_TAG, "Schedule filter w/o RDS '${poi.uuid}'!")
                         null
                     }
                 }
@@ -108,7 +108,7 @@ interface StatusProviderContract : ProviderContract {
                     getAppPkg()?.let { pkg ->
                         AppStatusFilter(inFocus = inFocus, targetUUID = poi.uuid, pkg = pkg)
                     } ?: run {
-                        MTLog.w(LOG_TAG, "App status filter w/o '$poi'!")
+                        MTLog.w(LOG_TAG, "App status filter w/o module '${poi.uuid}'!")
                         null
                     }
                 }
@@ -146,7 +146,9 @@ interface StatusProviderContract : ProviderContract {
 
         override fun getLogTag() = LOG_TAG
 
-        abstract fun copyWith(providedEncryptKeysMap: Secret<Map<String, String>>?): Filter
+        abstract fun copyWithProvidedEncryptKeysMap(providedEncryptKeysMap: Secret<Map<String, String>>?): Filter
+
+        abstract fun copyWithCacheOnly(cacheOnly: Boolean): Filter
 
         @Suppress("unused")
         abstract fun fromJSONStringStatic(jsonString: String?): Filter?

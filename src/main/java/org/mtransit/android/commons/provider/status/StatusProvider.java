@@ -136,7 +136,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 
 	@Nullable
 	private static StatusProviderContract.Filter extractStatusFilter(@Nullable String selection) {
-		int type = StatusProviderContract.Filter.getTypeFromJSONString(selection);
+		final int type = StatusProviderContract.Filter.getTypeFromJSONString(selection);
 		StatusProviderContract.Filter statusFilter;
 		switch (type) {
 		case POI.ITEM_STATUS_TYPE_NONE:
