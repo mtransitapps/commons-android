@@ -178,8 +178,8 @@ fun Schedule.toStringK() = buildString {
     append(",")
     append("use:").append(isUseful)
     append(",")
-    usefulUntilInMs.takeIf { it > 0L }?.let {
-        append("useUtl:").append(it.toDateTimeLog())
+    timestampsUntilInMs.takeIf { it > 0L }?.let {
+        append("timesUseUtl:").append(it.toDateTimeLog())
         append(",")
     }
     if (!hasData()) {
