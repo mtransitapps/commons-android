@@ -281,7 +281,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONArray json = jsonString == null ? null : new JSONArray(jsonString);
 			if (json != null && json.length() > 0) {
-				Schedule newSchedule = new Schedule(
+				final Schedule newSchedule = new Schedule(
 						null,
 						rds.getUUID(),
 						newLastUpdateInMs,
@@ -290,7 +290,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 						PROVIDER_PRECISION_IN_MS,
 						false,
 						sourceLabel,
-						false
+						true
 				);
 				Calendar beginningOfTodayCal = Calendar.getInstance(REGINA_TZ);
 				beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);

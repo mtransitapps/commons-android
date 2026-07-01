@@ -920,12 +920,12 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 								PROVIDER_PRECISION_IN_MS,
 								jArretParcours.isDescenteSeulement(),
 								sourceLabel,
-								true // keep = no service today
+								false // keep = no service today
 						)
 				);
 				return result;
 			}
-			Schedule newSchedule = new Schedule(
+			final Schedule newSchedule = new Schedule(
 					null,
 					getAgencyRouteStopTargetUUID(rds),
 					newLastUpdateInMs,
@@ -934,7 +934,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 					PROVIDER_PRECISION_IN_MS,
 					jArretParcours.isDescenteSeulement(),
 					sourceLabel,
-					false
+					true
 			);
 			for (int r = 0; r < jHoraires.size(); r++) {
 				JArretParcours.JHoraires jHoraire = jHoraires.get(r);

@@ -13,6 +13,7 @@ import org.mtransit.android.commons.data.Stop
 import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.arrivalDiff
 import org.mtransit.android.commons.data.departure
+import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.toScheduleTimestamp
 import org.mtransit.android.commons.provider.gtfs.GTFSStatusProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.delayDuration
@@ -1048,16 +1049,16 @@ class GTFSRealTimeTripUpdatesProviderTests {
         targetUuid: String = makeRDS().uuid,
         timestamps: List<Schedule.Timestamp> = emptyList(),
         nowInMs: Long = NOW_IN_MS,
-    ) = Schedule(
-        null,
-        targetUuid,
-        nowInMs,
-        nowInMs,
-        nowInMs,
-        GTFSStatusProvider.PROVIDER_PRECISION_IN_MS,
-        false,
-        null,
-        false
+    ) = makeSchedule(
+        id = null,
+        targetUUID = targetUuid,
+        lastUpdateInMs = nowInMs,
+        validityInMs = nowInMs,
+        readFromSourceAtInMs = nowInMs,
+        providerPrecisionInMs = GTFSStatusProvider.PROVIDER_PRECISION_IN_MS,
+        isNoPickup = false,
+        sourceLabel = null,
+        hasData = true
     ).apply {
         setTimestampsAndSort(timestamps)
     }

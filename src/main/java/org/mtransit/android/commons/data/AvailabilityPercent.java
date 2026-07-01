@@ -19,7 +19,6 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.StringUtils;
-import org.mtransit.android.commons.provider.status.StatusProviderContract;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
@@ -85,12 +84,12 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 				status.getValidityInMs(),
 				status.getReadFromSourceAtInMs(),
 				status.getSourceLabel(),
-				status.isNoData()
+				status.hasData()
 		);
 	}
 
-	public AvailabilityPercent(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs, @Nullable String sourceLabel, boolean noData) {
-		super(id, targetUUID, POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, noData);
+	public AvailabilityPercent(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs, @Nullable String sourceLabel, boolean hasData) {
+		super(id, targetUUID, POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, hasData);
 	}
 
 	public boolean hasValueStrictlyLowerThan(int underThisValue) {

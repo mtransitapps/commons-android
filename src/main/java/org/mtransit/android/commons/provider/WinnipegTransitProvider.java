@@ -401,7 +401,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	@Nullable
 	private Schedule parseAgencySchedule(@NonNull Context context, @NonNull RouteDirectionStop rds, @Nullable String sourceLabel, long newLastUpdateInMs, @NonNull JSONArray jScheduledStops) {
 		try {
-			Schedule newSchedule = new Schedule(
+			final Schedule newSchedule = new Schedule(
 					null,
 					rds.getUUID(),
 					newLastUpdateInMs,
@@ -410,7 +410,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 					PROVIDER_PRECISION_IN_MS,
 					false,
 					sourceLabel,
-					false
+					true
 			);
 			String directionIdS = String.valueOf(rds.getDirection().getId());
 			String directionId = directionIdS.substring(directionIdS.length() - 1); // keep last character

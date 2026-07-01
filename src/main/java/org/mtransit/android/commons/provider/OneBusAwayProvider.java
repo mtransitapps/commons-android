@@ -394,7 +394,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 					JSONObject jEntry = jData.getJSONObject(JSON_ENTRY);
 					if (jEntry.has(JSON_ARRIVALS_AND_DEPARTURES)) {
 						JSONArray jArrivalsAndDepartures = jEntry.getJSONArray(JSON_ARRIVALS_AND_DEPARTURES);
-						Schedule newSchedule = new Schedule(
+						final Schedule newSchedule = new Schedule(
 								null,
 								getAgencyRouteStopTagTargetUUID(rds),
 								newLastUpdateInMs,
@@ -403,7 +403,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 								PROVIDER_PRECISION_IN_MS,
 								false,
 								sourceLabel,
-								false
+								true
 						);
 						for (int l = 0; l < jArrivalsAndDepartures.length(); l++) {
 							JSONObject jArrivalsAndDeparture = jArrivalsAndDepartures.getJSONObject(l);

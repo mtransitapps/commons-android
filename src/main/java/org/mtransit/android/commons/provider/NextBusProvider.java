@@ -1461,7 +1461,7 @@ public class NextBusProvider extends MTContentProvider implements
 							PROVIDER_PRECISION_IN_MS,
 							false,
 							this.sourceLabel,
-							false
+							true
 					);
 				}
 				String tripHeadSign = cleanTripHeadSign(

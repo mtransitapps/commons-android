@@ -1394,7 +1394,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 					PROVIDER_PRECISION_IN_MS,
 					false,
 					sourceLabel,
-					false
+					true
 			);
 			for (int r = 0; r < jResults.size(); r++) {
 				JArrivals.JResult jResult = jResults.get(r);

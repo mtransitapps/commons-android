@@ -583,7 +583,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 					MTLog.d(this, "endElement() > No timestamp for %s", this.rds);
 					return;
 				}
-				Schedule newSchedule = new Schedule(
+				final Schedule newSchedule = new Schedule(
 						null,
 						getAgencyRouteStopTargetUUID(this.rds),
 						this.lastUpdateInMs,
@@ -592,7 +592,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 						PROVIDER_PRECISION_IN_MS,
 						false,
 						this.sourceLabel,
-						false
+						true
 				);
 				newSchedule.setTimestampsAndSort(this.currentTimestamps);
 				this.statuses.add(newSchedule);
