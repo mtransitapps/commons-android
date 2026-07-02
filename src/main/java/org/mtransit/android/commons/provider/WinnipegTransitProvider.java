@@ -41,7 +41,6 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ScheduleStatusFilter;
 import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
-import org.mtransit.android.commons.provider.common.ProviderContract;
 import org.mtransit.android.commons.provider.news.NewsProvider;
 import org.mtransit.android.commons.provider.news.NewsProviderContract;
 import org.mtransit.android.commons.provider.status.StatusProvider;
@@ -556,33 +555,6 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	 * Override if multiple {@link WinnipegTransitProvider} implementations in same app.
 	 */
 	private static final String PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS = WinnipegTransitDbHelper.PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS;
-
-	private static final long NEWS_MAX_VALIDITY_IN_MS = ProviderContract.getMAX_CACHE_VALIDITY_MS();
-	private static final long NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1);
-	private static final long NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1);
-	private static final long NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(30);
-	private static final long NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10);
-
-	@Override
-	public long getMinDurationBetweenNewsRefreshInMs(boolean inFocus) {
-		if (inFocus) {
-			return NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
-		}
-		return NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
-	}
-
-	@Override
-	public long getNewsMaxValidityInMs() {
-		return NEWS_MAX_VALIDITY_IN_MS;
-	}
-
-	@Override
-	public long getNewsValidityInMs(boolean inFocus) {
-		if (inFocus) {
-			return NEWS_VALIDITY_IN_FOCUS_IN_MS;
-		}
-		return NEWS_VALIDITY_IN_MS;
-	}
 
 	@Override
 	public boolean purgeUselessCachedNews() {

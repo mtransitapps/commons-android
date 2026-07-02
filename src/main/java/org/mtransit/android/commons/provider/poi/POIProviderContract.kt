@@ -18,7 +18,7 @@ import org.mtransit.android.commons.provider.common.ContentProviderConstants
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.commons.model.Secret
 import java.util.Locale
-import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.days
 
 interface POIProviderContract : ProviderContract {
 
@@ -33,7 +33,7 @@ interface POIProviderContract : ProviderContract {
         val DEFAULT_POI_MAX_VALIDITY_IN_MS = ProviderContract.MAX_CACHE_VALIDITY_MS
 
         @JvmStatic
-        val DEFAULT_POI_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
+        val DEFAULT_POI_VALIDITY_IN_MS = 1.days.inWholeMilliseconds
 
         @JvmStatic
         val PROJECTION_POI_ALL_COLUMNS: Array<String>? = null // null = return all columns
