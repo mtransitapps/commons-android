@@ -587,17 +587,17 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 
 	@Override
 	public long getStatusMaxValidityInMs() {
-		return GTFSRealTimeTripUpdatesProvider.getMaxValidityInMs(this);
+		return GTFSRealTimeTripUpdatesProvider.adaptForCachedAPI(StatusProviderContract.super.getStatusMaxValidityInMs(), getContext());
 	}
 
 	@Override
 	public long getStatusValidityInMs(boolean inFocus) {
-		return GTFSRealTimeTripUpdatesProvider.getValidityInMs(this, inFocus);
+		return GTFSRealTimeTripUpdatesProvider.adaptForCachedAPI(StatusProviderContract.super.getStatusValidityInMs(inFocus), getContext());
 	}
 
 	@Override
 	public long getMinDurationBetweenStatusRefreshInMs(boolean inFocus) {
-		return GTFSRealTimeTripUpdatesProvider.getMinDurationBetweenRefreshInMs(this, inFocus);
+		return GTFSRealTimeTripUpdatesProvider.adaptForCachedAPI(StatusProviderContract.super.getMinDurationBetweenStatusRefreshInMs(inFocus), getContext());
 	}
 
 	@Nullable

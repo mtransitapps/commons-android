@@ -60,17 +60,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     val PROVIDER_PRECISION_IN_MS = PROVIDER_PRECISION.inWholeMilliseconds
 
     @JvmStatic
-    fun GTFSRealTimeProvider.getMinDurationBetweenRefreshInMs(inFocus: Boolean) =
-        getMinDurationBetweenStatusRefreshInMs(inFocus).adaptForCachedAPI(this.context)
-
-    @JvmStatic
-    fun GTFSRealTimeProvider.getValidityInMs(inFocus: Boolean) =
-        getStatusValidityInMs(inFocus).adaptForCachedAPI(this.context)
-
-    @JvmStatic
-    val GTFSRealTimeProvider.maxValidityInMs: Long get() = statusMaxValidityInMs.adaptForCachedAPI(this.context)
-
-    private fun Long.adaptForCachedAPI(context: Context?) =
+    fun Long.adaptForCachedAPI(context: Context?) =
         if (context?.let { GTFSRealTimeProvider.getAGENCY_TRIP_UPDATES_URL_CACHED(it) }?.isNotBlank() == true) {
             this.coerceAtLeast(1.minutes.inWholeMilliseconds) // fewer calls to Cached API $$
         } else this
