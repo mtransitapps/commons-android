@@ -218,33 +218,6 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		return directionHeadSignMatchGTFSRegex;
 	}
 
-	private static final long ONE_BUS_WAY_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
-	private static final long ONE_BUS_WAY_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
-	private static final long ONE_BUS_WAY_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-	private static final long ONE_BUS_WAY_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(5L);
-	private static final long ONE_BUS_WAY_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-
-	@Override
-	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
-		if (inFocus) {
-			return ONE_BUS_WAY_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
-		}
-		return ONE_BUS_WAY_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
-	}
-
-	@Override
-	public long getStatusValidityInMs(boolean inFocus) {
-		if (inFocus) {
-			return ONE_BUS_WAY_STATUS_VALIDITY_IN_FOCUS_IN_MS;
-		}
-		return ONE_BUS_WAY_STATUS_VALIDITY_IN_MS;
-	}
-
-	@Override
-	public long getStatusMaxValidityInMs() {
-		return ONE_BUS_WAY_STATUS_MAX_VALIDITY_IN_MS;
-	}
-
 	@Override
 	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);

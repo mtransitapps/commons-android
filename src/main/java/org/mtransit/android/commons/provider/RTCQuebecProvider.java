@@ -171,12 +171,6 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10L);
 	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
-	private static final long STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
-	private static final long STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(5L);
-	private static final long STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.SECONDS.toMillis(30L);
-	private static final long STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.SECONDS.toMillis(30L);
-	private static final long STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.SECONDS.toMillis(30L);
-
 	@Override
 	public long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus) {
 		if (inFocus) {
@@ -186,21 +180,8 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@Override
-	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
-		if (inFocus) {
-			return STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
-		}
-		return STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
-	}
-
-	@Override
 	public long getServiceUpdateMaxValidityInMs() {
 		return SERVICE_UPDATE_MAX_VALIDITY_IN_MS;
-	}
-
-	@Override
-	public long getStatusMaxValidityInMs() {
-		return STATUS_MAX_VALIDITY_IN_MS;
 	}
 
 	@Override
@@ -209,14 +190,6 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			return SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS;
 		}
 		return SERVICE_UPDATE_VALIDITY_IN_MS;
-	}
-
-	@Override
-	public long getStatusValidityInMs(boolean inFocus) {
-		if (inFocus) {
-			return STATUS_VALIDITY_IN_FOCUS_IN_MS;
-		}
-		return STATUS_VALIDITY_IN_MS;
 	}
 
 	@NonNull

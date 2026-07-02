@@ -40,7 +40,7 @@ fun RouteDirectionStop.makeSchedule(
     readFromSourceAtInMs: Long,
     providerPrecisionInMs: Long,
     sourceLabel: String,
-    noData: Boolean,
+    hasData: Boolean,
 ) = makeSchedule(
     targetUUID = uuid,
     lastUpdateInMs = lastUpdateInMs,
@@ -48,7 +48,7 @@ fun RouteDirectionStop.makeSchedule(
     readFromSourceAtInMs = readFromSourceAtInMs,
     providerPrecisionInMs = providerPrecisionInMs,
     sourceLabel = sourceLabel,
-    hasData = !noData
+    hasData = hasData
 ).apply {
     isNoPickup = this@makeSchedule.isNoPickup
 }

@@ -13,11 +13,26 @@ import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.ScheduleStatusFilter
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.commons.model.Secret
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.seconds
 
 interface StatusProviderContract : ProviderContract {
 
     companion object {
         const val STATUS_PATH = "status"
+
+        @JvmStatic
+        val DEFAULT_STATUS_MAX_VALIDITY_IN_MS = 1.hours.inWholeMilliseconds
+
+        @JvmStatic
+        val DEFAULT_STATUS_VALIDITY_IN_MS = 60.seconds.inWholeMilliseconds
+        @JvmStatic
+        val DEFAULT_STATUS_VALIDITY_IN_FOCUS_IN_MS = 30.seconds.inWholeMilliseconds
+
+        @JvmStatic
+        val DEFAULT_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 30.seconds.inWholeMilliseconds
+        @JvmStatic
+        val DEFAULT_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 15.seconds.inWholeMilliseconds
 
         @JvmStatic
         val PROJECTION_STATUS = arrayOf(
@@ -31,11 +46,19 @@ interface StatusProviderContract : ProviderContract {
         )
     }
 
-    val statusMaxValidityInMs: Long
+    val statusMaxValidityInMs: Long get() = DEFAULT_STATUS_MAX_VALIDITY_IN_MS
 
-    fun getStatusValidityInMs(inFocus: Boolean): Long
+    /**
+     * 1 minute maximum for Real-Time providers
+     */
+    fun getStatusValidityInMs(inFocus: Boolean) =
+        if (inFocus) DEFAULT_STATUS_VALIDITY_IN_FOCUS_IN_MS else DEFAULT_STATUS_VALIDITY_IN_MS
 
-    fun getMinDurationBetweenRefreshInMs(inFocus: Boolean): Long
+    /**
+     * 1 minute maximum for Real-Time providers
+     */
+    fun getMinDurationBetweenStatusRefreshInMs(inFocus: Boolean) =
+        if (inFocus) DEFAULT_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS else DEFAULT_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS
 
     fun getNewStatus(statusFilter: Filter): POIStatus?
 

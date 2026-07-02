@@ -19,6 +19,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 
+import androidx.annotation.Discouraged;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -90,10 +91,10 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 // DO NOT MOVE: referenced in modules AndroidManifest.xml
-@SuppressLint("Registered")
+@SuppressLint({"Registered", "DiscouragedApi"})
 public class StmInfoApiProvider extends MTContentProvider implements
-		StatusProviderContract,
-		ServiceUpdateProviderContract,
+		StatusProviderContract, // @Discouraged(message = "Using GTFS-RT Trip Updates instead")
+		ServiceUpdateProviderContract, // using StmInfoServiceUpdateProvider #USE_NEW_API
 		ProviderInstaller.ProviderInstallListener {
 
 	private static final String LOG_TAG = StmInfoApiProvider.class.getSimpleName();
@@ -113,7 +114,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 	private static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		ServiceUpdateProvider.append(URI_MATCHER, authority);
-		StatusProvider.append(URI_MATCHER, authority);
+		StatusProvider.append(URI_MATCHER, authority); // @Discouraged(message = "Using GTFS-RT Trip Updates instead")
 		return URI_MATCHER;
 	}
 
@@ -173,35 +174,21 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return rdsAgencyId;
 	}
 
-	private static final long STM_INFO_API_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
-	private static final long STM_INFO_API_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(5L);
-	private static final long STM_INFO_API_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.SECONDS.toMillis(30L);
-	private static final long STM_INFO_API_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.SECONDS.toMillis(30L);
-	private static final long STM_INFO_API_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.SECONDS.toMillis(30L);
-
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	private static final long STM_INFO_API_SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	private static final long STM_INFO_API_SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	private static final long STM_INFO_API_SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10L);
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	private static final long STM_INFO_API_SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10L);
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	private static final long STM_INFO_API_SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-
-	@Override
-	public long getStatusMaxValidityInMs() {
-		return STM_INFO_API_STATUS_MAX_VALIDITY_IN_MS;
-	}
 
 	@Override
 	public long getServiceUpdateMaxValidityInMs() {
 		if (USE_NEW_API) return StmInfoServiceUpdateProvider.getSERVICE_UPDATE_MAX_VALIDITY_IN_MS();
 		return STM_INFO_API_SERVICE_UPDATE_MAX_VALIDITY_IN_MS;
-	}
-
-	@Override
-	public long getStatusValidityInMs(boolean inFocus) {
-		if (inFocus) {
-			return STM_INFO_API_STATUS_VALIDITY_IN_FOCUS_IN_MS;
-		}
-		return STM_INFO_API_STATUS_VALIDITY_IN_MS;
 	}
 
 	@Override
@@ -214,14 +201,6 @@ public class StmInfoApiProvider extends MTContentProvider implements
 	}
 
 	@Override
-	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
-		if (inFocus) {
-			return STM_INFO_API_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
-		}
-		return STM_INFO_API_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
-	}
-
-	@Override
 	public long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus) {
 		if (USE_NEW_API) return StmInfoServiceUpdateProvider.getMinDurationBetweenRefreshInMs(inFocus);
 		if (inFocus) {
@@ -230,6 +209,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return STM_INFO_API_SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	@Override
 	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
@@ -240,6 +220,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	@Nullable
 	@Override
 	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
@@ -272,6 +253,12 @@ public class StmInfoApiProvider extends MTContentProvider implements
 	@Override
 	public ServiceUpdates getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if (USE_NEW_API) return StmInfoServiceUpdateProvider.getCached(this, serviceUpdateFilter);
+		return getCachedServiceUpdatesOldApi(serviceUpdateFilter);
+	}
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	@Nullable
+	private ServiceUpdates getCachedServiceUpdatesOldApi(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		final Context context = requireContextCompat();
 		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
 			return getCachedServiceUpdates(context, (RouteDirectionStop) serviceUpdateFilter.getPoi());
@@ -280,11 +267,12 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		} else if ((serviceUpdateFilter.getRoute() != null)) { // NOT SUPPORTED
 			return makeServiceUpdateNoneList(this, serviceUpdateFilter.getRoute(), SERVICE_UPDATE_SOURCE_ID);
 		} else {
-			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS or no route)");
+			MTLog.w(this, "getCachedServiceUpdatesOldApi() > no service update (poi null or not RDS or no route)");
 			return null;
 		}
 	}
 
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	@NonNull
 	private ServiceUpdates getCachedServiceUpdates(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		if (STORE_EMPTY_SERVICE_MESSAGE) {
@@ -306,6 +294,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return cachedServiceUpdates;
 	}
 
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	@NonNull
 	private ServiceUpdates getCachedServiceUpdates(@NonNull Context context, @NonNull RouteDirection rd) {
 		final ServiceUpdates cachedServiceUpdates = new ServiceUpdates();
@@ -324,11 +313,13 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return cachedServiceUpdates;
 	}
 
-	private void enhanceRDServiceUpdatesForStop(@NonNull Context context,
-												ServiceUpdates serviceUpdates,
-												Map<String, String> targetUUIDs, // different UUID from provider target UUID
-												@Nullable Stop stop,
-												@Nullable String stopTargetUUID
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	private void enhanceRDServiceUpdatesForStop(
+			@NonNull Context context,
+			ServiceUpdates serviceUpdates,
+			Map<String, String> targetUUIDs, // different UUID from provider target UUID
+			@Nullable Stop stop,
+			@Nullable String stopTargetUUID
 	) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
@@ -344,12 +335,15 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		}
 	}
 
-	private void enhanceRDServiceUpdateForStop(@NonNull Context context,
-											   ServiceUpdate serviceUpdate,
-											   boolean isSeverityAlreadyWarning,
-											   @Nullable Stop stop,
-											   @Nullable String stopTargetUUID,
-											   Cleaner stopCleaner) {
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	private void enhanceRDServiceUpdateForStop(
+			@NonNull Context context,
+			ServiceUpdate serviceUpdate,
+			boolean isSeverityAlreadyWarning,
+			@Nullable Stop stop,
+			@Nullable String stopTargetUUID,
+			Cleaner stopCleaner
+	) {
 		try {
 			if (stop != null && serviceUpdate.getSeverity() > ServiceUpdate.SEVERITY_NONE) {
 				String originalHtml = serviceUpdate.getTextHTML();
@@ -452,6 +446,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return getRDS_AGENCY_ID(context);
 	}
 
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	private static String getStopStatusTargetUUID(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		return getStopStatusTargetUUID(
 				getAgencyTag(context),
@@ -461,6 +456,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		);
 	}
 
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	private static String getStopStatusTargetUUID(String agency, String routeShortName, String directionHeadsign, String stopCode) {
 		return POI.POIUtils.makeUUID(agency, routeShortName, directionHeadsign, stopCode);
 	}
@@ -469,6 +465,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 
 	// region Route Direction
 
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	@NonNull
 	private Map<String, String> getProviderTargetUUIDs(@NonNull Context context, @NonNull RouteDirection rd) {
 		final HashMap<String, String> targetUUIDs = new HashMap<>();
@@ -476,6 +473,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return targetUUIDs;
 	}
 
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	private String getRouteDirectionServiceUpdateTargetUUID(@NonNull Context context, @NonNull Route route, @NonNull Direction direction) {
 		return getRouteDirectionServiceUpdateTargetUUID(
 				getAgencyTag(context),
@@ -484,6 +482,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		);
 	}
 
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	@NonNull
 	protected static String getRouteDirectionServiceUpdateTargetUUID(@NonNull String agency, @NonNull String routeShortName, @NonNull String directionHeadsignValue) {
 		return POI.POIUtils.makeUUID(agency, routeShortName, directionHeadsignValue);
@@ -493,6 +492,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 
 	// region Route Direction Stop
 
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	@NonNull
 	private Map<String, String> getProviderTargetUUIDs(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		final HashMap<String, String> targetUUIDs = new HashMap<>();
@@ -501,6 +501,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return targetUUIDs;
 	}
 
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	private String getStopServiceUpdateTargetUUID(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		return getStopServiceUpdateTargetUUID(
 				getAgencyTag(context),
@@ -510,6 +511,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		);
 	}
 
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	@NonNull
 	private static String getStopServiceUpdateTargetUUID(@NonNull String agency, @NonNull String routeShortName, @NonNull String directionHeadsignValue, @NonNull String stopCode) {
 		return POI.POIUtils.makeUUID(agency, routeShortName, directionHeadsignValue, stopCode);
@@ -519,6 +521,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 
 	// endregion Service Update Target UUID
 
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	@Override
 	public boolean purgeUselessCachedStatuses() {
 		return StatusProvider.purgeUselessCachedStatuses(this);
@@ -529,6 +532,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return ServiceUpdateProvider.purgeUselessCachedServiceUpdates(this);
 	}
 
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	@Override
 	public boolean deleteCachedStatus(int cachedStatusId) {
 		return StatusProvider.deleteCachedStatus(this, cachedStatusId);
@@ -544,6 +548,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, targetUUID, sourceId);
 	}
 
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	@NonNull
 	@Override
 	public String getStatusDbTableName() {
@@ -556,11 +561,13 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return StmInfoApiDbHelper.T_STM_INFO_API_SERVICE_UPDATE;
 	}
 
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	@Override
 	public int getStatusType() {
 		return POI.ITEM_STATUS_TYPE_SCHEDULE;
 	}
 
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	@Nullable
 	@Override
 	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
@@ -595,6 +602,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		}
 	}
 
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	@Nullable
 	private ServiceUpdates getNewServiceUpdates(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		if (rds.getDirection().getHeadsignValue().isEmpty()
@@ -607,6 +615,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return getCachedServiceUpdates(context, rds);
 	}
 
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	@SuppressWarnings("SameReturnValue")
 	@Nullable
 	private ServiceUpdates getNewServiceUpdates(@SuppressWarnings("unused") @NonNull Context context, @NonNull RouteDirection rd) {
@@ -693,10 +702,13 @@ public class StmInfoApiProvider extends MTContentProvider implements
 
 	private static final ConcurrentHashMap<String, Object> synchronizedLock = new ConcurrentHashMap<>();
 
-	private void loadRealTimeStatusFromWWW(@NonNull Context context,
-										   @NonNull RouteDirectionStop rds,
-										   boolean hasStatusFilter,
-										   boolean hasServiceUpdateFilter) {
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
+	private void loadRealTimeStatusFromWWW(
+			@NonNull Context context,
+			@NonNull RouteDirectionStop rds,
+			boolean hasStatusFilter,
+			boolean hasServiceUpdateFilter
+	) {
 		final String uuid = rds.getUUID();
 		synchronizedLock.putIfAbsent(uuid, uuid);
 		synchronized (CollectionUtils.getOrDefault(synchronizedLock, uuid, uuid)) {
@@ -718,6 +730,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		}
 	}
 
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		try {
 			final String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
@@ -793,6 +806,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		}
 	}
 
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	@Nullable
 	private ServiceUpdates parseAgencyJSONArrivalsServiceUpdates(
 			@NonNull Context context,
@@ -922,6 +936,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 				REAL_TIME_SERVICE_UPDATE_URL_PART_3;
 	}
 
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	// USING same feed as real-time POI status schedule
 	@SuppressWarnings({"deprecation", "unused"})
 	@Deprecated
@@ -1140,6 +1155,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return new JMessages(results);
 	}
 
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	@SuppressWarnings("DeprecatedIsStillUsed")
 	@Deprecated
 	@Nullable
@@ -1241,6 +1257,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		DIRECTION_NAME_TO_HEADSIGN = map;
 	}
 
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	@Nullable
 	private String parseAgencyDirectionHeadsignValue(String directionName) {
 		if (directionName != null && !directionName.isEmpty()) {
@@ -1286,7 +1303,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 	private static final Cleaner CLEAN_STOP_CODE_AND_NAME = new Cleaner(
 			true ? group(ANY_STOP_CODE + zeroOrMore(except("<" + END)))
 					: "(" + ANY_STOP_CODE + ")[\\s]*" + PARENTHESES1 + "([^" + SLASH + "]*)" + SLASH
-					+ "([^" + PARENTHESES2 + "]*)" + PARENTHESES2 + "([" + PARENTHESES2 + "]*)" + "([,]*)([.]*)",
+					  + "([^" + PARENTHESES2 + "]*)" + PARENTHESES2 + "([" + PARENTHESES2 + "]*)" + "([,]*)([.]*)",
 			true ? "- $1"
 					: "- $2" + SLASH + "$3$4 " + PARENTHESES1 + "$1" + PARENTHESES2 + "$5$6",
 			false
@@ -1359,6 +1376,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return html;
 	}
 
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	protected int findRDSSeverity(@Nullable String text, @NonNull Stop stop, @NonNull Cleaner stopCleaner) {
 		if (text != null && !text.isEmpty()) {
 			if (text.contains(stop.getCode())) {
@@ -1371,12 +1389,15 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return ServiceUpdate.SEVERITY_INFO_UNKNOWN;
 	}
 
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	@Nullable
-	protected ArrayList<POIStatus> parseAgencyJSONArrivalsStatuses(@NonNull Context context,
-																   @NonNull List<JArrivals.JResult> jResults,
-																   @NonNull RouteDirectionStop rds,
-																   @Nullable String sourceLabel,
-																   long newLastUpdateInMs) {
+	protected ArrayList<POIStatus> parseAgencyJSONArrivalsStatuses(
+			@NonNull Context context,
+			@NonNull List<JArrivals.JResult> jResults,
+			@NonNull RouteDirectionStop rds,
+			@Nullable String sourceLabel,
+			long newLastUpdateInMs
+	) {
 		try {
 			final ArrayList<POIStatus> statuses = new ArrayList<>();
 			Calendar nowCal = Calendar.getInstance(MONTREAL_TZ);
@@ -1464,6 +1485,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 	private static final String JSON_IS_RAMP_CANCELLED = "is_ramp_cancelled";
 	private static final String JSON_IS_ON_REQUESTED_DAY = "is_on_requested_day";
 
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	@NonNull
 	private JArrivals parseAgencyJSONArrivals(@Nullable String jsonString) {
 		List<JArrivals.JMessages.JMessage> lines = new ArrayList<>();
@@ -1479,6 +1501,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return new JArrivals(new JArrivals.JMessages(lines, stopPoints), results);
 	}
 
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	private void parseAgencyJSONArrivalsResults(@NonNull List<JArrivals.JResult> results, @Nullable JSONObject json) {
 		try {
 			if (json != null && json.has(JSON_RESULT)) {
@@ -1516,6 +1539,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		}
 	}
 
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	private void parseAgencyJSONArrivalsMessages(
 			@NonNull List<JArrivals.JMessages.JMessage> lines,
 			@NonNull List<JArrivals.JMessages.JMessage> stopPoints,
@@ -1666,7 +1690,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		if (cursor != null) {
 			return cursor;
 		}
-		cursor = StatusProvider.queryS(this, uri, selection);
+		cursor = StatusProvider.queryS(this, uri, selection); // @Discouraged(message = "Using GTFS-RT Trip Updates instead")
 		if (cursor != null) {
 			return cursor;
 		}
@@ -1680,7 +1704,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		if (type != null) {
 			return type;
 		}
-		type = StatusProvider.getTypeS(this, uri);
+		type = StatusProvider.getTypeS(this, uri); // @Discouraged(message = "Using GTFS-RT Trip Updates instead")
 		if (type != null) {
 			return type;
 		}

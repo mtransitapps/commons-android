@@ -300,9 +300,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	 */
 	@NonNull
 	@SuppressLint("StringFormatInvalid") // empty string: set in module app
-	private static String getAGENCY_SERVICE_ALERTS_URL(@NonNull Context context,
-													   @NonNull String token,
-													   @SuppressWarnings("SameParameterValue") @NonNull String hash) {
+	private static String getAGENCY_SERVICE_ALERTS_URL(
+			@NonNull Context context,
+			@NonNull String token,
+			@SuppressWarnings("SameParameterValue") @NonNull String hash
+	) {
 		if (agencyServiceAlertsUrl == null) {
 			agencyServiceAlertsUrl = context.getResources().getString(R.string.gtfs_real_time_agency_service_alerts_url, token, hash);
 		}
@@ -594,7 +596,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Override
-	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
+	public long getMinDurationBetweenStatusRefreshInMs(boolean inFocus) {
 		return GTFSRealTimeTripUpdatesProvider.getMinDurationBetweenRefreshInMs(this, inFocus);
 	}
 

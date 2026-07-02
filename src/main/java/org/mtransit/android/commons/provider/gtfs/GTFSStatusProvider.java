@@ -113,11 +113,9 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static final long STATUS_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
 
 	private static final long STATUS_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(6L);
-
 	private static final long STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1L);
 
 	private static final long STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.HOURS.toMillis(1L);
-
 	private static final long STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(30L);
 
 	public static long getStatusValidityInMs(boolean inFocus) {

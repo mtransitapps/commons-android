@@ -189,16 +189,10 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		return newsTargetAuthority;
 	}
 
-	private static final long WEB_SERVICE_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
-	private static final long WEB_SERVICE_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
-	private static final long WEB_SERVICE_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-	private static final long WEB_SERVICE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-	private static final long WEB_SERVICE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-
-	@Override
-	public long getStatusMaxValidityInMs() {
-		return WEB_SERVICE_STATUS_MAX_VALIDITY_IN_MS;
-	}
+	private static final long WEB_SERVICE_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L); // API key
+	private static final long WEB_SERVICE_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L); // API key
+	private static final long WEB_SERVICE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1L); // API key
+	private static final long WEB_SERVICE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L); // API key
 
 	@Override
 	public long getStatusValidityInMs(boolean inFocus) {
@@ -209,7 +203,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	}
 
 	@Override
-	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
+	public long getMinDurationBetweenStatusRefreshInMs(boolean inFocus) {
 		if (inFocus) {
 			return WEB_SERVICE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
 		}
@@ -818,8 +812,22 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 
 	private static final String AUTHOR_ICON = "https://winnipegtransit.com/favicon.ico";
 
-	private void parseServiceAdvisory(URL fromURL, JSONArray jServiceAdvisories, int s, ArrayList<News> news, String sourceLabel, long lastUpdateInMs, long noteworthyInMs, int defaultPriority,
-									  String target, String color, String authorName, String language, long maxValidityInMs, String authority) {
+	private void parseServiceAdvisory(
+			URL fromURL,
+			JSONArray jServiceAdvisories,
+			int s,
+			ArrayList<News> news,
+			String sourceLabel,
+			long lastUpdateInMs,
+			long noteworthyInMs,
+			int defaultPriority,
+			String target,
+			String color,
+			String authorName,
+			String language,
+			long maxValidityInMs,
+			String authority
+	) {
 		try {
 			JSONObject jServiceAdvisory = jServiceAdvisories.getJSONObject(s);
 			if (jServiceAdvisory == null) {

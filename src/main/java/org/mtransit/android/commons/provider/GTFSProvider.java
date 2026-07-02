@@ -301,7 +301,7 @@ public class GTFSProvider extends AgencyProvider implements
 	}
 
 	@Override
-	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
+	public long getMinDurationBetweenStatusRefreshInMs(boolean inFocus) {
 		return GTFSStatusProvider.getMinDurationBetweenRefreshInMs(inFocus);
 	}
 

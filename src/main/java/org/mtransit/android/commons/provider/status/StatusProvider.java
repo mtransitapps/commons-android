@@ -120,7 +120,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		// 3 - check if usable cache still valid (or if it could be refreshed)
 		long cacheValidityInMs = provider.getStatusValidityInMs(statusFilter.isInFocusOrDefault());
 		Long filterCacheValidityInMs = statusFilter.getCacheValidityInMs();
-		if (filterCacheValidityInMs != null && filterCacheValidityInMs > provider.getMinDurationBetweenRefreshInMs(statusFilter.isInFocusOrDefault())) {
+		if (filterCacheValidityInMs != null && filterCacheValidityInMs > provider.getMinDurationBetweenStatusRefreshInMs(statusFilter.isInFocusOrDefault())) {
 			cacheValidityInMs = filterCacheValidityInMs;
 		}
 		if (cachedStatus == null || cachedStatus.getLastUpdateInMs() + cacheValidityInMs < now) {
@@ -279,10 +279,8 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	}
 
 	public static int deleteCachedStatus(@NonNull StatusProviderContract provider, @Nullable Collection<String> targetUUIDs) {
-		if (targetUUIDs == null || targetUUIDs.isEmpty()) {
-			return 0;
-		}
-		String selection = SqlUtils.getWhereInString(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID, targetUUIDs);
+		if (targetUUIDs == null || targetUUIDs.isEmpty()) return 0;
+		final String selection = SqlUtils.getWhereInString(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID, targetUUIDs);
 		int deletedRows = 0;
 		try {
 			deletedRows = provider.getWriteDB().delete(provider.getStatusDbTableName(), selection, null);
@@ -293,10 +291,10 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	}
 
 	public static boolean purgeUselessCachedStatuses(@NonNull StatusProviderContract provider) {
-		int type = provider.getStatusType();
-		long oldestLastUpdate = TimeUtils.currentTimeMillis() - provider.getStatusMaxValidityInMs();
-		String selection = SqlUtils.getWhereEquals(Columns.T_STATUS_K_TYPE, type) + //
-				SqlUtils.AND + //
+		final int type = provider.getStatusType();
+		final long oldestLastUpdate = TimeUtils.currentTimeMillis() - provider.getStatusMaxValidityInMs();
+		final String selection = SqlUtils.getWhereEquals(Columns.T_STATUS_K_TYPE, type) +
+				SqlUtils.AND +
 				SqlUtils.getWhereInferior(Columns.T_STATUS_K_LAST_UPDATE, oldestLastUpdate);
 		int deletedRows = 0;
 		try {

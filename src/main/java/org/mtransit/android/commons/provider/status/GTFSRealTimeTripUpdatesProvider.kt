@@ -59,26 +59,16 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     val PROVIDER_PRECISION = 10.seconds
     val PROVIDER_PRECISION_IN_MS = PROVIDER_PRECISION.inWholeMilliseconds
 
-    val TRIP_UPDATE_MAX_VALIDITY_IN_MS = 1.hours.inWholeMilliseconds
-
-    val TRIP_UPDATE_VALIDITY_IN_MS = 3.minutes.inWholeMilliseconds
-    val TRIP_UPDATE_VALIDITY_IN_FOCUS_IN_MS = 30.seconds.inWholeMilliseconds
-
-    val TRIP_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 1.minutes.inWholeMilliseconds
-    val TRIP_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 10.seconds.inWholeMilliseconds
-
     @JvmStatic
     fun GTFSRealTimeProvider.getMinDurationBetweenRefreshInMs(inFocus: Boolean) =
-        if (inFocus) TRIP_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS.adaptForCachedAPI(this.context)
-        else TRIP_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS.adaptForCachedAPI(this.context)
+        getMinDurationBetweenStatusRefreshInMs(inFocus).adaptForCachedAPI(this.context)
 
     @JvmStatic
     fun GTFSRealTimeProvider.getValidityInMs(inFocus: Boolean) =
-        if (inFocus) TRIP_UPDATE_VALIDITY_IN_FOCUS_IN_MS.adaptForCachedAPI(this.context)
-        else TRIP_UPDATE_VALIDITY_IN_MS.adaptForCachedAPI(this.context)
+        getStatusValidityInMs(inFocus).adaptForCachedAPI(this.context)
 
     @JvmStatic
-    val GTFSRealTimeProvider.maxValidityInMs: Long get() = TRIP_UPDATE_MAX_VALIDITY_IN_MS.adaptForCachedAPI(this.context)
+    val GTFSRealTimeProvider.maxValidityInMs: Long get() = statusMaxValidityInMs.adaptForCachedAPI(this.context)
 
     private fun Long.adaptForCachedAPI(context: Context?) =
         if (context?.let { GTFSRealTimeProvider.getAGENCY_TRIP_UPDATES_URL_CACHED(it) }?.isNotBlank() == true) {
@@ -200,11 +190,11 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     ?.map { rds ->
                         rds.makeSchedule(
                             lastUpdateInMs = lastUpdateInMs,
-                            validityInMs = TRIP_UPDATE_VALIDITY_IN_MS,
+                            validityInMs = getStatusValidityInMs(false),
                             readFromSourceAtInMs = readFromSourceMs,
                             providerPrecisionInMs = PROVIDER_PRECISION_IN_MS,
                             sourceLabel = sourceLabel,
-                            noData = true
+                            hasData = false,
                         )
                     }?.forEach { noDataStatus ->
                         cacheStatus(noDataStatus)
@@ -265,7 +255,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             schedule.lastUpdateInMs = lastUpdateInMs
             schedule.readFromSourceAtInMs = readFromSourceMs
             schedule.providerPrecisionInMs = PROVIDER_PRECISION_IN_MS
-            schedule.validityInMs = TRIP_UPDATE_VALIDITY_IN_MS
+            schedule.validityInMs = getStatusValidityInMs(false)
             val now = TimeUtilsK.currentInstant()
             if (!schedule.timestamps.any { it.isRealTime || (it.tripId in tripsWithRealTime && it.departure < now) }) {
                 cacheStatus(schedule.toNoData()) // avoid re-run
