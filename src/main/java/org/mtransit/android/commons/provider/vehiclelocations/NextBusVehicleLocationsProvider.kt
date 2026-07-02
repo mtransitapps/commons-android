@@ -23,37 +23,10 @@ import java.net.SocketException
 import java.net.UnknownHostException
 import javax.net.ssl.SSLHandshakeException
 import kotlin.math.min
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 object NextBusVehicleLocationsProvider {
-
-    val VEHICLE_LOCATION_MAX_VALIDITY_IN_MS = 1.hours.inWholeMilliseconds
-
-    val VEHICLE_LOCATION_VALIDITY_IN_MS = 10.minutes.inWholeMilliseconds
-    val VEHICLE_LOCATION_VALIDITY_IN_FOCUS_IN_MS = 5.seconds.inWholeMilliseconds
-
-    @Suppress("unused")
-    val VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 3.minutes.inWholeMilliseconds
-
-    @Suppress("unused")
-    val VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 1.minutes.inWholeMilliseconds
-
-    @Suppress("unused")
-    @JvmStatic
-    fun getMinDurationBetweenRefreshInMs(inFocus: Boolean) =
-        if (inFocus) VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS
-        else VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_MS
-
-    @JvmStatic
-    fun getValidityInMs(inFocus: Boolean) =
-        if (inFocus) VEHICLE_LOCATION_VALIDITY_IN_FOCUS_IN_MS
-        else VEHICLE_LOCATION_VALIDITY_IN_MS
-
-    @JvmStatic
-    val maxValidityInMs: Long get() = VEHICLE_LOCATION_MAX_VALIDITY_IN_MS
 
     @JvmStatic
     fun NextBusProvider.getCached(filter: VehicleLocationProviderContract.Filter): List<VehicleLocation>? =

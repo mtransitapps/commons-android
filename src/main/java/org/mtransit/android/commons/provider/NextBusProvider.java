@@ -518,22 +518,6 @@ public class NextBusProvider extends MTContentProvider implements
 		return retrofit.create(NextBusApi.class);
 	}
 
-	@SuppressWarnings("unused")
-	@Override
-	public long getMinDurationBetweenVehicleLocationRefreshInMs(boolean inFocus) {
-		return NextBusVehicleLocationsProvider.getMinDurationBetweenRefreshInMs(inFocus);
-	}
-
-	@Override
-	public long getVehicleLocationMaxValidityInMs() {
-		return NextBusVehicleLocationsProvider.getMaxValidityInMs();
-	}
-
-	@Override
-	public long getVehicleLocationValidityInMs(boolean inFocus) {
-		return NextBusVehicleLocationsProvider.getValidityInMs(inFocus);
-	}
-
 	@Override
 	public void cacheVehicleLocations(@NonNull List<VehicleLocation> newVehicleLocations) {
 		VehicleLocationProvider.cacheVehicleLocationsS(this, newVehicleLocations);

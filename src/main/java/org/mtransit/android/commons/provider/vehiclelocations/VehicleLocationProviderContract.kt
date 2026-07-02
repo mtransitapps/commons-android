@@ -18,6 +18,9 @@ import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderFilter
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 import org.mtransit.commons.model.Secret
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 interface VehicleLocationProviderContract : ProviderContract {
 
@@ -25,6 +28,14 @@ interface VehicleLocationProviderContract : ProviderContract {
         const val VEHICLE_LOCATION_PATH = "vehicle"
 
         const val PING_PATH = ProviderContract.PING_PATH
+
+        val DEFAULT_VEHICLE_LOCATION_MAX_VALIDITY_IN_MS = 1.hours.inWholeMilliseconds
+
+        val DEFAULT_VEHICLE_LOCATION_VALIDITY_IN_MS = 2.minutes.inWholeMilliseconds
+        val DEFAULT_VEHICLE_LOCATION_VALIDITY_IN_FOCUS_IN_MS = 10.seconds.inWholeMilliseconds
+
+        val DEFAULT_VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 1.minutes.inWholeMilliseconds
+        val DEFAULT_VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 5.seconds.inWholeMilliseconds
 
         /**
          * see [VehicleLocation]
@@ -50,12 +61,14 @@ interface VehicleLocationProviderContract : ProviderContract {
 
     val authorityUri: Uri
 
-    val vehicleLocationMaxValidityInMs: Long
+    val vehicleLocationMaxValidityInMs: Long get() = DEFAULT_VEHICLE_LOCATION_MAX_VALIDITY_IN_MS
 
-    fun getVehicleLocationValidityInMs(inFocus: Boolean): Long
+    fun getVehicleLocationValidityInMs(inFocus: Boolean): Long =
+        if (inFocus) DEFAULT_VEHICLE_LOCATION_VALIDITY_IN_FOCUS_IN_MS else DEFAULT_VEHICLE_LOCATION_VALIDITY_IN_MS
 
     @Suppress("unused")
-    fun getMinDurationBetweenVehicleLocationRefreshInMs(inFocus: Boolean): Long
+    fun getMinDurationBetweenVehicleLocationRefreshInMs(inFocus: Boolean): Long =
+        if (inFocus) DEFAULT_VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS else DEFAULT_VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_MS
 
     fun cacheVehicleLocations(newVehicleLocations: List<VehicleLocation>)
 
