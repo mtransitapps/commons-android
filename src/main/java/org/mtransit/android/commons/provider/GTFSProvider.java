@@ -401,11 +401,6 @@ public class GTFSProvider extends AgencyProvider implements
 	}
 
 	@Override
-	public long getPoiMaxValidityInMs() {
-		return GTFSPOIProvider.getPOIMaxValidityInMs(this);
-	}
-
-	@Override
 	public long getPoiValidityInMs() {
 		return GTFSPOIProvider.getPOIValidityInMs(this);
 	}

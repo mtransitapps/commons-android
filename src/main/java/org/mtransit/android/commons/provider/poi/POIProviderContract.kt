@@ -18,6 +18,7 @@ import org.mtransit.android.commons.provider.common.ContentProviderConstants
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.commons.model.Secret
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 interface POIProviderContract : ProviderContract {
 
@@ -27,6 +28,12 @@ interface POIProviderContract : ProviderContract {
         const val POI_FILTER_EXTRA_AVOID_LOADING: String = "avoidLoading"
 
         const val POI_FILTER_EXTRA_SORT_ORDER: String = "sortOrder"
+
+        @JvmStatic
+        val DEFAULT_POI_MAX_VALIDITY_IN_MS = ProviderContract.MAX_CACHE_VALIDITY_MS
+
+        @JvmStatic
+        val DEFAULT_POI_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
 
         @JvmStatic
         val PROJECTION_POI_ALL_COLUMNS: Array<String>? = null // null = return all columns
@@ -49,9 +56,9 @@ interface POIProviderContract : ProviderContract {
         val PROJECTION_POI_SEARCH_SUGGEST = arrayOf(SearchManager.SUGGEST_COLUMN_TEXT_1)
     }
 
-    val poiMaxValidityInMs: Long
+    val poiMaxValidityInMs: Long get() = DEFAULT_POI_MAX_VALIDITY_IN_MS
 
-    val poiValidityInMs: Long
+    val poiValidityInMs: Long get() = DEFAULT_POI_VALIDITY_IN_MS
 
     fun getPOI(poiFilter: Filter?): Cursor?
 
