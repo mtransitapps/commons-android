@@ -696,33 +696,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		return GTFSRealTimeDbHelper.T_GTFS_REAL_TIME_VEHICLE_LOCATION;
 	}
 
-	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
-	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(30L);
-	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10L);
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-
-	@Override
-	public long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus) {
-		if (inFocus) {
-			return SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
-		}
-		return SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
-	}
-
-	@Override
-	public long getServiceUpdateMaxValidityInMs() {
-		return SERVICE_UPDATE_MAX_VALIDITY_IN_MS;
-	}
-
-	@Override
-	public long getServiceUpdateValidityInMs(boolean inFocus) {
-		if (inFocus) {
-			return SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS;
-		}
-		return SERVICE_UPDATE_VALIDITY_IN_MS;
-	}
-
 	@NonNull
 	@Override
 	public String getServiceUpdateDbTableName() {

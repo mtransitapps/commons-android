@@ -174,41 +174,6 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return rdsAgencyId;
 	}
 
-	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
-	private static final long STM_INFO_API_SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
-	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
-	private static final long STM_INFO_API_SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
-	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
-	private static final long STM_INFO_API_SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10L);
-	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
-	private static final long STM_INFO_API_SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10L);
-	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
-	private static final long STM_INFO_API_SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-
-	@Override
-	public long getServiceUpdateMaxValidityInMs() {
-		if (USE_NEW_API) return StmInfoServiceUpdateProvider.getSERVICE_UPDATE_MAX_VALIDITY_IN_MS();
-		return STM_INFO_API_SERVICE_UPDATE_MAX_VALIDITY_IN_MS;
-	}
-
-	@Override
-	public long getServiceUpdateValidityInMs(boolean inFocus) {
-		if (USE_NEW_API) return StmInfoServiceUpdateProvider.getValidityInMs(inFocus);
-		if (inFocus) {
-			return STM_INFO_API_SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS;
-		}
-		return STM_INFO_API_SERVICE_UPDATE_VALIDITY_IN_MS;
-	}
-
-	@Override
-	public long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus) {
-		if (USE_NEW_API) return StmInfoServiceUpdateProvider.getMinDurationBetweenRefreshInMs(inFocus);
-		if (inFocus) {
-			return STM_INFO_API_SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
-		}
-		return STM_INFO_API_SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
-	}
-
 	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	@Override
 	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
