@@ -146,8 +146,9 @@ object GtfsRealtimeExt {
         this.sortedWith(compareBy(makeAlertComparator(nowMs)) { it.first })
 
     private fun makeAlertComparator(nowMs: Long) = compareBy<GAlert> { gAlert ->
-        (gAlert.periodList?.firstOrNull { it.isActive(nowMs) && it.hasStart() }?.optStartMs
-            ?: gAlert.periodList?.firstOrNull { it.hasStart() }?.optStartMs)
+        val periods = gAlert.periodList
+        (periods?.firstOrNull { it.isActive(nowMs) && it.hasStart() }?.optStartMs
+            ?: periods?.firstOrNull { it.hasStart() }?.optStartMs)
             ?: Long.MAX_VALUE // no active period == displayed as long as in the feed (probably less important?)
     }
 
@@ -161,12 +162,8 @@ object GtfsRealtimeExt {
         } ?: true // optional (If missing, the alert will be shown as long as it appears in the feed.)
     }
 
-    val GAlert.periodList: List<GTimeRange>?
-        get() {
-            @Suppress("DEPRECATION")
-            return optCommunicationPeriodList
-                ?: optActivePeriodList
-        }
+    @Suppress("DEPRECATION")
+    val GAlert.periodList: List<GTimeRange>? get() = optCommunicationPeriodList ?: optActivePeriodList
 
     val GAlert.allPeriods: List<GTimeRange>
         get() = buildList {
@@ -174,7 +171,7 @@ object GtfsRealtimeExt {
             optActivePeriodList?.let { addAll(it) } // OLD (still being used)
             optCommunicationPeriodList?.let { addAll(it) } // NEW (should be used from now on)
             optImpactPeriodList // NEW  (should be included in communication periods, fallback)
-                ?.takeIf { optCommunicationPeriodList != null } // empty communication period list == show always
+                ?.takeIf { optCommunicationPeriodList == null } // empty communication period list == show always
                 ?.let { addAll(it) }
         }
 

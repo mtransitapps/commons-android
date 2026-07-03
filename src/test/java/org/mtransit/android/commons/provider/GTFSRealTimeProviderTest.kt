@@ -5,7 +5,6 @@ import com.google.transit.realtime.timeRange
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.isActive
 import org.mtransit.commons.msToSec
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -276,7 +275,6 @@ class GTFSRealTimeProviderTest {
     /**
      * If `communication_period` is specified, every time interval in `impact_period` must be fully contained within at least one time interval of `communication_period`.
      */
-    @Ignore("fallback not implemented anymore")
     @Test
     fun test_isInActive_ImpactPeriod_InRange_CommunicationPeriodBefore() {
         val nowInMs = TimeUtils.currentTimeMillis()
@@ -297,6 +295,6 @@ class GTFSRealTimeProviderTest {
 
         val result = gAlert.isActive(nowInMs)
 
-        assertTrue(result)
+        assertFalse(result) // fallback not implemented anymore
     }
 }
