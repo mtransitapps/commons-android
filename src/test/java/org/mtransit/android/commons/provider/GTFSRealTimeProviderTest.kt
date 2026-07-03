@@ -223,7 +223,7 @@ class GTFSRealTimeProviderTest {
     @Test
     fun test_isInActive_CommunicationPeriod_0_Range() {
         val gAlert = alert {
-            // no active period
+            // no communication period
         }
 
         val result = gAlert.isActive()
