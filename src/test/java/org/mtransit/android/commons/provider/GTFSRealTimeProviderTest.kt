@@ -276,7 +276,7 @@ class GTFSRealTimeProviderTest {
      * If `communication_period` is specified, every time interval in `impact_period` must be fully contained within at least one time interval of `communication_period`.
      */
     @Test
-    fun test_isInActive_ImpactPeriod_IntRange_CommunicationPeriodBefore() {
+    fun test_isInActive_ImpactPeriod_InRange_CommunicationPeriodBefore() {
         val nowInMs = TimeUtils.currentTimeMillis()
         val gAlert = alert {
             communicationPeriod.add(
