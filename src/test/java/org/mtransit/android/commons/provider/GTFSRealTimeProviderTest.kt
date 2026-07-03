@@ -244,7 +244,7 @@ class GTFSRealTimeProviderTest {
             )
         }
 
-        val result = gAlert.isActive()
+        val result = gAlert.isActive(nowInMs)
 
         assertTrue(result)
     }
@@ -267,7 +267,7 @@ class GTFSRealTimeProviderTest {
             )
         }
 
-        val result = gAlert.isActive()
+        val result = gAlert.isActive(nowInMs)
 
         assertFalse(result)
     }
@@ -293,7 +293,7 @@ class GTFSRealTimeProviderTest {
             )
         }
 
-        val result = gAlert.isActive()
+        val result = gAlert.isActive(nowInMs)
 
         assertTrue(result)
     }

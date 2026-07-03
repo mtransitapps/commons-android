@@ -140,15 +140,19 @@ object GtfsRealtimeExt {
     @JvmStatic
     fun List<GAlert>.sortAlerts(nowMs: Long = TimeUtils.currentTimeMillis()): List<GAlert> =
         this.sortedBy { alert ->
-            (alert.getActivePeriods(nowMs).firstOrNull { it.hasStart() }?.optStartMs
-                ?: alert.allPeriods.firstOrNull { it.hasStart() }?.optStartMs)
+            val allPeriods = alert.allPeriods
+            val activePeriods = allPeriods.filter { it.isActive(nowMs) }
+            (activePeriods.firstOrNull { it.hasStart() }?.optStartMs
+                ?: allPeriods.firstOrNull { it.hasStart() }?.optStartMs)
                 ?: Long.MAX_VALUE // no active period == displayed as long as in the feed (probably less important?)
         }
 
     @JvmStatic
     fun List<Pair<GAlert, String>>.sortAlertsPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GAlert, String>> =
         this.sortedBy { (alert, _) ->
-            (alert.getActivePeriods(nowMs).firstOrNull { it.hasStart() }?.optStartMs
+            val allPeriods = alert.allPeriods
+            val activePeriods = allPeriods.filter { it.isActive(nowMs) }
+            (activePeriods.firstOrNull { it.hasStart() }?.optStartMs
                 ?: alert.allPeriods.firstOrNull { it.hasStart() }?.optStartMs)
                 ?: Long.MAX_VALUE // no active period == displayed as long as in the feed (probably less important?)
         }
@@ -172,10 +176,6 @@ object GtfsRealtimeExt {
                 ?.takeIf { !optCommunicationPeriodList.isNullOrEmpty() } // empty communication period list == show always
                 ?.let { addAll(it) }
         }
-
-    @JvmStatic
-    fun GAlert.getActivePeriods(nowMs: Long = TimeUtils.currentTimeMillis()) = this.allPeriods
-        .filter { it.isActive(nowMs) }
 
     @JvmStatic
     fun GEntitySelector.getRouteIdHash(idCleanupRegex: Pattern?): String =
@@ -392,6 +392,7 @@ object GtfsRealtimeExt {
         append("Alert:")
         append(
             buildList {
+                optInformedEntityList?.let { add("IE:${it.toStringExt(short = true)}") }
                 @Suppress("DEPRECATION")
                 optActivePeriodList?.let { add("AP:${it.toStringExt(short = true)}") }
                 optCommunicationPeriodList?.let { add("CP:${it.toStringExt(short = true)}") }
@@ -406,6 +407,8 @@ object GtfsRealtimeExt {
             }.joinToStringList()
         )
     }
+
+    val GAlert.optInformedEntityList get() = informedEntityList.takeIf { it.isNotEmpty() }
 
     @Suppress("DEPRECATION")
     @Deprecated("for backwards-compatibility only")
