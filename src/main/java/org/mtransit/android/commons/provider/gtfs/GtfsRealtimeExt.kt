@@ -146,9 +146,8 @@ object GtfsRealtimeExt {
         this.sortedWith(compareBy(makeAlertComparator(nowMs)) { it.first })
 
     private fun makeAlertComparator(nowMs: Long) = compareBy<GAlert> { gAlert ->
-        val allPeriods = gAlert.allPeriods
-        (allPeriods.firstOrNull { it.isActive(nowMs) && it.hasStart() }?.optStartMs
-            ?: allPeriods.firstOrNull { it.hasStart() }?.optStartMs)
+        (gAlert.periodList?.firstOrNull { it.isActive(nowMs) && it.hasStart() }?.optStartMs
+            ?: gAlert.periodList?.firstOrNull { it.hasStart() }?.optStartMs)
             ?: Long.MAX_VALUE // no active period == displayed as long as in the feed (probably less important?)
     }
 
@@ -156,11 +155,18 @@ object GtfsRealtimeExt {
     @JvmStatic
     @JvmOverloads
     fun GAlert.isActive(nowMs: Long = TimeUtils.currentTimeMillis()): Boolean {
-        return this.allPeriods.takeIf { it.isNotEmpty() }?.let { activePeriod ->
+        return this.periodList?.takeIf { it.isNotEmpty() }?.let { activePeriod ->
             // if active period provided, must be respected
             activePeriod.any { timeRange -> timeRange.isActive(nowMs) } // If multiple ranges are given, the alert will be shown during all of them.
         } ?: true // optional (If missing, the alert will be shown as long as it appears in the feed.)
     }
+
+    val GAlert.periodList: List<GTimeRange>?
+        get() {
+            @Suppress("DEPRECATION")
+            return optCommunicationPeriodList
+                ?: optActivePeriodList
+        }
 
     val GAlert.allPeriods: List<GTimeRange>
         get() = buildList {
