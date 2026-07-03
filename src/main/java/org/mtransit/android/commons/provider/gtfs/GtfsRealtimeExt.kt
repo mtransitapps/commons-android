@@ -140,16 +140,16 @@ object GtfsRealtimeExt {
     @JvmStatic
     fun List<GAlert>.sortAlerts(nowMs: Long = TimeUtils.currentTimeMillis()): List<GAlert> =
         this.sortedBy { alert ->
-            (alert.getActivePeriod(nowMs)?.startMs()
-                ?: alert.activePeriodList.firstOrNull { it.hasStart() }?.startMs())
+            (alert.getActivePeriods(nowMs).firstOrNull { it.hasStart() }?.optStartMs
+                ?: alert.allPeriods.firstOrNull { it.hasStart() }?.optStartMs)
                 ?: Long.MAX_VALUE // no active period == displayed as long as in the feed (probably less important?)
         }
 
     @JvmStatic
     fun List<Pair<GAlert, String>>.sortAlertsPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GAlert, String>> =
         this.sortedBy { (alert, _) ->
-            (alert.getActivePeriod(nowMs)?.startMs()
-                ?: alert.activePeriodList.firstOrNull { it.hasStart() }?.startMs())
+            (alert.getActivePeriods(nowMs).firstOrNull { it.hasStart() }?.optStartMs
+                ?: alert.allPeriods.firstOrNull { it.hasStart() }?.optStartMs)
                 ?: Long.MAX_VALUE // no active period == displayed as long as in the feed (probably less important?)
         }
 
@@ -157,18 +157,25 @@ object GtfsRealtimeExt {
     @JvmStatic
     @JvmOverloads
     fun GAlert.isActive(nowMs: Long = TimeUtils.currentTimeMillis()): Boolean {
-        return this.activePeriodList?.takeIf { it.isNotEmpty() }?.let {
+        return this.allPeriods.takeIf { it.isNotEmpty() }?.let { activePeriod ->
             // if active period provided, must be respected
-            it.any { timeRange -> timeRange.isActive(nowMs) } // If multiple ranges are given, the alert will be shown during all of them.
+            activePeriod.any { timeRange -> timeRange.isActive(nowMs) } // If multiple ranges are given, the alert will be shown during all of them.
         } ?: true // optional (If missing, the alert will be shown as long as it appears in the feed.)
     }
 
-    @JvmStatic
-    fun GAlert.getActivePeriod(nowMs: Long = TimeUtils.currentTimeMillis()) = this.activePeriodList
-        .filter { it.hasStart() && it.hasEnd() }
-        .singleOrNull {
-            it.isActive(nowMs)
+    val GAlert.allPeriods: List<GTimeRange>
+        get() = buildList {
+            @Suppress("DEPRECATION")
+            optActivePeriodList?.let { addAll(it) } // OLD (still being used)
+            optCommunicationPeriodList?.let { addAll(it) } // NEW (should be used from now on)
+            optImpactPeriodList // NEW  (should be included in communication periods, fallback)
+                ?.takeIf { !optCommunicationPeriodList.isNullOrEmpty() } // empty communication period list == show always
+                ?.let { addAll(it) }
         }
+
+    @JvmStatic
+    fun GAlert.getActivePeriods(nowMs: Long = TimeUtils.currentTimeMillis()) = this.allPeriods
+        .filter { it.isActive(nowMs) }
 
     @JvmStatic
     fun GEntitySelector.getRouteIdHash(idCleanupRegex: Pattern?): String =
@@ -190,20 +197,15 @@ object GtfsRealtimeExt {
     fun String.originalIdToId(idCleanupRegex: Pattern? = null): String =
         GTFSCommons.originalIdToId(this, idCleanupRegex)
 
-    fun GTimeRange.isActive(nowMs: Long = TimeUtils.currentTimeMillis()) =
-        isStarted(nowMs) && !isEnded(nowMs)
+    fun GTimeRange.isActive(nowMs: Long = TimeUtils.currentTimeMillis()) = isStarted(nowMs) && !isEnded(nowMs)
 
-    fun GTimeRange.isStarted(nowMs: Long = TimeUtils.currentTimeMillis()) =
-        this.startMs()?.let { it <= nowMs } ?: true
+    fun GTimeRange.isStarted(nowMs: Long = TimeUtils.currentTimeMillis()) = this.optStartMs?.let { it <= nowMs } ?: true
 
-    fun GTimeRange.startMs(): Long? =
-        this.start.takeIf { this.hasStart() }?.secToMs()
+    val GTimeRange.optStartMs: Long? get() = start.takeIf { hasStart() }?.secToMs()
 
-    fun GTimeRange.isEnded(nowMs: Long = TimeUtils.currentTimeMillis()) =
-        this.endMs()?.let { it <= nowMs } ?: false
+    fun GTimeRange.isEnded(nowMs: Long = TimeUtils.currentTimeMillis()) = this.optEndMs?.let { it <= nowMs } ?: false
 
-    fun GTimeRange.endMs(): Long? =
-        this.end.takeIf { this.hasEnd() }?.secToMs()
+    val GTimeRange.optEndMs: Long? get() = end.takeIf { hasEnd() }?.secToMs()
 
     @JvmStatic
     @JvmOverloads
@@ -390,8 +392,10 @@ object GtfsRealtimeExt {
         append("Alert:")
         append(
             buildList {
-                add(informedEntityList.toStringExt(short = true))
-                add(activePeriodList.toStringExt(short = true))
+                @Suppress("DEPRECATION")
+                optActivePeriodList?.let { add("AP:${it.toStringExt(short = true)}") }
+                optCommunicationPeriodList?.let { add("CP:${it.toStringExt(short = true)}") }
+                optImpactPeriodList?.let { add("IP:${it.toStringExt(short = true)}") }
                 optCause?.let { add("cause=$it") }
                 optCauseDetail?.takeIf { debug }?.let { add("(${it.toStringExt("detail")})") }
                 optEffect?.let { add("effect=$it") }
@@ -403,6 +407,11 @@ object GtfsRealtimeExt {
         )
     }
 
+    @Suppress("DEPRECATION")
+    @Deprecated("for backwards-compatibility only")
+    val GAlert.optActivePeriodList get() = activePeriodList.takeIf { it.isNotEmpty() }
+    val GAlert.optCommunicationPeriodList get() = communicationPeriodList.takeIf { it.isNotEmpty() }
+    val GAlert.optImpactPeriodList get() = impactPeriodList.takeIf { it.isNotEmpty() }
     val GAlert.optCause get() = if (hasCause()) cause else null
     val GAlert.optCauseDetail get() = if (hasCauseDetail()) causeDetail else null
     val GAlert.optEffect get() = if (hasEffect()) effect else null
@@ -445,12 +454,12 @@ object GtfsRealtimeExt {
         append("{")
         if (hasStart()) {
             if (!short) append("start=")
-            append(if (debug) startMs().toDateTimeLog() else start)
+            append(if (debug) optStartMs.toDateTimeLog() else start)
         }
         append("->")
         if (hasEnd()) {
             if (!short) append("end=")
-            append(if (debug) endMs().toDateTimeLog() else end)
+            append(if (debug) optEndMs.toDateTimeLog() else end)
         }
         append("}")
     }

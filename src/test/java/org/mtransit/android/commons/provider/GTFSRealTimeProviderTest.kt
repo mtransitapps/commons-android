@@ -1,16 +1,14 @@
 package org.mtransit.android.commons.provider
 
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Test
-import org.mockito.Mockito.mock
-import org.mockito.kotlin.whenever
+import com.google.transit.realtime.alert
+import com.google.transit.realtime.timeRange
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.isActive
 import org.mtransit.commons.msToSec
-import com.google.transit.realtime.GtfsRealtime.Alert as GAlert
-import com.google.transit.realtime.GtfsRealtime.TimeRange as GTimeRange
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class GTFSRealTimeProviderTest {
 
@@ -39,16 +37,17 @@ class GTFSRealTimeProviderTest {
     }
 
     @Test
-    fun testIsInActivePeriod_InRange() {
+    fun test_isInActive_ActivePeriod_InRange() {
         val nowInMs = TimeUtils.currentTimeMillis()
-        val gAlert = GAlert.newBuilder()
-            .addActivePeriod(mock<GTimeRange>().apply {
-                whenever(hasStart()).thenReturn(true)
-                whenever(start).thenReturn((nowInMs - 1000L).msToSec())
-                whenever(hasEnd()).thenReturn(true)
-                whenever(end).thenReturn((nowInMs + 1000L).msToSec())
-            })
-            .buildPartial()
+        val gAlert = alert {
+            @Suppress("DEPRECATION")
+            activePeriod.add(
+                timeRange {
+                    start = (nowInMs - 1000L).msToSec()
+                    end = (nowInMs + 1000L).msToSec()
+                }
+            )
+        }
 
         val result = gAlert.isActive(nowInMs)
 
@@ -56,15 +55,16 @@ class GTFSRealTimeProviderTest {
     }
 
     @Test
-    fun testIsInActivePeriod_InRange_StartOnly() {
+    fun test_isInActive_ActivePeriod_InRange_StartOnly() {
         val nowInMs = TimeUtils.currentTimeMillis()
-        val gAlert = GAlert.newBuilder()
-            .addActivePeriod(mock<GTimeRange>().apply {
-                whenever(hasStart()).thenReturn(true)
-                whenever(start).thenReturn((nowInMs - 1000L).msToSec())
-                whenever(hasEnd()).thenReturn(false)
-            })
-            .buildPartial()
+        val gAlert = alert {
+            @Suppress("DEPRECATION")
+            activePeriod.add(
+                timeRange {
+                    start = (nowInMs - 1000L).msToSec()
+                }
+            )
+        }
 
         val result = gAlert.isActive(nowInMs)
 
@@ -72,15 +72,16 @@ class GTFSRealTimeProviderTest {
     }
 
     @Test
-    fun testIsInActivePeriod_InRange_EndOnly() {
+    fun test_isInActive_ActivePeriod_InRange_EndOnly() {
         val nowInMs = TimeUtils.currentTimeMillis()
-        val gAlert = GAlert.newBuilder()
-            .addActivePeriod(mock<GTimeRange>().apply {
-                whenever(hasStart()).thenReturn(false)
-                whenever(hasEnd()).thenReturn(true)
-                whenever(end).thenReturn((nowInMs + 1000L).msToSec())
-            })
-            .buildPartial()
+        val gAlert = alert {
+            @Suppress("DEPRECATION")
+            activePeriod.add(
+                timeRange {
+                    end = (nowInMs + 1000L).msToSec()
+                }
+            )
+        }
 
         val result = gAlert.isActive(nowInMs)
 
@@ -88,16 +89,17 @@ class GTFSRealTimeProviderTest {
     }
 
     @Test
-    fun testIsInActivePeriod_OutRange_Before() {
+    fun test_isInActive_ActivePeriod_OutRange_Before() {
         val nowInMs = TimeUtils.currentTimeMillis()
-        val gAlert = GAlert.newBuilder()
-            .addActivePeriod(mock<GTimeRange>().apply {
-                whenever(hasStart()).thenReturn(true)
-                whenever(start).thenReturn((nowInMs - 2000L).msToSec())
-                whenever(hasEnd()).thenReturn(true)
-                whenever(end).thenReturn((nowInMs - 1000L).msToSec())
-            })
-            .buildPartial()
+        val gAlert = alert {
+            @Suppress("DEPRECATION")
+            activePeriod.add(
+                timeRange {
+                    start = (nowInMs - 2000L).msToSec()
+                    end = (nowInMs - 1000L).msToSec()
+                }
+            )
+        }
 
         val result = gAlert.isActive(nowInMs)
 
@@ -105,28 +107,191 @@ class GTFSRealTimeProviderTest {
     }
 
     @Test
-    fun testIsInActivePeriod_OutRange_After() {
+    fun test_isInActive_ActivePeriod_OutRange_After() {
         val nowInMs = TimeUtils.currentTimeMillis()
-        val gAlert = GAlert.newBuilder()
-            .addActivePeriod(mock<GTimeRange>().apply {
-                whenever(hasStart()).thenReturn(true)
-                whenever(start).thenReturn((nowInMs + 1000L).msToSec())
-                whenever(hasEnd()).thenReturn(true)
-                whenever(end).thenReturn((nowInMs + 2000L).msToSec())
-            })
-            .buildPartial()
+        val gAlert = alert {
+            @Suppress("DEPRECATION")
+            activePeriod.add(
+                timeRange {
+                    start = (nowInMs + 1000L).msToSec()
+                    end = (nowInMs + 2000L).msToSec()
+                }
+            )
+        }
 
         val result = gAlert.isActive(nowInMs)
 
         assertFalse(result)
     }
 
-    // https://gtfs.org/realtime/feed-entities/service-alerts/#timerange
+    // https://gtfs.org/documentation/realtime/feed-entities/service-alerts/#timerange
     @Test
-    fun testIsInActivePeriod_0_Range() {
-        val gAlert = GAlert.newBuilder()
+    fun test_isInActive_ActivePeriod_0_Range() {
+        val gAlert = alert {
             // no active period
-            .buildPartial()
+        }
+
+        val result = gAlert.isActive()
+
+        assertTrue(result)
+    }
+
+    @Test
+    fun test_isInActive_CommunicationPeriod_InRange() {
+        val nowInMs = TimeUtils.currentTimeMillis()
+        val gAlert = alert {
+            communicationPeriod.add(
+                timeRange {
+                    start = (nowInMs - 1000L).msToSec()
+                    end = (nowInMs + 1000L).msToSec()
+                }
+            )
+        }
+
+        val result = gAlert.isActive(nowInMs)
+
+        assertTrue(result)
+    }
+
+    @Test
+    fun test_isInActive_CommunicationPeriod_InRange_StartOnly() {
+        val nowInMs = TimeUtils.currentTimeMillis()
+        val gAlert = alert {
+            communicationPeriod.add(
+                timeRange {
+                    start = (nowInMs - 1000L).msToSec()
+                }
+            )
+        }
+
+        val result = gAlert.isActive(nowInMs)
+
+        assertTrue(result)
+    }
+
+    @Test
+    fun test_isInActive_CommunicationPeriod_InRange_EndOnly() {
+        val nowInMs = TimeUtils.currentTimeMillis()
+        val gAlert = alert {
+            communicationPeriod.add(
+                timeRange {
+                    end = (nowInMs + 1000L).msToSec()
+                }
+            )
+        }
+
+        val result = gAlert.isActive(nowInMs)
+
+        assertTrue(result)
+    }
+
+    @Test
+    fun test_isInActive_CommunicationPeriod_OutRange_Before() {
+        val nowInMs = TimeUtils.currentTimeMillis()
+        val gAlert = alert {
+            communicationPeriod.add(
+                timeRange {
+                    start = (nowInMs - 2000L).msToSec()
+                    end = (nowInMs - 1000L).msToSec()
+                }
+            )
+        }
+
+        val result = gAlert.isActive(nowInMs)
+
+        assertFalse(result)
+    }
+
+    @Test
+    fun test_isInActive_CommunicationPeriod_OutRange_After() {
+        val nowInMs = TimeUtils.currentTimeMillis()
+        val gAlert = alert {
+            communicationPeriod.add(
+                timeRange {
+                    start = (nowInMs + 1000L).msToSec()
+                    end = (nowInMs + 2000L).msToSec()
+                }
+            )
+        }
+
+        val result = gAlert.isActive(nowInMs)
+
+        assertFalse(result)
+    }
+
+    // https://gtfs.org/documentation/realtime/feed-entities/service-alerts/#timerange
+    @Test
+    fun test_isInActive_CommunicationPeriod_0_Range() {
+        val gAlert = alert {
+            // no active period
+        }
+
+        val result = gAlert.isActive()
+
+        assertTrue(result)
+    }
+
+    @Test
+    fun test_isInActive_ImpactPeriod_OutRange_NoCommunicationPeriod() {
+        val nowInMs = TimeUtils.currentTimeMillis()
+        val gAlert = alert {
+            // no communication period provided == active (visible to user)
+            impactPeriod.add(
+                timeRange {
+                    start = (nowInMs + 1000L).msToSec()
+                    end = (nowInMs + 2000L).msToSec()
+                }
+            )
+        }
+
+        val result = gAlert.isActive()
+
+        assertTrue(result)
+    }
+
+    @Test
+    fun test_isInActive_ImpactPeriod_OutRange_After_CommunicationPeriodBefore() {
+        val nowInMs = TimeUtils.currentTimeMillis()
+        val gAlert = alert {
+            communicationPeriod.add(
+                timeRange {
+                    start = (nowInMs - 2000L).msToSec()
+                    end = (nowInMs - 1000L).msToSec()
+                }
+            )
+            impactPeriod.add(
+                timeRange {
+                    start = (nowInMs + 1000L).msToSec()
+                    end = (nowInMs + 2000L).msToSec()
+                }
+            )
+        }
+
+        val result = gAlert.isActive()
+
+        assertFalse(result)
+    }
+
+    /**
+     * If `communication_period` is specified, every time interval in `impact_period` must be fully contained within at least one time interval of `communication_period`.
+     */
+    @Test
+    fun test_isInActive_ImpactPeriod_IntRange_CommunicationPeriodBefore() {
+        val nowInMs = TimeUtils.currentTimeMillis()
+        val gAlert = alert {
+            communicationPeriod.add(
+                timeRange {
+                    start = (nowInMs - 2000L).msToSec()
+                    end = (nowInMs - 1000L).msToSec()
+                }
+            )
+            impactPeriod.add( // should not happen, but just in case
+                timeRange {
+                    start = (nowInMs - 1000L).msToSec()
+                    end = (nowInMs + 1000L).msToSec()
+                }
+            )
+        }
 
         val result = gAlert.isActive()
 
