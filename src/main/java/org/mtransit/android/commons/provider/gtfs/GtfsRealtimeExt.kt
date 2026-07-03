@@ -139,23 +139,18 @@ object GtfsRealtimeExt {
 
     @JvmStatic
     fun List<GAlert>.sortAlerts(nowMs: Long = TimeUtils.currentTimeMillis()): List<GAlert> =
-        this.sortedBy { alert ->
-            val allPeriods = alert.allPeriods
-            val activePeriods = allPeriods.filter { it.isActive(nowMs) }
-            (activePeriods.firstOrNull { it.hasStart() }?.optStartMs
-                ?: allPeriods.firstOrNull { it.hasStart() }?.optStartMs)
-                ?: Long.MAX_VALUE // no active period == displayed as long as in the feed (probably less important?)
-        }
+        this.sortedWith(makeAlertComparator(nowMs))
 
     @JvmStatic
     fun List<Pair<GAlert, String>>.sortAlertsPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GAlert, String>> =
-        this.sortedBy { (alert, _) ->
-            val allPeriods = alert.allPeriods
-            val activePeriods = allPeriods.filter { it.isActive(nowMs) }
-            (activePeriods.firstOrNull { it.hasStart() }?.optStartMs
-                ?: allPeriods.firstOrNull { it.hasStart() }?.optStartMs)
-                ?: Long.MAX_VALUE // no active period == displayed as long as in the feed (probably less important?)
-        }
+        this.sortedWith(compareBy(makeAlertComparator(nowMs)) { it.first })
+
+    private fun makeAlertComparator(nowMs: Long) = compareBy<GAlert> { gAlert ->
+        val allPeriods = gAlert.allPeriods
+        (allPeriods.firstOrNull { it.isActive(nowMs) && it.hasStart() }?.optStartMs
+            ?: allPeriods.firstOrNull { it.hasStart() }?.optStartMs)
+            ?: Long.MAX_VALUE // no active period == displayed as long as in the feed (probably less important?)
+    }
 
     // https://gtfs.org/realtime/feed-entities/service-alerts/#timerange
     @JvmStatic
@@ -173,7 +168,7 @@ object GtfsRealtimeExt {
             optActivePeriodList?.let { addAll(it) } // OLD (still being used)
             optCommunicationPeriodList?.let { addAll(it) } // NEW (should be used from now on)
             optImpactPeriodList // NEW  (should be included in communication periods, fallback)
-                ?.takeIf { !optCommunicationPeriodList.isNullOrEmpty() } // empty communication period list == show always
+                ?.takeIf { optCommunicationPeriodList != null } // empty communication period list == show always
                 ?.let { addAll(it) }
         }
 
