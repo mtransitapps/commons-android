@@ -153,7 +153,7 @@ object GtfsRealtimeExt {
             val allPeriods = alert.allPeriods
             val activePeriods = allPeriods.filter { it.isActive(nowMs) }
             (activePeriods.firstOrNull { it.hasStart() }?.optStartMs
-                ?: alert.allPeriods.firstOrNull { it.hasStart() }?.optStartMs)
+?: allPeriods.firstOrNull { it.hasStart() }?.optStartMs)
                 ?: Long.MAX_VALUE // no active period == displayed as long as in the feed (probably less important?)
         }
 
