@@ -647,7 +647,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	@SuppressWarnings("unused")
 	@Override
 	public long getMinDurationBetweenVehicleLocationRefreshInMs(boolean inFocus) {
-		return GTFSRealTimeTripUpdatesProvider.adaptForCachedAPI(VehicleLocationProviderContract.super.getMinDurationBetweenVehicleLocationRefreshInMs(inFocus), getContext());
+		return GTFSRealTimeVehiclePositionsProvider.adaptForCachedAPI(VehicleLocationProviderContract.super.getMinDurationBetweenVehicleLocationRefreshInMs(inFocus), getContext());
 	}
 
 	@Override
