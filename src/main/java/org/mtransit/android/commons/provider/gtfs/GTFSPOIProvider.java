@@ -19,7 +19,6 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.provider.GTFSProvider;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
-import org.mtransit.android.commons.provider.common.ProviderContract;
 import org.mtransit.android.commons.provider.poi.POIProvider;
 import org.mtransit.android.commons.provider.poi.POIProviderContract;
 import org.mtransit.commons.FeatureFlags;
@@ -120,7 +119,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 						SqlUtils.getWhereBooleanNotTrue(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP)
 				);
 			}
-			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+			final SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(GTFSRDSProvider.ROUTE_DIRECTION_DIRECTION_STOPS_STOP_JOIN);
 			ArrayMap<String, String> poiProjectionMap = provider.getPoiProjectionMap();
 			boolean searchKeywordsAdded = false;
