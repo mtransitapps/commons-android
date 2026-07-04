@@ -82,7 +82,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -300,9 +299,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	 */
 	@NonNull
 	@SuppressLint("StringFormatInvalid") // empty string: set in module app
-	private static String getAGENCY_SERVICE_ALERTS_URL(@NonNull Context context,
-													   @NonNull String token,
-													   @SuppressWarnings("SameParameterValue") @NonNull String hash) {
+	private static String getAGENCY_SERVICE_ALERTS_URL(
+			@NonNull Context context,
+			@NonNull String token,
+			@SuppressWarnings("SameParameterValue") @NonNull String hash
+	) {
 		if (agencyServiceAlertsUrl == null) {
 			agencyServiceAlertsUrl = context.getResources().getString(R.string.gtfs_real_time_agency_service_alerts_url, token, hash);
 		}
@@ -585,17 +586,17 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 
 	@Override
 	public long getStatusMaxValidityInMs() {
-		return GTFSRealTimeTripUpdatesProvider.getMaxValidityInMs(this);
+		return GTFSRealTimeTripUpdatesProvider.adaptForCachedAPI(StatusProviderContract.super.getStatusMaxValidityInMs(), getContext());
 	}
 
 	@Override
 	public long getStatusValidityInMs(boolean inFocus) {
-		return GTFSRealTimeTripUpdatesProvider.getValidityInMs(this, inFocus);
+		return GTFSRealTimeTripUpdatesProvider.adaptForCachedAPI(StatusProviderContract.super.getStatusValidityInMs(inFocus), getContext());
 	}
 
 	@Override
-	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
-		return GTFSRealTimeTripUpdatesProvider.getMinDurationBetweenRefreshInMs(this, inFocus);
+	public long getMinDurationBetweenStatusRefreshInMs(boolean inFocus) {
+		return GTFSRealTimeTripUpdatesProvider.adaptForCachedAPI(StatusProviderContract.super.getMinDurationBetweenStatusRefreshInMs(inFocus), getContext());
 	}
 
 	@Nullable
@@ -645,17 +646,17 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	@SuppressWarnings("unused")
 	@Override
 	public long getMinDurationBetweenVehicleLocationRefreshInMs(boolean inFocus) {
-		return GTFSRealTimeVehiclePositionsProvider.getMinDurationBetweenRefreshInMs(this, inFocus);
+		return GTFSRealTimeVehiclePositionsProvider.adaptForCachedAPI(VehicleLocationProviderContract.super.getMinDurationBetweenVehicleLocationRefreshInMs(inFocus), getContext());
 	}
 
 	@Override
 	public long getVehicleLocationMaxValidityInMs() {
-		return GTFSRealTimeVehiclePositionsProvider.getMaxValidityInMs(this);
+		return GTFSRealTimeVehiclePositionsProvider.adaptForCachedAPI(VehicleLocationProviderContract.super.getVehicleLocationMaxValidityInMs(), getContext());
 	}
 
 	@Override
 	public long getVehicleLocationValidityInMs(boolean inFocus) {
-		return GTFSRealTimeVehiclePositionsProvider.getValidityInMs(this, inFocus);
+		return GTFSRealTimeVehiclePositionsProvider.adaptForCachedAPI(VehicleLocationProviderContract.super.getVehicleLocationValidityInMs(inFocus), getContext());
 	}
 
 	@Override
@@ -692,33 +693,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	@Override
 	public @NonNull String getVehicleLocationDbTableName() {
 		return GTFSRealTimeDbHelper.T_GTFS_REAL_TIME_VEHICLE_LOCATION;
-	}
-
-	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
-	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(30L);
-	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10L);
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-
-	@Override
-	public long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus) {
-		if (inFocus) {
-			return SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
-		}
-		return SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
-	}
-
-	@Override
-	public long getServiceUpdateMaxValidityInMs() {
-		return SERVICE_UPDATE_MAX_VALIDITY_IN_MS;
-	}
-
-	@Override
-	public long getServiceUpdateValidityInMs(boolean inFocus) {
-		if (inFocus) {
-			return SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS;
-		}
-		return SERVICE_UPDATE_VALIDITY_IN_MS;
 	}
 
 	@NonNull

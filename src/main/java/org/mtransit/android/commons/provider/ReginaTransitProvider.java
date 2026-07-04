@@ -117,33 +117,6 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 		return authorityUri;
 	}
 
-	private static final long TRANSIT_LIVE_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
-	private static final long TRANSIT_LIVE_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
-	private static final long TRANSIT_LIVE_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-	private static final long TRANSIT_LIVE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-	private static final long TRANSIT_LIVE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-
-	@Override
-	public long getStatusMaxValidityInMs() {
-		return TRANSIT_LIVE_STATUS_MAX_VALIDITY_IN_MS;
-	}
-
-	@Override
-	public long getStatusValidityInMs(boolean inFocus) {
-		if (inFocus) {
-			return TRANSIT_LIVE_STATUS_VALIDITY_IN_FOCUS_IN_MS;
-		}
-		return TRANSIT_LIVE_STATUS_VALIDITY_IN_MS;
-	}
-
-	@Override
-	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
-		if (inFocus) {
-			return TRANSIT_LIVE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
-		}
-		return TRANSIT_LIVE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
-	}
-
 	@Override
 	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
@@ -281,7 +254,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONArray json = jsonString == null ? null : new JSONArray(jsonString);
 			if (json != null && json.length() > 0) {
-				Schedule newSchedule = new Schedule(
+				final Schedule newSchedule = new Schedule(
 						null,
 						rds.getUUID(),
 						newLastUpdateInMs,
@@ -290,7 +263,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 						PROVIDER_PRECISION_IN_MS,
 						false,
 						sourceLabel,
-						false
+						true
 				);
 				Calendar beginningOfTodayCal = Calendar.getInstance(REGINA_TZ);
 				beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);

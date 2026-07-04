@@ -24,7 +24,6 @@ import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.linkifyAllURLs
 import org.mtransit.android.commons.provider.agency.AgencyUtils
-import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.news.NewsProvider
 import org.mtransit.android.commons.provider.news.NewsProviderContract
 import org.mtransit.android.commons.provider.news.NewsTextFormatter
@@ -37,7 +36,6 @@ import retrofit2.create
 import java.io.IOException
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 // https://developers.google.com/youtube/v3
 // https://developers.google.com/youtube/v3/docs/channels/list
@@ -51,12 +49,6 @@ class YouTubeNewsProvider : NewsProvider() {
 
         private const val FORCE_REFRESH = false
         // private const val FORCE_REFRESH = true // DEBUG
-
-        private val NEWS_MAX_VALIDITY_IN_MS = ProviderContract.MAX_CACHE_VALIDITY_MS
-        private val NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(14L)
-        private val NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.DAYS.toMillis(7L)
-        private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.HOURS.toMillis(48L)
-        private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(12L)
 
         const val YOUTUBE_VIDEO_URL_BEFORE_ID = "https://www.youtube.com/watch?v="
         const val YOUTUBE_VIDEO_LINK_AND_VIDEO_ID = "$YOUTUBE_VIDEO_URL_BEFORE_ID%s"
@@ -237,15 +229,17 @@ class YouTubeNewsProvider : NewsProvider() {
 
     fun getDBHelper() = getDBHelper(ContentProviderCompat.requireContext(this))
 
-    override fun getMinDurationBetweenNewsRefreshInMs(inFocusOrDefault: Boolean) = if (inFocusOrDefault) {
-        NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS
-    } else NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS
+    override fun getMinDurationBetweenNewsRefreshInMs(inFocusOrDefault: Boolean) =
+        super.getMinDurationBetweenNewsRefreshInMs(inFocusOrDefault)
+            .times(10L) // long term / infrequent news
+            .times(2L) // API key
 
-    override val newsMaxValidityInMs: Long get() = NEWS_MAX_VALIDITY_IN_MS.takeUnless { FORCE_REFRESH } ?: 0L
+    override val newsMaxValidityInMs: Long get() = super.newsMaxValidityInMs.takeUnless { FORCE_REFRESH } ?: 0L
 
-    override fun getNewsValidityInMs(inFocusOrDefault: Boolean) = if (inFocusOrDefault) {
-        NEWS_VALIDITY_IN_FOCUS_IN_MS
-    } else NEWS_VALIDITY_IN_MS
+    override fun getNewsValidityInMs(inFocusOrDefault: Boolean) =
+        super.getNewsValidityInMs(inFocusOrDefault)
+            .times(10L) // long term / infrequent news
+            .times(2L) // API key
 
     override fun purgeUselessCachedNews(): Boolean {
         return purgeUselessCachedNews(this)

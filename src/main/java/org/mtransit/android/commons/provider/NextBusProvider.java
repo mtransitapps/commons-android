@@ -518,22 +518,6 @@ public class NextBusProvider extends MTContentProvider implements
 		return retrofit.create(NextBusApi.class);
 	}
 
-	@SuppressWarnings("unused")
-	@Override
-	public long getMinDurationBetweenVehicleLocationRefreshInMs(boolean inFocus) {
-		return NextBusVehicleLocationsProvider.getMinDurationBetweenRefreshInMs(inFocus);
-	}
-
-	@Override
-	public long getVehicleLocationMaxValidityInMs() {
-		return NextBusVehicleLocationsProvider.getMaxValidityInMs();
-	}
-
-	@Override
-	public long getVehicleLocationValidityInMs(boolean inFocus) {
-		return NextBusVehicleLocationsProvider.getValidityInMs(inFocus);
-	}
-
 	@Override
 	public void cacheVehicleLocations(@NonNull List<VehicleLocation> newVehicleLocations) {
 		VehicleLocationProvider.cacheVehicleLocationsS(this, newVehicleLocations);
@@ -566,37 +550,6 @@ public class NextBusProvider extends MTContentProvider implements
 	@Override
 	public @NonNull String getVehicleLocationDbTableName() {
 		return NextBusDbHelper.T_NEXT_BUS_VEHICLE_LOCATION;
-	}
-
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10L);
-
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-
-	@Override
-	public long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus) {
-		if (inFocus) {
-			return SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
-		}
-		return SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
-	}
-
-	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
-
-	@Override
-	public long getServiceUpdateMaxValidityInMs() {
-		return SERVICE_UPDATE_MAX_VALIDITY_IN_MS;
-	}
-
-	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
-
-	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10L);
-
-	@Override
-	public long getServiceUpdateValidityInMs(boolean inFocus) {
-		if (inFocus) {
-			return SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS;
-		}
-		return SERVICE_UPDATE_VALIDITY_IN_MS;
 	}
 
 	@NonNull
@@ -1029,33 +982,6 @@ public class NextBusProvider extends MTContentProvider implements
 		return serviceUpdateLanguage;
 	}
 
-	private static final long NEXT_BUS_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(30L);
-	private static final long NEXT_BUS_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(5L);
-	private static final long NEXT_BUS_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-	private static final long NEXT_BUS_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(2L);
-	private static final long NEXT_BUS_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-
-	@Override
-	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
-		if (inFocus) {
-			return NEXT_BUS_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
-		}
-		return NEXT_BUS_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
-	}
-
-	@Override
-	public long getStatusValidityInMs(boolean inFocus) {
-		if (inFocus) {
-			return NEXT_BUS_STATUS_VALIDITY_IN_FOCUS_IN_MS;
-		}
-		return NEXT_BUS_STATUS_VALIDITY_IN_MS;
-	}
-
-	@Override
-	public long getStatusMaxValidityInMs() {
-		return NEXT_BUS_STATUS_MAX_VALIDITY_IN_MS;
-	}
-
 	@Override
 	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
@@ -1461,7 +1387,7 @@ public class NextBusProvider extends MTContentProvider implements
 							PROVIDER_PRECISION_IN_MS,
 							false,
 							this.sourceLabel,
-							false
+							true
 					);
 				}
 				String tripHeadSign = cleanTripHeadSign(

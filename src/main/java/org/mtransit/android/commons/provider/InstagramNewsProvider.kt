@@ -30,7 +30,6 @@ import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JEdgeOwnerToTimelineMediaNode
 import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JProfileUser
 import org.mtransit.android.commons.provider.agency.AgencyUtils
-import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.news.NewsProvider
 import org.mtransit.android.commons.provider.news.NewsProviderContract
 import retrofit2.Call
@@ -57,12 +56,6 @@ class InstagramNewsProvider : NewsProvider() {
          * Override if multiple [InstagramNewsProvider] implementations in same app.
          */
         private const val PREF_KEY_AGENCY_LAST_UPDATE_LANG = InstagramNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_LANG
-
-        private val NEWS_MAX_VALIDITY_IN_MS = ProviderContract.MAX_CACHE_VALIDITY_MS
-        private val NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L)
-        private val NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1L)
-        private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(30L)
-        private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10L)
 
         private const val MENTION_AND_SCREEN_NAME = "@%s"
 
@@ -199,16 +192,6 @@ class InstagramNewsProvider : NewsProvider() {
 
     // override
     fun getDBHelper() = getDBHelper(ContentProviderCompat.requireContext(this))
-
-    override fun getMinDurationBetweenNewsRefreshInMs(inFocusOrDefault: Boolean) = if (inFocusOrDefault) {
-        NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS
-    } else NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS
-
-    override val newsMaxValidityInMs: Long get() = NEWS_MAX_VALIDITY_IN_MS
-
-    override fun getNewsValidityInMs(inFocusOrDefault: Boolean) = if (inFocusOrDefault) {
-        NEWS_VALIDITY_IN_FOCUS_IN_MS
-    } else NEWS_VALIDITY_IN_MS
 
     override fun purgeUselessCachedNews(): Boolean {
         return purgeUselessCachedNews(this)

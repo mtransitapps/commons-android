@@ -51,7 +51,7 @@ public class POIStatus implements MTLog.Loggable {
 	private long readFromSourceAtInMs;
 	@Nullable
 	private String sourceLabel;
-	private final boolean noData;
+	private final boolean hasData;
 
 	public POIStatus(
 			@Nullable Integer id,
@@ -61,7 +61,7 @@ public class POIStatus implements MTLog.Loggable {
 			long validityInMs,
 			long readFromSourceAtInMs,
 			@Nullable String sourceLabel,
-			boolean noData
+			boolean hasData
 	) {
 		this.id = id;
 		this.targetUUID = targetUUID;
@@ -70,7 +70,7 @@ public class POIStatus implements MTLog.Loggable {
 		this.validityInMs = validityInMs;
 		this.readFromSourceAtInMs = readFromSourceAtInMs;
 		this.sourceLabel = sourceLabel;
-		this.noData = noData;
+		this.hasData = hasData;
 	}
 
 	@NonNull
@@ -84,7 +84,7 @@ public class POIStatus implements MTLog.Loggable {
 				", validity=" + MTLog.formatDuration(validityInMs) +
 				", readFromSourceAt=" + MTLog.formatDateTime(readFromSourceAtInMs) +
 				", sourceLabel='" + sourceLabel + '\'' +
-				", noData=" + noData +
+				", hasData=" + hasData +
 				'}';
 	}
 
@@ -107,18 +107,18 @@ public class POIStatus implements MTLog.Loggable {
 			readFromSourceAtInMs = cursor.getLong(readFromSourceAtColumnIndex);
 		}
 		String sourceLabel = null; // optional
-		boolean noData = false; // optional
+		boolean hasData = true; // optional
 		try {
 			String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
 			JSONObject extrasJSON = extrasJSONString.isEmpty() ? null : new JSONObject(extrasJSONString);
 			if (extrasJSON != null) {
-				noData = extrasJSON.optBoolean(JSON_NO_DATA, false);
+				hasData = !extrasJSON.optBoolean(JSON_NO_DATA, false);
 				sourceLabel = extrasJSON.optString(JSON_SOURCE_LABEL, null);
 			}
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while retrieving extras information from cursor.");
 		}
-		return new POIStatus(id, targetUUID, type, lastUpdateInMs, validityInMs, readFromSourceAtInMs, sourceLabel, noData);
+		return new POIStatus(id, targetUUID, type, lastUpdateInMs, validityInMs, readFromSourceAtInMs, sourceLabel, hasData);
 	}
 
 	@NonNull
@@ -172,8 +172,8 @@ public class POIStatus implements MTLog.Loggable {
 		return TimeUtils.currentTimeMillis() <= this.lastUpdateInMs + this.validityInMs;
 	}
 
-	public boolean isNoData() {
-		return this.noData;
+	public boolean hasData() {
+		return this.hasData;
 	}
 
 	@Nullable
@@ -193,7 +193,7 @@ public class POIStatus implements MTLog.Loggable {
 				extrasJSON = new JSONObject();
 			}
 			extrasJSON.put(JSON_SOURCE_LABEL, this.sourceLabel);
-			extrasJSON.put(JSON_NO_DATA, this.noData);
+			extrasJSON.put(JSON_NO_DATA, !this.hasData);
 			return extrasJSON.toString();
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while converting JSON to String!");

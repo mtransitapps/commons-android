@@ -12,8 +12,6 @@ class ServiceUpdates @JvmOverloads constructor(
         fun newEmpty() = ServiceUpdates()
     }
 
-    fun areUseful() = any { it.isUseful }
-
     fun isSeverityWarning(): Boolean = any { it.isSeverityWarning }
 
     @Suppress("unused") // main app only

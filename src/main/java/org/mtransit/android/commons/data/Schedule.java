@@ -46,7 +46,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private long providerPrecisionInMs;
 
-	private long usefulUntilInMs = -1L;
+	private long timestampsUntilInMs = -1L;
 
 	private boolean noPickup;
 
@@ -63,7 +63,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				providerPrecisionInMs,
 				noPickup,
 				status.getSourceLabel(),
-				status.isNoData()
+				status.hasData()
 		);
 	}
 
@@ -76,12 +76,12 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			long providerPrecisionInMs,
 			boolean noPickup,
 			@Nullable String sourceLabel,
-			boolean noData
+			boolean hasData
 	) {
-		super(id, targetUUID, POI.ITEM_STATUS_TYPE_SCHEDULE, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, noData);
+		super(id, targetUUID, POI.ITEM_STATUS_TYPE_SCHEDULE, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, hasData);
 		this.noPickup = noPickup;
 		this.providerPrecisionInMs = providerPrecisionInMs;
-		resetUsefulUntilInMs();
+		resetTimestampsUntilInMs();
 	}
 
 	public boolean isNoPickup() {
@@ -207,7 +207,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private void sortFrequencies() {
 		CollectionUtils.sort(this.frequencies, FREQUENCIES_COMPARATOR);
-		resetUsefulUntilInMs();
+		resetTimestampsUntilInMs();
 	}
 
 	@NonNull
@@ -237,7 +237,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	public void sortTimestamps() {
 		CollectionUtils.sort(this.timestamps, TIMESTAMPS_COMPARATOR);
-		resetUsefulUntilInMs();
+		resetTimestampsUntilInMs();
 	}
 
 	@NonNull
@@ -266,26 +266,26 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return Math.max(MIN_UI_PRECISION_IN_MS, this.providerPrecisionInMs);
 	}
 
-	private void resetUsefulUntilInMs() {
-		int timestampsCount = getTimestampsCount();
+	private void resetTimestampsUntilInMs() {
+		final int timestampsCount = getTimestampsCount();
 		if (timestampsCount == 0) {
-			this.usefulUntilInMs = 0L; // NOT USEFUL
+			this.timestampsUntilInMs = 0L; // NOT USEFUL
 			return;
 		}
-		this.usefulUntilInMs = this.timestamps.get(timestampsCount - 1).getDepartureT() + getUIProviderPrecisionInMs();
+		this.timestampsUntilInMs = this.timestamps.get(timestampsCount - 1).getDepartureT() + getUIProviderPrecisionInMs();
 	}
 
-	public long getUsefulUntilInMs() {
-		if (this.usefulUntilInMs < 0L) {
-			resetUsefulUntilInMs();
+	public long getTimestampsUntilInMs() {
+		if (this.timestampsUntilInMs < 0L) {
+			resetTimestampsUntilInMs();
 		}
-		return usefulUntilInMs;
+		return timestampsUntilInMs;
 	}
 
 	@Override
 	public boolean isUseful() {
-		return super.isUseful() //
-				&& getUsefulUntilInMs() > TimeUtils.currentTimeToTheMinuteMillis();
+		return super.isUseful()
+				&& TimeUtils.currentTimeToTheMinuteMillis() < getTimestampsUntilInMs();
 	}
 
 	public static class TimestampComparator implements Comparator<Timestamp> {

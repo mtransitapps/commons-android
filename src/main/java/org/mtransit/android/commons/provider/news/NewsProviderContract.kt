@@ -16,6 +16,9 @@ import org.mtransit.android.commons.data.POI
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.commons.model.Secret
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 
 interface NewsProviderContract : ProviderContract {
 
@@ -23,6 +26,14 @@ interface NewsProviderContract : ProviderContract {
         const val NEWS_PATH = "news"
 
         const val REMOVE_IMAGE_FROM_TEXT: Boolean = false // TODO later
+
+        val DEFAULT_NEWS_MAX_VALIDITY_IN_MS = ProviderContract.MAX_CACHE_VALIDITY_MS
+
+        val DEFAULT_NEWS_VALIDITY_IN_MS = 1.days.inWholeMilliseconds
+        val DEFAULT_NEWS_VALIDITY_IN_FOCUS_IN_MS = 1.hours.inWholeMilliseconds
+
+        val DEFAULT_NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 30.minutes.inWholeMilliseconds
+        val DEFAULT_NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 10.minutes.inWholeMilliseconds
 
         @JvmStatic
         val PROJECTION_NEWS = arrayOf(
@@ -82,11 +93,13 @@ interface NewsProviderContract : ProviderContract {
 
     fun deleteCachedNews(id: Int?): Boolean
 
-    val newsMaxValidityInMs: Long
+    val newsMaxValidityInMs: Long get() = DEFAULT_NEWS_MAX_VALIDITY_IN_MS
 
-    fun getNewsValidityInMs(inFocusOrDefault: Boolean): Long
+    fun getNewsValidityInMs(inFocusOrDefault: Boolean): Long =
+        if (inFocusOrDefault) DEFAULT_NEWS_VALIDITY_IN_FOCUS_IN_MS else DEFAULT_NEWS_VALIDITY_IN_MS
 
-    fun getMinDurationBetweenNewsRefreshInMs(inFocusOrDefault: Boolean): Long
+    fun getMinDurationBetweenNewsRefreshInMs(inFocusOrDefault: Boolean): Long =
+        if (inFocusOrDefault) DEFAULT_NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS else DEFAULT_NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS
 
     val newsLanguages: Collection<String>
 

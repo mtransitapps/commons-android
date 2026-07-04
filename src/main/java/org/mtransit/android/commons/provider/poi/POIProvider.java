@@ -27,14 +27,13 @@ import org.mtransit.android.commons.data.POI.POIUtils;
 import org.mtransit.android.commons.provider.common.ContentProviderConstants;
 import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
-import org.mtransit.android.commons.provider.common.ProviderContract;
 import org.mtransit.commons.sql.SQLCreateBuilder;
 import org.mtransit.commons.sql.SQLInsertBuilder;
 
 import java.util.Collection;
 
 @SuppressLint("Registered")
-public class POIProvider extends MTContentProvider implements POIProviderContract {
+public abstract class POIProvider extends MTContentProvider implements POIProviderContract {
 
 	private static final String LOG_TAG = POIProvider.class.getSimpleName();
 
@@ -203,20 +202,6 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			cursor = ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
 		}
 		return cursor;
-	}
-
-	private static final long POI_MAX_VALIDITY_IN_MS = ProviderContract.getMAX_CACHE_VALIDITY_MS();
-
-	private static final long POI_VALIDITY_IN_MS = ProviderContract.getMAX_CACHE_VALIDITY_MS();
-
-	@Override
-	public long getPoiMaxValidityInMs() {
-		return POI_MAX_VALIDITY_IN_MS;
-	}
-
-	@Override
-	public long getPoiValidityInMs() {
-		return POI_VALIDITY_IN_MS;
 	}
 
 	@Nullable

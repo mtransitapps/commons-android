@@ -15,7 +15,6 @@ import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
-import org.mtransit.android.commons.provider.status.StatusProviderContract;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class AppStatus extends POIStatus implements MTLog.Loggable {
@@ -45,14 +44,14 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 				appEnabled,
 				updateAvailable,
 				status.getSourceLabel(),
-				status.isNoData()
+				status.hasData()
 		);
 	}
 
 	public AppStatus(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs,
 					 boolean appInstalled, boolean appEnabled, boolean updateAvailable,
-					 @Nullable String sourceLabel, boolean noData) {
-		super(id, targetUUID, POI.ITEM_STATUS_TYPE_APP, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, noData);
+					 @Nullable String sourceLabel, boolean hasData) {
+		super(id, targetUUID, POI.ITEM_STATUS_TYPE_APP, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, hasData);
 		setAppInstalled(appInstalled);
 		setAppEnabled(appEnabled);
 		setUpdateAvailable(updateAvailable);

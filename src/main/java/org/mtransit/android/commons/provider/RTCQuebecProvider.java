@@ -165,60 +165,6 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		return serviceUpdateTargetAuthority;
 	}
 
-	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
-	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
-	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10L);
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10L);
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-
-	private static final long STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
-	private static final long STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(5L);
-	private static final long STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.SECONDS.toMillis(30L);
-	private static final long STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.SECONDS.toMillis(30L);
-	private static final long STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.SECONDS.toMillis(30L);
-
-	@Override
-	public long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus) {
-		if (inFocus) {
-			return SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
-		}
-		return SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
-	}
-
-	@Override
-	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
-		if (inFocus) {
-			return STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
-		}
-		return STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
-	}
-
-	@Override
-	public long getServiceUpdateMaxValidityInMs() {
-		return SERVICE_UPDATE_MAX_VALIDITY_IN_MS;
-	}
-
-	@Override
-	public long getStatusMaxValidityInMs() {
-		return STATUS_MAX_VALIDITY_IN_MS;
-	}
-
-	@Override
-	public long getServiceUpdateValidityInMs(boolean inFocus) {
-		if (inFocus) {
-			return SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS;
-		}
-		return SERVICE_UPDATE_VALIDITY_IN_MS;
-	}
-
-	@Override
-	public long getStatusValidityInMs(boolean inFocus) {
-		if (inFocus) {
-			return STATUS_VALIDITY_IN_FOCUS_IN_MS;
-		}
-		return STATUS_VALIDITY_IN_MS;
-	}
-
 	@NonNull
 	@Override
 	public String getServiceUpdateDbTableName() {
@@ -285,10 +231,11 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		return serviceUpdates;
 	}
 
-	private void enhanceServiceUpdate(ServiceUpdates serviceUpdates,
-									  @Nullable Route route,
-									  @Nullable Stop stop,
-									  @NonNull Map<String, String> targetUUIDs // different UUID from provider target UUID
+	private void enhanceServiceUpdate(
+			ServiceUpdates serviceUpdates,
+			@Nullable Route route,
+			@Nullable Stop stop,
+			@NonNull Map<String, String> targetUUIDs // different UUID from provider target UUID
 	) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
@@ -302,9 +249,11 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
-	private void enhanceServiceUpdate(ServiceUpdate serviceUpdate,
-									  @Nullable Route route,
-									  @Nullable Stop stop) {
+	private void enhanceServiceUpdate(
+			ServiceUpdate serviceUpdate,
+			@Nullable Route route,
+			@Nullable Stop stop
+	) {
 		try {
 			if (serviceUpdate.getSeverity() > ServiceUpdate.SEVERITY_NONE) {
 				final String originalHtml = serviceUpdate.getTextHTML();
@@ -893,10 +842,11 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	private static final ThreadSafeDateFormatter PARSE_DATE_TIME = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ssZZZZZ", Locale.ENGLISH);
 
 	@Nullable
-	private Collection<POIStatus> parseAgencyJSONArretParcoursHoraires(@NonNull JArretParcours jArretParcours,
-																	   @NonNull RouteDirectionStop rds,
-																	   @Nullable String sourceLabel,
-																	   long newLastUpdateInMs) {
+	private Collection<POIStatus> parseAgencyJSONArretParcoursHoraires(
+			@NonNull JArretParcours jArretParcours,
+			@NonNull RouteDirectionStop rds,
+			@Nullable String sourceLabel,
+			long newLastUpdateInMs) {
 		try {
 			// As seen on https://www.rtcquebec.ca/ :
 			// - 1094 route 1 : jArretAccessible false | jParcoursAccessible true = POSSIBLE
@@ -920,12 +870,12 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 								PROVIDER_PRECISION_IN_MS,
 								jArretParcours.isDescenteSeulement(),
 								sourceLabel,
-								true // keep = no service today
+								false // keep = no service today
 						)
 				);
 				return result;
 			}
-			Schedule newSchedule = new Schedule(
+			final Schedule newSchedule = new Schedule(
 					null,
 					getAgencyRouteStopTargetUUID(rds),
 					newLastUpdateInMs,
@@ -934,7 +884,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 					PROVIDER_PRECISION_IN_MS,
 					jArretParcours.isDescenteSeulement(),
 					sourceLabel,
-					false
+					true
 			);
 			for (int r = 0; r < jHoraires.size(); r++) {
 				JArretParcours.JHoraires jHoraire = jHoraires.get(r);
@@ -1338,11 +1288,13 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		@NonNull
 		private final JParcours parcours;
 
-		public JArretParcours(@NonNull JArret arret,
-							  boolean arretNonDesservi,
-							  boolean descenteSeulement,
-							  @NonNull List<JHoraires> horaires,
-							  @NonNull JParcours parcours) {
+		public JArretParcours(
+				@NonNull JArret arret,
+				boolean arretNonDesservi,
+				boolean descenteSeulement,
+				@NonNull List<JHoraires> horaires,
+				@NonNull JParcours parcours
+		) {
 			this.arret = arret;
 			this.arretNonDesservi = arretNonDesservi;
 			this.descenteSeulement = descenteSeulement;
@@ -1440,11 +1392,13 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			@NonNull
 			private final String nomDestination;
 
-			public JHoraires(@NonNull String depart,
-							 int departMinutes,
-							 boolean ntr,
-							 boolean annule,
-							 @NonNull String nomDestination) {
+			public JHoraires(
+					@NonNull String depart,
+					int departMinutes,
+					boolean ntr,
+					boolean annule,
+					@NonNull String nomDestination
+			) {
 				this.depart = depart;
 				this.departMinutes = departMinutes;
 				this.ntr = ntr;

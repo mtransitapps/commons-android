@@ -13,7 +13,7 @@ import org.mtransit.android.commons.SecureStringUtils.enc
 import org.mtransit.android.commons.optBoolean
 import org.mtransit.android.commons.optLong
 import org.mtransit.commons.model.Secret
-import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.days
 
 interface ProviderContract : Loggable {
 
@@ -21,7 +21,7 @@ interface ProviderContract : Loggable {
         const val PING_PATH: String = "ping"
 
         @JvmStatic
-        val MAX_CACHE_VALIDITY_MS = TimeUnit.DAYS.toMillis(1000L)
+        val MAX_CACHE_VALIDITY_MS = 1000L.days.inWholeMilliseconds
     }
 
     @Suppress("PropertyName")

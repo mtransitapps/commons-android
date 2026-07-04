@@ -301,7 +301,7 @@ public class GTFSProvider extends AgencyProvider implements
 	}
 
 	@Override
-	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
+	public long getMinDurationBetweenStatusRefreshInMs(boolean inFocus) {
 		return GTFSStatusProvider.getMinDurationBetweenRefreshInMs(inFocus);
 	}
 
@@ -398,11 +398,6 @@ public class GTFSProvider extends AgencyProvider implements
 	@Override
 	public ArrayMap<String, String> getSearchSuggestProjectionMap() {
 		return GTFSPOIProvider.getSearchSuggestProjectionMap(this);
-	}
-
-	@Override
-	public long getPoiMaxValidityInMs() {
-		return GTFSPOIProvider.getPOIMaxValidityInMs(this);
 	}
 
 	@Override

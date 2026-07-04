@@ -19,11 +19,23 @@ import org.mtransit.android.commons.optString
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderFilter
 import org.mtransit.commons.model.Secret
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 interface ServiceUpdateProviderContract : ProviderContract {
 
     companion object {
         const val SERVICE_UPDATE_PATH = "service"
+
+        val DEFAULT_SERVICE_UPDATE_MAX_VALIDITY_IN_MS = 1.days.inWholeMilliseconds
+
+        val DEFAULT_SERVICE_UPDATE_VALIDITY_IN_MS = 1.hours.inWholeMilliseconds
+        val DEFAULT_SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = 10.minutes.inWholeMilliseconds
+
+        val DEFAULT_SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 10.minutes.inWholeMilliseconds
+        val DEFAULT_SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 1.minutes.inWholeMilliseconds
 
         @JvmStatic
         val PROJECTION_SERVICE_UPDATE = arrayOf(
@@ -47,11 +59,13 @@ interface ServiceUpdateProviderContract : ProviderContract {
 
     val authorityUri: Uri
 
-    val serviceUpdateMaxValidityInMs: Long
+    val serviceUpdateMaxValidityInMs: Long get() = DEFAULT_SERVICE_UPDATE_MAX_VALIDITY_IN_MS
 
-    fun getServiceUpdateValidityInMs(inFocus: Boolean): Long
+    fun getServiceUpdateValidityInMs(inFocus: Boolean): Long =
+        if (inFocus) DEFAULT_SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS else DEFAULT_SERVICE_UPDATE_VALIDITY_IN_MS
 
-    fun getMinDurationBetweenServiceUpdateRefreshInMs(inFocus: Boolean): Long
+    fun getMinDurationBetweenServiceUpdateRefreshInMs(inFocus: Boolean): Long =
+        if (inFocus) DEFAULT_SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS else DEFAULT_SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS
 
     fun cacheServiceUpdates(newServiceUpdates: ServiceUpdates)
 
@@ -121,7 +135,7 @@ interface ServiceUpdateProviderContract : ProviderContract {
             fun fromJSON(json: JSONObject): Filter? {
                 try {
                     val poi = json.optJSONObject(JSON_POI)?.let { DefaultPOI.fromJSONStatic(it) }
-                    val authority = json.optString(JSON_AUTHORITY, fallback = null)?: poi?.authority
+                    val authority = json.optString(JSON_AUTHORITY, fallback = null) ?: poi?.authority
                     val route = authority?.let { authority ->
                         json.optJSONObject(JSON_ROUTE)?.let { Route.fromJSON(it, authority) }
                     }

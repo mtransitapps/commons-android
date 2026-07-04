@@ -38,9 +38,6 @@ import java.net.UnknownHostException
 import java.util.Locale
 import javax.net.ssl.SSLHandshakeException
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
 object StmInfoServiceUpdateProvider : MTLog.Loggable {
@@ -48,23 +45,6 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
     internal val LOG_TAG: String = StmInfoServiceUpdateProvider::class.java.simpleName
 
     override fun getLogTag() = LOG_TAG
-
-    @JvmStatic
-    val SERVICE_UPDATE_MAX_VALIDITY_IN_MS = 1.days.inWholeMilliseconds
-
-    val SERVICE_UPDATE_VALIDITY_IN_MS = 1.hours.inWholeMilliseconds
-    val SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = 10.minutes.inWholeMilliseconds
-
-    val SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 10.minutes.inWholeMilliseconds
-    val SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 1.minutes.inWholeMilliseconds
-
-    @JvmStatic
-    fun getValidityInMs(inFocus: Boolean) =
-        if (inFocus) SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS else SERVICE_UPDATE_VALIDITY_IN_MS
-
-    @JvmStatic
-    fun getMinDurationBetweenRefreshInMs(inFocus: Boolean) =
-        if (inFocus) SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS else SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS
 
     @JvmStatic
     fun StmInfoApiProvider.getCached(filter: ServiceUpdateProviderContract.Filter): ServiceUpdates? {
