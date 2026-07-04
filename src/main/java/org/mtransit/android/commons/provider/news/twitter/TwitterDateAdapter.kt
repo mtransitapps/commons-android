@@ -32,13 +32,29 @@ class TwitterDateAdapter :
     companion object {
         private val LOG_TAG: String = TwitterDateAdapter::class.java.simpleName
 
-        // 025-09-02T22:00:01.000Z
+        // 2025-09-02T22:00:01.000Z
         // (added in v2.3)-
         // ISO 8601 notation
+        @SuppressLint("ObsoleteSdkInt")
+        private val DATE_TIME_FORMAT_MILLISECOND: String =
+            if (CommonsApp.isAndroid == false || Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) "yyyy-MM-dd'T'HH:mm:ss.SSSX" else
+                "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ" // 'X' only supported API Level 24+ #ISO_8601
+
         @SuppressLint("ObsoleteSdkInt")
         private val DATE_TIME_FORMAT: String =
             if (CommonsApp.isAndroid == false || Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) "yyyy-MM-dd'T'HH:mm:ssXXX" else
                 "yyyy-MM-dd'T'HH:mm:ssZZZZZ" // 'X' only supported API Level 24+ #ISO_8601
+
+        private val DATE_TIME_FORMATTERS = listOf(
+            DATE_TIME_FORMAT_MILLISECOND,
+            DATE_TIME_FORMAT,
+        ).map { dateTimeFormat ->
+            dateTimeFormat to ThreadSafeDateFormatter(
+                SimpleDateFormat(dateTimeFormat, Locale.ENGLISH).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }
+            )
+        }
 
         private val DATE_TIME_FORMATTER = ThreadSafeDateFormatter(
             SimpleDateFormat(DATE_TIME_FORMAT, Locale.ENGLISH).apply {
@@ -66,10 +82,12 @@ class TwitterDateAdapter :
                 MTLog.d(this, e, "Error while parsing ${json.asString} with DateTimeFormatter.ISO_DATE_TIME!")
             }
         }
-        try {
-            return DATE_TIME_FORMATTER.parseThreadSafe(json.asString)
-        } catch (e: ParseException) {
-            MTLog.d(this, e, "Error while parsing ${json.asString} with '$DATE_TIME_FORMAT'!")
+        for ((dateTimeFormat, dateTimeFormatter) in DATE_TIME_FORMATTERS) {
+            try {
+                return dateTimeFormatter.parseThreadSafe(json.asString)
+            } catch (e: ParseException) {
+                MTLog.d(this, e, "Error while parsing ${json.asString} with '$dateTimeFormat'!")
+            }
         }
         MTLog.w(this, "Error while parsing $json!")
         return null
