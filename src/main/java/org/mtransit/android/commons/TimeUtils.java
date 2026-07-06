@@ -173,7 +173,7 @@ public class TimeUtils implements MTLog.Loggable {
 
 	@NonNull
 	public static Calendar getNewCalendar(@NonNull TimeZone timeZone, long timestamp) {
-		Calendar calendar = Calendar.getInstance(timeZone);
+		final Calendar calendar = Calendar.getInstance(timeZone);
 		calendar.setTimeInMillis(timestamp);
 		return calendar;
 	}
