@@ -28,7 +28,7 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "onCreate()");
 		}
-		CommonsApp.setup(true);
+		CommonsApp.setup(true); // isAndroidPlatform
 		return onCreateMT();
 	}
 

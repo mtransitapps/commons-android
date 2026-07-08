@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.annotation.CallSuper
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.di.TimeProvider
+import org.mtransit.commons.CommonsApp
 
 open class MTCommonApp : Application(), MTLog.Loggable {
 
@@ -16,6 +17,7 @@ open class MTCommonApp : Application(), MTLog.Loggable {
     @CallSuper
     override fun onCreate() {
         super.onCreate()
+        CommonsApp.setup(isAndroidPlatform = true)
         TimeProvider.init(this)
     }
 }
