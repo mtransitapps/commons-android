@@ -600,23 +600,32 @@ public class RSSNewsProvider extends NewsProvider {
 							response.message());
 					return null;
 				}
+			} catch (SSLHandshakeException sslhe) {
+				MTLog.w(this, sslhe, "SSL error while parsing '%s'!", urlString);
+				SecurityUtils.logCertPathValidatorException(sslhe);
+				return null;
+			} catch (UnknownHostException uhe) {
+				if (MTLog.isLoggable(android.util.Log.DEBUG)) {
+					MTLog.w(this, uhe, "No Internet Connection while parsing '%s'!", urlString);
+				} else {
+					MTLog.w(this, "No Internet Connection while parsing '%s'!", urlString);
+				}
+				return null;
+			} catch (SocketException se) {
+				MTLog.w(LOG_TAG, se, "No Internet Connection while parsing '%s'!", urlString);
+				return null;
+			} catch (Exception e) {
+				MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception while parsing '%s'!", urlString);
+				throw e;
+			} catch (Throwable t) { // Unknown error
+				MTLog.e(LOG_TAG, t, "INTERNAL ERROR: Unknown Throwable");
+				return null;
 			}
-		} catch (SSLHandshakeException sslhe) {
-			MTLog.w(this, sslhe, "SSL error while parsing '%s'!", urlString);
-			SecurityUtils.logCertPathValidatorException(sslhe);
-			return null;
-		} catch (UnknownHostException uhe) {
-			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
-				MTLog.w(this, uhe, "No Internet Connection while parsing '%s'!", urlString);
-			} else {
-				MTLog.w(this, "No Internet Connection while parsing '%s'!", urlString);
-			}
-			return null;
-		} catch (SocketException se) {
-			MTLog.w(LOG_TAG, se, "No Internet Connection while parsing '%s'!", urlString);
-			return null;
 		} catch (Exception e) {
 			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception while parsing '%s'!", urlString);
+			return null;
+		} catch (Throwable t) { // Unknown error
+			MTLog.e(LOG_TAG, t, "INTERNAL ERROR: Unknown Throwable");
 			return null;
 		}
 	}
