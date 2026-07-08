@@ -933,7 +933,6 @@ public class NextBusProvider extends MTContentProvider implements
 							response.message());
 					return null;
 				}
-
 			}
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {

@@ -640,14 +640,14 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 							response.message());
 					return null;
 				}
-			} catch (UnknownHostException uhe) {
-				if (MTLog.isLoggable(android.util.Log.DEBUG)) {
-					MTLog.w(this, uhe, "No Internet Connection!");
-				} else {
-					MTLog.w(this, "No Internet Connection!");
-				}
-				return null;
 			}
+		} catch (UnknownHostException uhe) {
+			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
+				MTLog.w(this, uhe, "No Internet Connection!");
+			} else {
+				MTLog.w(this, "No Internet Connection!");
+			}
+			return null;
 		} catch (SocketException se) {
 			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 			return null;

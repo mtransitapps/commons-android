@@ -63,9 +63,6 @@ public final class SecurityUtils implements MTLog.Loggable {
 			try (InputStream caInput = new BufferedInputStream(context.getResources().openRawResource(certRawId))) {
 				ca = cf.generateCertificate(caInput);
 				MTLog.d(LOG_TAG, "ca=" + ((X509Certificate) ca).getSubjectDN());
-			} catch (Exception e) {
-				MTLog.e(LOG_TAG, e, "Error while loading SSL certificate!");
-				return null;
 			}
 			// Create a KeyStore containing our trusted CAs
 			String keyStoreType = KeyStore.getDefaultType();
