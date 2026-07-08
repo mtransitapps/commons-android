@@ -346,6 +346,8 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 		} catch (Exception e) { // Unknown error
 			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
+		} catch (Throwable t) { // Unknown error
+			MTLog.e(LOG_TAG, t, "INTERNAL ERROR: Unknown Throwable");
 		}
 	}
 
@@ -712,6 +714,9 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			return null;
 		} catch (Exception e) {
 			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
+			return null;
+		} catch (Throwable t) { // Unknown error
+			MTLog.e(LOG_TAG, t, "INTERNAL ERROR: Unknown Throwable");
 			return null;
 		}
 	}

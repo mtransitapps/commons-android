@@ -184,6 +184,9 @@ object NextBusVehicleLocationsProvider {
         } catch (e: Exception) { // Unknown error
             MTLog.e(this@NextBusVehicleLocationsProvider, e, "INTERNAL ERROR: Unknown Exception")
             return null
+        } catch (t: Throwable) { // Unknown error
+            MTLog.e(this@NextBusVehicleLocationsProvider, t, "INTERNAL ERROR: Unknown Throwable")
+            return null
         }
     }
 

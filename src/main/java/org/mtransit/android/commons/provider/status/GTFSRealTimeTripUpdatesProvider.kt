@@ -461,6 +461,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         } catch (e: Exception) { // Unknown error
             MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception")
             return false
+        } catch (t: Throwable) { // Unknown error
+            MTLog.e(LOG_TAG, t, "INTERNAL ERROR: Unknown Throwable")
+            return false
         }
     }
 }

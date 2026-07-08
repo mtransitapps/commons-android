@@ -757,19 +757,15 @@ public class StmInfoApiProvider extends MTContentProvider implements
 					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
 							response.message());
 				}
-			} catch (UnknownHostException uhe) {
-				if (MTLog.isLoggable(android.util.Log.DEBUG)) {
-					MTLog.w(this, uhe, "No Internet Connection!");
-				} else {
-					MTLog.w(this, "No Internet Connection!");
-				}
-			} catch (SocketException se) {
-				MTLog.w(LOG_TAG, se, "No Internet Connection!");
-			} catch (Exception e) { // Unknown error
-				MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
-			} catch (Throwable t) { // Unknown error
-				MTLog.e(LOG_TAG, t, "INTERNAL ERROR: Unknown Throwable");
 			}
+		} catch (UnknownHostException uhe) {
+			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
+				MTLog.w(this, uhe, "No Internet Connection!");
+			} else {
+				MTLog.w(this, "No Internet Connection!");
+			}
+		} catch (SocketException se) {
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 		} catch (Exception e) { // Unknown error
 			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 		} catch (Throwable t) { // Unknown error
@@ -940,19 +936,15 @@ public class StmInfoApiProvider extends MTContentProvider implements
 					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
 							response.message());
 				}
-			} catch (UnknownHostException uhe) {
-				if (MTLog.isLoggable(android.util.Log.DEBUG)) {
-					MTLog.w(this, uhe, "No Internet Connection!");
-				} else {
-					MTLog.w(this, "No Internet Connection!");
-				}
-			} catch (SocketException se) {
-				MTLog.w(LOG_TAG, se, "No Internet Connection!");
-			} catch (Exception e) { // Unknown error
-				MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
-			} catch (Throwable t) { // Unknown error
-				MTLog.e(LOG_TAG, t, "INTERNAL ERROR: Unknown Throwable");
 			}
+		} catch (UnknownHostException uhe) {
+			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
+				MTLog.w(this, uhe, "No Internet Connection!");
+			} else {
+				MTLog.w(this, "No Internet Connection!");
+			}
+		} catch (SocketException se) {
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 		} catch (Exception e) { // Unknown error
 			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 		} catch (Throwable t) { // Unknown error

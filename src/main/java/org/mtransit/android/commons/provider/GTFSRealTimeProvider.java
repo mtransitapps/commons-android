@@ -944,43 +944,37 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 							response.message());
 					return null;
 				}
-			} catch (SSLHandshakeException sslhe) {
-				MTLog.w(this, sslhe, "SSL error!");
-				SecurityUtils.logCertPathValidatorException(sslhe);
-				setServiceUpdateLastUpdateCode(567); // SSL certificate not trusted (on this device)
-				getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
-				return null;
-			} catch (InterruptedIOException iioe) {
-				MTLog.w(this, iioe, "Connection timeout!");
-				setServiceUpdateLastUpdateCode(567);
-				getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
-				return null;
-			} catch (UnknownHostException uhe) {
-				if (MTLog.isLoggable(android.util.Log.DEBUG)) {
-					MTLog.w(this, uhe, "No Internet Connection!");
-				} else {
-					MTLog.w(this, "No Internet Connection!");
-				}
-				setServiceUpdateLastUpdateCode(567);
-				getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
-				return null;
-			} catch (SocketException se) {
-				MTLog.w(LOG_TAG, se, "No Internet Connection!");
-				setServiceUpdateLastUpdateCode(567);
-				getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
-				return null;
-			} catch (IOException ioe) {
-				MTLog.w(this, ioe, "I/O error!");
-				setServiceUpdateLastUpdateCode(567);
-				getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
-				return null;
-			} catch (Exception e) { // Unknown error
-				MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
-				return null;
-			} catch (Throwable t) { // Unknown error
-				MTLog.e(LOG_TAG, t, "INTERNAL ERROR: Unknown Throwable");
-				return null;
 			}
+		} catch (SSLHandshakeException sslhe) {
+			MTLog.w(this, sslhe, "SSL error!");
+			SecurityUtils.logCertPathValidatorException(sslhe);
+			setServiceUpdateLastUpdateCode(567); // SSL certificate not trusted (on this device)
+			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
+			return null;
+		} catch (InterruptedIOException iioe) {
+			MTLog.w(this, iioe, "Connection timeout!");
+			setServiceUpdateLastUpdateCode(567);
+			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
+			return null;
+		} catch (UnknownHostException uhe) {
+			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
+				MTLog.w(this, uhe, "No Internet Connection!");
+			} else {
+				MTLog.w(this, "No Internet Connection!");
+			}
+			setServiceUpdateLastUpdateCode(567);
+			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
+			return null;
+		} catch (SocketException se) {
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
+			setServiceUpdateLastUpdateCode(567);
+			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
+			return null;
+		} catch (IOException ioe) {
+			MTLog.w(this, ioe, "I/O error!");
+			setServiceUpdateLastUpdateCode(567);
+			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
+			return null;
 		} catch (Exception e) { // Unknown error
 			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 			return null;

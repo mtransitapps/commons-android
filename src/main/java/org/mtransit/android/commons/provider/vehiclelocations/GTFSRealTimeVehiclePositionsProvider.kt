@@ -247,8 +247,8 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
             storage.saveVehicleLocationLastUpdateCode(567)
             storage.saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
             return null
-        } catch (e: Exception) { // Unknown error
-            MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception")
+        } catch (t: Throwable) { // Unknown error
+            MTLog.e(LOG_TAG, t, "INTERNAL ERROR: Unknown Throwable")
             return null
         }
     }

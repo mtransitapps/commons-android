@@ -300,6 +300,8 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 		} catch (Exception e) { // Unknown error
 			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
+		} catch (Throwable t) { // Unknown error
+			MTLog.e(LOG_TAG, t, "INTERNAL ERROR: Unknown Throwable");
 		}
 	}
 

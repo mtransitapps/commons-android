@@ -173,6 +173,9 @@ public class GBFSProvider extends BikeStationProvider {
 		} catch (Exception e) {
 			MTLog.e(this, e, "INTERNAL ERROR: Unknown Exception");
 			return null;
+		} catch (Throwable t) { // Unknown error
+			MTLog.e(LOG_TAG, t, "INTERNAL ERROR: Unknown Throwable");
+			return null;
 		}
 	}
 
@@ -350,6 +353,9 @@ public class GBFSProvider extends BikeStationProvider {
 			return null;
 		} catch (Exception e) {
 			MTLog.e(this, e, "INTERNAL ERROR: Unknown Exception");
+			return null;
+		} catch (Throwable t) { // Unknown error
+			MTLog.e(LOG_TAG, t, "INTERNAL ERROR: Unknown Throwable");
 			return null;
 		}
 	}
