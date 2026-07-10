@@ -30,6 +30,7 @@ class GTFSRealTimeVehiclePositionsProviderTest {
 
     private val gtfsRealTimeProvider: GTFSRealTimeProvider = mock {
         on { getAgencyTag(anyOrNull()) } doReturn "static_agency_id"
+        on { getStorage(anyOrNull()) } doReturn mock()
     }
 
     @BeforeTest

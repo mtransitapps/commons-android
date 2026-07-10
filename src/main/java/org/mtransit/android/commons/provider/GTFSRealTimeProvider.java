@@ -916,8 +916,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					);
 					final boolean ignoreDirection = isIGNORE_DIRECTION(context);
 					try {
-						GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(response.body().bytes());
-						List<Pair<GtfsRealtime.Alert, String>> alertsWithIdPair = GtfsRealtimeExt.toAlertsWithIdPair(gFeedMessage.getEntityList());
+						final GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(response.body().bytes());
+						final List<Pair<GtfsRealtime.Alert, String>> alertsWithIdPair = GtfsRealtimeExt.toAlertsWithIdPair(gFeedMessage.getEntityList());
 						if (Constants.DEBUG) MTLog.d(this, "loadAgencyDataFromWWW() > GTFS alerts[%s]: ", alertsWithIdPair.size());
 						for (Pair<GtfsRealtime.Alert, String> gAlertAndId : GtfsRealtimeExt.sortAlertsPair(alertsWithIdPair, newLastUpdateInMs)) {
 							final GtfsRealtime.Alert gAlert = gAlertAndId.getFirst();
@@ -930,6 +930,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 								serviceUpdates.addAll(alertsServiceUpdates);
 							}
 						}
+						GTFSRealTimeServiceAlertsProvider.setDirectionIdsMismatchIfUnknown(this, gFeedMessage.getEntityList());
 					} catch (Exception e) {
 						MTLog.w(this, e, "loadAgencyServiceUpdateDataFromWWW() > error while parsing GTFS Real Time data!");
 					}

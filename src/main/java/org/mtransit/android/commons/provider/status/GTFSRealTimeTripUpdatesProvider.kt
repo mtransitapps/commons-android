@@ -17,6 +17,8 @@ import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.toNoData
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.TRIP_FILTERING_ALWAYS_IGNORE_DIRECTION_ID
+import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderShared.areDirectionIdsMismatch
+import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderShared.setDirectionIdsMismatch
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelay
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
@@ -151,7 +153,16 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                             return@filter false
                         }
                     }
-                    if (!TRIP_FILTERING_ALWAYS_IGNORE_DIRECTION_ID) {
+                    parseTripId(td)?.let { tripId ->
+                        if (tripId !in staticTripIds) {
+                            if (DEBUG_STATIC_RT_MATCH) {
+                                MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > IGNORE: wrong trip ID ($tripId) for ${td.toStringExt(short = true)}")
+                            }
+                            tripIdsOutOfSync = true
+                            return@filter false
+                        }
+                    }
+                    if (areDirectionIdsMismatch() == false) {
                         td.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
                             if (directionId != targetDirectionOriginalId) {
                                 if (DEBUG_STATIC_RT_MATCH) {
@@ -160,17 +171,12 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                                         "makeCachedStatusFromAgencyData() > IGNORE: wrong direction ID '$directionId' (t:$targetDirectionOriginalId)"
                                     )
                                 }
-                                return@filter false
+                                if (!TRIP_FILTERING_ALWAYS_IGNORE_DIRECTION_ID) {
+                                    return@filter false
+                                } else {
+                                    setDirectionIdsMismatch(true)
+                                }
                             }
-                        }
-                    }
-                    parseTripId(td)?.let { tripId ->
-                        if (tripId !in staticTripIds) {
-                            if (DEBUG_STATIC_RT_MATCH) {
-                                MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > IGNORE: wrong trip ID ($tripId) for ${td.toStringExt(short = true)}")
-                            }
-                            tripIdsOutOfSync = true
-                            return@filter false
                         }
                     }
                     return@filter true

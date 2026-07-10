@@ -7,7 +7,6 @@ import org.mtransit.android.commons.data.buildServiceUpdates
 import org.mtransit.android.commons.data.makeServiceUpdateNoneList
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.AGENCY_SOURCE_ID
-import org.mtransit.android.commons.provider.GTFSRealTimeProvider.TRIP_FILTERING_ALWAYS_IGNORE_DIRECTION_ID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionStopTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteStopTagTargetUUID
@@ -15,8 +14,11 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRoute
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTypeTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyStopTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
+import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderShared.areDirectionIdsMismatch
+import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderShared.hasDirectionIdsMismatch
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optAgencyId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteType
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
@@ -29,6 +31,8 @@ import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.gtfs.setTripIdsOutOfSync
 import org.mtransit.android.commons.provider.gtfs.storage
 import com.google.transit.realtime.GtfsRealtime.EntitySelector as GEntitySelector
+import com.google.transit.realtime.GtfsRealtime.Alert as GAlert
+import com.google.transit.realtime.GtfsRealtime.FeedEntity as GFeedEntity
 
 object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
 
@@ -116,12 +120,30 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
         gEntitySelector.optTrip?.let { parseTripId(it) }
 
     @JvmStatic
+    fun GTFSRealTimeProvider.setDirectionIdsMismatchIfUnknown(gFeedEntities: List<GFeedEntity>?) {
+        MTLog.d(LOG_TAG, "setDirectionIdsMismatchIfUnknown(${gFeedEntities?.size})")
+        setDirectionIdsMismatchIfUnknown(gFeedEntities?.map { it.alert })
+    }
+
+    @JvmStatic
+    fun GTFSRealTimeProvider.setDirectionIdsMismatchIfUnknown(gAlerts: Collection<GAlert>?) {
+        MTLog.d(LOG_TAG, "setDirectionIdsMismatchIfUnknown(${gAlerts?.size})")
+        if (hasDirectionIdsMismatch()) return
+        gAlerts?.flatMap { it.informedEntityList }?.firstOrNull { it.optRouteId != null && it.optDirectionIdValid != null }?.let { gEntitySelector ->
+            val routeId = parseRouteId(gEntitySelector)
+            val directionId = gEntitySelector.optDirectionIdValid
+            MTLog.d(LOG_TAG, "setDirectionIdsMismatchIfUnknown() > routeId: '$routeId', directionId: '$directionId'")
+            // TODO now find in static data?
+        }
+    }
+
+    @JvmStatic
     fun GTFSRealTimeProvider.parseProviderTargetUUID(
         gEntitySelector: GEntitySelector,
         ignoreDirection: Boolean,
     ): String? {
         parseRouteId(gEntitySelector)?.let { routeId ->
-            if (!TRIP_FILTERING_ALWAYS_IGNORE_DIRECTION_ID || true) { // not sure
+            if (areDirectionIdsMismatch() == false) {
                 gEntitySelector.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
                     parseStopId(gEntitySelector)?.let { stopId ->
                         return getAgencyRouteDirectionStopTagTargetUUID(agencyTag, routeId, directionId, stopId)

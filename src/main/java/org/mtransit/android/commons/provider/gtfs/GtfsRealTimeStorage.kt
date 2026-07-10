@@ -11,6 +11,8 @@ class GtfsRealTimeStorage(
 ) {
 
     companion object {
+        private const val PREF_KEY_DIRECTION_ID_MISMATCH = "pDirectionIdMismatch"
+
         private const val PREF_KEY_TRIP_UPDATE_LAST_UPDATE_MS = "pGTFSRealTimeTripUpdatesLastUpdate"
         private const val PREF_KEY_TRIP_UPDATE_READ_FROM_SOURCE_MS = "pGTFSRealTimeTripUpdatesReadFromSource"
         private const val PREF_KEY_TRIP_UPDATE_LAST_UPDATE_CODE = "pGTFSRealTimeTripUpdateLastUpdateCode"
@@ -27,6 +29,19 @@ class GtfsRealTimeStorage(
     }
 
     private val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context.applicationContext) }
+
+    // region Shared
+
+    @WorkerThread
+    fun getDirectionIdsMismatch(default: Boolean) =
+        prefLcl.takeIf { it.contains(PREF_KEY_DIRECTION_ID_MISMATCH) }?.getBoolean(PREF_KEY_DIRECTION_ID_MISMATCH, default)
+
+    @WorkerThread
+    fun saveDirectionIdsMismatch(mismatch: Boolean) {
+        prefLcl.edit { putBoolean(PREF_KEY_DIRECTION_ID_MISMATCH, mismatch) }
+    }
+
+    // endregion
 
     // region Trip Updates (status schedule)
 
