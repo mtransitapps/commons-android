@@ -16,6 +16,7 @@ import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.toNoData
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.TRIP_FILTERING_ALWAYS_IGNORE_DIRECTION_ID
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelay
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
@@ -133,7 +134,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             var tripIdsOutOfSync = false
             if (DEBUG_STATIC_RT_MATCH) {
                 MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > target trip IDs [${staticTripIds.size}]:")
-                staticTripIds.chunked(10).forEach {
+                staticTripIds.chunked(9).forEach {
                     MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > - ${it.joinToString(",")}")
                 }
             }
@@ -150,12 +151,17 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                             return@filter false
                         }
                     }
-                    td.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
-                        if (directionId != targetDirectionOriginalId) {
-                            if (DEBUG_STATIC_RT_MATCH) {
-                                MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > IGNORE: wrong direction ID '$directionId' (t:$targetDirectionOriginalId)")
+                    if (!TRIP_FILTERING_ALWAYS_IGNORE_DIRECTION_ID) {
+                        td.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
+                            if (directionId != targetDirectionOriginalId) {
+                                if (DEBUG_STATIC_RT_MATCH) {
+                                    MTLog.d(
+                                        LOG_TAG,
+                                        "makeCachedStatusFromAgencyData() > IGNORE: wrong direction ID '$directionId' (t:$targetDirectionOriginalId)"
+                                    )
+                                }
+                                return@filter false
                             }
-                            return@filter false
                         }
                     }
                     parseTripId(td)?.let { tripId ->

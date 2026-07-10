@@ -7,6 +7,7 @@ import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.SecurityUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.TRIP_FILTERING_ALWAYS_IGNORE_DIRECTION_ID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
@@ -312,8 +313,10 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                 -> MTLog.d(LOG_TAG, "parseTargetUUID() > unhandled schedule relationship: ${gTripDescriptor.scheduleRelationship}")
         }
         parseRouteId(gTripDescriptor)?.let { routeId ->
-            gTripDescriptor.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
-                return getAgencyRouteDirectionTagTargetUUID(agencyTag, routeId, directionId)
+            if (!TRIP_FILTERING_ALWAYS_IGNORE_DIRECTION_ID) {
+                gTripDescriptor.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
+                    return getAgencyRouteDirectionTagTargetUUID(agencyTag, routeId, directionId)
+                }
             }
             return getAgencyRouteTagTargetUUID(agencyTag, routeId)
         }

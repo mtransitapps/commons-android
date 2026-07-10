@@ -7,6 +7,7 @@ import org.mtransit.android.commons.data.buildServiceUpdates
 import org.mtransit.android.commons.data.makeServiceUpdateNoneList
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.AGENCY_SOURCE_ID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.TRIP_FILTERING_ALWAYS_IGNORE_DIRECTION_ID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionStopTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteStopTagTargetUUID
@@ -120,12 +121,14 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
         ignoreDirection: Boolean,
     ): String? {
         parseRouteId(gEntitySelector)?.let { routeId ->
-            gEntitySelector.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
-                parseStopId(gEntitySelector)?.let { stopId ->
-                    return getAgencyRouteDirectionStopTagTargetUUID(agencyTag, routeId, directionId, stopId)
-                } // no stop
-                return getAgencyRouteDirectionTagTargetUUID(agencyTag, routeId, directionId)
-            } // no direction
+            if (!TRIP_FILTERING_ALWAYS_IGNORE_DIRECTION_ID || true) { // not sure
+                gEntitySelector.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
+                    parseStopId(gEntitySelector)?.let { stopId ->
+                        return getAgencyRouteDirectionStopTagTargetUUID(agencyTag, routeId, directionId, stopId)
+                    } // no stop
+                    return getAgencyRouteDirectionTagTargetUUID(agencyTag, routeId, directionId)
+                } // no direction
+            }
             parseStopId(gEntitySelector)?.let { stopId ->
                 return getAgencyRouteStopTagTargetUUID(agencyTag, routeId, stopId)
             }

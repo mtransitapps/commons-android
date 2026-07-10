@@ -109,6 +109,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 
 	public static final String MT_HASH_SECRET_AND_DATE = "MtHashSecretAndDate";
 
+	public static final boolean TRIP_FILTERING_ALWAYS_IGNORE_DIRECTION_ID = true; // often static != real-time (if trip_id match, it's match 100%)
+
 	@NonNull
 	private static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
