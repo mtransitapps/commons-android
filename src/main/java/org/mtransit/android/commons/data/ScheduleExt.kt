@@ -182,7 +182,7 @@ fun Schedule.toStringK() = buildString {
         append("timesUseUtl:").append(it.toDateTimeLog())
         append(",")
     }
-    if (!isNoData) {
+    if (isNoData) {
         append("noData")
         append(",")
     }
