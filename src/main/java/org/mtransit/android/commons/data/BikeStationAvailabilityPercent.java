@@ -20,7 +20,7 @@ public class BikeStationAvailabilityPercent extends AvailabilityPercent {
 			int value1Color, int value1ColorBg,
 			@Nullable Integer value1SubValue1Color, @Nullable Integer value1SubValue1ColorBg,
 			int value2Color, int value2ColorBg) {
-		super(id, targetUUID, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, true);
+		super(id, targetUUID, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel);
 		setValue1EmptyRes("no_bikes"); // WARNING: R8
 		setValue1QuantityRes("bikes_quantity"); // WARNING: R8
 		setValue1Color(value1Color);

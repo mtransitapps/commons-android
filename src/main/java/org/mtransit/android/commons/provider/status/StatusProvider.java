@@ -107,7 +107,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			provider.purgeUselessCachedStatuses(); // cache too old => delete
 			cachedStatus = null; // do not use cache
 		}
-		if (cachedStatus != null && !cachedStatus.isUseful() && cachedStatus.hasData()) { // keep no data status
+		if (cachedStatus != null && !cachedStatus.isUseful() && !cachedStatus.isNoData()) { // keep no data status
 			if (cachedStatus.getId() != null) {
 				provider.deleteCachedStatus(cachedStatus.getId()); // cache not useful => delete
 			}
