@@ -176,6 +176,10 @@ public class POIStatus implements MTLog.Loggable {
 		return this.noData;
 	}
 
+	public boolean isUsefulOrNoData() {
+		return isUseful() || isNoData();
+	}
+
 	@Nullable
 	public String getSourceLabel() {
 		return this.sourceLabel;
