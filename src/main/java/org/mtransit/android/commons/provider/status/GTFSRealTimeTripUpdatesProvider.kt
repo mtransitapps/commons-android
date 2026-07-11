@@ -184,7 +184,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                             readFromSourceAtInMs = readFromSourceMs,
                             providerPrecisionInMs = PROVIDER_PRECISION_IN_MS,
                             sourceLabel = sourceLabel,
-                            hasData = false,
+                            noData = true, // NO DATA
                         )
                     }?.forEach { noDataStatus ->
                         cacheStatus(noDataStatus)

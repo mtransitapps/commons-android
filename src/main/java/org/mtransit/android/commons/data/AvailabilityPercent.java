@@ -84,12 +84,31 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 				status.getValidityInMs(),
 				status.getReadFromSourceAtInMs(),
 				status.getSourceLabel(),
-				status.hasData()
+				status.isNoData()
 		);
 	}
 
-	public AvailabilityPercent(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs, @Nullable String sourceLabel, boolean hasData) {
-		super(id, targetUUID, POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, hasData);
+	public AvailabilityPercent(
+			@Nullable Integer id,
+			@NonNull String targetUUID,
+			long lastUpdateMs,
+			long maxValidityInMs,
+			long readFromSourceAtInMs,
+			@Nullable String sourceLabel
+	) {
+		this(id, targetUUID, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, false);
+	}
+
+	public AvailabilityPercent(
+			@Nullable Integer id,
+			@NonNull String targetUUID,
+			long lastUpdateMs,
+			long maxValidityInMs,
+			long readFromSourceAtInMs,
+			@Nullable String sourceLabel,
+			boolean noData
+	) {
+		super(id, targetUUID, POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, noData);
 	}
 
 	public boolean hasValueStrictlyLowerThan(int underThisValue) {
@@ -186,11 +205,13 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	private static final StyleSpan BOLD_STYLE = SpanUtils.getNewBoldStyleSpan();
 
 	@NonNull
-	private CharSequence getValueText(@NonNull Context context,
-									  int value,
-									  String valueEmptyRes, String valueQuantityRes,
-									  @ColorInt int valueColor, @ColorInt int valueColorBg,
-									  boolean importantValue) {
+	private CharSequence getValueText(
+			@NonNull Context context,
+			int value,
+			String valueEmptyRes, String valueQuantityRes,
+			@ColorInt int valueColor, @ColorInt int valueColorBg,
+			boolean importantValue
+	) {
 		if (value < 0) {
 			value = 0; // never show negative values
 		}

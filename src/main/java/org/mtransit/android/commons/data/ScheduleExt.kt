@@ -21,7 +21,7 @@ fun makeSchedule(
     providerPrecisionInMs: Long,
     isNoPickup: Boolean = false,
     sourceLabel: String? = null,
-    hasData: Boolean = true
+    noData: Boolean = false
 ) = Schedule(
     id,
     targetUUID,
@@ -31,7 +31,7 @@ fun makeSchedule(
     providerPrecisionInMs,
     isNoPickup,
     sourceLabel,
-    hasData,
+    noData,
 )
 
 fun RouteDirectionStop.makeSchedule(
@@ -40,7 +40,7 @@ fun RouteDirectionStop.makeSchedule(
     readFromSourceAtInMs: Long,
     providerPrecisionInMs: Long,
     sourceLabel: String,
-    hasData: Boolean,
+    noData: Boolean,
 ) = makeSchedule(
     targetUUID = uuid,
     lastUpdateInMs = lastUpdateInMs,
@@ -48,7 +48,7 @@ fun RouteDirectionStop.makeSchedule(
     readFromSourceAtInMs = readFromSourceAtInMs,
     providerPrecisionInMs = providerPrecisionInMs,
     sourceLabel = sourceLabel,
-    hasData = hasData
+    noData = noData
 ).apply {
     isNoPickup = this@makeSchedule.isNoPickup
 }
@@ -62,7 +62,7 @@ fun Schedule.toNoData() = makeSchedule(
     providerPrecisionInMs = providerPrecisionInMs,
     isNoPickup = isNoPickup,
     sourceLabel = sourceLabel,
-    hasData = false // NO DATA
+    noData = true // NO DATA
 )
 
 val Schedule.providerPrecision get() = providerPrecisionInMs.milliseconds
@@ -182,8 +182,8 @@ fun Schedule.toStringK() = buildString {
         append("timesUseUtl:").append(it.toDateTimeLog())
         append(",")
     }
-    if (!hasData()) {
-        append("hasNoData")
+    if (isNoData) {
+        append("noData")
         append(",")
     }
     if (isNoPickup) {

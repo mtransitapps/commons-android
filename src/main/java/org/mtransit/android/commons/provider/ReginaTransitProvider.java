@@ -262,8 +262,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 						newLastUpdateInMs,
 						PROVIDER_PRECISION_IN_MS,
 						false,
-						sourceLabel,
-						true
+						sourceLabel
 				);
 				Calendar beginningOfTodayCal = Calendar.getInstance(REGINA_TZ);
 				beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);

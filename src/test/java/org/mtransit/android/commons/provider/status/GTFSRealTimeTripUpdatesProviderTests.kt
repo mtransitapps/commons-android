@@ -1050,15 +1050,11 @@ class GTFSRealTimeTripUpdatesProviderTests {
         timestamps: List<Schedule.Timestamp> = emptyList(),
         nowInMs: Long = NOW_IN_MS,
     ) = makeSchedule(
-        id = null,
         targetUUID = targetUuid,
         lastUpdateInMs = nowInMs,
         validityInMs = nowInMs,
         readFromSourceAtInMs = nowInMs,
         providerPrecisionInMs = GTFSStatusProvider.PROVIDER_PRECISION_IN_MS,
-        isNoPickup = false,
-        sourceLabel = null,
-        hasData = true
     ).apply {
         setTimestampsAndSort(timestamps)
     }

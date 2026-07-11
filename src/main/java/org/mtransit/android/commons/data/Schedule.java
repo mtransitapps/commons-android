@@ -63,8 +63,20 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				providerPrecisionInMs,
 				noPickup,
 				status.getSourceLabel(),
-				status.hasData()
+				status.isNoData()
 		);
+	}
+	public Schedule(
+			@Nullable Integer id,
+			@NonNull String targetUUID,
+			long lastUpdateInMs,
+			long maxValidityInMs,
+			long readFromSourceAtInMs,
+			long providerPrecisionInMs,
+			boolean noPickup,
+			@Nullable String sourceLabel
+	) {
+		this(id, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, providerPrecisionInMs, noPickup, sourceLabel, false);
 	}
 
 	public Schedule(
@@ -76,9 +88,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			long providerPrecisionInMs,
 			boolean noPickup,
 			@Nullable String sourceLabel,
-			boolean hasData
+			boolean noData
 	) {
-		super(id, targetUUID, POI.ITEM_STATUS_TYPE_SCHEDULE, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, hasData);
+		super(id, targetUUID, POI.ITEM_STATUS_TYPE_SCHEDULE, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, noData);
 		this.noPickup = noPickup;
 		this.providerPrecisionInMs = providerPrecisionInMs;
 		resetTimestampsUntilInMs();

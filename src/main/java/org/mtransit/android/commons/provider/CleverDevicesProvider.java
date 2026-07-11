@@ -564,8 +564,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 						this.lastUpdateInMs,
 						PROVIDER_PRECISION_IN_MS,
 						false,
-						this.sourceLabel,
-						true
+						this.sourceLabel
 				);
 				newSchedule.setTimestampsAndSort(this.currentTimestamps);
 				this.statuses.add(newSchedule);
