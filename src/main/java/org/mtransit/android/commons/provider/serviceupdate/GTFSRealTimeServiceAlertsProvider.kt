@@ -61,8 +61,8 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
     internal fun GTFSRealTimeProvider.getCached(
         filter: ServiceUpdateProviderContract.Filter,
         tripIdsOutOfSync: Boolean?,
-        getTripIds: (authority: String, routeId: Long, directionId: Long?) -> List<String>?,
-        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> ServiceUpdates?,
+        getTripIds: (authority: String, routeId: Long, directionId: Long?) -> Set<String>?,
+        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: Set<String>?) -> ServiceUpdates?,
     ): ServiceUpdates? {
         val tripIdsOutOfSync = tripIdsOutOfSync == true
         return filter.getTargetUUIDs(this, includeAgencyTag = true, includeRouteType = true, includeStopTags = true)
@@ -93,8 +93,8 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
 
     private fun getCached(
         targetUUIDs: Map<String, String>,
-        tripIds: List<String>?,
-        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> ServiceUpdates?,
+        tripIds: Set<String>?,
+        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: Set<String>?) -> ServiceUpdates?,
     ) = buildServiceUpdates {
         getCachedServiceUpdates(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
             ?.let {
@@ -115,7 +115,6 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
     @JvmStatic
     fun GTFSRealTimeProvider.parseTargetTripId(gEntitySelector: GEntitySelector) =
         gEntitySelector.optTrip?.let { parseTripId(it) }
-
 
     @JvmStatic
     fun GTFSRealTimeProvider.parseProviderTargetUUID(

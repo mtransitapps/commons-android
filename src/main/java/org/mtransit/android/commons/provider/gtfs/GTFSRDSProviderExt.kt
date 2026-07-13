@@ -58,7 +58,7 @@ fun Context.getRDS(
 }
 
 fun Context.getTripIds(authority: String, routeId: Long, directionId: Long? = null, serviceIds: List<String>? = null) =
-    getTrips(authority, routeId, directionId, serviceIds)?.map { it.tripId }
+    getTrips(authority, routeId, directionId, serviceIds)?.map { it.tripId }?.toSet()
 
 @JvmOverloads
 fun Context.getTrips(

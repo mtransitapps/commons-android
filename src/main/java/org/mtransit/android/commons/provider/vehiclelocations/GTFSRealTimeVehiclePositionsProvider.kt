@@ -87,8 +87,8 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
     internal fun GTFSRealTimeProvider.getCached(
         filter: VehicleLocationProviderContract.Filter,
         tripIdsOutOfSync: Boolean?,
-        getTripIds: (authority: String, routeId: Long, directionId: Long?) -> List<String>?,
-        getCachedVehicleLocations: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> List<VehicleLocation>?,
+        getTripIds: (authority: String, routeId: Long, directionId: Long?) -> Set<String>?,
+        getCachedVehicleLocations: (targetUUIDs: Collection<String>, tripIds: Set<String>?) -> List<VehicleLocation>?,
     ): List<VehicleLocation>? {
         val tripIdsOutOfSync = tripIdsOutOfSync == true
         @Suppress("SimplifyBooleanWithConstants")
@@ -108,8 +108,8 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
 
     private fun getCached(
         targetUUIDs: Map<String, String>,
-        tripIds: List<String>?,
-        getCachedVehicleLocations: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> List<VehicleLocation>?,
+        tripIds: Set<String>?,
+        getCachedVehicleLocations: (targetUUIDs: Collection<String>, tripIds: Set<String>?) -> List<VehicleLocation>?,
     ) = buildList {
         getCachedVehicleLocations(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
             ?.let {

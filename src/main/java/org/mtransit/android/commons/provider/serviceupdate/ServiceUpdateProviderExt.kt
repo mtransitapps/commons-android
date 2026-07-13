@@ -14,13 +14,13 @@ private const val LOG_TAG: String = "ServiceUpdateProviderExt"
 @JvmOverloads
 fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
     targetUUID: String,
-    tripIds: List<String>? = null
+    tripIds: Collection<String>? = null
 ) = getCachedServiceUpdatesS(listOf(targetUUID), tripIds)
 
 @JvmOverloads
 fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
     targetUUIDs: Collection<String>,
-    tripIds: List<String>? = null
+    tripIds: Collection<String>? = null
 ): ServiceUpdates? {
     return getCachedServiceUpdatesS(
         this.contentUri,

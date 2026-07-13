@@ -126,7 +126,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
 
         fun <P : VehicleLocationProviderContract> P.getCachedVehicleLocationsS(
             targetUUIDs: Collection<String>,
-            tripIds: List<String>? = null,
+            tripIds: Collection<String>? = null,
         ) = getCachedVehicleLocationsS(
             this.contentUri,
             selection = buildString {
