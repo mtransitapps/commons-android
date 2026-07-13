@@ -22,7 +22,6 @@ import org.mtransit.commons.model.Secret
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 
 interface ServiceUpdateProviderContract : ProviderContract {
 
@@ -232,6 +231,7 @@ interface ServiceUpdateProviderContract : ProviderContract {
 
         val targetDirectionId: Long? get() = this.targetDirection?.id
 
+        @Suppress("unused") // main app only
         fun copyWithCacheOnly(cacheOnly: Boolean): Filter = this.copy(
             cacheOnly = cacheOnly,
         )

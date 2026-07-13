@@ -7,6 +7,7 @@ import org.mtransit.android.commons.data.buildServiceUpdates
 import org.mtransit.android.commons.data.makeServiceUpdateNoneList
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.AGENCY_SOURCE_ID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionStopTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteStopTagTargetUUID
@@ -14,10 +15,11 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRoute
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTypeTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyStopTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optAgencyId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optAgencyIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteType
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.agencyTag
 import org.mtransit.android.commons.provider.gtfs.getTargetUUIDs
@@ -59,8 +61,8 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
     internal fun GTFSRealTimeProvider.getCached(
         filter: ServiceUpdateProviderContract.Filter,
         tripIdsOutOfSync: Boolean?,
-        getTripIds: (authority: String, routeId: Long, directionId: Long?) -> List<String>?,
-        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> ServiceUpdates?,
+        getTripIds: (authority: String, routeId: Long, directionId: Long?) -> Set<String>?,
+        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: Set<String>?) -> ServiceUpdates?,
     ): ServiceUpdates? {
         val tripIdsOutOfSync = tripIdsOutOfSync == true
         return filter.getTargetUUIDs(this, includeAgencyTag = true, includeRouteType = true, includeStopTags = true)
@@ -91,8 +93,8 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
 
     private fun getCached(
         targetUUIDs: Map<String, String>,
-        tripIds: List<String>?,
-        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> ServiceUpdates?,
+        tripIds: Set<String>?,
+        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: Set<String>?) -> ServiceUpdates?,
     ) = buildServiceUpdates {
         getCachedServiceUpdates(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
             ?.let {
@@ -120,12 +122,15 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
         ignoreDirection: Boolean,
     ): String? {
         parseRouteId(gEntitySelector)?.let { routeId ->
-            gEntitySelector.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
-                parseStopId(gEntitySelector)?.let { stopId ->
-                    return getAgencyRouteDirectionStopTagTargetUUID(agencyTag, routeId, directionId, stopId)
-                } // no stop
-                return getAgencyRouteDirectionTagTargetUUID(agencyTag, routeId, directionId)
-            } // no direction
+            @Suppress("SimplifyBooleanWithConstants")
+            if (!ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID || gEntitySelector.optTrip?.optTripIdNotEmpty == null) {
+                gEntitySelector.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
+                    parseStopId(gEntitySelector)?.let { stopId ->
+                        return getAgencyRouteDirectionStopTagTargetUUID(agencyTag, routeId, directionId, stopId)
+                    } // no stop
+                    return getAgencyRouteDirectionTagTargetUUID(agencyTag, routeId, directionId)
+                } // no direction
+            }
             parseStopId(gEntitySelector)?.let { stopId ->
                 return getAgencyRouteStopTagTargetUUID(agencyTag, routeId, stopId)
             }
@@ -137,7 +142,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
         gEntitySelector.optRouteType?.let { routeType ->
             return getAgencyRouteTypeTagTargetUUID(agencyTag, routeType)
         }
-        gEntitySelector.optAgencyId?.let { _ ->
+        gEntitySelector.optAgencyIdNotEmpty?.let { _ ->
             return getAgencyTagTargetUUID(agencyTag)
         }
         MTLog.w(LOG_TAG, "parseTargetUUID() > unexpected entity selector: %s (IGNORED)", gEntitySelector.toStringExt())

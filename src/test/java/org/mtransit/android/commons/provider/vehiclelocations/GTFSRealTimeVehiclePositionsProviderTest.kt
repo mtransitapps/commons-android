@@ -30,6 +30,7 @@ class GTFSRealTimeVehiclePositionsProviderTest {
 
     private val gtfsRealTimeProvider: GTFSRealTimeProvider = mock {
         on { getAgencyTag(anyOrNull()) } doReturn "static_agency_id"
+        on { getStorage(anyOrNull()) } doReturn mock()
     }
 
     @BeforeTest
@@ -70,7 +71,7 @@ class GTFSRealTimeVehiclePositionsProviderTest {
             add(makeVehicleLocation(targetUUID = rds3.toRouteDirection().getGTFSRTTargetUUID(), targetTripId = null, vehicleId = "vehicleId31"))
         }
         val staticTripIds = (cachedVehicleLocation.mapNotNull { it.targetTripId } + "tripId20" + "tripId31").toSet()
-        val getCachedVehicleLocations: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> List<VehicleLocation>? = { targetUUIDs, tripIds ->
+        val getCachedVehicleLocations: (targetUUIDs: Collection<String>, tripIds: Set<String>?) -> List<VehicleLocation>? = { targetUUIDs, tripIds ->
             cachedVehicleLocation.filter { vehicleLocation ->
                 targetUUIDs.contains(vehicleLocation.targetUUID)
                         && vehicleLocation.targetTripId?.let { tripIds?.contains(it) } != false // ignore if target tripID or local trip ID null
@@ -79,7 +80,7 @@ class GTFSRealTimeVehiclePositionsProviderTest {
         gtfsRealTimeProvider.getCached(
             filter = VehicleLocationProviderContract.Filter(rds1),
             getCachedVehicleLocations = getCachedVehicleLocations,
-            getTripIds = { _, _, _ -> listOf("tripId10", "tripId11", "tripId12", "tripId13") },
+            getTripIds = { _, _, _ -> setOf("tripId10", "tripId11", "tripId12", "tripId13") },
             tripIdsOutOfSync = !staticTripIds.contains("tripId10"),
         ).let { result ->
             assertNotNull(result)
@@ -104,7 +105,7 @@ class GTFSRealTimeVehiclePositionsProviderTest {
         gtfsRealTimeProvider.getCached(
             filter = VehicleLocationProviderContract.Filter(rds1.toRouteDirection()),
             getCachedVehicleLocations = getCachedVehicleLocations,
-            getTripIds = { _, _, _ -> listOf("tripId10", "tripId11", "tripId12", "tripId13") },
+            getTripIds = { _, _, _ -> setOf("tripId10", "tripId11", "tripId12", "tripId13") },
             tripIdsOutOfSync = !staticTripIds.contains("tripId10"),
         ).let { result ->
             assertNotNull(result)
@@ -154,7 +155,7 @@ class GTFSRealTimeVehiclePositionsProviderTest {
         gtfsRealTimeProvider.getCached(
             filter = VehicleLocationProviderContract.Filter(rds2),
             getCachedVehicleLocations = getCachedVehicleLocations,
-            getTripIds = { _, _, _ -> listOf("tripId20") },
+            getTripIds = { _, _, _ -> setOf("tripId20") },
             tripIdsOutOfSync = !staticTripIds.contains("tripId20"),
         ).let { result ->
             assertNotNull(result)
@@ -163,7 +164,7 @@ class GTFSRealTimeVehiclePositionsProviderTest {
         gtfsRealTimeProvider.getCached(
             filter = VehicleLocationProviderContract.Filter(rds2.toRouteDirection()),
             getCachedVehicleLocations = getCachedVehicleLocations,
-            getTripIds = { _, _, _ -> listOf("tripId20") },
+            getTripIds = { _, _, _ -> setOf("tripId20") },
             tripIdsOutOfSync = !staticTripIds.contains("tripId20"),
         ).let { result ->
             assertNotNull(result)
@@ -181,7 +182,7 @@ class GTFSRealTimeVehiclePositionsProviderTest {
         gtfsRealTimeProvider.getCached(
             filter = VehicleLocationProviderContract.Filter(rds3.toRouteDirection()),
             getCachedVehicleLocations = getCachedVehicleLocations,
-            getTripIds = { _, _, _ -> listOf("tripId30", "tripId31") },
+            getTripIds = { _, _, _ -> setOf("tripId30", "tripId31") },
             tripIdsOutOfSync = !staticTripIds.contains("tripId30"),
         ).let { result ->
             assertNotNull(result)
@@ -249,6 +250,22 @@ class GTFSRealTimeVehiclePositionsProviderTest {
             ignoreDirection = true,
         ).let { result ->
             assertEquals(getAgencyRouteTagTargetUUID("static_agency_id", stringIdToHash("route_id")), result)
+        }
+        gtfsRealTimeProvider.parseProviderTargetUUID(
+            gVehiclePosition = vehiclePosition {
+                trip = tripDescriptor {
+                    routeId = "route_id"
+                    directionId = 0
+                    tripId = "trip_id"
+                }
+            },
+            ignoreDirection = false,
+        ).let { result ->
+            if (GTFSRealTimeProvider.ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID) {
+                assertEquals(getAgencyRouteTagTargetUUID("static_agency_id", stringIdToHash("route_id")), result)
+            } else {
+                assertEquals(getAgencyRouteDirectionTagTargetUUID("static_agency_id", stringIdToHash("route_id"), 0), result)
+            }
         }
     }
 }

@@ -7,13 +7,13 @@ import org.mtransit.android.commons.data.POIStatus
 @JvmOverloads
 fun <P : StatusProviderContract> P.getCachedStatusS(
     targetUUID: String,
-    tripIds: List<String>? = null
+    tripIds: Collection<String>? = null
 ) = getCachedStatusS(listOf(targetUUID), tripIds)
 
 @JvmOverloads
 fun <P : StatusProviderContract> P.getCachedStatusS(
     targetUUIDs: Collection<String>,
-    @Suppress("unused") tripIds: List<String>? = null
+    @Suppress("unused") tripIds: Collection<String>? = null
 ): POIStatus? {
     return StatusProvider.getCachedStatusS(
         this,

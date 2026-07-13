@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.provider.serviceupdate
 
 import com.google.transit.realtime.entitySelector
+import com.google.transit.realtime.tripDescriptor
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -35,6 +36,7 @@ class GTFSRealTimeServiceAlertsProviderTest {
 
     private val gtfsRealTimeProvider: GTFSRealTimeProvider = mock {
         on { getAgencyTag(anyOrNull()) } doReturn "static_agency_id"
+        on { getStorage(anyOrNull()) } doReturn mock()
     }
 
     @BeforeTest
@@ -76,7 +78,7 @@ class GTFSRealTimeServiceAlertsProviderTest {
             add(makeServiceUpdate(targetUUID = rds3.toRouteDirection().getGTFSRTTargetUUID(), targetTripId = null, text = "Text 31"))
         }
         val staticTripIds = (cachedServiceUpdates.mapNotNull { it.targetTripId } + "tripId22" + "tripId31").toSet()
-        val getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> ServiceUpdates? = { targetUUIDs, tripIds ->
+        val getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: Set<String>?) -> ServiceUpdates? = { targetUUIDs, tripIds ->
             cachedServiceUpdates.filter { serviceUpdate ->
                 targetUUIDs.contains(serviceUpdate.targetUUID)
                         && serviceUpdate.targetTripId?.let { tripIds?.contains(it) } != false // ignore if target tripID or local trip ID null
@@ -85,7 +87,7 @@ class GTFSRealTimeServiceAlertsProviderTest {
         gtfsRealTimeProvider.getCached(
             filter = ServiceUpdateProviderContract.Filter(rds1),
             getCachedServiceUpdates = getCachedServiceUpdates,
-            getTripIds = { _, _, _ -> listOf("tripId10") },
+            getTripIds = { _, _, _ -> setOf("tripId10") },
             tripIdsOutOfSync = !staticTripIds.contains("tripId10"),
         ).let { result ->
             assertNotNull(result)
@@ -102,7 +104,7 @@ class GTFSRealTimeServiceAlertsProviderTest {
         gtfsRealTimeProvider.getCached(
             filter = ServiceUpdateProviderContract.Filter(rds1),
             getCachedServiceUpdates = getCachedServiceUpdates,
-            getTripIds = { _, _, _ -> listOf("tripId12") },
+            getTripIds = { _, _, _ -> setOf("tripId12") },
             tripIdsOutOfSync = !staticTripIds.contains("tripId12"),
         ).let { result ->
             assertNotNull(result)
@@ -119,7 +121,7 @@ class GTFSRealTimeServiceAlertsProviderTest {
         gtfsRealTimeProvider.getCached(
             filter = ServiceUpdateProviderContract.Filter(rds1),
             getCachedServiceUpdates = getCachedServiceUpdates,
-            getTripIds = { _, _, _ -> listOf("tripId01") },
+            getTripIds = { _, _, _ -> setOf("tripId01") },
             tripIdsOutOfSync = !staticTripIds.contains("tripId01"),
         ).let { result ->
             assertNotNull(result)
@@ -165,7 +167,7 @@ class GTFSRealTimeServiceAlertsProviderTest {
         gtfsRealTimeProvider.getCached(
             filter = ServiceUpdateProviderContract.Filter(rds2),
             getCachedServiceUpdates = getCachedServiceUpdates,
-            getTripIds = { _, _, _ -> listOf("tripId22") },
+            getTripIds = { _, _, _ -> setOf("tripId22") },
             tripIdsOutOfSync = !staticTripIds.contains("tripId22"),
         ).let { result ->
             assertNotNull(result)
@@ -178,7 +180,7 @@ class GTFSRealTimeServiceAlertsProviderTest {
         gtfsRealTimeProvider.getCached(
             filter = ServiceUpdateProviderContract.Filter(rds3),
             getCachedServiceUpdates = getCachedServiceUpdates,
-            getTripIds = { _, _, _ -> listOf("tripId30", "tripId31") },
+            getTripIds = { _, _, _ -> setOf("tripId30", "tripId31") },
             tripIdsOutOfSync = false,
         ).let { result ->
             assertNotNull(result)
@@ -199,7 +201,7 @@ class GTFSRealTimeServiceAlertsProviderTest {
         gtfsRealTimeProvider.getCached(
             filter = ServiceUpdateProviderContract.Filter(rds3),
             getCachedServiceUpdates = getCachedServiceUpdates,
-            getTripIds = { _, _, _ -> listOf("tripId30", "tripId31") },
+            getTripIds = { _, _, _ -> setOf("tripId30", "tripId31") },
             tripIdsOutOfSync = true,
         ).let { result ->
             assertNotNull(result)
@@ -322,6 +324,24 @@ class GTFSRealTimeServiceAlertsProviderTest {
             ignoreDirection = false
         ).let { result ->
             assertEquals(getAgencyRouteTypeTagTargetUUID("static_agency_id", 3), result)
+        }
+        // ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID
+        gtfsRealTimeProvider.parseProviderTargetUUID(
+            gEntitySelector = entitySelector {
+                routeId = "route_id"
+                directionId = 0
+                trip = tripDescriptor {
+                    routeId = "route_id"
+                    tripId = "trip_id"
+                }
+            },
+            ignoreDirection = false
+        ).let { result ->
+            if (GTFSRealTimeProvider.ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID) {
+                assertEquals(getAgencyRouteTagTargetUUID("static_agency_id", stringIdToHash("route_id")), result)
+            } else {
+                assertEquals(getAgencyRouteDirectionTagTargetUUID("static_agency_id", stringIdToHash("route_id"), 0), result)
+            }
         }
     }
 }

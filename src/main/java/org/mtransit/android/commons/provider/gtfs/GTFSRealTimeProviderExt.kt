@@ -25,10 +25,10 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTa
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getTARGET_AUTHORITY
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.isIGNORE_DIRECTION
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.isUSE_URL_HASH_SECRET_AND_DATE
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optAgencyId
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopId
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optAgencyIdNotEmpty
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteIdNotEmpty
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopIdNotEmpty
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToHash
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToId
 import java.net.URL
@@ -41,22 +41,22 @@ val GTFSRealTimeProvider.ignoreDirection get() = isIGNORE_DIRECTION(requireConte
 val GTFSRealTimeProvider.targetAuthority get() = getTARGET_AUTHORITY(requireContextCompat())
 val GTFSRealTimeProvider.timeZone get() = getAGENCY_TIME_ZONE(requireContextCompat())
 
-fun GTFSRealTimeProvider.parseAgencyId(es: GEntitySelector) = es.optAgencyId?.let { parseAgencyId(it) }
+fun GTFSRealTimeProvider.parseAgencyId(es: GEntitySelector) = es.optAgencyIdNotEmpty?.let { parseAgencyId(it) }
 fun GTFSRealTimeProvider.parseAgencyId(gAgencyId: String) = gAgencyId.originalIdToId(agencyIdCleanupPattern)
 private val GTFSRealTimeProvider.agencyIdCleanupPattern get() = getAgencyIdCleanupPattern(requireContextCompat())
 
-fun GTFSRealTimeProvider.parseRouteId(es: GEntitySelector) = es.optRouteId?.let { parseRouteId(it) }
-fun GTFSRealTimeProvider.parseRouteId(td: GTripDescriptor) = td.optRouteId?.let { parseRouteId(it) }
+fun GTFSRealTimeProvider.parseRouteId(es: GEntitySelector) = es.optRouteIdNotEmpty?.let { parseRouteId(it) }
+fun GTFSRealTimeProvider.parseRouteId(td: GTripDescriptor) = td.optRouteIdNotEmpty?.let { parseRouteId(it) }
 fun GTFSRealTimeProvider.parseRouteId(gRouteId: String) = gRouteId.originalIdToHash(routeIdCleanupPattern)
 private val GTFSRealTimeProvider.routeIdCleanupPattern get() = getRouteIdCleanupPattern(requireContextCompat())
 
-fun GTFSRealTimeProvider.parseTripId(td: GTripDescriptor) = td.optTripId?.let { parseTripId(it) }
+fun GTFSRealTimeProvider.parseTripId(td: GTripDescriptor) = td.optTripIdNotEmpty?.let { parseTripId(it) }
 fun GTFSRealTimeProvider.parseTripId(gTripId: String) = gTripId.originalIdToId(tripIdCleanupPattern)
 private val GTFSRealTimeProvider.tripIdCleanupPattern get() = getTripIdCleanupPattern(requireContextCompat())
 
 @Suppress("unused")
-fun GTFSRealTimeProvider.parseStopId(stu: GTUStopTimeUpdate) = stu.optStopId?.let { parseStopId(it) }
-fun GTFSRealTimeProvider.parseStopId(es: GEntitySelector) = es.optStopId?.let { parseStopId(it) }
+fun GTFSRealTimeProvider.parseStopId(stu: GTUStopTimeUpdate) = stu.optStopIdNotEmpty?.let { parseStopId(it) }
+fun GTFSRealTimeProvider.parseStopId(es: GEntitySelector) = es.optStopIdNotEmpty?.let { parseStopId(it) }
 fun GTFSRealTimeProvider.parseStopId(gStopId: String) = gStopId.originalIdToHash(stopIdCleanupPattern)
 private val GTFSRealTimeProvider.stopIdCleanupPattern get() = getStopIdCleanupPattern(requireContextCompat())
 

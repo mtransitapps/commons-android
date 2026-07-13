@@ -109,6 +109,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 
 	public static final String MT_HASH_SECRET_AND_DATE = "MtHashSecretAndDate";
 
+	public static final boolean ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID = true; // often static != real-time (if trip_id provided, ignore direction_id)
+
 	@NonNull
 	private static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
@@ -914,8 +916,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					);
 					final boolean ignoreDirection = isIGNORE_DIRECTION(context);
 					try {
-						GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(response.body().bytes());
-						List<Pair<GtfsRealtime.Alert, String>> alertsWithIdPair = GtfsRealtimeExt.toAlertsWithIdPair(gFeedMessage.getEntityList());
+						final GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(response.body().bytes());
+						final List<Pair<GtfsRealtime.Alert, String>> alertsWithIdPair = GtfsRealtimeExt.toAlertsWithIdPair(gFeedMessage.getEntityList());
 						if (Constants.DEBUG) MTLog.d(this, "loadAgencyDataFromWWW() > GTFS alerts[%s]: ", alertsWithIdPair.size());
 						for (Pair<GtfsRealtime.Alert, String> gAlertAndId : GtfsRealtimeExt.sortAlertsPair(alertsWithIdPair, newLastUpdateInMs)) {
 							final GtfsRealtime.Alert gAlert = gAlertAndId.getFirst();
@@ -1022,9 +1024,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		ArrayMap<String, Integer> targetUUIDSeverities = new ArrayMap<>();
 		final String providerAgencyId = getRDS_AGENCY_ID(context);
 		for (GtfsRealtime.EntitySelector gInformedEntity : gInformedEntityList) {
+			final String rtAgencyId = GTFSRealTimeProviderExtKt.parseAgencyId(this, gInformedEntity);
 			if (gInformedEntity.hasAgencyId()
+					&& rtAgencyId != null && !rtAgencyId.isEmpty()
 					&& !providerAgencyId.isEmpty()
-					&& !providerAgencyId.equals(GTFSRealTimeProviderExtKt.parseAgencyId(this, gInformedEntity))) {
+					&& !providerAgencyId.equals(rtAgencyId)) {
 				MTLog.w(this, "processAlerts() > Alert targets another agency: '%s'!", gInformedEntity.getAgencyId());
 				continue;
 			}
