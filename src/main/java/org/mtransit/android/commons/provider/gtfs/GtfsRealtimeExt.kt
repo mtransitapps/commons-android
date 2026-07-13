@@ -99,11 +99,11 @@ object GtfsRealtimeExt {
 
     @JvmStatic
     fun List<GFeedEntity>.toTripUpdates(): List<GTripUpdate> =
-        this.filter { it.hasTripUpdate() }.map { it.tripUpdate }.distinct()
+        this.mapNotNull { it.optTripUpdate }.distinct()
 
     @JvmStatic
     fun List<GFeedEntity>.toTripUpdatesWithIdPair(): List<Pair<GTripUpdate, String>> =
-        this.filter { it.hasTripUpdate() }.map { it.tripUpdate to it.id }.distinctBy { it.first }
+        this.mapNotNull { fe -> fe.optTripUpdate?.let { it to fe.id } }.distinctBy { it.first }
 
     @JvmStatic
     fun List<GTripUpdate>.sortTripUpdates(): List<GTripUpdate> =
@@ -115,11 +115,11 @@ object GtfsRealtimeExt {
 
     @JvmStatic
     fun List<GFeedEntity>.toVehicles(): List<GVehiclePosition> =
-        this.filter { it.hasVehicle() }.map { it.vehicle }.distinct()
+        this.mapNotNull { it.optVehicle }.distinct()
 
     @JvmStatic
     fun List<GFeedEntity>.toVehiclesWithIdPair(): List<Pair<GVehiclePosition, String>> =
-        this.filter { it.hasVehicle() }.map { it.vehicle to it.id }.distinctBy { it.first }
+        this.mapNotNull { fe -> fe.optVehicle?.let { it to fe.id } }.distinctBy { it.first }
 
     @JvmStatic
     fun List<GVehiclePosition>.sortVehicles(): List<GVehiclePosition> =
@@ -131,11 +131,15 @@ object GtfsRealtimeExt {
 
     @JvmStatic
     fun List<GFeedEntity>.toAlerts(): List<GAlert> =
-        this.filter { it.hasAlert() }.map { it.alert }.distinct()
+        this.mapNotNull { it.optAlert }.distinct()
 
     @JvmStatic
     fun List<GFeedEntity>.toAlertsWithIdPair(): List<Pair<GAlert, String>> =
-        this.filter { it.hasAlert() }.map { it.alert to it.id }.distinctBy { it.first }
+        this.mapNotNull { fe -> fe.optAlert?.let { it to fe.id } }.distinctBy { it.first }
+
+    val GFeedEntity.optAlert get() = if (hasAlert()) alert else null
+    val GFeedEntity.optVehicle get() = if (hasVehicle()) vehicle else null
+    val GFeedEntity.optTripUpdate get() = if (hasTripUpdate()) tripUpdate else null
 
     @JvmStatic
     fun List<GAlert>.sortAlerts(nowMs: Long = TimeUtils.currentTimeMillis()): List<GAlert> =

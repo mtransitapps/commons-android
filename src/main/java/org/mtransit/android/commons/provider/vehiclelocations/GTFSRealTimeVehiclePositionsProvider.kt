@@ -7,10 +7,10 @@ import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.SecurityUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
-import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderShared.areDirectionIdsMismatch
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optBearing
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optId
@@ -313,7 +313,8 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                 -> MTLog.d(LOG_TAG, "parseTargetUUID() > unhandled schedule relationship: ${gTripDescriptor.scheduleRelationship}")
         }
         parseRouteId(gTripDescriptor)?.let { routeId ->
-            if (areDirectionIdsMismatch() == false) {
+            @Suppress("SimplifyBooleanWithConstants")
+            if (!ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID || !gTripDescriptor.hasTripId()) {
                 gTripDescriptor.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
                     return getAgencyRouteDirectionTagTargetUUID(agencyTag, routeId, directionId)
                 }

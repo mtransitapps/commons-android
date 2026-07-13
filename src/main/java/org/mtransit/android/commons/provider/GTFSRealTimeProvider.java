@@ -109,7 +109,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 
 	public static final String MT_HASH_SECRET_AND_DATE = "MtHashSecretAndDate";
 
-	public static final boolean TRIP_FILTERING_ALWAYS_IGNORE_DIRECTION_ID = true; // often static != real-time (if trip_id match, it's match 100%)
+	public static final boolean ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID = true; // often static != real-time (if trip_id provided, ignore direction_id)
 
 	@NonNull
 	private static UriMatcher getNewUriMatcher(String authority) {
@@ -930,7 +930,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 								serviceUpdates.addAll(alertsServiceUpdates);
 							}
 						}
-						GTFSRealTimeServiceAlertsProvider.setDirectionIdsMismatchIfUnknown(this, gFeedMessage.getEntityList());
 					} catch (Exception e) {
 						MTLog.w(this, e, "loadAgencyServiceUpdateDataFromWWW() > error while parsing GTFS Real Time data!");
 					}
