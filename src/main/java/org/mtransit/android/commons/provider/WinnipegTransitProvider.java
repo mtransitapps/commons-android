@@ -402,8 +402,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 					newLastUpdateInMs,
 					PROVIDER_PRECISION_IN_MS,
 					false,
-					sourceLabel,
-					true
+					sourceLabel
 			);
 			String directionIdS = String.valueOf(rds.getDirection().getId());
 			String directionId = directionIdS.substring(directionIdS.length() - 1); // keep last character

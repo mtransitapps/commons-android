@@ -155,8 +155,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 				PROVIDER_READ_FROM_SOURCE_AT_IN_MS,
 				PROVIDER_PRECISION_IN_MS,
 				scheduleStatusFilter.getRouteDirectionStop().isNoPickup(),
-				GTFSProvider.getSOURCE_LABEL(provider.requireContextCompat()),
-				true
+				GTFSProvider.getSOURCE_LABEL(provider.requireContextCompat())
 		);
 		if (isSCHEDULE_AVAILABLE(provider.requireContextCompat())) {
 			schedule.setTimestampsAndSort(findTimestamps(provider, scheduleStatusFilter));

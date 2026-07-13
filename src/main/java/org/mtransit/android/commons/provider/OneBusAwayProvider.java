@@ -375,8 +375,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 								newLastUpdateInMs,
 								PROVIDER_PRECISION_IN_MS,
 								false,
-								sourceLabel,
-								true
+								sourceLabel
 						);
 						for (int l = 0; l < jArrivalsAndDepartures.length(); l++) {
 							JSONObject jArrivalsAndDeparture = jArrivalsAndDepartures.getJSONObject(l);
