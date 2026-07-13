@@ -196,11 +196,11 @@ public class ServiceUpdate implements MTLog.Loggable {
 		sb.append("tUUID:").append(this.targetUUID).append(',');
 		sb.append("tTrip:").append(this.targetTripId).append(',');
 		sb.append("lang:").append(this.language).append(',');
-		sb.append("txt:").append(this.text).append(',');
-		sb.append("svrt:").append(this.severity);
+		sb.append("svrt:").append(this.severity).append(',');
 		if (isNoService()) {
-			sb.append("noSrv:").append(this.noService);
+			sb.append("noSrv:").append(this.noService).append(',');
 		}
+		sb.append("txt:").append(this.text).append(',');
 		sb.append(']');
 		return sb.toString();
 	}
@@ -268,7 +268,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 	}
 
 	/**
-	 * {@link ServiceUpdateProviderContract#PROJECTION_SERVICE_UPDATE}
+	 * {@link ServiceUpdateProviderContract#getPROJECTION_SERVICE_UPDATE()}
 	 */
 	@NonNull
 	public Object[] getCursorRow() {
