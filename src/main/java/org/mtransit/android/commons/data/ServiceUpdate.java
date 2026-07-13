@@ -195,12 +195,12 @@ public class ServiceUpdate implements MTLog.Loggable {
 		sb.append("oId:").append(this.originalId).append(',');
 		sb.append("tUUID:").append(this.targetUUID).append(',');
 		sb.append("tTrip:").append(this.targetTripId).append(',');
-		sb.append("lang:").append(this.language).append(',');
 		sb.append("svrt:").append(this.severity).append(',');
 		if (isNoService()) {
 			sb.append("noSrv:").append(this.noService).append(',');
 		}
-		sb.append("txt:").append(this.text).append(',');
+		sb.append("lang:").append(this.language).append(',');
+		sb.append("txt:").append(this.text);
 		sb.append(']');
 		return sb.toString();
 	}
