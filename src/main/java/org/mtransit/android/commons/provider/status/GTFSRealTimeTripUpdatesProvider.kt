@@ -24,7 +24,7 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRel
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestampMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortTripUpdates
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toTripUpdates
@@ -197,7 +197,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 )
                 return null
             }
-            val distinctTripId = rdTripUpdates.mapNotNull { it.first.optTripId }.distinct()
+            val distinctTripId = rdTripUpdates.mapNotNull { it.first.optTripIdNotEmpty }.distinct()
             MTLog.i(
                 LOG_TAG,
                 "Using ${rdTripUpdates.size} trip updates for route '${targetRoute.shortestName}' direction '${targetDirection.headsignValue}': $distinctTripId."
@@ -238,7 +238,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             }
         }
         @Suppress("SimplifyBooleanWithConstants")
-        if (!ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID || !td.hasTripId()) {
+        if (!ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID || td.optTripIdNotEmpty == null) {
             td.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
                 if (directionId != targetDirectionOriginalId) {
                     if (DEBUG_STATIC_RT_MATCH) {

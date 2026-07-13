@@ -21,6 +21,7 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optPosition
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optSpeed
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestamp
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optVehicle
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortVehicles
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
@@ -314,7 +315,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
         }
         parseRouteId(gTripDescriptor)?.let { routeId ->
             @Suppress("SimplifyBooleanWithConstants")
-            if (!ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID || !gTripDescriptor.hasTripId()) {
+            if (!ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID || gTripDescriptor.optTripIdNotEmpty == null) {
                 gTripDescriptor.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
                     return getAgencyRouteDirectionTagTargetUUID(agencyTag, routeId, directionId)
                 }

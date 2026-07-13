@@ -21,7 +21,7 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopSequenc
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeInstant
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
@@ -44,7 +44,7 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
     includeCancelledTimestamps: Boolean = false,
 ) {
     rdTripUpdates.forEach { (td, gTripUpdate) ->
-        val gTripId = td.optTripId ?: return@forEach
+        val gTripId = td.optTripIdNotEmpty ?: return@forEach
         val tripId = parseTripId(gTripId)
         val tripTargetUuidSchedule = targetUuidSchedule
             .filter { (_, schedule) -> schedule?.timestamps?.any { it.tripId == tripId } == true }

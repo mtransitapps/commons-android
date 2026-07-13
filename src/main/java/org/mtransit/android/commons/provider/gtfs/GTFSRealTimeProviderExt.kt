@@ -28,7 +28,7 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.isUSE_URL_HASH
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optAgencyIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopIdNotEmpty
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToHash
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToId
 import java.net.URL
@@ -50,7 +50,7 @@ fun GTFSRealTimeProvider.parseRouteId(td: GTripDescriptor) = td.optRouteIdNotEmp
 fun GTFSRealTimeProvider.parseRouteId(gRouteId: String) = gRouteId.originalIdToHash(routeIdCleanupPattern)
 private val GTFSRealTimeProvider.routeIdCleanupPattern get() = getRouteIdCleanupPattern(requireContextCompat())
 
-fun GTFSRealTimeProvider.parseTripId(td: GTripDescriptor) = td.optTripId?.let { parseTripId(it) }
+fun GTFSRealTimeProvider.parseTripId(td: GTripDescriptor) = td.optTripIdNotEmpty?.let { parseTripId(it) }
 fun GTFSRealTimeProvider.parseTripId(gTripId: String) = gTripId.originalIdToId(tripIdCleanupPattern)
 private val GTFSRealTimeProvider.tripIdCleanupPattern get() = getTripIdCleanupPattern(requireContextCompat())
 

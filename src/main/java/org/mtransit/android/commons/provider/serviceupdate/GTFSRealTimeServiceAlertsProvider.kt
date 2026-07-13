@@ -19,6 +19,7 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optAgencyIdNot
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteType
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.agencyTag
 import org.mtransit.android.commons.provider.gtfs.getTargetUUIDs
@@ -123,7 +124,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
     ): String? {
         parseRouteId(gEntitySelector)?.let { routeId ->
             @Suppress("SimplifyBooleanWithConstants")
-            if (!ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID || gEntitySelector.optTrip?.hasTripId() != true) {
+            if (!ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID || gEntitySelector.optTrip?.optTripIdNotEmpty == null) {
                 gEntitySelector.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
                     parseStopId(gEntitySelector)?.let { stopId ->
                         return getAgencyRouteDirectionStopTagTargetUUID(agencyTag, routeId, directionId, stopId)

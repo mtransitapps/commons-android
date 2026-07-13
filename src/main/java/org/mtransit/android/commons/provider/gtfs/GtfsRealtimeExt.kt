@@ -503,9 +503,9 @@ object GtfsRealtimeExt {
         append(if (short) "TD:" else "TripDescriptor:")
         append(
             buildList {
-                optRouteId?.let { add((if (short) "r=" else "routeId=") + it) }
+                optRouteIdNotEmpty?.let { add((if (short) "r=" else "routeId=") + it) }
                 optDirectionId?.let { add((if (short) "d=" else "directionId=") + it) }
-                optTripId?.let { add((if (short) "t=" else "tripId=") + it) }
+                optTripIdNotEmpty?.let { add((if (short) "t=" else "tripId=") + it) }
                 optModifiedTrip?.let { add(modifiedTrip.toStringExt(short)) }
                 optScheduleRelationship?.let { add((if (short) "sr=" else "schedRel=") + it) }
                 optStartDate?.let { add((if (short) "sd=" else "startDate=") + it) }
@@ -515,6 +515,7 @@ object GtfsRealtimeExt {
     }
 
     val GTripDescriptor.optTripId get() = if (hasTripId()) tripId else optModifiedTrip?.optAffectedTripId
+    val GTripDescriptor.optTripIdNotEmpty get() = optTripId?.takeIf { it.isNotEmpty() }
     val GTripDescriptor.optRouteId get() = if (hasRouteId()) routeId else null
     val GTripDescriptor.optRouteIdNotEmpty get() = optRouteId?.takeIf { it.isNotEmpty() }
     val GTripDescriptor.optDirectionId get() = if (hasDirectionId()) directionId else null
