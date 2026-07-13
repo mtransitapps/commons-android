@@ -16,7 +16,7 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optArrival
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelay
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDeparture
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopSequence
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeInstant
@@ -269,7 +269,7 @@ internal fun GTUStopTimeUpdate.isSameStop(
     rds ?: return false
     val sameOrUnspecifiedStopSequence = this.optStopSequence
         ?.let { it == stopSequence }
-    val sameOrUnspecifiedStopId = this.optStopId?.let {
+    val sameOrUnspecifiedStopId = this.optStopIdNotEmpty?.let {
         rds.stop.isSameOriginalId(parseStopId(it))
     }
     return sameOrUnspecifiedStopSequence == true || sameOrUnspecifiedStopId == true

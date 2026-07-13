@@ -1024,9 +1024,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		ArrayMap<String, Integer> targetUUIDSeverities = new ArrayMap<>();
 		final String providerAgencyId = getRDS_AGENCY_ID(context);
 		for (GtfsRealtime.EntitySelector gInformedEntity : gInformedEntityList) {
+			final String rtAgencyId = GTFSRealTimeProviderExtKt.parseAgencyId(this, gInformedEntity);
 			if (gInformedEntity.hasAgencyId()
+					&& rtAgencyId != null && !rtAgencyId.isEmpty()
 					&& !providerAgencyId.isEmpty()
-					&& !providerAgencyId.equals(GTFSRealTimeProviderExtKt.parseAgencyId(this, gInformedEntity))) {
+					&& !providerAgencyId.equals(rtAgencyId)) {
 				MTLog.w(this, "processAlerts() > Alert targets another agency: '%s'!", gInformedEntity.getAgencyId());
 				continue;
 			}

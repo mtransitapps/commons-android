@@ -15,7 +15,7 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRoute
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTypeTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyStopTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optAgencyId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optAgencyIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteType
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
@@ -142,7 +142,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
         gEntitySelector.optRouteType?.let { routeType ->
             return getAgencyRouteTypeTagTargetUUID(agencyTag, routeType)
         }
-        gEntitySelector.optAgencyId?.let { _ ->
+        gEntitySelector.optAgencyIdNotEmpty?.let { _ ->
             return getAgencyTagTargetUUID(agencyTag)
         }
         MTLog.w(LOG_TAG, "parseTargetUUID() > unexpected entity selector: %s (IGNORED)", gEntitySelector.toStringExt())

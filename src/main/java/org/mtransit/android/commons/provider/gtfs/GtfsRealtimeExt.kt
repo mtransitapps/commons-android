@@ -266,6 +266,7 @@ object GtfsRealtimeExt {
 
     val GTUStopTimeUpdate.optStopSequence get() = if (hasStopSequence()) stopSequence else null
     val GTUStopTimeUpdate.optStopId get() = if (hasStopId()) stopId else null
+    val GTUStopTimeUpdate.optStopIdNotEmpty get() = optStopId?.takeIf { it.isNotEmpty() }
     val GTUStopTimeUpdate.optArrival get() = if (hasArrival()) arrival else null
     val GTUStopTimeUpdate.optDeparture get() = if (hasDeparture()) departure else null
     val GTUStopTimeUpdate.optDepartureOccupancyStatus get() = if (hasDepartureOccupancyStatus()) departureOccupancyStatus else null
@@ -486,10 +487,13 @@ object GtfsRealtimeExt {
     }
 
     val GEntitySelector.optAgencyId get() = if (hasAgencyId()) agencyId else null
+    val GEntitySelector.optAgencyIdNotEmpty get() = optAgencyId?.takeIf { it.isNotEmpty() }
     val GEntitySelector.optRouteId get() = if (hasRouteId()) routeId else this.optTrip?.optRouteId
+    val GEntitySelector.optRouteIdNotEmpty get() = optRouteId?.takeIf { it.isNotEmpty() }
     val GEntitySelector.optDirectionId get() = if (hasDirectionId()) directionId else this.optTrip?.optDirectionId
     val GEntitySelector.optDirectionIdValid get() = optDirectionId?.takeIf { it.isValidDirection }
     val GEntitySelector.optStopId get() = if (hasStopId()) stopId else null
+    val GEntitySelector.optStopIdNotEmpty get() = optStopId?.takeIf { it.isNotEmpty() }
     val GEntitySelector.optRouteType get() = if (hasRouteType()) routeType else null
     val GEntitySelector.optTrip get() = if (hasTrip()) this.trip else null
 
@@ -512,6 +516,7 @@ object GtfsRealtimeExt {
 
     val GTripDescriptor.optTripId get() = if (hasTripId()) tripId else optModifiedTrip?.optAffectedTripId
     val GTripDescriptor.optRouteId get() = if (hasRouteId()) routeId else null
+    val GTripDescriptor.optRouteIdNotEmpty get() = optRouteId?.takeIf { it.isNotEmpty() }
     val GTripDescriptor.optDirectionId get() = if (hasDirectionId()) directionId else null
     val GTripDescriptor.optDirectionIdValid get() = optDirectionId?.takeIf { it.isValidDirection }
     val GTripDescriptor.optModifiedTrip get() = if (hasModifiedTrip()) modifiedTrip else null

@@ -248,6 +248,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         )
                     }
                     return false // NOT A MATCH
+                }
+            }
+        }
         parseTripId(td)?.let { tripId ->
             if (tripId !in staticRDTripIds) {
                 if (DEBUG_STATIC_RT_MATCH) {
