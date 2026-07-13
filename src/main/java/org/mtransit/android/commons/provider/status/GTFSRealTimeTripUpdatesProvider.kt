@@ -9,7 +9,6 @@ import org.mtransit.android.commons.SecurityUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.TimeUtilsK
 import org.mtransit.android.commons.data.POIStatus
-import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.ScheduleStatusFilter
 import org.mtransit.android.commons.data.arrival
