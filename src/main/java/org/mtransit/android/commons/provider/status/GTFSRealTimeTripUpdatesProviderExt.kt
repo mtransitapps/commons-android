@@ -9,7 +9,6 @@ import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.arrivalDiff
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.getTripTimestamps
-import org.mtransit.android.commons.data.hasTripTimestamps
 import org.mtransit.android.commons.data.providerPrecision
 import org.mtransit.android.commons.data.setCancelled
 import org.mtransit.android.commons.data.setDeleted
@@ -53,12 +52,19 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
     feedReadFromSourceMs: Long,
     includeCancelledTimestamps: Boolean = false,
 ) {
+    val schedulesByTripId = mutableMapOf<String, MutableSet<Schedule>>()
+    rdSchedules.forEach { schedule ->
+        schedule.timestamps.forEach { timestamp ->
+            timestamp.tripId?.let { tripId ->
+                schedulesByTripId.getOrPut(tripId) { mutableSetOf() }.add(schedule)
+            }
+        }
+    }
     rdTripUpdates.forEach { (td, gTripUpdate) ->
         val gTripId = td.optTripIdNotEmpty ?: return@forEach
         val tripId = parseTripId(gTripId)
-        val tripSchedules = rdSchedules
-            .filter { schedule -> schedule.hasTripTimestamps(tripId) }
-            .takeIf { it.isNotEmpty() }
+        val tripSchedules = schedulesByTripId[tripId]
+            ?.takeIf { it.isNotEmpty() }
             ?: return@forEach
         val tripSortedRDS = sortedRDS
             .filter { rds -> tripSchedules.any { it.targetUUID == rds.uuid } }
@@ -123,6 +129,7 @@ internal fun processRDTripUpdate(
         MTLog.d(LOG_TAG, "processRDTripUpdate($tripId) > SKIP (useless trip update: ${gTripUpdate.toStringExt()})")
         return // nothing to do
     }
+    val tripSchedulesByUUID = tripSchedules.associateBy { it.targetUUID }
     var stuIdx = 0
     var uuidAndSeqIdx = 0
     var currentDelay = gTripUpdate.optDelayDuration // initial delay valid until 1st stop time update
@@ -140,7 +147,7 @@ internal fun processRDTripUpdate(
             currentDelay = applyDelay(
                 tripId = tripId,
                 stopSequence = currentUuidAndSeq.stopSequence,
-                rdsSchedule = tripSchedules.firstOrNull { it.targetUUID == currentRDS.uuid},
+                rdsSchedule = tripSchedulesByUUID[currentRDS.uuid],
                 currentDelay = currentDelay,
                 readFromSourceMs = gTripUpdateReadFromSourceMs
             )
@@ -153,7 +160,7 @@ internal fun processRDTripUpdate(
         currentDelay = applyDelaySTU(
             tripId = tripId,
             stopSequence = currentUuidAndSeq.stopSequence,
-            rdsSchedule = tripSchedules.firstOrNull { it.targetUUID == currentRDS.uuid},
+            rdsSchedule = tripSchedulesByUUID[currentRDS.uuid],
             gStopTimeUpdate = currentStopTimeUpdate,
             readFromSourceMs = gTripUpdateReadFromSourceMs,
             currentDelay = currentDelay,

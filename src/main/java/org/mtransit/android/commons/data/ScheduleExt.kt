@@ -68,7 +68,6 @@ fun Schedule.toNoData() = makeSchedule(
 val Schedule.providerPrecision get() = providerPrecisionInMs.milliseconds
 
 fun Schedule.getTripTimestamps(tripId: String) = this.timestamps.filter { it.tripId == tripId }
-fun Schedule.hasTripTimestamps(tripId: String) = this.timestamps.any { it.tripId == tripId }
 
 fun Instant.toScheduleTimestamp(localTimeZoneId: String, arrival: Instant? = null, tripId: String? = null, stopSequence: Int? = null) =
     Schedule.Timestamp(this.toMillis(), localTimeZoneId).apply {
