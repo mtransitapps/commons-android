@@ -79,9 +79,7 @@ internal fun makeTargetUuidAndSequenceList(
     tripTargetUuidSchedule: Map<String, Schedule>,
     tripSortedRDS: List<RouteDirectionStop>,
 ): List<Pair<String, Int>> {
-    if (tripTargetUuidSchedule.values.any { schedule ->
-            schedule.getTripTimestamps(tripId).any { timestamp -> timestamp.stopSequenceOrNull == null }
-        }) {
+    if (tripTargetUuidSchedule.values.any { schedule -> schedule.timestamps.any { it.tripId == tripId && it.stopSequenceOrNull == null } }) {
         /** should not happen if FF is turned ON [org.mtransit.commons.FeatureFlags.F_EXPORT_STOP_SEQUENCE] */
         return tripSortedRDS
             .mapIndexed { index, rds ->
@@ -156,7 +154,7 @@ internal fun processRDTripUpdate(
             stopSequence = currentUuidAndSeq.second,
             rdsSchedule = tripTargetUuidSchedule[currentRDS.uuid],
             gStopTimeUpdate = currentStopTimeUpdate,
-            readFromSourceMs = gTripUpdate.optTimestampMs ?: feedReadFromSourceMs,
+            readFromSourceMs = gTripUpdateReadFromSourceMs,
             currentDelay = currentDelay,
             includeCancelledTimestamps = includeCancelledTimestamps,
         )
