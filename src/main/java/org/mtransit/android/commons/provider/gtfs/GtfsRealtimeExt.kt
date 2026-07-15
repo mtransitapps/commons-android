@@ -281,7 +281,7 @@ object GtfsRealtimeExt {
             buildList {
                 optDelayMs?.let { add(if (short) "d=${it.toDurationLog()}" else "delay=${it.toDurationLog()}") }
                 optTimeMs?.let { add(if (short) "t=${it.toDateTimeLog()}" else "time=${it.toDateTimeLog()}") }
-                optUncertainty?.let { add(if (short) "u=$it" else "uncertainty=$it") }
+                optUncertaintyInMs?.let { add(if (short) "u=${it.toDurationLog()}" else "uncertainty=${it.toDurationLog()}") }
                 optScheduledTimeMs?.let { add(if (short) "sT=${it.toDateTimeLog()}" else "schedTime=${it.toDateTimeLog()}") }
             }.joinToStringList()
         )
@@ -294,6 +294,8 @@ object GtfsRealtimeExt {
     val GTUStopTimeEvent.optTimeMs get() = optTime?.secToMs()
     val GTUStopTimeEvent.optTimeInstant get() = optTime?.secsToInstant()
     val GTUStopTimeEvent.optUncertainty get() = if (hasUncertainty()) uncertainty else null
+    val GTUStopTimeEvent.optUncertaintyInMs get() = optUncertainty?.secToMs()
+    val GTUStopTimeEvent.optUncertaintyDuration get() = optUncertainty?.seconds
     val GTUStopTimeEvent.optScheduledTime get() = if (hasScheduledTime()) scheduledTime else null
     val GTUStopTimeEvent.optScheduledTimeMs get() = optScheduledTime?.secToMs()
     val GTUStopTimeEvent.optScheduledTimeInstant get() = optScheduledTime?.secsToInstant()

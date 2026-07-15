@@ -12,6 +12,7 @@ import org.mtransit.android.commons.data.getTripTimestamps
 import org.mtransit.android.commons.data.hasTripTimestamps
 import org.mtransit.android.commons.data.providerPrecision
 import org.mtransit.android.commons.data.setCancelled
+import org.mtransit.android.commons.data.setDeleted
 import org.mtransit.android.commons.data.setReadFromSourceAtInMsKeepMostRecent
 import org.mtransit.android.commons.data.updateArrivalForRealTime
 import org.mtransit.android.commons.data.updateDepartureForRealTime
@@ -110,28 +111,13 @@ internal fun processRDTripUpdate(
     feedReadFromSourceMs: Long,
     includeCancelledTimestamps: Boolean = false,
 ) {
+    val gTripUpdateReadFromSourceMs = gTripUpdate.optTimestampMs ?: feedReadFromSourceMs
     if (gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.DELETED) {
-        tripTargetUuidSchedule.values.forEach { schedule ->
-            val tripTimestamps = schedule.getTripTimestamps(tripId)
-            tripTimestamps.forEach {
-                schedule.removeTimestamp(it)
-            }
-            if (tripTimestamps.isNotEmpty()) {
-                schedule.setReadFromSourceAtInMsKeepMostRecent(gTripUpdate.optTimestampMs ?: feedReadFromSourceMs)
-            }
-        }
+        tripTargetUuidSchedule.values.setDeleted(tripId, gTripUpdateReadFromSourceMs)
         return
     }
     if (gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.CANCELED) {
-        tripTargetUuidSchedule.values.forEach { schedule ->
-            val tripTimestamps = schedule.getTripTimestamps(tripId)
-            tripTimestamps.forEach { timestamp ->
-                schedule.setCancelled(timestamp, true, includeCancelledTimestamps)
-            }
-            if (tripTimestamps.isNotEmpty()) {
-                schedule.setReadFromSourceAtInMsKeepMostRecent(gTripUpdate.optTimestampMs ?: feedReadFromSourceMs)
-            }
-        }
+        tripTargetUuidSchedule.values.setCancelled(tripId, includeCancelledTimestamps, gTripUpdateReadFromSourceMs)
         return
     }
     if (gTripUpdate.optDelay == null && gTripUpdate.stopTimeUpdateCount == 0) {
@@ -157,7 +143,7 @@ internal fun processRDTripUpdate(
                 stopSequence = currentUuidAndSeq.second,
                 rdsSchedule = tripTargetUuidSchedule[currentRDS.uuid],
                 currentDelay = currentDelay,
-                readFromSourceMs = gTripUpdate.optTimestampMs ?: feedReadFromSourceMs
+                readFromSourceMs = gTripUpdateReadFromSourceMs
             )
             currentUuidAndSeq = sortedTargetUuidAndSequence.getOrNull(++uuidAndSeqIdx) ?: break // no more stop
             currentRDS = tripSortedRDS.singleOrNull { it.uuid == currentUuidAndSeq.first } ?: break // stop not found!
@@ -228,7 +214,7 @@ internal fun applyDelaySTU(
     stuDepartureTime?.let { rdsTripTimestamp.updateDepartureForRealTime(newDeparture = it); updated = true }
         ?: stuDepartureDelay?.let { rdsTripTimestamp.updateDepartureForRealTime(it, rdsSchedule.providerPrecision, PROVIDER_PRECISION); updated = true }
     if (gStopTimeUpdate.scheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) {
-        rdsSchedule.setCancelled(rdsTripTimestamp, true, includeCancelledTimestamps)
+        rdsSchedule.setCancelled(rdsTripTimestamp, includeCancelledTimestamps)
         updated = true
     }
     if (updated) rdsSchedule.setReadFromSourceAtInMsKeepMostRecent(readFromSourceMs)
@@ -261,20 +247,19 @@ internal fun applyDelay(
     val rdsTripTimestamp = rdsSchedule?.timestamps?.findClosestTripTimestamp(tripId, stopSequence)
         ?: return currentDelay
     val currentDiffBetweenArrivalAndDeparture = rdsTripTimestamp.arrivalDiff
-    if (currentDelay < Duration.ZERO) {
+    val newDelay = if (currentDelay < Duration.ZERO) {
         rdsTripTimestamp.updateForRealTime(delay = currentDelay, rdsSchedule.providerPrecision, PROVIDER_PRECISION)
-        rdsSchedule.setReadFromSourceAtInMsKeepMostRecent(readFromSourceMs)
-        return currentDelay // do not consume negative delay
+        currentDelay // do not consume negative delay
     } else if (currentDiffBetweenArrivalAndDeparture <= currentDelay) {
         val newDelay = (currentDelay - currentDiffBetweenArrivalAndDeparture).coerceAtLeast(Duration.ZERO)
         rdsTripTimestamp.updateForRealTime(arrivalDelay = currentDelay, departureDelay = newDelay, rdsSchedule.providerPrecision, PROVIDER_PRECISION)
-        rdsSchedule.setReadFromSourceAtInMsKeepMostRecent(readFromSourceMs)
-        return newDelay
+        newDelay
     } else {
         rdsTripTimestamp.updateArrivalForRealTime(currentDelay, rdsSchedule.providerPrecision, PROVIDER_PRECISION)
-        rdsSchedule.setReadFromSourceAtInMsKeepMostRecent(readFromSourceMs)
-        return Duration.ZERO // all delay consumed
+        Duration.ZERO // all delay consumed
     }
+    rdsSchedule.setReadFromSourceAtInMsKeepMostRecent(readFromSourceMs)
+    return newDelay
 }
 
 private fun GTFSRealTimeProvider.isSameStop(stopTimeUpdate: GTUStopTimeUpdate?, rds: RouteDirectionStop?, stopSequence: Int) =
@@ -294,5 +279,5 @@ internal fun GTUStopTimeUpdate.isSameStop(
         rds.stop.isSameOriginalId(parseStopId(it))
     }
     if (sameOrUnspecifiedStopSequence == null && sameOrUnspecifiedStopId == null) return false
-    return sameOrUnspecifiedStopSequence != false && sameOrUnspecifiedStopId != false
+    return (sameOrUnspecifiedStopSequence ?: true) && (sameOrUnspecifiedStopId ?: true)
 }

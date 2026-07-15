@@ -77,13 +77,33 @@ fun Instant.toScheduleTimestamp(localTimeZoneId: String, arrival: Instant? = nul
         stopSequence?.let { this.setStopSequence(it) }
     }
 
-fun Schedule.setCancelled(timestamp: Schedule.Timestamp, cancelled: Boolean, includeCancelledTimestamps: Boolean) {
-    if (cancelled) {
-        if (includeCancelledTimestamps) {
-            timestamp.cancelled = true
-        } else {
-            removeTimestamp(timestamp)
-        }
+fun Collection<Schedule>.setDeleted(tripId: String, readFromSourceMs: Long) =
+    forEach { it.setDeleted(tripId, readFromSourceMs) }
+
+fun Schedule.setDeleted(tripId: String, readFromSourceMs: Long) {
+    val tripTimestamps = getTripTimestamps(tripId).takeIf { it.isNotEmpty() } ?: return
+    tripTimestamps.forEach {
+        removeTimestamp(it)
+    }
+    setReadFromSourceAtInMsKeepMostRecent(readFromSourceMs)
+}
+
+fun Collection<Schedule>.setCancelled(tripId: String, includeCancelledTimestamps: Boolean, readFromSourceMs: Long) =
+    forEach { it.setCancelled(tripId, includeCancelledTimestamps, readFromSourceMs) }
+
+fun Schedule.setCancelled(tripId: String, includeCancelledTimestamps: Boolean, readFromSourceMs: Long) {
+    val tripTimestamps = getTripTimestamps(tripId).takeIf { it.isNotEmpty() } ?: return
+    tripTimestamps.forEach {
+        setCancelled(it, includeCancelledTimestamps)
+    }
+    setReadFromSourceAtInMsKeepMostRecent(readFromSourceMs)
+}
+
+fun Schedule.setCancelled(timestamp: Schedule.Timestamp, includeCancelledTimestamps: Boolean) {
+    if (includeCancelledTimestamps) {
+        timestamp.cancelled = true
+    } else {
+        removeTimestamp(timestamp)
     }
 }
 
