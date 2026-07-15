@@ -67,12 +67,25 @@ fun Schedule.toNoData() = makeSchedule(
 
 val Schedule.providerPrecision get() = providerPrecisionInMs.milliseconds
 
+fun Schedule.getTripTimestamps(tripId: String) = this.timestamps.filter { it.tripId == tripId }
+fun Schedule.hasTripTimestamps(tripId: String) = this.timestamps.any { it.tripId == tripId }
+
 fun Instant.toScheduleTimestamp(localTimeZoneId: String, arrival: Instant? = null, tripId: String? = null, stopSequence: Int? = null) =
     Schedule.Timestamp(this.toMillis(), localTimeZoneId).apply {
         arrival?.let { this.arrivalT = it.toMillis() }
         tripId?.let { this.tripId = it }
         stopSequence?.let { this.setStopSequence(it) }
     }
+
+fun Schedule.setCancelled(timestamp: Schedule.Timestamp, cancelled: Boolean, includeCancelledTimestamps: Boolean) {
+    if (cancelled) {
+        if (includeCancelledTimestamps) {
+            timestamp.cancelled = true
+        } else {
+            removeTimestamp(timestamp)
+        }
+    }
+}
 
 fun Schedule.Timestamp.isDepartureLate(minDelay: Duration = 30.seconds) =
     originalDepartureDelay > minDelay
