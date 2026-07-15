@@ -55,11 +55,13 @@ class GTFSRealTimeTripUpdatesProviderTests {
     fun test_isSameStop() {
         // STU - no stop ID / SEQ filter
         assertFalse { stopTimeUpdate { }.isSameStop(makeRDS(stopId = 1234), 1, parseStopId = { it }) }
+        assertFalse { stopTimeUpdate { }.isSameStop(null, 1, parseStopId = { it }) }
         // STU - stop ID only
         assertTrue { stopTimeUpdate { stopId = "1234" }.isSameStop(makeRDS(stopId = 1234), 1, parseStopId = { it }) }
         assertFalse { stopTimeUpdate { stopId = "1234" }.isSameStop(makeRDS(stopId = 5678), 1, parseStopId = { it }) }
         // STU - stop SEQ only
         assertTrue { stopTimeUpdate { stopSequence = 7 }.isSameStop(makeRDS(stopId = 1234), 7, parseStopId = { it }) }
+        assertFalse { stopTimeUpdate { stopSequence = 1 }.isSameStop(makeRDS(stopId = 1234), 7, parseStopId = { it }) }
         // STU - stop ID & stop SEQ
         assertTrue { stopTimeUpdate { stopId = "1234"; stopSequence = 7 }.isSameStop(makeRDS(stopId = 1234), 7, parseStopId = { it }) }
         assertFalse { stopTimeUpdate { stopId = "1234"; stopSequence = 7 }.isSameStop(makeRDS(stopId = 1234), 1, parseStopId = { it }) }
