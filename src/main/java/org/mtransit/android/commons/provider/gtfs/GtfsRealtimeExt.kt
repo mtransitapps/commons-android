@@ -107,11 +107,11 @@ object GtfsRealtimeExt {
 
     @JvmStatic
     fun List<GTripUpdate>.sortTripUpdates(): List<GTripUpdate> =
-        this.sortedBy { it.timestamp }
+        this.sortedBy { it.optTimestamp }
 
     @JvmStatic
     fun List<Pair<GTripUpdate, String>>.sortTripUpdatesPair(): List<Pair<GTripUpdate, String>> =
-        this.sortedBy { (it, _) -> it.timestamp }
+        this.sortedBy { (it, _) -> it.optTimestamp }
 
     @JvmStatic
     fun List<GFeedEntity>.toVehicles(): List<GVehiclePosition> =

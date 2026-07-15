@@ -4,7 +4,9 @@ package org.mtransit.android
 
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.ThreadSafeDateFormatter
 import org.mtransit.android.commons.toMillis
+import java.text.DateFormat
 import java.util.Calendar
 import java.util.Date
 import kotlin.time.Duration
@@ -12,18 +14,32 @@ import kotlin.time.Instant
 
 // region duration
 
-fun Long?.toDurationLog() = MTLog.formatDuration(this)
-fun Duration?.toDurationLog() = this?.inWholeMilliseconds.toDurationLog()
+fun Long?.toDurationLog(): String? = if (Constants.DEBUG) MTLog.formatDuration(this) else this?.toString() // formatting is expensive, only in debug
+fun Duration?.toDurationLog(): String? = this?.inWholeMilliseconds.toDurationLog()
 
 // endregion
+
+object MtLogExt {
+    private val dateTimeFormatter: ThreadSafeDateFormatter by lazy {
+        ThreadSafeDateFormatter(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT))
+    }
+
+    fun format(timeInMs: Long?): String? = try {
+        timeInMs?.let {
+            dateTimeFormatter.formatThreadSafe(it)
+        }
+    } catch (e: Exception) {
+        "error"
+    }
+}
 
 // region date & time
 
 @Deprecated("Use toDateTimeLog() instead", ReplaceWith("this.toDateTimeLog()"))
-fun Long?.formatDateTime() = this.toDateTimeLog()
-fun Long?.toDateTimeLog() = if (Constants.DEBUG) MTLog.makeTime(this) else MTLog.formatDateTime(this)
-fun Date?.toDateTimeLog() = this?.time.toDateTimeLog()
-fun Calendar?.toDateTimeLog() = this?.time.toDateTimeLog()
-fun Instant?.toDateTimeLog() = this?.toMillis().toDateTimeLog()
+fun Long?.formatDateTime(): String? = this.toDateTimeLog()
+fun Long?.toDateTimeLog(): String? = if (Constants.DEBUG) MtLogExt.format(this) else this?.toString() // formatting is expensive, only in debug
+fun Date?.toDateTimeLog(): String? = this?.time.toDateTimeLog()
+fun Calendar?.toDateTimeLog(): String? = this?.time.toDateTimeLog()
+fun Instant?.toDateTimeLog(): String? = this?.toMillis().toDateTimeLog()
 
 // endregion

@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.provider.status
 
+import androidx.annotation.VisibleForTesting
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.TimeUtilsK
 import org.mtransit.android.commons.data.RouteDirectionStop
@@ -261,16 +262,19 @@ internal fun applyDelay(
 private fun GTFSRealTimeProvider.isSameStop(stopTimeUpdate: GTUStopTimeUpdate?, rds: RouteDirectionStop?, stopSequence: Int) =
     stopTimeUpdate?.isSameStop(rds, stopSequence, this::parseStopId) == true
 
+@VisibleForTesting
 internal fun GTUStopTimeUpdate.isSameStop(
     rds: RouteDirectionStop?,
     stopSequence: Int,
     parseStopId: (String) -> String,
 ): Boolean {
     rds ?: return false
-    val sameOrUnspecifiedStopSequence = this.optStopSequence
-        ?.let { it == stopSequence }
+    val sameOrUnspecifiedStopSequence = this.optStopSequence?.let {
+        it == stopSequence
+    }
     val sameOrUnspecifiedStopId = this.optStopIdNotEmpty?.let {
         rds.stop.isSameOriginalId(parseStopId(it))
     }
-    return sameOrUnspecifiedStopSequence == true || sameOrUnspecifiedStopId == true
+    if (sameOrUnspecifiedStopSequence == null && sameOrUnspecifiedStopId == null) return false
+    return sameOrUnspecifiedStopSequence != false && sameOrUnspecifiedStopId != false
 }
