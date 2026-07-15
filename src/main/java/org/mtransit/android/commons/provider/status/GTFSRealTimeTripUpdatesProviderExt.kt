@@ -66,8 +66,9 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
         val tripSchedules = schedulesByTripId[tripId]
             ?.takeIf { it.isNotEmpty() }
             ?: return@forEach
+        val tripScheduleUUIDs = tripSchedules.map { it.targetUUID }.toSet()
         val tripSortedRDS = sortedRDS
-            .filter { rds -> tripSchedules.any { it.targetUUID == rds.uuid } }
+            .filter { rds -> rds.uuid in tripScheduleUUIDs }
             .takeIf { it.isNotEmpty() }
             ?: return@forEach
         val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(tripId, tripSchedules, tripSortedRDS)
@@ -93,14 +94,12 @@ internal fun makeTargetUuidAndSequenceList(
             }
             .sortedBy { (_, stopSequence) -> stopSequence }
     }
-    var generatedStopSequence = 1
     return buildSet { // unicity of uuid+sequence
         tripSchedules.forEach { schedule->
             schedule.getTripTimestamps(tripId).forEach { timestamp ->
-                val stopSequence = timestamp.stopSequenceOrNull
-                    ?: generatedStopSequence /** should not happen if FF is turned ON [org.mtransit.commons.FeatureFlags.F_EXPORT_STOP_SEQUENCE] */
-                add(schedule.targetUUID to stopSequence)
-                generatedStopSequence = stopSequence + 1 /** should not happen if FF is turned ON [org.mtransit.commons.FeatureFlags.F_EXPORT_STOP_SEQUENCE] */
+                timestamp.stopSequenceOrNull?.let { stopSequence ->
+                    add(schedule.targetUUID to stopSequence)
+                }
             }
         }
     }.sortedBy { (_, stopSequence) -> stopSequence }
@@ -218,10 +217,20 @@ internal fun applyDelaySTU(
     val stuDepartureDelay = gStopTimeUpdate.optDeparture
         .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
         .makeDelay(timestampOriginalDeparture, stuArrivalDelay, timestampOriginalArrivalDiff)
-    stuArrivalTime?.let { rdsTripTimestamp.updateArrivalForRealTime(newArrival = it); updated = true }
-        ?: stuArrivalDelay?.let { rdsTripTimestamp.updateArrivalForRealTime(it, rdsSchedule.providerPrecision, PROVIDER_PRECISION); updated = true }
-    stuDepartureTime?.let { rdsTripTimestamp.updateDepartureForRealTime(newDeparture = it); updated = true }
-        ?: stuDepartureDelay?.let { rdsTripTimestamp.updateDepartureForRealTime(it, rdsSchedule.providerPrecision, PROVIDER_PRECISION); updated = true }
+    if (stuArrivalTime != null) {
+        rdsTripTimestamp.updateArrivalForRealTime(newArrival = stuArrivalTime)
+        updated = true
+    } else if (stuArrivalDelay != null) {
+        rdsTripTimestamp.updateArrivalForRealTime(stuArrivalDelay, rdsSchedule.providerPrecision, PROVIDER_PRECISION)
+        updated = true
+    }
+    if (stuDepartureTime != null) {
+        rdsTripTimestamp.updateDepartureForRealTime(newDeparture = stuDepartureTime)
+        updated = true
+    } else if (stuDepartureDelay != null) {
+        rdsTripTimestamp.updateDepartureForRealTime(stuDepartureDelay, rdsSchedule.providerPrecision, PROVIDER_PRECISION)
+        updated = true
+    }
     if (gStopTimeUpdate.scheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) {
         rdsSchedule.setCancelled(rdsTripTimestamp, includeCancelledTimestamps)
         updated = true
