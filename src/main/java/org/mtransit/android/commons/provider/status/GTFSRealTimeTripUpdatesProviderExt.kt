@@ -150,11 +150,11 @@ internal fun processRDTripUpdate(
                 currentDelay = currentDelay,
                 readFromSourceMs = gTripUpdateReadFromSourceMs
             )
-            currentUuidAndSeq = sortedTargetUuidAndSequence.getOrNull(++uuidAndSeqIdx) ?: break // no more stop
-            currentRDS = tripSortedRDS.firstOrNull { it.uuid == currentUuidAndSeq.uuid } ?: break // stop not found!
+            currentUuidAndSeq = sortedTargetUuidAndSequence.getOrNull(++uuidAndSeqIdx) ?: return // no more stop
+            currentRDS = tripSortedRDS.firstOrNull { it.uuid == currentUuidAndSeq.uuid } ?: return // stop not found!
         }
-        if (uuidAndSeqIdx >= sortedTargetUuidAndSequence.size) break // no more stop
-        currentStopTimeUpdate = nextStopTimeUpdate ?: break // no more stop time update
+        if (uuidAndSeqIdx >= sortedTargetUuidAndSequence.size) return // no more stop
+        currentStopTimeUpdate = nextStopTimeUpdate ?: return // no more stop time update
         nextStopTimeUpdate = gStopTimeUpdates?.getOrNull(++stuIdx)
         currentDelay = applyDelaySTU(
             tripId = tripId,
