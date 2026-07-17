@@ -17,6 +17,7 @@ class KeyboardUtils : MTLog.Loggable {
         fun showKeyboard(activity: Activity?, view: View?) {
             view ?: return
             val imm = activity?.getSystemService<InputMethodManager>() ?: return
+            @Suppress("DEPRECATION")
             imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
         }
 
