@@ -4,3 +4,9 @@ import org.mtransit.android.commons.millisToInstant
 import kotlin.time.Instant
 
 val POIStatus.readFromSource: Instant? get() = this.readFromSourceAtInMs.takeIf { it > 0 }?.millisToInstant()
+
+fun POIStatus.setReadFromSourceAtInMsKeepMostRecent(readFromSourceAtInMs: Long) {
+    if (this.readFromSourceAtInMs < readFromSourceAtInMs) {
+        this.readFromSourceAtInMs = readFromSourceAtInMs
+    }
+}

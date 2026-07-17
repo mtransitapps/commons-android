@@ -378,22 +378,22 @@ public final class MTLog {
 		if (Constants.DEBUG) {
 			logMsg = StringUtils.oneLineOneSpace(logMsg);
 		}
-		final String time = makeTime(TimeUtils.systemCurrentTimeMillis()); // need stable ASC timestamp (more than exact time)
+		final String time = makeLogTime(TimeUtils.systemCurrentTimeMillis()); // need stable ASC timestamp (more than exact time)
 		return String.format("%s:%s>%s", time, tag, logMsg);
 	}
 
 	@Nullable
-	public static String makeTime(@Nullable Calendar calendar) {
-		return calendar == null ? null : makeTime(calendar.getTimeInMillis());
+	public static String makeLogTime(@Nullable Calendar calendar) {
+		return calendar == null ? null : makeLogTime(calendar.getTimeInMillis());
 	}
 
 	@Nullable
-	public static String makeTime(@Nullable Long timeInMs) {
-		return timeInMs == null ? null : makeTime(timeInMs.longValue());
+	public static String makeLogTime(@Nullable Long timeInMs) {
+		return timeInMs == null ? null : makeLogTime(timeInMs.longValue());
 	}
 
 	@NonNull
-	public static String makeTime(long timeMs) {
+	public static String makeLogTime(long timeMs) {
 		return Constants.DEBUG ? LOG_TIME_FORMAT.formatThreadSafe(timeMs) : String.valueOf(timeMs);
 	}
 

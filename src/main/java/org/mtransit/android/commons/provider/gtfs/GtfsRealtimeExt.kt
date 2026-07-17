@@ -107,11 +107,11 @@ object GtfsRealtimeExt {
 
     @JvmStatic
     fun List<GTripUpdate>.sortTripUpdates(): List<GTripUpdate> =
-        this.sortedBy { it.timestamp }
+        this.sortedBy { it.optTimestamp ?: 0L }
 
     @JvmStatic
     fun List<Pair<GTripUpdate, String>>.sortTripUpdatesPair(): List<Pair<GTripUpdate, String>> =
-        this.sortedBy { (it, _) -> it.timestamp }
+        this.sortedBy { (it, _) -> it.optTimestamp ?: 0L }
 
     @JvmStatic
     fun List<GFeedEntity>.toVehicles(): List<GVehiclePosition> =
@@ -123,11 +123,11 @@ object GtfsRealtimeExt {
 
     @JvmStatic
     fun List<GVehiclePosition>.sortVehicles(): List<GVehiclePosition> =
-        this.sortedBy { it.timestamp }
+        this.sortedBy { it.optTimestamp ?: 0L }
 
     @JvmStatic
     fun List<Pair<GVehiclePosition, String>>.sortVehiclesPair(): List<Pair<GVehiclePosition, String>> =
-        this.sortedBy { (vehiclePosition, _) -> vehiclePosition.timestamp }
+        this.sortedBy { (vehiclePosition, _) -> vehiclePosition.optTimestamp ?: 0L }
 
     @JvmStatic
     fun List<GFeedEntity>.toAlerts(): List<GAlert> =
@@ -281,7 +281,7 @@ object GtfsRealtimeExt {
             buildList {
                 optDelayMs?.let { add(if (short) "d=${it.toDurationLog()}" else "delay=${it.toDurationLog()}") }
                 optTimeMs?.let { add(if (short) "t=${it.toDateTimeLog()}" else "time=${it.toDateTimeLog()}") }
-                optUncertainty?.let { add(if (short) "u=$it" else "uncertainty=$it") }
+                optUncertaintyInMs?.let { add(if (short) "u=${it.toDurationLog()}" else "uncertainty=${it.toDurationLog()}") }
                 optScheduledTimeMs?.let { add(if (short) "sT=${it.toDateTimeLog()}" else "schedTime=${it.toDateTimeLog()}") }
             }.joinToStringList()
         )
@@ -294,6 +294,8 @@ object GtfsRealtimeExt {
     val GTUStopTimeEvent.optTimeMs get() = optTime?.secToMs()
     val GTUStopTimeEvent.optTimeInstant get() = optTime?.secsToInstant()
     val GTUStopTimeEvent.optUncertainty get() = if (hasUncertainty()) uncertainty else null
+    val GTUStopTimeEvent.optUncertaintyInMs get() = optUncertainty?.secToMs()
+    val GTUStopTimeEvent.optUncertaintyDuration get() = optUncertainty?.seconds
     val GTUStopTimeEvent.optScheduledTime get() = if (hasScheduledTime()) scheduledTime else null
     val GTUStopTimeEvent.optScheduledTimeMs get() = optScheduledTime?.secToMs()
     val GTUStopTimeEvent.optScheduledTimeInstant get() = optScheduledTime?.secsToInstant()

@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.provider.status
 
+import androidx.annotation.VisibleForTesting
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.TimeUtilsK
 import org.mtransit.android.commons.data.RouteDirectionStop
@@ -7,19 +8,25 @@ import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.arrivalDiff
 import org.mtransit.android.commons.data.departure
+import org.mtransit.android.commons.data.getTripTimestamps
 import org.mtransit.android.commons.data.providerPrecision
+import org.mtransit.android.commons.data.setCancelled
+import org.mtransit.android.commons.data.setDeleted
+import org.mtransit.android.commons.data.setReadFromSourceAtInMsKeepMostRecent
 import org.mtransit.android.commons.data.updateArrivalForRealTime
 import org.mtransit.android.commons.data.updateDepartureForRealTime
 import org.mtransit.android.commons.data.updateForRealTime
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optArrival
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelay
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelayDuration
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDeparture
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopSequence
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeInstant
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestampMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
@@ -27,8 +34,9 @@ import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.LOG_TAG
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.PROVIDER_PRECISION
+import org.mtransit.android.toDateTimeLog
+import org.mtransit.android.toDurationLog
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor as GTripDescriptor
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
@@ -39,25 +47,35 @@ import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.Schedu
 
 fun GTFSRealTimeProvider.processRDTripUpdates(
     rdTripUpdates: List<Pair<GTripDescriptor, GTripUpdate>>,
-    targetUuidSchedule: Map<String, Schedule?>,
+    rdSchedules: Collection<Schedule>,
     sortedRDS: List<RouteDirectionStop>,
+    feedReadFromSourceMs: Long,
     includeCancelledTimestamps: Boolean = false,
 ) {
+    val schedulesByTripId = mutableMapOf<String, MutableSet<Schedule>>()
+    rdSchedules.forEach { schedule ->
+        schedule.timestamps.forEach { timestamp ->
+            timestamp.tripId?.let { tripId ->
+                schedulesByTripId.getOrPut(tripId) { mutableSetOf() }.add(schedule)
+            }
+        }
+    }
     rdTripUpdates.forEach { (td, gTripUpdate) ->
         val gTripId = td.optTripIdNotEmpty ?: return@forEach
         val tripId = parseTripId(gTripId)
-        val tripTargetUuidSchedule = targetUuidSchedule
-            .filter { (_, schedule) -> schedule?.timestamps?.any { it.tripId == tripId } == true }
-            .takeIf { it.isNotEmpty() }
+        val tripSchedules = schedulesByTripId[tripId]
+            ?.takeIf { it.isNotEmpty() }
             ?: return@forEach
+        val tripScheduleUUIDs = tripSchedules.map { it.targetUUID }.toSet()
         val tripSortedRDS = sortedRDS
-            .filter { rds -> tripTargetUuidSchedule.contains(rds.uuid) }
+            .filter { rds -> rds.uuid in tripScheduleUUIDs }
             .takeIf { it.isNotEmpty() }
             ?: return@forEach
-        val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(tripId, tripTargetUuidSchedule, tripSortedRDS)
+        val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(tripId, tripSchedules, tripSortedRDS)
         processRDTripUpdate(
-            tripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, tripTargetUuidSchedule,
+            tripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, tripSchedules,
             isSameStop = { stu, rds, stopSeq -> isSameStop(stu, rds, stopSeq) },
+            feedReadFromSourceMs = feedReadFromSourceMs,
             includeCancelledTimestamps = includeCancelledTimestamps,
         )
     }
@@ -65,26 +83,23 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
 
 internal fun makeTargetUuidAndSequenceList(
     tripId: String,
-    tripTargetUuidSchedule: Map<String, Schedule?>,
+    tripSchedules: Collection<Schedule>,
     tripSortedRDS: List<RouteDirectionStop>,
 ): List<Pair<String, Int>> {
-    if (tripTargetUuidSchedule.values.any {
-            it?.timestamps?.filter { timestamp -> timestamp.tripId == tripId }?.any { timestamp -> timestamp.stopSequenceOrNull == null } == true
-        }) {
-        // should not happen if FF is turned ON
+    if (tripSchedules.any { schedule -> schedule.timestamps.any { it.tripId == tripId && it.stopSequenceOrNull == null } }) {
+        /** should not happen if FF is turned ON [org.mtransit.commons.FeatureFlags.F_EXPORT_STOP_SEQUENCE] */
         return tripSortedRDS
             .mapIndexed { index, rds ->
                 rds.uuid to index + 1 // generated stop sequence
             }
             .sortedBy { (_, stopSequence) -> stopSequence }
     }
-    var generatedStopSequence = 1
     return buildSet { // unicity of uuid+sequence
-        tripTargetUuidSchedule.forEach { (targetUuid, schedule) ->
-            schedule?.timestamps?.filter { it.tripId == tripId }?.forEach { timestamp ->
-                val stopSequence = timestamp.stopSequenceOrNull ?: generatedStopSequence
-                add(targetUuid to stopSequence)
-                generatedStopSequence = stopSequence + 1 // next probable stop sequence
+        tripSchedules.forEach { schedule->
+            schedule.getTripTimestamps(tripId).forEach { timestamp ->
+                timestamp.stopSequenceOrNull?.let { stopSequence ->
+                    add(schedule.targetUUID to stopSequence)
+                }
             }
         }
     }.sortedBy { (_, stopSequence) -> stopSequence }
@@ -95,74 +110,68 @@ internal fun processRDTripUpdate(
     gTripUpdate: GTripUpdate,
     tripSortedRDS: List<RouteDirectionStop>,
     sortedTargetUuidAndSequence: List<Pair<String, Int>>,
-    tripTargetUuidSchedule: Map<String, Schedule?>,
+    tripSchedules: Collection<Schedule>,
     isSameStop: (GTUStopTimeUpdate?, RouteDirectionStop, Int) -> Boolean,
+    feedReadFromSourceMs: Long,
     includeCancelledTimestamps: Boolean = false,
 ) {
+    val gTripUpdateReadFromSourceMs = gTripUpdate.optTimestampMs ?: feedReadFromSourceMs
     if (gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.DELETED) {
-        tripTargetUuidSchedule.values.forEach { schedule ->
-            schedule ?: return@forEach
-            schedule.timestamps.filter { it.tripId == tripId }.forEach {
-                schedule.removeTimestamp(it)
-            }
-        }
+        tripSchedules.setDeleted(tripId, gTripUpdateReadFromSourceMs)
         return
     }
     if (gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.CANCELED) {
-        tripTargetUuidSchedule.values.forEach { schedule ->
-            schedule ?: return@forEach
-            schedule.timestamps.filter { it.tripId == tripId }.forEach { timestamp ->
-                if (includeCancelledTimestamps) {
-                    timestamp.cancelled = true
-                } else {
-                    schedule.removeTimestamp(timestamp)
-                }
-            }
-        }
+        tripSchedules.setCancelled(tripId, includeCancelledTimestamps, gTripUpdateReadFromSourceMs)
         return
     }
     if (gTripUpdate.optDelay == null && gTripUpdate.stopTimeUpdateCount == 0) {
         MTLog.d(LOG_TAG, "processRDTripUpdate($tripId) > SKIP (useless trip update: ${gTripUpdate.toStringExt()})")
         return // nothing to do
     }
+    val tripSchedulesByUUID = tripSchedules.associateBy { it.targetUUID }
     var stuIdx = 0
     var uuidAndSeqIdx = 0
-    var currentDelay = gTripUpdate.optDelay?.seconds // initial delay valid until 1st stop time update
+    var currentDelay = gTripUpdate.optDelayDuration // initial delay valid until 1st stop time update
     val gStopTimeUpdates = gTripUpdate.optStopTimeUpdateList?.sortedBy { it.optStopSequence }
     var currentStopTimeUpdate: GTUStopTimeUpdate?
-    var nextStopTimeUpdate: GTUStopTimeUpdate? = gStopTimeUpdates?.getOrNull(stuIdx)
+    var nextStopTimeUpdate = gStopTimeUpdates?.getOrNull(stuIdx)
     var currentUuidAndSeq = sortedTargetUuidAndSequence.getOrNull(uuidAndSeqIdx)
         ?: return // no more stop
-    var currentRDS: RouteDirectionStop = tripSortedRDS.singleOrNull { it.uuid == currentUuidAndSeq.first }
+    var currentRDS = tripSortedRDS.firstOrNull { it.uuid == currentUuidAndSeq.uuid }
         ?: return // stop not found!
     while (uuidAndSeqIdx <= sortedTargetUuidAndSequence.size) {
-        while (!isSameStop(nextStopTimeUpdate, currentRDS, currentUuidAndSeq.second)
+        while (!isSameStop(nextStopTimeUpdate, currentRDS, currentUuidAndSeq.stopSequence)
             && uuidAndSeqIdx <= sortedTargetUuidAndSequence.size // allow null currentRDS to signify end of trip
         ) {
             currentDelay = applyDelay(
                 tripId = tripId,
-                stopSequence = currentUuidAndSeq.second,
-                rdsSchedule = tripTargetUuidSchedule[currentRDS.uuid],
+                stopSequence = currentUuidAndSeq.stopSequence,
+                rdsSchedule = tripSchedulesByUUID[currentRDS.uuid],
                 currentDelay = currentDelay,
+                readFromSourceMs = gTripUpdateReadFromSourceMs
             )
-            currentUuidAndSeq = sortedTargetUuidAndSequence.getOrNull(++uuidAndSeqIdx) ?: break // no more stop
-            currentRDS = tripSortedRDS.singleOrNull { it.uuid == currentUuidAndSeq.first } ?: break // stop not found!
+            currentUuidAndSeq = sortedTargetUuidAndSequence.getOrNull(++uuidAndSeqIdx) ?: return // no more stop
+            currentRDS = tripSortedRDS.firstOrNull { it.uuid == currentUuidAndSeq.uuid } ?: return // stop not found!
         }
-        if (uuidAndSeqIdx >= sortedTargetUuidAndSequence.size) break // no more stop
-        currentStopTimeUpdate = nextStopTimeUpdate ?: break // no more stop time update
+        if (uuidAndSeqIdx >= sortedTargetUuidAndSequence.size) return // no more stop
+        currentStopTimeUpdate = nextStopTimeUpdate ?: return // no more stop time update
         nextStopTimeUpdate = gStopTimeUpdates?.getOrNull(++stuIdx)
         currentDelay = applyDelaySTU(
             tripId = tripId,
-            stopSequence = currentUuidAndSeq.second,
-            rdsSchedule = tripTargetUuidSchedule[currentRDS.uuid],
+            stopSequence = currentUuidAndSeq.stopSequence,
+            rdsSchedule = tripSchedulesByUUID[currentRDS.uuid],
             gStopTimeUpdate = currentStopTimeUpdate,
+            readFromSourceMs = gTripUpdateReadFromSourceMs,
             currentDelay = currentDelay,
             includeCancelledTimestamps = includeCancelledTimestamps,
         )
         currentUuidAndSeq = sortedTargetUuidAndSequence.getOrNull(++uuidAndSeqIdx) ?: break // no more stop
-        currentRDS = tripSortedRDS.singleOrNull { it.uuid == currentUuidAndSeq.first } ?: break // stop not found!
+        currentRDS = tripSortedRDS.firstOrNull { it.uuid == currentUuidAndSeq.uuid } ?: break // stop not found!
     }
 }
+
+private val Pair<String, Int>.uuid get() = this.first
+private val Pair<String, Int>.stopSequence get() = this.second
 
 fun Iterable<Schedule.Timestamp>.findClosestTripTimestamp(tripId: String, filterStopSequence: Int? = null) =
     this.filter { it.tripId == tripId }
@@ -184,6 +193,7 @@ internal fun applyDelaySTU(
     stopSequence: Int,
     rdsSchedule: Schedule?,
     gStopTimeUpdate: GTUStopTimeUpdate,
+    readFromSourceMs: Long,
     currentDelay: Duration? = null,
     includeCancelledTimestamps: Boolean = false,
 ): Duration? {
@@ -192,6 +202,7 @@ internal fun applyDelaySTU(
     val timestampOriginalArrival = rdsTripTimestamp.arrival
     val timestampOriginalDeparture = rdsTripTimestamp.departure
     val timestampOriginalArrivalDiff = rdsTripTimestamp.arrivalDiff
+    var updated = false
     val stuArrivalTime = gStopTimeUpdate.optArrival
         .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
         ?.optTimeInstant
@@ -206,17 +217,25 @@ internal fun applyDelaySTU(
     val stuDepartureDelay = gStopTimeUpdate.optDeparture
         .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
         .makeDelay(timestampOriginalDeparture, stuArrivalDelay, timestampOriginalArrivalDiff)
-    stuArrivalTime?.let { rdsTripTimestamp.updateArrivalForRealTime(newArrival = it) }
-        ?: stuArrivalDelay?.let { rdsTripTimestamp.updateArrivalForRealTime(it, rdsSchedule.providerPrecision, PROVIDER_PRECISION) }
-    stuDepartureTime?.let { rdsTripTimestamp.updateDepartureForRealTime(newDeparture = it) }
-        ?: stuDepartureDelay?.let { rdsTripTimestamp.updateDepartureForRealTime(it, rdsSchedule.providerPrecision, PROVIDER_PRECISION) }
-    if (gStopTimeUpdate.scheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) {
-        if (includeCancelledTimestamps) {
-            rdsTripTimestamp.cancelled = true
-        } else {
-            rdsSchedule.removeTimestamp(rdsTripTimestamp)
-        }
+    if (stuArrivalTime != null) {
+        rdsTripTimestamp.updateArrivalForRealTime(newArrival = stuArrivalTime)
+        updated = true
+    } else if (stuArrivalDelay != null) {
+        rdsTripTimestamp.updateArrivalForRealTime(stuArrivalDelay, rdsSchedule.providerPrecision, PROVIDER_PRECISION)
+        updated = true
     }
+    if (stuDepartureTime != null) {
+        rdsTripTimestamp.updateDepartureForRealTime(newDeparture = stuDepartureTime)
+        updated = true
+    } else if (stuDepartureDelay != null) {
+        rdsTripTimestamp.updateDepartureForRealTime(stuDepartureDelay, rdsSchedule.providerPrecision, PROVIDER_PRECISION)
+        updated = true
+    }
+    if (gStopTimeUpdate.scheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) {
+        rdsSchedule.setCancelled(rdsTripTimestamp, includeCancelledTimestamps)
+        updated = true
+    }
+    if (updated) rdsSchedule.setReadFromSourceAtInMsKeepMostRecent(readFromSourceMs)
     return stuDepartureDelay
         .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
 }
@@ -226,7 +245,7 @@ internal fun GTUStopTimeEvent?.makeDelay(
     previousSTEDelay: Duration? = null,
     previousCurrentDiff: Duration? = null,
 ): Duration? {
-    return this?.optDelay?.seconds
+    return this?.optDelayDuration
         ?: this?.optTimeInstant?.let { time -> time - originalTime }
         ?: previousSTEDelay?.let {
             previousCurrentDiff?.let {
@@ -239,38 +258,44 @@ internal fun applyDelay(
     tripId: String,
     stopSequence: Int,
     rdsSchedule: Schedule?,
-    currentDelay: Duration?
+    currentDelay: Duration?,
+    readFromSourceMs: Long
 ): Duration? {
     currentDelay ?: return null
     val rdsTripTimestamp = rdsSchedule?.timestamps?.findClosestTripTimestamp(tripId, stopSequence)
         ?: return currentDelay
     val currentDiffBetweenArrivalAndDeparture = rdsTripTimestamp.arrivalDiff
-    if (currentDelay < Duration.ZERO) {
+    val newDelay = if (currentDelay < Duration.ZERO) {
         rdsTripTimestamp.updateForRealTime(delay = currentDelay, rdsSchedule.providerPrecision, PROVIDER_PRECISION)
-        return currentDelay // do not consume negative delay
+        currentDelay // do not consume negative delay
     } else if (currentDiffBetweenArrivalAndDeparture <= currentDelay) {
         val newDelay = (currentDelay - currentDiffBetweenArrivalAndDeparture).coerceAtLeast(Duration.ZERO)
         rdsTripTimestamp.updateForRealTime(arrivalDelay = currentDelay, departureDelay = newDelay, rdsSchedule.providerPrecision, PROVIDER_PRECISION)
-        return newDelay
+        newDelay
     } else {
         rdsTripTimestamp.updateArrivalForRealTime(currentDelay, rdsSchedule.providerPrecision, PROVIDER_PRECISION)
-        return Duration.ZERO // all delay consumed
+        Duration.ZERO // all delay consumed
     }
+    rdsSchedule.setReadFromSourceAtInMsKeepMostRecent(readFromSourceMs)
+    return newDelay
 }
 
 private fun GTFSRealTimeProvider.isSameStop(stopTimeUpdate: GTUStopTimeUpdate?, rds: RouteDirectionStop?, stopSequence: Int) =
     stopTimeUpdate?.isSameStop(rds, stopSequence, this::parseStopId) == true
 
+@VisibleForTesting
 internal fun GTUStopTimeUpdate.isSameStop(
     rds: RouteDirectionStop?,
     stopSequence: Int,
     parseStopId: (String) -> String,
 ): Boolean {
     rds ?: return false
-    val sameOrUnspecifiedStopSequence = this.optStopSequence
-        ?.let { it == stopSequence }
+    val sameOrUnspecifiedStopSequence = this.optStopSequence?.let {
+        it == stopSequence
+    }
     val sameOrUnspecifiedStopId = this.optStopIdNotEmpty?.let {
         rds.stop.isSameOriginalId(parseStopId(it))
     }
-    return sameOrUnspecifiedStopSequence == true || sameOrUnspecifiedStopId == true
+    if (sameOrUnspecifiedStopSequence == null && sameOrUnspecifiedStopId == null) return false
+    return (sameOrUnspecifiedStopSequence ?: true) && (sameOrUnspecifiedStopId ?: true)
 }

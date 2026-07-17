@@ -918,7 +918,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					try {
 						final GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(response.body().bytes());
 						final List<Pair<GtfsRealtime.Alert, String>> alertsWithIdPair = GtfsRealtimeExt.toAlertsWithIdPair(gFeedMessage.getEntityList());
-						if (Constants.DEBUG) MTLog.d(this, "loadAgencyDataFromWWW() > GTFS alerts[%s]: ", alertsWithIdPair.size());
+						if (Constants.DEBUG) MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS alerts[%s]: ", alertsWithIdPair.size());
 						for (Pair<GtfsRealtime.Alert, String> gAlertAndId : GtfsRealtimeExt.sortAlertsPair(alertsWithIdPair, newLastUpdateInMs)) {
 							final GtfsRealtime.Alert gAlert = gAlertAndId.getFirst();
 							final String feedEntityId = gAlertAndId.getSecond();

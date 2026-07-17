@@ -121,7 +121,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData(${filter.targetUUID}, ${staticRDTripIds.size})")
         val lastUpdateInMs = storage.getTripUpdateLastUpdateMs(0L)
             .takeIf { it > 0L } ?: return null // never loaded
-        val readFromSourceMs = storage.getTripUpdateReadFromSourceMs(0L)
+        val feedReadFromSourceMs = storage.getTripUpdateReadFromSourceMs(0L)
             .takeIf { it > 0L } ?: lastUpdateInMs
         val gTripUpdates = gTripUpdates ?: return null
         val sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
@@ -142,9 +142,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             val sortedRDS by lazy {
                 context.getRDS(targetAuthority, targetRoute.id, targetDirection.id).orEmpty()
             }
-            val uuidSchedule by lazy {
+            val rdSchedules: Collection<Schedule> by lazy {
                 context.getRDSSchedule(targetAuthority, sortedRDS, filter.isIncludeCancelledTimestampsOrDefault)
-                    .associateBy { it.targetUUID }
             }
             val rdTripUpdates = gTripUpdates
                 .filter { it.isUseful() }
@@ -172,7 +171,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     rds.makeSchedule(
                         lastUpdateInMs = lastUpdateInMs,
                         validityInMs = getStatusValidityInMs(false),
-                        readFromSourceAtInMs = readFromSourceMs,
+                        readFromSourceAtInMs = feedReadFromSourceMs,
                         providerPrecisionInMs = PROVIDER_PRECISION_IN_MS,
                         sourceLabel = sourceLabel,
                         noData = true, // NO DATA
@@ -201,9 +200,15 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 }
             }
             if (sortedRDS.isEmpty()) return null
-            if (uuidSchedule.isEmpty()) return null
-            processRDTripUpdates(rdTripUpdates, uuidSchedule, sortedRDS, filter.isIncludeCancelledTimestampsOrDefault)
-            cacheRealTimeSchedules(uuidSchedule.values, sourceLabel, readFromSourceMs, readFromSourceMs)
+            if (rdSchedules.isEmpty()) return null
+            processRDTripUpdates(
+                rdTripUpdates = rdTripUpdates,
+                rdSchedules = rdSchedules,
+                sortedRDS = sortedRDS,
+                feedReadFromSourceMs = feedReadFromSourceMs,
+                includeCancelledTimestamps = filter.isIncludeCancelledTimestampsOrDefault,
+            )
+            cacheRealTimeSchedules(scheduleList = rdSchedules, sourceLabel = sourceLabel, lastUpdateInMs = lastUpdateInMs)
             return getCachedStatusS(filter.targetUUID, staticRDTripIds)
         } catch (e: Exception) {
             MTLog.w(LOG_TAG, e, "makeCachedStatusFromAgencyData() > error!")
@@ -259,7 +264,6 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         scheduleList: Collection<Schedule>,
         sourceLabel: String,
         lastUpdateInMs: Long,
-        readFromSourceMs: Long,
         ignorePastRealTime: Boolean = false,
         tripsWithRealTime: Set<String> = scheduleList
             .asSequence()
@@ -271,7 +275,6 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         scheduleList.forEach { schedule ->
             schedule.sourceLabel = sourceLabel
             schedule.lastUpdateInMs = lastUpdateInMs
-            schedule.readFromSourceAtInMs = readFromSourceMs
             schedule.providerPrecisionInMs = PROVIDER_PRECISION_IN_MS
             schedule.validityInMs = getStatusValidityInMs(false)
             val now = TimeUtilsK.currentInstant()
