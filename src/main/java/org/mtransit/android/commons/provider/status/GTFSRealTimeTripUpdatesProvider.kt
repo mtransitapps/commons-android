@@ -101,6 +101,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     private const val DEBUG_STATIC_RT_MATCH = false
     // private const val DEBUG_STATIC_RT_MATCH = true // DEBUG
 
+    private const val PRINT_ALL_RD_STOP_TIME_UPDATES = false
+    // private const val PRINT_ALL_RD_STOP_TIME_UPDATES = true // DEBUG
+
     private fun GTripUpdate.isUseful(): Boolean {
         optTrip?.let { td -> // cannot match w/ static data
             if (optDelay != null
@@ -197,6 +200,11 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 )
                 rdTripUpdates.forEach { (_, gTripUpdate) ->
                     MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > GTFS - ${gTripUpdate.toStringExt()}.")
+                    if (PRINT_ALL_RD_STOP_TIME_UPDATES) {
+                        gTripUpdate.stopTimeUpdateList?.forEachIndexed { idx, stu ->
+                            MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > GTFS - [$idx] ${stu.toStringExt()}")
+                        }
+                    }
                 }
             }
             if (sortedRDS.isEmpty()) return null
