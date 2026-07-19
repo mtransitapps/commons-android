@@ -267,6 +267,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
     private val OLDEST_FOR_REAL_TIME = 1.minutes
     private val MAX_FUTURE_FOR_REAL_TIME = 12.hours
+    private const val MIN_NUMBER_OF_FUTURE_FOR_REAL_TIME = 10 // need to keep multiple RT timestamps to be able to show the next non-RT is in a long time
 
     private fun GTFSRealTimeProvider.cacheRealTimeSchedules(
         scheduleList: Collection<Schedule>,
@@ -297,20 +298,22 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 oldestDateForRealTime = past.filter { it.isRealTime }.minOfOrNull { it.arrival } // all real-time
                     ?: oldestDateForRealTime
             }
-            maxFutureDateForRealTime = future.take(10).maxOfOrNull { it.departure } // keep firsts 10
+            future.take(MIN_NUMBER_OF_FUTURE_FOR_REAL_TIME).maxOfOrNull { it.departure }
                 ?.takeIf { it > maxFutureDateForRealTime }
-                ?: maxFutureDateForRealTime
-            maxFutureDateForRealTime = future.filter { it.isRealTime }.maxOfOrNull { it.departure } // all real-time
+                ?.let {
+                    maxFutureDateForRealTime = it
+                }
+            future.filter { it.isRealTime }.maxOfOrNull { it.departure } // all real-time
                 ?.takeIf { it > maxFutureDateForRealTime }
-                ?: maxFutureDateForRealTime
+                ?.let {
+                    maxFutureDateForRealTime = it
+                }
             // remove timestamps that are not real-time & outside of min/max date for real-time
             schedule.timestamps
                 .filterNot {
                     it.isRealTime || oldestDateForRealTime < it.arrival && it.departure < maxFutureDateForRealTime
                 }
-                .forEach { timestamp ->
-                    schedule.removeTimestamp(timestamp)
-                }
+                .forEach { schedule.removeTimestamp(it) }
             cacheStatus(schedule)
         }
     }
