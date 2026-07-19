@@ -34,8 +34,6 @@ import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.LOG_TAG
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.PROVIDER_PRECISION
-import org.mtransit.android.toDateTimeLog
-import org.mtransit.android.toDurationLog
 import kotlin.time.Duration
 import kotlin.time.Instant
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor as GTripDescriptor
@@ -95,7 +93,7 @@ internal fun makeTargetUuidAndSequenceList(
             .sortedBy { (_, stopSequence) -> stopSequence }
     }
     return buildSet { // unicity of uuid+sequence
-        tripSchedules.forEach { schedule->
+        tripSchedules.forEach { schedule ->
             schedule.getTripTimestamps(tripId).forEach { timestamp ->
                 timestamp.stopSequenceOrNull?.let { stopSequence ->
                     add(schedule.targetUUID to stopSequence)
@@ -132,7 +130,19 @@ internal fun processRDTripUpdate(
     var stuIdx = 0
     var uuidAndSeqIdx = 0
     var currentDelay = gTripUpdate.optDelayDuration // initial delay valid until 1st stop time update
-    val gStopTimeUpdates = gTripUpdate.optStopTimeUpdateList?.sortedBy { it.optStopSequence }
+    val gStopTimeUpdates = gTripUpdate.optStopTimeUpdateList
+        ?.filter { stu ->
+            tripSortedRDS.any { rds ->
+                sortedTargetUuidAndSequence
+                    .any { (uuid, staticStopSeq) ->
+                        uuid == rds.uuid && isSameStop(stu, rds, staticStopSeq)
+                    }
+            }
+                .also { found ->
+                    if (!found) MTLog.d(LOG_TAG, "processRDTripUpdate($tripId) > SKIP (no stop ID/sequence match): ${stu.toStringExt()}")
+                }
+        }
+        ?.sortedBy { it.optStopSequence }
     var currentStopTimeUpdate: GTUStopTimeUpdate?
     var nextStopTimeUpdate = gStopTimeUpdates?.getOrNull(stuIdx)
     var currentUuidAndSeq = sortedTargetUuidAndSequence.getOrNull(uuidAndSeqIdx)
@@ -231,13 +241,13 @@ internal fun applyDelaySTU(
         rdsTripTimestamp.updateDepartureForRealTime(stuDepartureDelay, rdsSchedule.providerPrecision, PROVIDER_PRECISION)
         updated = true
     }
-    if (gStopTimeUpdate.scheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) {
+    if (gStopTimeUpdate.optScheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) {
         rdsSchedule.setCancelled(rdsTripTimestamp, includeCancelledTimestamps)
         updated = true
     }
     if (updated) rdsSchedule.setReadFromSourceAtInMsKeepMostRecent(readFromSourceMs)
     return stuDepartureDelay
-        .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
+        .takeIf { gStopTimeUpdate.optScheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
 }
 
 internal fun GTUStopTimeEvent?.makeDelay(

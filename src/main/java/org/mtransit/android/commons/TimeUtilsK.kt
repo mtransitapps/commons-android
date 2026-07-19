@@ -10,15 +10,16 @@ object TimeUtilsK {
 
     @JvmStatic
     fun formatSimpleDuration(durationInMs: Long) = buildString {
-        val negative = durationInMs < 0
+        val negative = durationInMs < 0L
         abs(durationInMs).milliseconds.toComponents { days, hours, minutes, seconds, nanoseconds ->
-            days.takeIf { it > 0 }?.let { append(it).append(" days ") }
+            days.takeIf { it > 0L }?.let { append(it).append(" days ") }
             hours.takeIf { it > 0 }?.let { append(it).append(" h ") }
             minutes.takeIf { it > 0 }?.let { append(it).append(" min ") }
             seconds.takeIf { it > 0 }?.let { append(it).append(" sec ") }
             nanoseconds.takeIf { it > 0 }?.nanoseconds?.inWholeMilliseconds?.let { append(it).append(" ms ") }
         }
         if (negative) insert(0, "-")
+        if (durationInMs == 0L) append("0")
     }.trim()
 
     @JvmStatic
