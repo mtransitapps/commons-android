@@ -134,13 +134,12 @@ internal fun processRDTripUpdate(
         ?.filter { stu ->
             tripSortedRDS.any { rds ->
                 sortedTargetUuidAndSequence
-                    .filter { rds.uuid == it.uuid }
-                    .any { (_, staticStopSeq) ->
-                        isSameStop(stu, rds, staticStopSeq)
+                    .any { (uuid, staticStopSeq) ->
+                        uuid == rds.uuid && isSameStop(stu, rds, staticStopSeq)
                     }
             }
                 .also { found ->
-                    if (!found) MTLog.d(LOG_TAG, "processRDTripUpdate($tripId) > SKIP (no stop ID/sequence match): ${stu.toStringExt()})")
+                    if (!found) MTLog.d(LOG_TAG, "processRDTripUpdate($tripId) > SKIP (no stop ID/sequence match): ${stu.toStringExt()}")
                 }
         }
         ?.sortedBy { it.optStopSequence }
