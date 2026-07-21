@@ -33,7 +33,8 @@ import com.google.transit.realtime.GtfsRealtime.EntitySelector as GEntitySelecto
 
 object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
 
-    internal val LOG_TAG: String = GTFSRealTimeServiceAlertsProvider::class.java.simpleName
+    @JvmStatic
+    val LOG_TAG: String = GTFSRealTimeServiceAlertsProvider::class.java.simpleName
 
     override fun getLogTag() = LOG_TAG
 
