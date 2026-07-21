@@ -1091,6 +1091,109 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     // end region
 
+    // region fixStopSequence
+
+    @Test
+    fun test_fixStopSequence_fix_wrong_and_ignore_repeated() {
+        val startsAt = DEPARTURE
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 1111 // wrong stop sequence
+                stopId = "6000"
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 2222 // wrong stop sequence
+                stopId = "4000" // repeated
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 2
+                stopId = "2000"
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 4
+                stopId = "4000" // repeated
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 7
+                stopId = "7000"
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 9
+                stopId = "9000"
+            }
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+            add(makeRDS(stopId = 3000))
+            add(makeRDS(stopId = 4000)) // repeated
+            add(makeRDS(stopId = 5000))
+            add(makeRDS(stopId = 6000))
+            add(makeRDS(stopId = 7000))
+            add(makeRDS(stopId = 9000))
+            add(makeRDS(stopId = 10000))
+        }
+        var stopSeq = 0
+        val tripSchedulesByUUID = buildMap {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt, stopSeq = ++stopSeq)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 20.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[3].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 30.minutes, stopSeq = ++stopSeq)))) } // repeated
+            rdsList[4].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 43.minutes, stopSeq = ++stopSeq, arrival = startsAt + 37.minutes)))) }
+            rdsList[5].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 50.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[6].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 60.minutes, stopSeq = ++stopSeq)))) }
+            get(rdsList[3].uuid)?.apply { // repeated
+                addTimestampWithoutSort(mkTime(startsAt + 70.minutes, stopSeq = ++stopSeq))
+                sortTimestamps()
+            }
+            rdsList[7].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 80.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[8].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 90.minutes, stopSeq = ++stopSeq)))) }
+        }
+        val sortedTargetUuidAndSequence = buildList {
+            tripSchedulesByUUID.values.forEach { schedule ->
+                schedule.timestamps.forEach { timestamp ->
+                    add(schedule.targetUUID to assertNotNull(timestamp.stopSequenceOrNull))
+                }
+            }
+        }.sortedBy { (_, stopSequence) -> stopSequence }
+
+        val result = gTripUpdate.stopTimeUpdateList?.fixStopSequence(
+            tripId = TRIP_ID,
+            tripSortedRDS = rdsList,
+            sortedTargetUuidAndSequence = sortedTargetUuidAndSequence,
+            isSameStop = isSameStop,
+            parseStopId = { it },
+        )?.sortedBy { it.stopSequence }
+
+        assertNotNull(result)
+        assertEquals(5, result.size)
+        assertNotNull(result[0]) { stu ->
+            assertEquals(2, stu.stopSequence)
+            assertEquals("2000", stu.stopId)
+        }
+        assertNotNull(result[1]) { stu ->
+            assertEquals(4, stu.stopSequence)
+            assertEquals("4000", stu.stopId)
+        }
+        assertNotNull(result[2]) { stu ->
+            assertEquals(6, stu.stopSequence)
+            assertEquals("6000", stu.stopId)
+        }
+        assertNotNull(result[3]) { stu ->
+            assertEquals(7, stu.stopSequence)
+            assertEquals("7000", stu.stopId)
+        }
+        assertNotNull(result[4]) { stu ->
+            assertEquals(9, stu.stopSequence)
+            assertEquals("9000", stu.stopId)
+        }
+    }
+
+    // endregion
+
     private fun Schedule.Timestamp.toSchedule() = mkSchedule(
         timestamps = listOf(this),
     )

@@ -181,6 +181,7 @@ internal fun processRDTripUpdate(
     }
 }
 
+@VisibleForTesting
 internal fun List<GTUStopTimeUpdate>.fixStopSequence(
     tripId: String,
     tripSortedRDS: List<RouteDirectionStop>,
