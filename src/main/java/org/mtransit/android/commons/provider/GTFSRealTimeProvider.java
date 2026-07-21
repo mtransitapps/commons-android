@@ -714,10 +714,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		final ServiceUpdates cachedServiceUpdates = GTFSRealTimeServiceAlertsProvider.getCached(this, serviceUpdateFilter);
 		GTFSRealTimeServiceAlertsProvider.enhanceServiceUpdate(this, cachedServiceUpdates);
 		// if (org.mtransit.android.commons.Constants.DEBUG) {
-		// MTLog.d(ALERT_LOG_TAG, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates == null ? null : cachedServiceUpdates.size(), serviceUpdateFilter.getTargetUUID());
+		// MTLog.d(ALERTS_LOG_TAG, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates == null ? null : cachedServiceUpdates.size(), serviceUpdateFilter.getTargetUUID());
 		// if (cachedServiceUpdates != null) {
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
-		// MTLog.d(ALERT_LOG_TAG, "getCachedServiceUpdates() > - %s", serviceUpdate);
+		// MTLog.d(ALERTS_LOG_TAG, "getCachedServiceUpdates() > - %s", serviceUpdate);
 		// }
 		// }
 		// }

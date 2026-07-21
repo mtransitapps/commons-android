@@ -218,7 +218,7 @@ internal fun List<GTUStopTimeUpdate>.fixStopSequence(
 private val Pair<String, Int>.uuid get() = this.first
 private val Pair<String, Int>.stopSequence get() = this.second
 
-// TODO use `trip` descriptor `start_date` & `start_time` to compare with original departure Data/Time
+// TODO use `trip` descriptor `start_date` & `start_time` to compare with original departure Date/Time
 fun Iterable<Schedule.Timestamp>.findClosestTripTimestamp(tripId: String, filterStopSequence: Int? = null) =
     filter { timestamp ->
         timestamp.tripId == tripId
