@@ -680,6 +680,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return Boolean.TRUE.equals(this.cancelled);
 		}
 
+		public boolean isRealTimeOrCancelled() {
+			return isRealTime() || isCancelled();
+		}
+
 		public void setTripId(@Nullable String tripId) {
 			this.tripId = tripId;
 		}

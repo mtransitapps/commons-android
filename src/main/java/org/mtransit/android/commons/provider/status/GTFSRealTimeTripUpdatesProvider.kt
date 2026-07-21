@@ -277,7 +277,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         tripsWithRealTime: Set<String> = scheduleList
             .asSequence()
             .mapNotNull { schedule -> schedule.timestamps.takeIf { it.isNotEmpty() } }.flatten()
-            .filter { it.isRealTime }
+            .filter { it.isRealTimeOrCancelled }
             .mapNotNull { it.tripId }
             .toSet() // distinct
     ) {
@@ -287,7 +287,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             schedule.providerPrecisionInMs = PROVIDER_PRECISION_IN_MS
             schedule.validityInMs = getStatusValidityInMs(false)
             val now = TimeUtilsK.currentInstant()
-            if (!schedule.timestamps.any { it.isRealTime || (it.tripId in tripsWithRealTime && it.departure < now) }) {
+            if (!schedule.timestamps.any { it.isRealTimeOrCancelled || (it.tripId in tripsWithRealTime && it.departure < now) }) {
                 cacheStatus(schedule.toNoData()) // avoid re-run
                 return@forEach
             }
@@ -295,7 +295,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             var maxFutureDateForRealTime = now + MAX_FUTURE_FOR_REAL_TIME
             val (past, future) = schedule.timestamps.partition { it.departure < now }
             if (!ignorePastRealTime) {
-                oldestDateForRealTime = past.filter { it.isRealTime }.minOfOrNull { it.arrival } // all real-time
+                oldestDateForRealTime = past.filter { it.isRealTimeOrCancelled }.minOfOrNull { it.arrival } // all real-time
                     ?: oldestDateForRealTime
             }
             future.take(MIN_NUMBER_OF_FUTURE_FOR_REAL_TIME).maxOfOrNull { it.departure }
@@ -303,7 +303,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 ?.let {
                     maxFutureDateForRealTime = it
                 }
-            future.filter { it.isRealTime }.maxOfOrNull { it.departure } // all real-time
+            future.filter { it.isRealTimeOrCancelled }.maxOfOrNull { it.departure } // all real-time
                 ?.takeIf { it > maxFutureDateForRealTime }
                 ?.let {
                     maxFutureDateForRealTime = it
@@ -311,7 +311,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             // remove timestamps that are not real-time & outside of min/max date for real-time
             schedule.timestamps
                 .filterNot {
-                    it.isRealTime || oldestDateForRealTime < it.arrival && it.departure < maxFutureDateForRealTime
+                    it.isRealTimeOrCancelled || oldestDateForRealTime < it.arrival && it.departure < maxFutureDateForRealTime
                 }
                 .forEach { schedule.removeTimestamp(it) }
             cacheStatus(schedule)

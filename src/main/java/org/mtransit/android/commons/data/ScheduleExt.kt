@@ -76,29 +76,25 @@ fun Instant.toScheduleTimestamp(localTimeZoneId: String, arrival: Instant? = nul
         stopSequence?.let { this.setStopSequence(it) }
     }
 
-fun Collection<Schedule>.setDeleted(tripId: String, readFromSourceMs: Long) =
-    forEach { it.setDeleted(tripId, readFromSourceMs) }
+fun Collection<Schedule>.setTripDeleted(tripId: String, readFromSourceMs: Long) =
+    forEach { it.setTripDeleted(tripId, readFromSourceMs) }
 
-fun Schedule.setDeleted(tripId: String, readFromSourceMs: Long) {
+fun Schedule.setTripDeleted(tripId: String, readFromSourceMs: Long) {
     val tripTimestamps = getTripTimestamps(tripId).takeIf { it.isNotEmpty() } ?: return
-    tripTimestamps.forEach {
-        removeTimestamp(it)
-    }
+    tripTimestamps.forEach { removeTimestamp(it) }
     setReadFromSourceAtInMsKeepMostRecent(readFromSourceMs)
 }
 
-fun Collection<Schedule>.setCancelled(tripId: String, includeCancelledTimestamps: Boolean, readFromSourceMs: Long) =
-    forEach { it.setCancelled(tripId, includeCancelledTimestamps, readFromSourceMs) }
+fun Collection<Schedule>.setTripCancelled(tripId: String, includeCancelledTimestamps: Boolean, readFromSourceMs: Long) =
+    forEach { it.setTripCancelled(tripId, includeCancelledTimestamps, readFromSourceMs) }
 
-fun Schedule.setCancelled(tripId: String, includeCancelledTimestamps: Boolean, readFromSourceMs: Long) {
+fun Schedule.setTripCancelled(tripId: String, includeCancelledTimestamps: Boolean, readFromSourceMs: Long) {
     val tripTimestamps = getTripTimestamps(tripId).takeIf { it.isNotEmpty() } ?: return
-    tripTimestamps.forEach {
-        setCancelled(it, includeCancelledTimestamps)
-    }
+    tripTimestamps.forEach { setStopTimeCancelled(it, includeCancelledTimestamps) }
     setReadFromSourceAtInMsKeepMostRecent(readFromSourceMs)
 }
 
-fun Schedule.setCancelled(timestamp: Schedule.Timestamp, includeCancelledTimestamps: Boolean) {
+fun Schedule.setStopTimeCancelled(timestamp: Schedule.Timestamp, includeCancelledTimestamps: Boolean) {
     if (includeCancelledTimestamps) {
         timestamp.cancelled = true
     } else {
@@ -261,6 +257,9 @@ fun Schedule.Timestamp.toStringShort() = buildString {
     }
     if (isRealTime) {
         append("[RT]")
+    }
+    if (isCancelled) {
+        append("[CX]")
     }
     if (isOldSchedule) {
         append("[OLD]")
