@@ -938,7 +938,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					MTLog.i(ALERTS_LOG_TAG, "Found %d service updates.", serviceUpdates.size());
 					if (Constants.DEBUG) {
 						for (ServiceUpdate serviceUpdate : serviceUpdates) {
-							MTLog.d(ALERTS_LOG_TAG, "loadAgencyServiceUpdateDataFromWWW() > service update: %s.", serviceUpdate);
+							MTLog.d(ALERTS_LOG_TAG, "loadAgencyServiceUpdateDataFromWWW() > - %s.", serviceUpdate);
 						}
 					}
 					GTFSRealTimeServiceAlertsProvider.setTripIdsOutOfSync(this, serviceUpdates);
