@@ -714,10 +714,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		final ServiceUpdates cachedServiceUpdates = GTFSRealTimeServiceAlertsProvider.getCached(this, serviceUpdateFilter);
 		GTFSRealTimeServiceAlertsProvider.enhanceServiceUpdate(this, cachedServiceUpdates);
 		// if (org.mtransit.android.commons.Constants.DEBUG) {
-		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates == null ? null : cachedServiceUpdates.size(), serviceUpdateFilter.getTargetUUID());
+		// MTLog.d(ALERTS_LOG_TAG, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates == null ? null : cachedServiceUpdates.size(), serviceUpdateFilter.getTargetUUID());
 		// if (cachedServiceUpdates != null) {
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
-		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate);
+		// MTLog.d(ALERTS_LOG_TAG, "getCachedServiceUpdates() > - %s", serviceUpdate);
 		// }
 		// }
 		// }
@@ -894,6 +894,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		return this.okHttpClient;
 	}
 
+	private static final String ALERTS_LOG_TAG = GTFSRealTimeServiceAlertsProvider.getLOG_TAG();
+
 	@Nullable
 	private ServiceUpdates loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
 		try {
@@ -918,12 +920,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					try {
 						final GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(response.body().bytes());
 						final List<Pair<GtfsRealtime.Alert, String>> alertsWithIdPair = GtfsRealtimeExt.toAlertsWithIdPair(gFeedMessage.getEntityList());
-						if (Constants.DEBUG) MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS alerts[%s]: ", alertsWithIdPair.size());
+						if (Constants.DEBUG) MTLog.d(ALERTS_LOG_TAG, "loadAgencyServiceUpdateDataFromWWW() > GTFS alerts[%s]: ", alertsWithIdPair.size());
 						for (Pair<GtfsRealtime.Alert, String> gAlertAndId : GtfsRealtimeExt.sortAlertsPair(alertsWithIdPair, newLastUpdateInMs)) {
 							final GtfsRealtime.Alert gAlert = gAlertAndId.getFirst();
 							final String feedEntityId = gAlertAndId.getSecond();
 							if (Constants.DEBUG) {
-								MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS - [%s] %s", feedEntityId, GtfsRealtimeExt.toStringExt(gAlert));
+								MTLog.d(ALERTS_LOG_TAG, "loadAgencyServiceUpdateDataFromWWW() > GTFS - [%s] %s", feedEntityId, GtfsRealtimeExt.toStringExt(gAlert));
 							}
 							final ServiceUpdates alertsServiceUpdates = processAlerts(context, sourceLabel, feedEntityId, newLastUpdateInMs, gAlert, ignoreDirection);
 							if (alertsServiceUpdates != null && !alertsServiceUpdates.isEmpty()) {
@@ -931,54 +933,54 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 							}
 						}
 					} catch (Exception e) {
-						MTLog.w(this, e, "loadAgencyServiceUpdateDataFromWWW() > error while parsing GTFS Real Time data!");
+						MTLog.w(ALERTS_LOG_TAG, e, "loadAgencyServiceUpdateDataFromWWW() > error while parsing GTFS Real Time data!");
 					}
-					MTLog.i(this, "Found %d service updates.", serviceUpdates.size());
+					MTLog.i(ALERTS_LOG_TAG, "Found %d service updates.", serviceUpdates.size());
 					if (Constants.DEBUG) {
 						for (ServiceUpdate serviceUpdate : serviceUpdates) {
-							MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > service update: %s.", serviceUpdate);
+							MTLog.d(ALERTS_LOG_TAG, "loadAgencyServiceUpdateDataFromWWW() > - %s.", serviceUpdate);
 						}
 					}
 					GTFSRealTimeServiceAlertsProvider.setTripIdsOutOfSync(this, serviceUpdates);
 					return serviceUpdates;
 				default:
-					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
+					MTLog.w(ALERTS_LOG_TAG, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
 							response.message());
 					return null;
 				}
 			}
 		} catch (SSLHandshakeException sslhe) {
-			MTLog.w(this, sslhe, "SSL error!");
+			MTLog.w(ALERTS_LOG_TAG, sslhe, "SSL error!");
 			SecurityUtils.logCertPathValidatorException(sslhe);
 			setServiceUpdateLastUpdateCode(567); // SSL certificate not trusted (on this device)
 			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
 			return null;
 		} catch (InterruptedIOException iioe) {
-			MTLog.w(this, iioe, "Connection timeout!");
+			MTLog.w(ALERTS_LOG_TAG, iioe, "Connection timeout!");
 			setServiceUpdateLastUpdateCode(567);
 			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
 			return null;
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
-				MTLog.w(this, uhe, "No Internet Connection!");
+				MTLog.w(ALERTS_LOG_TAG, uhe, "No Internet Connection!");
 			} else {
-				MTLog.w(this, "No Internet Connection!");
+				MTLog.w(ALERTS_LOG_TAG, "No Internet Connection!");
 			}
 			setServiceUpdateLastUpdateCode(567);
 			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
 			return null;
 		} catch (SocketException se) {
-			MTLog.w(LOG_TAG, se, "No Internet Connection!");
+			MTLog.w(ALERTS_LOG_TAG, se, "No Internet Connection!");
 			setServiceUpdateLastUpdateCode(567);
 			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
 			return null;
 		} catch (IOException ioe) {
-			MTLog.w(this, ioe, "I/O error!");
+			MTLog.w(ALERTS_LOG_TAG, ioe, "I/O error!");
 			setServiceUpdateLastUpdateCode(567);
 			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
 			return null;
 		} catch (Exception e) { // Unknown error
-			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(ALERTS_LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 			return null;
 		}
 	}
@@ -1011,11 +1013,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		if (gAlert == null) return null;
 		java.util.List<GtfsRealtime.EntitySelector> gInformedEntityList = gAlert.getInformedEntityList();
 		if (CollectionUtils.getSize(gInformedEntityList) == 0) {
-			MTLog.w(this, "processAlerts() > SKIP (no informed entity selectors!) (%s)", GtfsRealtimeExt.toStringExt(gAlert));
+			MTLog.w(ALERTS_LOG_TAG, "processAlerts() > SKIP (no informed entity selectors!) (%s)", GtfsRealtimeExt.toStringExt(gAlert));
 			return null;
 		}
 		if (!GtfsRealtimeExt.isActive(gAlert)) {
-			MTLog.d(this, "processAlerts() > SKIP (not in active period): %s.", GtfsRealtimeExt.toStringExt(gAlert));
+			MTLog.d(ALERTS_LOG_TAG, "processAlerts() > SKIP (not in active period): %s.", GtfsRealtimeExt.toStringExt(gAlert));
 			return null;
 		}
 		// TODO use? GtfsRealtime.Alert.Cause gCause = gAlert.getCause();
@@ -1029,7 +1031,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					&& rtAgencyId != null && !rtAgencyId.isEmpty()
 					&& !providerAgencyId.isEmpty()
 					&& !providerAgencyId.equals(rtAgencyId)) {
-				MTLog.w(this, "processAlerts() > Alert targets another agency: '%s'!", gInformedEntity.getAgencyId());
+				MTLog.w(ALERTS_LOG_TAG, "processAlerts() > Alert targets another agency: '%s'!", gInformedEntity.getAgencyId());
 				continue;
 			}
 			final String targetUUID = GTFSRealTimeServiceAlertsProvider.parseProviderTargetUUID(this, gInformedEntity, ignoreDirection);
@@ -1040,7 +1042,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			targetUUIDSeverities.put(targetUUID, severity);
 		}
 		if (targetUUIDAndTripId.isEmpty()) {
-			MTLog.w(this, "processAlerts() > no target UUIDs!");
+			MTLog.w(ALERTS_LOG_TAG, "processAlerts() > no target UUIDs!");
 			return null;
 		}
 		ArrayMap<String, String> headerTexts = parseTranslations(gAlert.getHeaderText());
@@ -1091,7 +1093,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					boldWords = new Cleaner(getAGENCY_BOLD_WORDS(context), true);
 				}
 			} catch (Exception e) {
-				MTLog.w(LOG_TAG, e, "Error while compiling bold words regex!");
+				MTLog.w(ALERTS_LOG_TAG, e, "Error while compiling bold words regex!");
 				boldWords = null;
 			}
 		}
@@ -1113,7 +1115,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					}
 				}
 			} catch (Exception e) {
-				MTLog.w(LOG_TAG, e, "Error while compiling extra bold words regex for language '%s'!", language);
+				MTLog.w(ALERTS_LOG_TAG, e, "Error while compiling extra bold words regex for language '%s'!", language);
 				extraBoldWords.remove(language);
 			}
 		}
@@ -1183,7 +1185,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			html = enhanceHtmlBold(html, boldWords, replacement);
 			return html;
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance HTML (using original)!");
+			MTLog.w(ALERTS_LOG_TAG, e, "Error while trying to enhance HTML (using original)!");
 			return originalHtml;
 		}
 	}
@@ -1195,7 +1197,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		try {
 			return regex.clean(html, replacement);
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while making text bold!");
+			MTLog.w(ALERTS_LOG_TAG, e, "Error while making text bold!");
 			return html;
 		}
 	}
@@ -1239,7 +1241,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					timeParser.setTimeZone(TimeZone.getTimeZone(agencyTimeZoneId));
 				}
 			} catch (Exception e) {
-				MTLog.w(LOG_TAG, e, "Error while initializing time formatter!");
+				MTLog.w(ALERTS_LOG_TAG, e, "Error while initializing time formatter!");
 				timeParser = null;
 			}
 		}
@@ -1298,7 +1300,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					continue; // SKIP empty text
 				}
 				if (translations.containsKey(language)) {
-					MTLog.w(this, "Language '%s' translation '%s' already provided with '%s'!", language, translationText, translations.get(language));
+					MTLog.w(ALERTS_LOG_TAG, "Language '%s' translation '%s' already provided with '%s'!", language, translationText, translations.get(language));
 				}
 				translations.put(language, translationText.trim());
 			}
@@ -1399,7 +1401,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			String selection = SqlUtils.getWhereEqualsString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID, AGENCY_SOURCE_ID);
 			affectedRows = getWriteDB().delete(getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while deleting all agency service update data!");
+			MTLog.w(ALERTS_LOG_TAG, e, "Error while deleting all agency service update data!");
 		}
 		return affectedRows;
 	}
