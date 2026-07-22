@@ -34,27 +34,7 @@ fun makeSchedule(
     noData,
 )
 
-@Deprecated(
-    "use makeSchedule2 instead",
-    ReplaceWith("makeSchedule2(lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, providerPrecisionInMs, sourceLabel, noData)")
-)
 fun RouteDirectionStop.makeSchedule(
-    lastUpdateInMs: Long,
-    validityInMs: Long,
-    readFromSourceAtInMs: Long,
-    providerPrecisionInMs: Long,
-    sourceLabel: String,
-    noData: Boolean,
-) = makeSchedule2(
-    lastUpdateInMs,
-    maxValidityInMs = validityInMs,
-    readFromSourceAtInMs,
-    providerPrecisionInMs,
-    sourceLabel,
-    noData
-)
-
-fun RouteDirectionStop.makeSchedule2(
     lastUpdateInMs: Long,
     maxValidityInMs: Long,
     readFromSourceAtInMs: Long,
@@ -70,7 +50,7 @@ fun RouteDirectionStop.makeSchedule2(
     sourceLabel = sourceLabel,
     noData = noData
 ).apply {
-    isNoPickup = this@makeSchedule2.isNoPickup
+    isNoPickup = this@makeSchedule.isNoPickup
 }
 
 fun Schedule.toNoData() = makeSchedule(

@@ -13,7 +13,7 @@ import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.ScheduleStatusFilter
 import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.departure
-import org.mtransit.android.commons.data.makeSchedule2
+import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.toNoData
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID
@@ -171,7 +171,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             }
             rdTripUpdates ?: run {
                 sortedRDS.forEach { rds ->
-                    rds.makeSchedule2(
+                    rds.makeSchedule(
                         lastUpdateInMs = lastUpdateInMs,
                         maxValidityInMs = statusMaxValidityInMs,
                         readFromSourceAtInMs = feedReadFromSourceMs,
