@@ -38,7 +38,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 				status.getId(),
 				status.getTargetUUID(),
 				status.getLastUpdateInMs(),
-				status.getValidityInMs(),
+				status.getMaxValidityInMs(),
 				status.getReadFromSourceAtInMs(),
 				appInstalled,
 				appEnabled,

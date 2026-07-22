@@ -162,7 +162,11 @@ public class News implements MTLog.Loggable {
 	}
 
 	public boolean isUseful() {
-		return this.lastUpdateInMs + this.maxValidityInMs >= TimeUtils.currentTimeMillis();
+		return isValid();
+	}
+
+	public boolean isValid() {
+		return TimeUtils.currentTimeMillis() <= this.lastUpdateInMs + this.maxValidityInMs;
 	}
 
 	@NonNull
@@ -435,10 +439,10 @@ public class News implements MTLog.Loggable {
 		result = 31 * result + authority.hashCode();
 		result = 31 * result + uuid.hashCode();
 		result = 31 * result + severity;
-		result = 31 * result + (int) (noteworthyInMs ^ (noteworthyInMs >>> 32));
-		result = 31 * result + (int) (lastUpdateInMs ^ (lastUpdateInMs >>> 32));
-		result = 31 * result + (int) (maxValidityInMs ^ (maxValidityInMs >>> 32));
-		result = 31 * result + (int) (createdAtInMs ^ (createdAtInMs >>> 32));
+		result = 31 * result + Long.hashCode(noteworthyInMs);
+		result = 31 * result + Long.hashCode(lastUpdateInMs);
+		result = 31 * result + Long.hashCode(maxValidityInMs);
+		result = 31 * result + Long.hashCode(createdAtInMs);
 		result = 31 * result + targetUUID.hashCode();
 		result = 31 * result + color.hashCode();
 		result = 31 * result + authorName.hashCode();

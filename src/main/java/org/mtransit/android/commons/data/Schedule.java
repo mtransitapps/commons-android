@@ -58,7 +58,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				status.getId(),
 				status.getTargetUUID(),
 				status.getLastUpdateInMs(),
-				status.getValidityInMs(),
+				status.getMaxValidityInMs(),
 				status.getReadFromSourceAtInMs(),
 				providerPrecisionInMs,
 				noPickup,
@@ -66,6 +66,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				status.isNoData()
 		);
 	}
+
 	public Schedule(
 			@Nullable Integer id,
 			@NonNull String targetUUID,
@@ -296,8 +297,15 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	@Override
 	public boolean isUseful() {
-		return super.isUseful()
+		return isValid()
 				&& TimeUtils.currentTimeToTheMinuteMillis() < getTimestampsUntilInMs();
+	}
+
+	@Override
+	public boolean isValid() {
+		// 2026-07-22: GTFS-RT Trip Update status provider > used (1 min) "status" instead of "max status" (1 hour) // TODO remove 3 months after PR merged
+		final long maxValidityInMs = Math.max(TimeUnit.MINUTES.toMillis(10L), getMaxValidityInMs());
+		return TimeUtils.currentTimeMillis() <= getLastUpdateInMs() + maxValidityInMs;
 	}
 
 	public static class TimestampComparator implements Comparator<Timestamp> {

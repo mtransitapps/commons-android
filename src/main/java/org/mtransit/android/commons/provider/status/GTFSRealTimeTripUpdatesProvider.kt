@@ -173,7 +173,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 sortedRDS.forEach { rds ->
                     rds.makeSchedule(
                         lastUpdateInMs = lastUpdateInMs,
-                        validityInMs = getStatusValidityInMs(false),
+                        maxValidityInMs = statusMaxValidityInMs,
                         readFromSourceAtInMs = feedReadFromSourceMs,
                         providerPrecisionInMs = PROVIDER_PRECISION_IN_MS,
                         sourceLabel = sourceLabel,
@@ -285,7 +285,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             schedule.sourceLabel = sourceLabel
             schedule.lastUpdateInMs = lastUpdateInMs
             schedule.providerPrecisionInMs = PROVIDER_PRECISION_IN_MS
-            schedule.validityInMs = getStatusValidityInMs(false)
+            schedule.maxValidityInMs = statusMaxValidityInMs
             val now = TimeUtilsK.currentInstant()
             if (!schedule.timestamps.any { it.isRealTimeOrCancelled || (it.tripId in tripsWithRealTime && it.departure < now) }) {
                 cacheStatus(schedule.toNoData()) // avoid re-run

@@ -53,7 +53,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			.appendTableColumn(StatusDbHelper.T_STATUS, StatusDbHelper.T_STATUS_K_TYPE, StatusProviderContract.Columns.T_STATUS_K_TYPE)
 			.appendTableColumn(StatusDbHelper.T_STATUS, StatusDbHelper.T_STATUS_K_TARGET_UUID, StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID) //
 			.appendTableColumn(StatusDbHelper.T_STATUS, StatusDbHelper.T_STATUS_K_LAST_UPDATE, StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE) //
-			.appendTableColumn(StatusDbHelper.T_STATUS, StatusDbHelper.T_STATUS_K_VALIDITY, StatusProviderContract.Columns.T_STATUS_K_VALIDITY) //
+			.appendTableColumn(StatusDbHelper.T_STATUS, StatusDbHelper.T_STATUS_K_VALIDITY, StatusProviderContract.Columns.T_STATUS_K_MAX_VALIDITY) //
 			.appendTableColumn(StatusDbHelper.T_STATUS, StatusDbHelper.T_STATUS_K_READ_FROM_SOURCE_AT, StatusProviderContract.Columns.T_STATUS_K_READ_FROM_SOURCE_AT) //
 			.appendTableColumn(StatusDbHelper.T_STATUS, StatusDbHelper.T_STATUS_K_EXTRAS, StatusProviderContract.Columns.T_STATUS_K_EXTRAS) //
 			.build();
