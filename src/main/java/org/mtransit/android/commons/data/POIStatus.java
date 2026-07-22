@@ -241,6 +241,11 @@ public class POIStatus implements MTLog.Loggable {
 		this.lastUpdateInMs = lastUpdateInMs;
 	}
 
+	@Deprecated
+	public long getValidityInMs() {
+		return getMaxValidityInMs();
+	}
+
 	public long getMaxValidityInMs() {
 		return maxValidityInMs;
 	}
