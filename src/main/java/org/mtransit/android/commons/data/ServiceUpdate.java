@@ -231,7 +231,11 @@ public class ServiceUpdate implements MTLog.Loggable {
 	}
 
 	public boolean isUseful() {
-		return this.lastUpdateInMs + this.maxValidityInMs >= TimeUtils.currentTimeMillis();
+		return isValid();
+	}
+
+	public boolean isValid() {
+		return TimeUtils.currentTimeMillis() <= this.lastUpdateInMs + this.maxValidityInMs;
 	}
 
 	@VisibleForTesting

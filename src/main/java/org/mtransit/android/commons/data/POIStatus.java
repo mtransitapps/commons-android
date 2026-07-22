@@ -47,7 +47,7 @@ public class POIStatus implements MTLog.Loggable {
 	@ItemStatusType
 	private final int type;
 	private long lastUpdateInMs;
-	private long validityInMs;
+	private long maxValidityInMs;
 	private long readFromSourceAtInMs;
 	@Nullable
 	private String sourceLabel;
@@ -58,7 +58,7 @@ public class POIStatus implements MTLog.Loggable {
 			@NonNull String targetUUID,
 			@ItemStatusType int type,
 			long lastUpdateInMs,
-			long validityInMs,
+			long maxValidityInMs,
 			long readFromSourceAtInMs,
 			@Nullable String sourceLabel,
 			boolean noData
@@ -67,7 +67,7 @@ public class POIStatus implements MTLog.Loggable {
 		this.targetUUID = targetUUID;
 		this.type = type;
 		this.lastUpdateInMs = lastUpdateInMs;
-		this.validityInMs = validityInMs;
+		this.maxValidityInMs = maxValidityInMs;
 		this.readFromSourceAtInMs = readFromSourceAtInMs;
 		this.sourceLabel = sourceLabel;
 		this.noData = noData;
@@ -81,7 +81,7 @@ public class POIStatus implements MTLog.Loggable {
 				", targetUUID='" + targetUUID + '\'' +
 				", type=" + type +
 				", lastUpdate=" + MTLog.formatDateTime(lastUpdateInMs) +
-				", validity=" + MTLog.formatDuration(validityInMs) +
+				", maxValidity=" + MTLog.formatDuration(maxValidityInMs) +
 				", readFromSourceAt=" + MTLog.formatDateTime(readFromSourceAtInMs) +
 				", sourceLabel='" + sourceLabel + '\'' +
 				", noData=" + noData +
@@ -98,7 +98,7 @@ public class POIStatus implements MTLog.Loggable {
 		String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID));
 		int type = cursor.getInt(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_TYPE));
 		long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE));
-		long validityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_VALIDITY));
+		long validityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_MAX_VALIDITY));
 		long readFromSourceAtInMs; // optional
 		int readFromSourceAtColumnIndex = cursor.getColumnIndex(StatusProviderContract.Columns.T_STATUS_K_READ_FROM_SOURCE_AT);
 		if (readFromSourceAtColumnIndex < 0) {
@@ -129,7 +129,7 @@ public class POIStatus implements MTLog.Loggable {
 				this.type,
 				this.targetUUID,
 				this.lastUpdateInMs,
-				this.validityInMs,
+				this.maxValidityInMs,
 				this.readFromSourceAtInMs,
 				getExtrasJSONString()
 		});
@@ -158,18 +158,22 @@ public class POIStatus implements MTLog.Loggable {
 
 	@NonNull
 	public ContentValues toContentValues() {
-		ContentValues contentValues = new ContentValues();
+		final ContentValues contentValues = new ContentValues();
 		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_TYPE, this.type);
 		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID, this.targetUUID);
 		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE, this.lastUpdateInMs);
-		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_VALIDITY, this.validityInMs);
+		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_MAX_VALIDITY, this.maxValidityInMs);
 		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_READ_FROM_SOURCE_AT, this.readFromSourceAtInMs);
 		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_EXTRAS, getExtrasJSONString());
 		return contentValues;
 	}
 
 	public boolean isUseful() {
-		return TimeUtils.currentTimeMillis() <= this.lastUpdateInMs + this.validityInMs;
+		return isValid();
+	}
+
+	public boolean isValid() {
+		return TimeUtils.currentTimeMillis() <= this.lastUpdateInMs + this.maxValidityInMs;
 	}
 
 	public boolean isNoData() {
@@ -237,12 +241,12 @@ public class POIStatus implements MTLog.Loggable {
 		this.lastUpdateInMs = lastUpdateInMs;
 	}
 
-	public long getValidityInMs() {
-		return validityInMs;
+	public long getMaxValidityInMs() {
+		return maxValidityInMs;
 	}
 
-	public void setValidityInMs(long validityInMs) {
-		this.validityInMs = validityInMs;
+	public void setMaxValidityInMs(long maxValidityInMs) {
+		this.maxValidityInMs = maxValidityInMs;
 	}
 
 	public long getReadFromSourceAtInMs() {

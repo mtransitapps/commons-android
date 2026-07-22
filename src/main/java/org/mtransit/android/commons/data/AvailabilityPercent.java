@@ -81,7 +81,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 				status.getId(),
 				status.getTargetUUID(),
 				status.getLastUpdateInMs(),
-				status.getValidityInMs(),
+				status.getMaxValidityInMs(),
 				status.getReadFromSourceAtInMs(),
 				status.getSourceLabel(),
 				status.isNoData()

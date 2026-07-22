@@ -21,7 +21,7 @@ fun Duration?.toDurationLog(): String? = this?.inWholeMilliseconds.toDurationLog
 
 object MtLogExt {
     private val dateTimeFormatter: ThreadSafeDateFormatter by lazy {
-        ThreadSafeDateFormatter(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT))
+        ThreadSafeDateFormatter(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM))
     }
 
     fun formatDateTime(timeInMs: Long?): String? = try {

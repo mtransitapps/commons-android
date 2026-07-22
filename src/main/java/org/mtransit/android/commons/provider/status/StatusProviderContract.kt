@@ -40,7 +40,7 @@ interface StatusProviderContract : ProviderContract {
             Columns.T_STATUS_K_TYPE,
             Columns.T_STATUS_K_TARGET_UUID,
             Columns.T_STATUS_K_LAST_UPDATE,
-            Columns.T_STATUS_K_VALIDITY,
+            Columns.T_STATUS_K_MAX_VALIDITY,
             Columns.T_STATUS_K_READ_FROM_SOURCE_AT,
             Columns.T_STATUS_K_EXTRAS
         )
@@ -82,7 +82,7 @@ interface StatusProviderContract : ProviderContract {
         const val T_STATUS_K_TARGET_UUID = "target"
         const val T_STATUS_K_EXTRAS = "extras"
         const val T_STATUS_K_LAST_UPDATE = "last_update"
-        const val T_STATUS_K_VALIDITY = "max_validity"
+        const val T_STATUS_K_MAX_VALIDITY = "max_validity"
         const val T_STATUS_K_READ_FROM_SOURCE_AT = "read_from_source_at"
     }
 

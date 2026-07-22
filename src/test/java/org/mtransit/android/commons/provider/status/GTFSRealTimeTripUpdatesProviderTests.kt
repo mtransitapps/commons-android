@@ -1209,7 +1209,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
     ) = makeSchedule(
         targetUUID = targetUuid,
         lastUpdateInMs = nowInMs,
-        validityInMs = nowInMs,
+        maxValidityInMs = nowInMs,
         readFromSourceAtInMs = nowInMs,
         providerPrecisionInMs = GTFSStatusProvider.PROVIDER_PRECISION_IN_MS,
     ).apply {
