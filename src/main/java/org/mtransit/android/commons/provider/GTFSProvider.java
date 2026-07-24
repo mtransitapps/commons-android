@@ -148,7 +148,7 @@ public class GTFSProvider extends AgencyProvider implements
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
 	@NonNull
-	protected static String getAREA_MIN_LAT(@NonNull Context context) {
+	public static String getAREA_MIN_LAT(@NonNull Context context) {
 		GTFSCurrentNextProvider.checkForNextData(context);
 		if (areaMinLat == null) {
 			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
@@ -171,7 +171,7 @@ public class GTFSProvider extends AgencyProvider implements
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
 	@NonNull
-	protected static String getAREA_MAX_LAT(@NonNull Context context) {
+	public static String getAREA_MAX_LAT(@NonNull Context context) {
 		GTFSCurrentNextProvider.checkForNextData(context);
 		if (areaMaxLat == null) {
 			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
@@ -194,7 +194,7 @@ public class GTFSProvider extends AgencyProvider implements
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
 	@NonNull
-	protected static String getAREA_MIN_LNG(@NonNull Context context) {
+	public static String getAREA_MIN_LNG(@NonNull Context context) {
 		GTFSCurrentNextProvider.checkForNextData(context);
 		if (areaMinLng == null) {
 			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
@@ -217,7 +217,7 @@ public class GTFSProvider extends AgencyProvider implements
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
 	@NonNull
-	protected static String getAREA_MAX_LNG(@NonNull Context context) {
+	public static String getAREA_MAX_LNG(@NonNull Context context) {
 		GTFSCurrentNextProvider.checkForNextData(context);
 		if (areaMaxLng == null) {
 			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
