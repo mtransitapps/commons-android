@@ -16,6 +16,7 @@ import org.mtransit.android.commons.provider.NextBusProvider.isAPPEND_HEAD_SIGN_
 import org.mtransit.android.commons.provider.nextbus.api.NextBusApi
 import org.mtransit.android.commons.provider.nextbus.api.VehicleLocationsResponse
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider.Companion.getCachedVehicleLocationsS
+import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProviderUtils.vehicleNearbyAgencyLocation
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 import org.mtransit.android.commons.toMillis
 import java.net.HttpURLConnection
@@ -138,7 +139,7 @@ object NextBusVehicleLocationsProvider {
                                         "loadAgencyDataFromWWW() > NextBus nVehicle: ${nVehicle}."
                                     )
                                 }
-                                processVehiclePositions(newLastUpdate, nVehicle)
+                                processVehiclePositions(context, newLastUpdate, nVehicle)
                                     ?.takeIf { it.isNotEmpty() }
                                     ?.let {
                                         vehicleLocations.addAll(it)
@@ -188,9 +189,13 @@ object NextBusVehicleLocationsProvider {
     }
 
     private fun NextBusProvider.processVehiclePositions(
+        context: Context,
         newLastUpdate: Instant,
         nVehicle: VehicleLocationsResponse.Vehicle,
     ): Set<VehicleLocation>? {
+        val vehicleLat = nVehicle.lat?.toFloat() ?: return null
+        val vehicleLng =  nVehicle.lon?.toFloat() ?: return null
+        if (vehicleNearbyAgencyLocation(context, vehicleLat, vehicleLng) == false) return null
         val targetUUIDs = parseProviderTargetUUID(nVehicle)?.takeIf { it.isNotBlank() } ?: return null
         return setOf(
             VehicleLocation(
@@ -203,8 +208,8 @@ object NextBusVehicleLocationsProvider {
                 vehicleId = nVehicle.id,
                 vehicleLabel = null,
                 reportTimestamp = nVehicle.secsSinceReport?.seconds?.let { newLastUpdate - it },
-                latitude = nVehicle.lat?.toFloat() ?: return null,
-                longitude = nVehicle.lon?.toFloat() ?: return null,
+                latitude = vehicleLat,
+                longitude = vehicleLng,
                 bearingDegrees = nVehicle.heading, // in degrees
                 speedMetersPerSecond = nVehicle.speedKmHr?.div(3.6)?.toInt(), // in km/h (m/s = km/h * 1000 meters / 3600 seconds)
             )

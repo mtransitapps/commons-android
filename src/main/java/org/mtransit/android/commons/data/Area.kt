@@ -71,6 +71,22 @@ data class Area(
         return isInside(lat, lng, this)
     }
 
+    fun getNearestLatLng(lat: Double, lng: Double): Pair<Double, Double> {
+        var nearestLat = lat
+        var nearestLng = lng
+        if (lat < minLat) {
+            nearestLat = minLat
+        } else if (lat > maxLat) {
+            nearestLat = maxLat
+        }
+        if (lng < minLng) {
+            nearestLng = minLng
+        } else if (lng > maxLng) {
+            nearestLng = maxLng
+        }
+        return nearestLat to nearestLng
+    }
+
     companion object {
 
         private val LOG_TAG: String = Area::class.java.simpleName
