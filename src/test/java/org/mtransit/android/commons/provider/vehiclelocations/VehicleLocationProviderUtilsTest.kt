@@ -103,6 +103,28 @@ class VehicleLocationProviderUtilsTest {
             agencyAreaMaxLat = 10.0,
             agencyAreaMinLng = -20.0,
             agencyAreaMaxLng = 20.0,
+            vehicleLat = 13.5,
+            vehicleLng = 23.5,
+            distanceToInMeters = distanceToInMeters,
+        ).let { result ->
+            assertEquals(false, result)
+        }
+        VehicleLocationProviderUtils.vehicleNearbyAgencyLocation(
+            agencyAreaMinLat = -10.0,
+            agencyAreaMaxLat = 10.0,
+            agencyAreaMinLng = -20.0,
+            agencyAreaMaxLng = 20.0,
+            vehicleLat = 13.0,
+            vehicleLng = 23.0,
+            distanceToInMeters = distanceToInMeters,
+        ).let { result ->
+            assertEquals(true, result)
+        }
+        VehicleLocationProviderUtils.vehicleNearbyAgencyLocation(
+            agencyAreaMinLat = -10.0,
+            agencyAreaMaxLat = 10.0,
+            agencyAreaMinLng = -20.0,
+            agencyAreaMaxLng = 20.0,
             vehicleLat = 20.0,
             vehicleLng = 30.0,
             distanceToInMeters = distanceToInMeters,
