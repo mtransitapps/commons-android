@@ -36,6 +36,7 @@ import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.gtfs.setTripIdsOutOfSync
 import org.mtransit.android.commons.provider.gtfs.storage
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider.Companion.getCachedVehicleLocationsS
+import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProviderUtils.vehicleNearbyAgencyLocation
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 import org.mtransit.android.commons.secsToInstant
 import java.io.IOException
@@ -194,7 +195,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                                 if (Constants.DEBUG) {
                                     MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > GTFS - ${gVehiclePosition.toStringExt()}.")
                                 }
-                                processVehiclePositions(newLastUpdateInMs, gVehiclePosition, ignoreDirection)
+                                processVehiclePositions(context, newLastUpdateInMs, gVehiclePosition, ignoreDirection)
                                     ?.takeIf { it.isNotEmpty() }
                                     ?.let {
                                         vehicleLocations.addAll(it)
@@ -269,10 +270,14 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
     }
 
     private fun GTFSRealTimeProvider.processVehiclePositions(
+        context: Context,
         newLastUpdateInMs: Long,
         gVehiclePosition: GVehiclePosition,
         ignoreDirection: Boolean,
     ): Set<VehicleLocation>? {
+        val vehicleLat = gVehiclePosition.optPosition?.optLatitude ?: return null
+        val vehicleLng = gVehiclePosition.optPosition?.optLongitude ?: return null
+        if (vehicleNearbyAgencyLocation(context, vehicleLat, vehicleLng) == false) return null
         val targetUUIDs = parseProviderTargetUUID(gVehiclePosition, ignoreDirection)?.takeIf { it.isNotBlank() } ?: return null
         return setOf(
             VehicleLocation(
@@ -285,8 +290,8 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                 vehicleId = gVehiclePosition.optVehicle?.optId,
                 vehicleLabel = gVehiclePosition.optVehicle?.optLabel,
                 reportTimestamp = gVehiclePosition.optTimestamp?.secsToInstant(),
-                latitude = gVehiclePosition.optPosition?.optLatitude ?: return null,
-                longitude = gVehiclePosition.optPosition?.optLongitude ?: return null,
+                latitude = vehicleLat,
+                longitude = vehicleLng,
                 bearingDegrees = gVehiclePosition.optPosition?.optBearing?.toInt(), // in degrees
                 speedMetersPerSecond = gVehiclePosition.optPosition?.optSpeed?.toInt(), // in meters per second
             )
