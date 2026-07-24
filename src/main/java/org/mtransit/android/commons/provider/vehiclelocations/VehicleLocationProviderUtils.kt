@@ -13,16 +13,16 @@ object VehicleLocationProviderUtils : MTLog.Loggable {
 
     override fun getLogTag() = LOG_TAG
 
-    private const val MAX_DISTANCE_PCT_ALLOWED = 10.0
+    private const val MAX_DISTANCE_PCT_ALLOWED = 0.10
 
     fun vehicleNearbyAgencyLocation(context: Context, vehicleLat: Float, vehicleLng: Float) =
         vehicleNearbyAgencyLocation(
-            agencyAreaMinLat = GTFSProvider.getAREA_MIN_LAT(context).toDoubleOrNull(),
-            agencyAreaMaxLat = GTFSProvider.getAREA_MAX_LAT(context).toDoubleOrNull(),
-            agencyAreaMinLng = GTFSProvider.getAREA_MIN_LNG(context).toDoubleOrNull(),
-            agencyAreaMaxLng = GTFSProvider.getAREA_MAX_LNG(context).toDoubleOrNull(),
-            vehicleLat = vehicleLat.toString().toDoubleOrNull(),
-            vehicleLng = vehicleLng.toString().toDoubleOrNull(),
+            agencyAreaMinLat = GTFSProvider.getAREA_MIN_LAT(context).toDoubleOrNull()?.takeIf { it.isFinite() },
+            agencyAreaMaxLat = GTFSProvider.getAREA_MAX_LAT(context).toDoubleOrNull()?.takeIf { it.isFinite() },
+            agencyAreaMinLng = GTFSProvider.getAREA_MIN_LNG(context).toDoubleOrNull()?.takeIf { it.isFinite() },
+            agencyAreaMaxLng = GTFSProvider.getAREA_MAX_LNG(context).toDoubleOrNull()?.takeIf { it.isFinite() },
+            vehicleLat = vehicleLat.toString().toDoubleOrNull()?.takeIf { it.isFinite() },
+            vehicleLng = vehicleLng.toString().toDoubleOrNull()?.takeIf { it.isFinite() },
             distanceToInMeters = { startLat: Double, startLng: Double, endLat: Double, endLng: Double ->
                 LocationUtils.distanceToInMeters(startLat, startLng, endLat, endLng)
             }
@@ -49,9 +49,9 @@ object VehicleLocationProviderUtils : MTLog.Loggable {
             val (agencyClosestLat, agencyClosestLng) = agencyArea.getNearestLatLng(vehicleLat, vehicleLng)
             val distanceFromAreaInMeters = distanceToInMeters(vehicleLat, vehicleLng, agencyClosestLat, agencyClosestLng)
             val distanceFromAreaMinMax = distanceToInMeters(agencyArea.minLat, agencyArea.minLng, agencyArea.maxLat, agencyArea.maxLng)
-            val nearby = distanceFromAreaInMeters <= distanceFromAreaMinMax.div(MAX_DISTANCE_PCT_ALLOWED)
+            val nearby = distanceFromAreaInMeters <= distanceFromAreaMinMax.times(MAX_DISTANCE_PCT_ALLOWED)
             if (!nearby) {
-                MTLog.w(LOG_TAG, "Real-Time vehicle location is not nearby agency area: $distanceFromAreaInMeters m from agency area!")
+                MTLog.w(LOG_TAG, "Vehicle location IGNORED because it's ${distanceFromAreaInMeters.div(1000)} km away from agency area!")
             }
             return nearby
         } catch (e: Exception) {

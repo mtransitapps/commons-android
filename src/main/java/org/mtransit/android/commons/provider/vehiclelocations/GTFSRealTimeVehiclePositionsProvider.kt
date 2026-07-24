@@ -277,8 +277,8 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
     ): Set<VehicleLocation>? {
         val vehicleLat = gVehiclePosition.optPosition?.optLatitude ?: return null
         val vehicleLng = gVehiclePosition.optPosition?.optLongitude ?: return null
-        val targetUUIDs = parseProviderTargetUUID(gVehiclePosition, ignoreDirection)?.takeIf { it.isNotBlank() } ?: return null
         if (vehicleNearbyAgencyLocation(context, vehicleLat, vehicleLng) == false) return null
+        val targetUUIDs = parseProviderTargetUUID(gVehiclePosition, ignoreDirection)?.takeIf { it.isNotBlank() } ?: return null
         return setOf(
             VehicleLocation(
                 authority = this.authority,

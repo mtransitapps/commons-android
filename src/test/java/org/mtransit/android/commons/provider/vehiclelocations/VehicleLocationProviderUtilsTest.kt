@@ -27,7 +27,7 @@ class VehicleLocationProviderUtilsTest {
 
             val c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
-            (earthRadiusKm * c).toFloat() // Returns distance in kilometers
+            (earthRadiusKm * c * 1000.0).toFloat() // Returns distance in meters
         }
 
     @Test
