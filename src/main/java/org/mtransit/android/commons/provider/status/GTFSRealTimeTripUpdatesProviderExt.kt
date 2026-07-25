@@ -118,7 +118,7 @@ internal fun processRDTripUpdate(
     gTripUpdate: GTripUpdate,
     tripSortedRDS: List<RouteDirectionStop>,
     sortedTargetUuidAndSequence: List<Pair<String, Int>>,
-    tripSchedulesByUUID: Map<String, Schedule>,
+    rdSchedulesByUUID: Map<String, Schedule>,
     isSameStop: (GTUStopTimeUpdate?, RouteDirectionStop, Int) -> Boolean,
     feedReadFromSourceMs: Long,
     fixStopSequence: (List<GTUStopTimeUpdate>?) -> List<GTUStopTimeUpdate>? = { it },
@@ -126,11 +126,11 @@ internal fun processRDTripUpdate(
 ) {
     val gTripUpdateReadFromSourceMs = gTripUpdate.optTimestampMs ?: feedReadFromSourceMs
     if (gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.DELETED) {
-        tripSchedulesByUUID.values.setTripDeleted(tripId, gTripUpdateReadFromSourceMs)
+        rdSchedulesByUUID.values.setTripDeleted(tripId, gTripUpdateReadFromSourceMs)
         return
     }
     if (gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.CANCELED) {
-        tripSchedulesByUUID.values.setTripCancelled(tripId, includeCancelledTimestamps, gTripUpdateReadFromSourceMs)
+        rdSchedulesByUUID.values.setTripCancelled(tripId, includeCancelledTimestamps, gTripUpdateReadFromSourceMs)
         return
     }
     if (gTripUpdate.optDelay == null && gTripUpdate.stopTimeUpdateCount == 0) {
@@ -155,7 +155,7 @@ internal fun processRDTripUpdate(
             currentDelay = applyDelay(
                 tripId = tripId,
                 stopSequence = currentUuidAndSeq.stopSequence,
-                rdsSchedule = tripSchedulesByUUID[currentRDS.uuid],
+                rdsSchedule = rdSchedulesByUUID[currentRDS.uuid],
                 currentDelay = currentDelay,
                 readFromSourceMs = gTripUpdateReadFromSourceMs
             )
@@ -168,7 +168,7 @@ internal fun processRDTripUpdate(
         currentDelay = applyDelaySTU(
             tripId = tripId,
             stopSequence = currentUuidAndSeq.stopSequence,
-            rdsSchedule = tripSchedulesByUUID[currentRDS.uuid],
+            rdsSchedule = rdSchedulesByUUID[currentRDS.uuid],
             gStopTimeUpdate = currentStopTimeUpdate,
             readFromSourceMs = gTripUpdateReadFromSourceMs,
             currentDelay = currentDelay,
