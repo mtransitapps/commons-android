@@ -53,12 +53,14 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
     includeCancelledTimestamps: Boolean = false,
 ) {
     val rdSchedulesByUUID = rdSchedules.associateBy { it.targetUUID }
-    val rdsUUIDsByTripId = mutableMapOf<String, MutableSet<String>>()
-    rdSchedulesByUUID.forEach { (uuid, schedule) ->
-        schedule.timestamps.mapNotNull { it.tripId }.forEach { tripId ->
-            rdsUUIDsByTripId.getOrPut(tripId) { mutableSetOf() }.add(uuid)
+    val rdsUUIDsByTripId = rdSchedules
+        .flatMap { schedule ->
+            schedule.timestamps
+                .mapNotNull { it.tripId }
+                .map { tripId -> tripId to schedule.targetUUID }
         }
-    }
+        .groupBy({ it.first }, { it.second })
+        .mapValues { (_, uuids) -> uuids.toSet() }
     rdTripUpdates.forEach { (td, gTripUpdate) ->
         val gTripId = td.optTripIdNotEmpty ?: return@forEach
         val tripId = parseTripId(gTripId)
@@ -72,14 +74,14 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
         val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(tripId, tripSchedules, tripSortedRDS)
         processRDTripUpdate(
             tripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, rdSchedulesByUUID,
-            isSameStop = { stu, rds, stopSeq -> isSameStop(stu, rds, stopSeq) },
+            isSameStop = this::isSameStop,
             feedReadFromSourceMs = feedReadFromSourceMs,
             fixStopSequence = {
                 it?.fixStopSequence(
                     tripId = tripId,
                     tripSortedRDS = tripSortedRDS,
                     sortedTargetUuidAndSequence = sortedTargetUuidAndSequence,
-                    isSameStop = { stu, rds, stopSeq -> isSameStop(stu, rds, stopSeq) },
+                    isSameStop = this::isSameStop,
                     parseStopId = this::parseStopId,
                 )
             },
