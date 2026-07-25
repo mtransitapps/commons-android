@@ -52,28 +52,22 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
     feedReadFromSourceMs: Long,
     includeCancelledTimestamps: Boolean = false,
 ) {
-    val schedulesByTripId = mutableMapOf<String, MutableSet<Schedule>>()
-    rdSchedules.forEach { schedule ->
-        schedule.timestamps.forEach { timestamp ->
-            timestamp.tripId?.let { tripId ->
-                schedulesByTripId.getOrPut(tripId) { mutableSetOf() }.add(schedule)
-            }
-        }
-    }
+    val rdSchedulesByUUID = rdSchedules.associateBy { it.targetUUID }
     rdTripUpdates.forEach { (td, gTripUpdate) ->
         val gTripId = td.optTripIdNotEmpty ?: return@forEach
         val tripId = parseTripId(gTripId)
-        val tripSchedulesByUUID = schedulesByTripId[tripId]
-            ?.takeIf { it.isNotEmpty() }
-            ?.associateBy { it.targetUUID }
-            ?: return@forEach
+        if (rdSchedulesByUUID.none { (_, schedule) -> schedule.timestamps.any { it.tripId == tripId } })
+            return@forEach // trip ID not in static data
+        val tripRdsUUIDs = rdSchedulesByUUID
+            .filter { (_, schedule) -> schedule.timestamps.any { it.tripId == tripId } }
+            .keys
         val tripSortedRDS = sortedRDS
-            .filter { rds -> rds.uuid in tripSchedulesByUUID.keys }
+            .filter { rds -> rds.uuid in tripRdsUUIDs }
             .takeIf { it.isNotEmpty() }
             ?: return@forEach
-        val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(tripId, tripSchedulesByUUID.values, tripSortedRDS)
+        val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(tripId, rdSchedulesByUUID.values, tripSortedRDS)
         processRDTripUpdate(
-            tripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, tripSchedulesByUUID,
+            tripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, rdSchedulesByUUID,
             isSameStop = { stu, rds, stopSeq -> isSameStop(stu, rds, stopSeq) },
             feedReadFromSourceMs = feedReadFromSourceMs,
             fixStopSequence = {

@@ -27,6 +27,7 @@ import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("WeakerAccess")
+// aka. [route+direction+stop]>trips>stop_times
 public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private static final String LOG_TAG = Schedule.class.getSimpleName();
