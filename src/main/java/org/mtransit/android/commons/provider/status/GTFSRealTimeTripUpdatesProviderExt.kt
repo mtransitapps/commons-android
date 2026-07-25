@@ -52,36 +52,36 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
     feedReadFromSourceMs: Long,
     includeCancelledTimestamps: Boolean = false,
 ) {
-    val schedulesByTripId = mutableMapOf<String, MutableSet<Schedule>>()
-    rdSchedules.forEach { schedule ->
-        schedule.timestamps.forEach { timestamp ->
-            timestamp.tripId?.let { tripId ->
-                schedulesByTripId.getOrPut(tripId) { mutableSetOf() }.add(schedule)
-            }
+    val rdSchedulesByUUID = rdSchedules.associateBy { it.targetUUID }
+    val rdsUUIDsByTripId = rdSchedules
+        .flatMap { schedule ->
+            schedule.timestamps
+                .mapNotNull { it.tripId }
+                .map { tripId -> tripId to schedule.targetUUID }
         }
-    }
+        .groupBy({ it.first }, { it.second })
+        .mapValues { (_, uuids) -> uuids.toSet() }
     rdTripUpdates.forEach { (td, gTripUpdate) ->
         val gTripId = td.optTripIdNotEmpty ?: return@forEach
         val tripId = parseTripId(gTripId)
-        val tripSchedulesByUUID = schedulesByTripId[tripId]
-            ?.takeIf { it.isNotEmpty() }
-            ?.associateBy { it.targetUUID }
-            ?: return@forEach
+        val tripRdsUUIDs = rdsUUIDsByTripId[tripId]
+            ?: return@forEach // trip ID not in static data
+        val tripSchedules = tripRdsUUIDs.mapNotNull { rdSchedulesByUUID[it] }
         val tripSortedRDS = sortedRDS
-            .filter { rds -> rds.uuid in tripSchedulesByUUID.keys }
+            .filter { rds -> rds.uuid in tripRdsUUIDs }
             .takeIf { it.isNotEmpty() }
             ?: return@forEach
-        val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(tripId, tripSchedulesByUUID.values, tripSortedRDS)
+        val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(tripId, tripSchedules, tripSortedRDS)
         processRDTripUpdate(
-            tripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, tripSchedulesByUUID,
-            isSameStop = { stu, rds, stopSeq -> isSameStop(stu, rds, stopSeq) },
+            tripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, rdSchedulesByUUID,
+            isSameStop = this::isSameStop,
             feedReadFromSourceMs = feedReadFromSourceMs,
             fixStopSequence = {
                 it?.fixStopSequence(
                     tripId = tripId,
                     tripSortedRDS = tripSortedRDS,
                     sortedTargetUuidAndSequence = sortedTargetUuidAndSequence,
-                    isSameStop = { stu, rds, stopSeq -> isSameStop(stu, rds, stopSeq) },
+                    isSameStop = this::isSameStop,
                     parseStopId = this::parseStopId,
                 )
             },
@@ -120,7 +120,7 @@ internal fun processRDTripUpdate(
     gTripUpdate: GTripUpdate,
     tripSortedRDS: List<RouteDirectionStop>,
     sortedTargetUuidAndSequence: List<Pair<String, Int>>,
-    tripSchedulesByUUID: Map<String, Schedule>,
+    rdSchedulesByUUID: Map<String, Schedule>,
     isSameStop: (GTUStopTimeUpdate?, RouteDirectionStop, Int) -> Boolean,
     feedReadFromSourceMs: Long,
     fixStopSequence: (List<GTUStopTimeUpdate>?) -> List<GTUStopTimeUpdate>? = { it },
@@ -128,11 +128,11 @@ internal fun processRDTripUpdate(
 ) {
     val gTripUpdateReadFromSourceMs = gTripUpdate.optTimestampMs ?: feedReadFromSourceMs
     if (gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.DELETED) {
-        tripSchedulesByUUID.values.setTripDeleted(tripId, gTripUpdateReadFromSourceMs)
+        rdSchedulesByUUID.values.setTripDeleted(tripId, gTripUpdateReadFromSourceMs)
         return
     }
     if (gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.CANCELED) {
-        tripSchedulesByUUID.values.setTripCancelled(tripId, includeCancelledTimestamps, gTripUpdateReadFromSourceMs)
+        rdSchedulesByUUID.values.setTripCancelled(tripId, includeCancelledTimestamps, gTripUpdateReadFromSourceMs)
         return
     }
     if (gTripUpdate.optDelay == null && gTripUpdate.stopTimeUpdateCount == 0) {
@@ -157,7 +157,7 @@ internal fun processRDTripUpdate(
             currentDelay = applyDelay(
                 tripId = tripId,
                 stopSequence = currentUuidAndSeq.stopSequence,
-                rdsSchedule = tripSchedulesByUUID[currentRDS.uuid],
+                rdsSchedule = rdSchedulesByUUID[currentRDS.uuid],
                 currentDelay = currentDelay,
                 readFromSourceMs = gTripUpdateReadFromSourceMs
             )
@@ -170,7 +170,7 @@ internal fun processRDTripUpdate(
         currentDelay = applyDelaySTU(
             tripId = tripId,
             stopSequence = currentUuidAndSeq.stopSequence,
-            rdsSchedule = tripSchedulesByUUID[currentRDS.uuid],
+            rdsSchedule = rdSchedulesByUUID[currentRDS.uuid],
             gStopTimeUpdate = currentStopTimeUpdate,
             readFromSourceMs = gTripUpdateReadFromSourceMs,
             currentDelay = currentDelay,

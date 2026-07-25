@@ -216,7 +216,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 feedReadFromSourceMs = feedReadFromSourceMs,
                 includeCancelledTimestamps = filter.isIncludeCancelledTimestampsOrDefault,
             )
-            cacheRealTimeSchedules(scheduleList = rdSchedules, sourceLabel = sourceLabel, lastUpdateInMs = lastUpdateInMs)
+            cacheRealTimeSchedules(rdSchedules = rdSchedules, sourceLabel = sourceLabel, lastUpdateInMs = lastUpdateInMs)
             return getCachedStatusS(filter.targetUUID, staticRDTripIds)
         } catch (e: Exception) {
             MTLog.w(LOG_TAG, e, "makeCachedStatusFromAgencyData() > error!")
@@ -270,51 +270,52 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     private const val MIN_NUMBER_OF_FUTURE_FOR_REAL_TIME = 10 // need to keep multiple RT timestamps to be able to show the next non-RT is in a long time
 
     private fun GTFSRealTimeProvider.cacheRealTimeSchedules(
-        scheduleList: Collection<Schedule>,
+        rdSchedules: Collection<Schedule>,
         sourceLabel: String,
         lastUpdateInMs: Long,
         ignorePastRealTime: Boolean = false,
-        tripsWithRealTime: Set<String> = scheduleList
+        tripsWithRealTime: Set<String> = rdSchedules
             .asSequence()
-            .mapNotNull { schedule -> schedule.timestamps.takeIf { it.isNotEmpty() } }.flatten()
+            .mapNotNull { schedule -> schedule.timestamps.takeIf { it.isNotEmpty() } }
+            .flatten()
             .filter { it.isRealTimeOrCancelled }
             .mapNotNull { it.tripId }
             .toSet() // distinct
     ) {
-        scheduleList.forEach { schedule ->
-            schedule.sourceLabel = sourceLabel
-            schedule.lastUpdateInMs = lastUpdateInMs
-            schedule.providerPrecisionInMs = PROVIDER_PRECISION_IN_MS
-            schedule.maxValidityInMs = statusMaxValidityInMs
+        rdSchedules.forEach { rdsSchedule ->
+            rdsSchedule.sourceLabel = sourceLabel
+            rdsSchedule.lastUpdateInMs = lastUpdateInMs
+            rdsSchedule.providerPrecisionInMs = PROVIDER_PRECISION_IN_MS
+            rdsSchedule.maxValidityInMs = statusMaxValidityInMs
             val now = TimeUtilsK.currentInstant()
-            if (!schedule.timestamps.any { it.isRealTimeOrCancelled || (it.tripId in tripsWithRealTime && it.departure < now) }) {
-                cacheStatus(schedule.toNoData()) // avoid re-run
+            if (rdsSchedule.timestamps.none { it.isRealTimeOrCancelled || (it.tripId in tripsWithRealTime && it.departure < now) }) {
+                cacheStatus(rdsSchedule.toNoData()) // avoid re-run
                 return@forEach
             }
             var oldestDateForRealTime = now - OLDEST_FOR_REAL_TIME
             var maxFutureDateForRealTime = now + MAX_FUTURE_FOR_REAL_TIME
-            val (past, future) = schedule.timestamps.partition { it.departure < now }
+            val (sortedPastTimestamps, sortedFutureTimestamps) = rdsSchedule.timestamps.partition { it.departure < now }
             if (!ignorePastRealTime) {
-                oldestDateForRealTime = past.filter { it.isRealTimeOrCancelled }.minOfOrNull { it.arrival } // all real-time
+                oldestDateForRealTime = sortedPastTimestamps.filter { it.isRealTimeOrCancelled }.minOfOrNull { it.arrival } // all real-time
                     ?: oldestDateForRealTime
             }
-            future.take(MIN_NUMBER_OF_FUTURE_FOR_REAL_TIME).maxOfOrNull { it.departure }
+            sortedFutureTimestamps.take(MIN_NUMBER_OF_FUTURE_FOR_REAL_TIME).maxOfOrNull { it.departure }
                 ?.takeIf { it > maxFutureDateForRealTime }
                 ?.let {
                     maxFutureDateForRealTime = it
                 }
-            future.filter { it.isRealTimeOrCancelled }.maxOfOrNull { it.departure } // all real-time
+            sortedFutureTimestamps.filter { it.isRealTimeOrCancelled }.maxOfOrNull { it.departure } // all real-time
                 ?.takeIf { it > maxFutureDateForRealTime }
                 ?.let {
                     maxFutureDateForRealTime = it
                 }
             // remove timestamps that are not real-time & outside of min/max date for real-time
-            schedule.timestamps
+            rdsSchedule.timestamps
                 .filterNot {
                     it.isRealTimeOrCancelled || oldestDateForRealTime < it.arrival && it.departure < maxFutureDateForRealTime
                 }
-                .forEach { schedule.removeTimestamp(it) }
-            cacheStatus(schedule)
+                .forEach { rdsSchedule.removeTimestamp(it) }
+            cacheStatus(rdsSchedule)
         }
     }
 
