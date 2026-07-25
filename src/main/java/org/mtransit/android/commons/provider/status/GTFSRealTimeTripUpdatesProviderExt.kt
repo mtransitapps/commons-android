@@ -53,19 +53,23 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
     includeCancelledTimestamps: Boolean = false,
 ) {
     val rdSchedulesByUUID = rdSchedules.associateBy { it.targetUUID }
+    val rdsUUIDsByTripId = mutableMapOf<String, MutableSet<String>>()
+    rdSchedulesByUUID.forEach { (uuid, schedule) ->
+        schedule.timestamps.mapNotNull { it.tripId }.forEach { tripId ->
+            rdsUUIDsByTripId.getOrPut(tripId) { mutableSetOf() }.add(uuid)
+        }
+    }
     rdTripUpdates.forEach { (td, gTripUpdate) ->
         val gTripId = td.optTripIdNotEmpty ?: return@forEach
         val tripId = parseTripId(gTripId)
-        if (rdSchedulesByUUID.none { (_, schedule) -> schedule.timestamps.any { it.tripId == tripId } })
-            return@forEach // trip ID not in static data
-        val tripRdsUUIDs = rdSchedulesByUUID
-            .filter { (_, schedule) -> schedule.timestamps.any { it.tripId == tripId } }
-            .keys
+        val tripRdsUUIDs = rdsUUIDsByTripId[tripId]
+            ?: return@forEach // trip ID not in static data
+        val tripSchedules = tripRdsUUIDs.mapNotNull { rdSchedulesByUUID[it] }
         val tripSortedRDS = sortedRDS
             .filter { rds -> rds.uuid in tripRdsUUIDs }
             .takeIf { it.isNotEmpty() }
             ?: return@forEach
-        val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(tripId, rdSchedulesByUUID.values, tripSortedRDS)
+        val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(tripId, tripSchedules, tripSortedRDS)
         processRDTripUpdate(
             tripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, rdSchedulesByUUID,
             isSameStop = { stu, rds, stopSeq -> isSameStop(stu, rds, stopSeq) },
