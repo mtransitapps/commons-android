@@ -4,11 +4,9 @@ import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStartDate
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStartTime
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.LOG_TAG
-import com.google.transit.realtime.GtfsRealtime.TripDescriptor as GTripDescriptor
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 
 fun List<GTripUpdate>.filterDuplicatesTrips() = buildList<GTripUpdate> {
@@ -22,12 +20,30 @@ fun List<GTripUpdate>.filterDuplicatesTrips() = buildList<GTripUpdate> {
             return@forEach
         }
         // PICK ONE
-        // 1 - pick one w/o ModifiedTrip
-        gTripUpdates.singleOrNull { it.optTrip?.hasModifiedTrip() == false }?.let { gTripUpdate ->
-            MTLog.d(LOG_TAG, "filterDuplicatesTrips() > pick 1 out of ${gTripUpdates.size} w/o ModifiedTrip: ${gTripUpdate.toStringExt()}")
-            add(gTripUpdate)
-            return@forEach
         }
+        // 1 - pick one w/o ModifiedTrip AND w/ Vehicle descriptor
+        gTripUpdates
+            .filter { it.optTrip?.hasModifiedTrip() == false && it.hasVehicle() }
+            .takeIf { it.isNotEmpty() }
+            ?.let { woModifiedTripAndWVehicle ->
+                val picked = woModifiedTripAndWVehicle.first()
+                MTLog.d(
+                    LOG_TAG,
+                    "filterDuplicatesTrips() > pick 1st out of ${woModifiedTripAndWVehicle.size} w/o ModifiedTrip and w/ Vehicle: ${picked.toStringExt()}"
+                )
+                add(picked)
+                return@forEach
+            }
+        // 2 - pick one w/o ModifiedTrip
+        gTripUpdates
+            .filter { it.optTrip?.hasModifiedTrip() == false }
+            .takeIf { it.isNotEmpty() }
+            ?.let { woModifiedTrip ->
+                val picked = woModifiedTrip.first()
+                MTLog.d(LOG_TAG, "filterDuplicatesTrips() > pick 1st out of ${woModifiedTrip.size} w/o ModifiedTrip: ${picked.toStringExt()}")
+                add(picked)
+                return@forEach
+            }
         // ELSE -> pick 1st one in the list
         val gTripUpdate1 = gTripUpdates.firstOrNull() ?: return@forEach
         MTLog.d(LOG_TAG, "filterDuplicatesTrips() > use 1st one out of ${gTripUpdates.size}: ${gTripUpdate1.toStringExt()}")
