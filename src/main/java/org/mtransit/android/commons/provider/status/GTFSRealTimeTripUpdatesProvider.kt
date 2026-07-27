@@ -150,11 +150,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             }
             val rdTripUpdates = gTripUpdates
                 .filter { it.isUseful() }
-                .mapNotNull { gTripUpdate ->
-                    gTripUpdate.optTrip?.let { it to gTripUpdate }
-                }.filter { (td, _) ->
+                .filter { gTripUpdate ->
                     match(
-                        td = td,
+                        td = gTripUpdate.optTrip ?: return@filter false,
                         targetRouteIdHash = targetRouteIdHash,
                         targetDirectionOriginalId = targetDirectionOriginalId,
                         staticRDTripIds = staticRDTripIds,
@@ -162,7 +160,10 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                             tripIdsOutOfSync = it
                         },
                     )
-                }.takeIf { it.isNotEmpty() }
+                }
+                .filterDuplicatesTrips()
+                .takeIf { it.isNotEmpty() }
+                ?.mapNotNull { gTripUpdate -> gTripUpdate.optTrip?.let { it to gTripUpdate } }
             if (tripIdsOutOfSync) {
                 MTLog.i(
                     LOG_TAG,
@@ -234,7 +235,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         parseRouteId(td)?.let { rtRouteIdHash ->
             if (rtRouteIdHash != targetRouteIdHash) {
                 // if (DEBUG_STATIC_RT_MATCH) { // too much log
-                // MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > IGNORE: wrong route ID '$rtRouteIdHash' (t:$targetRouteIdHash)")
+                // MTLog.d(LOG_TAG, "match() > IGNORE: wrong route ID '$rtRouteIdHash' (t:$targetRouteIdHash)")
                 // }
                 return false // NOT A MATCH
             }
@@ -246,7 +247,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     if (DEBUG_STATIC_RT_MATCH) {
                         MTLog.d(
                             LOG_TAG,
-                            "makeCachedStatusFromAgencyData() > IGNORE: wrong direction ID '$directionId' for ${td.toStringExt(short = true)}"
+                            "match() > IGNORE: wrong direction ID '$directionId' for ${td.toStringExt(short = true)}"
                         )
                     }
                     return false // NOT A MATCH
@@ -255,10 +256,12 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         }
         parseTripId(td)?.let { tripId ->
             if (tripId !in staticRDTripIds) {
-                if (DEBUG_STATIC_RT_MATCH) {
-                    MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > IGNORE: wrong trip ID ($tripId) for ${td.toStringExt(short = true)}")
+                if (td.hasRouteId()) {
+                    if (DEBUG_STATIC_RT_MATCH) {
+                        MTLog.d(LOG_TAG, "match() > IGNORE: wrong trip ID ($tripId) for ${td.toStringExt(short = true)}")
+                    }
+                    setTripIdsOutOfSync(true)
                 }
-                setTripIdsOutOfSync(true)
                 return false // NOT A MATCH
             }
         }
