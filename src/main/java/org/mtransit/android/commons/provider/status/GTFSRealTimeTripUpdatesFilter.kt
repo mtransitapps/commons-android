@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.provider.status
 
 import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optModifiedTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStartDate
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStartTime
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
@@ -9,9 +10,11 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.LOG_TAG
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 
-fun List<GTripUpdate>.filterDuplicatesTrips() = buildList<GTripUpdate> {
+internal fun List<GTripUpdate>.filterDuplicatesTrips() = buildList<GTripUpdate> {
     this@filterDuplicatesTrips.groupBy {
-        it.optTrip?.optTripIdNotEmpty to (it.optTrip?.optStartDate to it.optTrip?.optStartTime)
+        it.optTrip?.optTripIdNotEmpty to (
+                (it.optTrip?.optStartDate ?: it.optTrip?.optModifiedTrip?.optStartDate) to
+                        (it.optTrip?.optStartTime ?: it.optTrip?.optModifiedTrip?.optStartTime))
     }.forEach { (_, gTripUpdates) ->
         if (gTripUpdates.isEmpty()) return@forEach
         if (gTripUpdates.size == 1) {
@@ -20,7 +23,6 @@ fun List<GTripUpdate>.filterDuplicatesTrips() = buildList<GTripUpdate> {
             return@forEach
         }
         // PICK ONE
-        }
         // 1 - pick one w/o ModifiedTrip AND w/ Vehicle descriptor
         gTripUpdates
             .filter { it.optTrip?.hasModifiedTrip() == false && it.hasVehicle() }

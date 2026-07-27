@@ -337,7 +337,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
         val tripStart = DEPARTURE
         val gTripUpdate = tripUpdate {
             trip = tripDescriptor {
-                this.tripId = tripId
+                tripId = TRIP_ID
             }
             delayDuration = 1.minutes
         }
