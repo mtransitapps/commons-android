@@ -2,6 +2,7 @@ package org.mtransit.android.commons.provider.status
 
 import android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import com.google.transit.realtime.headerOrNull
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.MTLog
@@ -151,15 +152,17 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             val rdTripUpdates = gTripUpdates
                 .filter { it.isUseful() }
                 .filter { gTripUpdate ->
-                    match(
-                        td = gTripUpdate.optTrip ?: return@filter false,
+                    gTripUpdate.optTrip?.match(
                         targetRouteIdHash = targetRouteIdHash,
                         targetDirectionOriginalId = targetDirectionOriginalId,
                         staticRDTripIds = staticRDTripIds,
+                        ignoreDirection = ignoreDirection,
+                        parseRouteId = ::parseRouteId,
+                        parseTripId = ::parseTripId,
                         setTripIdsOutOfSync = {
                             tripIdsOutOfSync = it
                         },
-                    )
+                    ) == true
                 }
                 .filterDuplicatesTrips()
                 .takeIf { it.isNotEmpty() }
@@ -225,14 +228,17 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         }
     }
 
-    private fun GTFSRealTimeProvider.match(
-        td: GTripDescriptor,
+    @VisibleForTesting
+    internal fun GTripDescriptor.match(
         targetRouteIdHash: String,
         targetDirectionOriginalId: Int?,
         staticRDTripIds: Set<String>,
+        ignoreDirection: Boolean,
+        parseRouteId: (GTripDescriptor) -> String?,
+        parseTripId: (GTripDescriptor) -> String?,
         setTripIdsOutOfSync: (Boolean) -> Unit,
     ): Boolean {
-        parseRouteId(td)?.let { rtRouteIdHash ->
+        parseRouteId(this)?.let { rtRouteIdHash ->
             if (rtRouteIdHash != targetRouteIdHash) {
                 // if (DEBUG_STATIC_RT_MATCH) { // too much log
                 // MTLog.d(LOG_TAG, "match() > IGNORE: wrong route ID '$rtRouteIdHash' (t:$targetRouteIdHash)")
@@ -241,24 +247,24 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             }
         }
         @Suppress("SimplifyBooleanWithConstants")
-        if (!ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID || td.optTripIdNotEmpty == null) {
-            td.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
+        if (!ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID || optTripIdNotEmpty == null) {
+            optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
                 if (directionId != targetDirectionOriginalId) {
                     if (DEBUG_STATIC_RT_MATCH) {
                         MTLog.d(
                             LOG_TAG,
-                            "match() > IGNORE: wrong direction ID '$directionId' for ${td.toStringExt(short = true)}"
+                            "match() > IGNORE: wrong direction ID '$directionId' for ${toStringExt(short = true)}"
                         )
                     }
                     return false // NOT A MATCH
                 }
             }
         }
-        parseTripId(td)?.let { tripId ->
+        parseTripId(this)?.let { tripId ->
             if (tripId !in staticRDTripIds) {
-                if (td.hasRouteId()) {
+                if (hasRouteId()) {
                     if (DEBUG_STATIC_RT_MATCH) {
-                        MTLog.d(LOG_TAG, "match() > IGNORE: wrong trip ID ($tripId) for ${td.toStringExt(short = true)}")
+                        MTLog.d(LOG_TAG, "match() > IGNORE: wrong trip ID ($tripId) for ${toStringExt(short = true)}")
                     }
                     setTripIdsOutOfSync(true)
                 }

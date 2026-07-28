@@ -46,6 +46,16 @@ internal fun List<GTripUpdate>.filterDuplicatesTrips() = buildList<GTripUpdate> 
                 add(picked)
                 return@forEach
             }
+        // 3 - pick one w/ Vehicle descriptor (even if it has ModifiedTrip)
+        gTripUpdates
+            .filter { it.hasVehicle() }
+            .takeIf { it.isNotEmpty() }
+            ?.let { wVehicle ->
+                val picked = wVehicle.first()
+                MTLog.d(LOG_TAG, "filterDuplicatesTrips() > pick 1st out of ${wVehicle.size} w/ Vehicle: ${picked.toStringExt()}")
+                add(picked)
+                return@forEach
+            }
         // ELSE -> pick 1st one in the list
         val gTripUpdate1 = gTripUpdates.firstOrNull() ?: return@forEach
         MTLog.d(LOG_TAG, "filterDuplicatesTrips() > use 1st one out of ${gTripUpdates.size}: ${gTripUpdate1.toStringExt()}")
