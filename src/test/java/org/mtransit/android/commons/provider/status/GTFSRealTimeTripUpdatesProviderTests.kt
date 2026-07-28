@@ -17,6 +17,9 @@ import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.toScheduleTimestamp
 import org.mtransit.android.commons.provider.gtfs.GTFSStatusProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.delayDuration
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
+import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.match
 import org.mtransit.android.commons.secsToInstant
 import org.mtransit.android.commons.toSecs
 import kotlin.test.Test
@@ -337,7 +340,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
         val tripStart = DEPARTURE
         val gTripUpdate = tripUpdate {
             trip = tripDescriptor {
-                this.tripId = tripId
+                tripId = TRIP_ID
             }
             delayDuration = 1.minutes
         }
@@ -1189,6 +1192,68 @@ class GTFSRealTimeTripUpdatesProviderTests {
         assertNotNull(result[4]) { stu ->
             assertEquals(9, stu.stopSequence)
             assertEquals("9000", stu.stopId)
+        }
+    }
+
+    // endregion
+
+    // region TripDescriptor match
+
+    @Test
+    fun test_match_trip_id_only_matches() {
+        var tripIdsOutOfSync = false
+        tripDescriptor {
+            tripId = TRIP_ID
+        }.match(
+            targetRouteIdHash = "1",
+            targetDirectionOriginalId = 1,
+            staticRDTripIds = setOf(TRIP_ID),
+            ignoreDirection = false,
+            parseRouteId = { it.optRouteId },
+            parseTripId = { it.optTripId },
+            setTripIdsOutOfSync = { tripIdsOutOfSync = it}
+        ).let { result ->
+            assertTrue(result)
+            assertFalse(tripIdsOutOfSync)
+        }
+    }
+
+    @Test
+    fun test_match_trip_id_only_does_not_match() {
+        var tripIdsOutOfSync = false
+        tripDescriptor {
+            tripId = TRIP_ID
+        }.match(
+            targetRouteIdHash = "1",
+            targetDirectionOriginalId = 1,
+            staticRDTripIds = setOf("different_trip_id"),
+            ignoreDirection = false,
+            parseRouteId = { it.optRouteId },
+            parseTripId = { it.optTripId },
+            setTripIdsOutOfSync = { tripIdsOutOfSync = it}
+        ).let { result ->
+            assertFalse(result)
+            assertFalse(tripIdsOutOfSync)
+        }
+    }
+
+    @Test
+    fun test_match_trip_id_and_route_does_not_match() {
+        var tripIdsOutOfSync = false
+        tripDescriptor {
+            routeId = "1"
+            tripId = TRIP_ID
+        }.match(
+            targetRouteIdHash = "1",
+            targetDirectionOriginalId = 1,
+            staticRDTripIds = setOf("different_trip_id"),
+            ignoreDirection = false,
+            parseRouteId = { it.optRouteId },
+            parseTripId = { it.optTripId },
+            setTripIdsOutOfSync = { tripIdsOutOfSync = it}
+        ).let { result ->
+            assertFalse(result)
+            assertTrue(tripIdsOutOfSync)
         }
     }
 
