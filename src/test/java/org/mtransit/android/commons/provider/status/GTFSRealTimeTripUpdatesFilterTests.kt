@@ -82,16 +82,16 @@ class GTFSRealTimeTripUpdatesFilterTests {
                     startDate = "20260727"
                     startTime = "151800"
                 }
-                vehicle = vehicleDescriptor {
-                    id = "1234"
-                    label = "hello"
-                }
             },
             tripUpdate {
                 trip = tripDescriptor {
                     tripId = TRIP_ID
                     startDate = "20260727"
                     startTime = "151800"
+                }
+                vehicle = vehicleDescriptor {
+                    id = "1234"
+                    label = "hello"
                 }
             },
         ).filterDuplicatesTrips().let { result ->
