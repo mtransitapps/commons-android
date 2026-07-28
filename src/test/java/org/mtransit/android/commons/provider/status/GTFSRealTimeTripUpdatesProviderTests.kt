@@ -1238,7 +1238,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
     }
 
     @Test
-    fun test_match_trip_id_and_route_does_not_match() {
+    fun test_match_trip_id_does_not_match_and_route_matches() {
         var tripIdsOutOfSync = false
         tripDescriptor {
             routeId = "1"

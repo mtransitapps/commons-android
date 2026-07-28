@@ -64,7 +64,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
                 }
             },
         ).filterDuplicatesTrips().let { result ->
-            assert(result.size == 1)
+            assertEquals(1, result.size)
             assertNotNull(result.getOrNull(0)) {
                 assertEquals(TRIP_ID, it.trip.tripId)
                 assertFalse(it.trip.hasModifiedTrip())
@@ -95,7 +95,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
                 }
             },
         ).filterDuplicatesTrips().let { result ->
-            assert(result.size == 1)
+            assertEquals(1, result.size)
             assertNotNull(result.getOrNull(0)) {
                 assertEquals(TRIP_ID, it.trip.tripId)
                 assertFalse(it.trip.hasModifiedTrip())
@@ -150,7 +150,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
                 // etc. (stop time update unrelated to this trip ID (static data) (either trip modification is massive or just vehicle next trip)
             },
         ).filterDuplicatesTrips().let { result ->
-            assert(result.size == 1)
+            assertEquals(1, result.size)
             assertNotNull(result.getOrNull(0)) { gTripUpdate ->
                 assertEquals(TRIP_ID, gTripUpdate.trip.tripId)
                 assertTrue(gTripUpdate.trip.hasModifiedTrip())
