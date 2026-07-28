@@ -6,8 +6,9 @@
     <string name="opening_failed_and_uri">Aucune app installée pour ouvrir %s!</string>
     <string name="web_browser">Navigateur</string>
     <string name="opening_main_app_and_removing_icon">Ouverture de l\'application &#8230;\n\n(icône temporaire supprimé)</string>
-    <string name="please_install_main_app_from_google_play">Ouverture de Google Play &#8230;\n\nMerci d\'installer l\'application principale (gratuite).</string>
-    <string name="google_play">Google Play</string>
+    <string name="please_install_main_app_from_google_play">Ouverture du Play Store &#8230;\n\nMerci d\'installer l\'application principale (gratuite).</string>
+    <string name="google_play">Google Play</string><!-- for subscriptions -->
+    <string name="google_play_store">Play Store</string>
     <string name="permission_label_read">@string/provider_permission_label_read</string>
     <string name="permission_description_read">@string/provider_permission_description_read</string>
     <string name="provider_permission_label_read">Lire les données des agences de transport.</string>
@@ -64,7 +65,7 @@
     <string name="db_deploying">Installation de l\'horaire &#8230;</string>
     <string name="db_upgrading">Mise à jour de l\'horaire &#8230;</string>
     <string name="unknown_address">Adresse inconnue</string>
-    <string name="please_install_new_app_from_google_play">Ouverture de Google Play &#8230;\n\nMerci d\'installer la nouvelle application (gratuite).</string>
+    <string name="please_install_new_app_from_google_play">Ouverture Play Store &#8230;\n\nMerci d\'installer la nouvelle application (gratuite).</string>
     <string name="please_uninstall_old_app">Merci de désinstaller l\'ancienne application.</string>
     <string name="please_uninstall_app_device_not_supported">Merci de désinstaller l\'application.\n\nDésolé, cet appareil n\'est plus supporté.</string>
     <string name="module_app_installed_default">&#10003; <b>Les données de l\'agence de transport</b> pour <b>MonTransit</b> ont été installées avec succès.</string>
@@ -83,5 +84,5 @@
     </plurals>
     <string name="text_opening_main_app_cancel">(toucher l\'écran pour annuler)</string>
     <string name="privacy_policy">Politique de confidentialité</string>
-    <string name="get_it_on_google_play_badge">L\'Obtenir sur Google Play</string>
+    <string name="get_it_on_google_play_store_badge">L\'obtenir sur le Play Store</string>
 </resources>

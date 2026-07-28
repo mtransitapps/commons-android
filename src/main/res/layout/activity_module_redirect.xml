@@ -102,7 +102,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="0dp"
-        android:contentDescription="@string/get_it_on_google_play_badge"
+        android:contentDescription="@string/get_it_on_google_play_store_badge"
         android:foreground="@drawable/img_button_fg"
         android:src="@drawable/google_play_badge"
         android:visibility="gone"

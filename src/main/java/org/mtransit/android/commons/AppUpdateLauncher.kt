@@ -31,7 +31,7 @@ object AppUpdateLauncher : MTLog.Loggable {
             false
         }
         if (!activityOpened) {
-            StoreUtils.viewAppPage(context, pkg, context.getString(R.string.google_play))
+            StoreUtils.viewAppPage(context, pkg, context.getString(R.string.google_play_store))
         }
     }
 }

@@ -56,7 +56,7 @@ public final class StoreUtils implements MTLog.Loggable {
 			return true;
 		}
 		extras.putBoolean("inline", true);
-		// tries to force Google Play Store package 1st and extras (no flags)
+		// tries to force Play Store package 1st and extras (no flags)
 		final Uri urlMarket = appendReferrer(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg), referrer);
 		success = LinkUtils.open(context, urlMarket, label, GOOGLE_PLAY_PKG, extras);
 		if (success) {
@@ -72,7 +72,7 @@ public final class StoreUtils implements MTLog.Loggable {
 				Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED, // task re-parenting if needed
 				Intent.FLAG_ACTIVITY_CLEAR_TOP, // make sure it opens on app page even if already open in search result
 		};
-		// tries to force Google Play Store package 1st
+		// tries to force Play Store package 1st
 		success = LinkUtils.open(context, urlMarket, label, GOOGLE_PLAY_PKG, flags);
 		if (success) {
 			return true;
@@ -81,7 +81,7 @@ public final class StoreUtils implements MTLog.Loggable {
 		if (success) {
 			return true;
 		}
-		// tries w/o Google Play Store package
+		// tries w/o Play Store package
 		success = LinkUtils.open(context, urlMarket, label, flags);
 		if (success) {
 			return true;

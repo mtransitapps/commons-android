@@ -6,8 +6,9 @@
     <string name="opening_failed_and_uri">No app installed to open %s!</string>
     <string name="web_browser">Web Browser</string>
     <string name="opening_main_app_and_removing_icon">Opening the main application&#8230;\n\n(temporary icon removed)</string>
-    <string name="please_install_main_app_from_google_play">Opening Google Play&#8230;\n\nPlease install the main application (free).</string>
-    <string name="google_play">Google Play</string>
+    <string name="please_install_main_app_from_google_play">Opening Play Store&#8230;\n\nPlease install the main application (free).</string>
+    <string name="google_play">Google Play</string><!-- for subscriptions -->
+    <string name="google_play_store">Play Store</string>
     <string name="permission_label_read">@string/provider_permission_label_read</string>
     <string name="permission_description_read">@string/provider_permission_description_read</string>
     <string name="provider_permission_label_read">Read data from transport agencies.</string>
@@ -60,7 +61,7 @@
     <string name="db_deploying">Installing planned schedules&#8230;</string>
     <string name="db_upgrading">Updating planned schedules&#8230;</string>
     <string name="unknown_address">Unknown address</string>
-    <string name="please_install_new_app_from_google_play">Opening Google Play&#8230;\n\nPlease install the new application (free).</string>
+    <string name="please_install_new_app_from_google_play">Opening Play Store&#8230;\n\nPlease install the new application (free).</string>
     <string name="please_uninstall_old_app">Please uninstall the old application.</string>
     <string name="please_uninstall_app_device_not_supported">Please uninstall the application.\n\nSorry, this device is not supported anymore.</string>
     <string name="module_app_installed_default">&#10003; <b>Transit agency data</b> for <b>MonTransit</b> successfully installed.</string>
@@ -78,5 +79,5 @@
     </plurals>
     <string name="text_opening_main_app_cancel">(touch screen to cancel)</string>
     <string name="privacy_policy">Privacy Policy</string>
-    <string name="get_it_on_google_play_badge">GET IT ON Google Play Badge</string>
+    <string name="get_it_on_google_play_store_badge">Get it on the Play Store</string>
 </resources>
