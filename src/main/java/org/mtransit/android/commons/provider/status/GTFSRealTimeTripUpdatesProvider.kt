@@ -110,7 +110,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     private fun GTripUpdate.isUseful(nowMs: Long): Boolean {
         optTimestampMs?.let { tuTimestamp ->
             if (tuTimestamp + TRIP_UPDATE_MAX_AGE_MS < nowMs) {
-                MTLog.d(LOG_TAG, "isUseful() > IGNORE ${(tuTimestamp - nowMs).toDurationLog()} old: ${this.toStringExt()}")
+                MTLog.d(LOG_TAG, "isUseful() > IGNORE ${(nowMs - tuTimestamp).toDurationLog()} old: ${this.toStringExt()}")
                 return false
             }
         }
