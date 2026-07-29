@@ -127,7 +127,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
     // Best practices: 90 seconds
     // https://gtfs.org/documentation/realtime/realtime-best-practices/#feed-publishing-general-practices
-    private val TRIP_UPDATE_MAX_AGE_MS = 90.times(2).seconds.inWholeMilliseconds
+    private val TRIP_UPDATE_MAX_AGE_MS = 90.times(3).seconds.inWholeMilliseconds
 
     private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData(
         context: Context,
