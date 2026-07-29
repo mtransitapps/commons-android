@@ -140,9 +140,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         val nowMs = TimeUtils.currentTimeMillis()
         val feedReadFromSourceMs = storage.getTripUpdateReadFromSourceMs(0L)
             .takeIf { it > 0L }
-            ?.also {
-                if (it + TRIP_UPDATE_MAX_AGE_MS < nowMs) {
-                    MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > IGNORE cached feed (too old: ${it.toDateTimeLog()})")
+            ?.also { feedTimestamp ->
+                if (feedTimestamp + TRIP_UPDATE_MAX_AGE_MS < nowMs) {
+                    MTLog.w(LOG_TAG, "makeCachedStatusFromAgencyData() > IGNORE cached feed (too old: ${feedTimestamp.toDateTimeLog()})")
                     return null
                 }
             } ?: lastUpdateInMs

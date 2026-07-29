@@ -85,6 +85,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -923,9 +924,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					try {
 						final GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(response.body().bytes());
 						final boolean outdated = gFeedMessage.hasHeader() && gFeedMessage.getHeader().hasTimestamp()
-								&& newLastUpdateInMs < gFeedMessage.getHeader().getTimestamp() + getSERVICE_ALERTS_MAX_AGE_MS();
+								&& TimeUnit.SECONDS.toMillis(gFeedMessage.getHeader().getTimestamp()) + getSERVICE_ALERTS_MAX_AGE_MS() < newLastUpdateInMs;
 						if (outdated) {
-							MTLog.d(ALERTS_LOG_TAG, "loadAgencyServiceUpdateDataFromWWW() > IGNORE cached feed (too old: %s})", MTLog.formatDateTime(gFeedMessage.getHeader().getTimestamp()));
+							MTLog.w(ALERTS_LOG_TAG, "loadAgencyServiceUpdateDataFromWWW() > IGNORE cached feed (too old: %s})", MTLog.formatDateTime(gFeedMessage.getHeader().getTimestamp()));
 						}
 						final List<Pair<GtfsRealtime.Alert, String>> alertsWithIdPair = outdated ? Collections.emptyList() : GtfsRealtimeExt.toAlertsWithIdPair(gFeedMessage.getEntityList());
 						if (Constants.DEBUG) MTLog.d(ALERTS_LOG_TAG, "loadAgencyServiceUpdateDataFromWWW() > GTFS alerts[%s]: ", alertsWithIdPair.size());
