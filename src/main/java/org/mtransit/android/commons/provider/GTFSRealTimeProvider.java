@@ -926,7 +926,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 						final boolean outdated = gFeedMessage.hasHeader() && gFeedMessage.getHeader().hasTimestamp()
 								&& TimeUnit.SECONDS.toMillis(gFeedMessage.getHeader().getTimestamp()) + getSERVICE_ALERTS_MAX_AGE_MS() < newLastUpdateInMs;
 						if (outdated) {
-							MTLog.w(ALERTS_LOG_TAG, "loadAgencyServiceUpdateDataFromWWW() > IGNORE cached feed (too old: %s})", MTLog.formatDateTime(gFeedMessage.getHeader().getTimestamp()));
+							MTLog.w(ALERTS_LOG_TAG, "loadAgencyServiceUpdateDataFromWWW() > IGNORE cached feed (too old: %s})",
+									MTLog.formatDateTime(TimeUnit.SECONDS.toMillis(gFeedMessage.getHeader().getTimestamp()))
+							);
 						}
 						final List<Pair<GtfsRealtime.Alert, String>> alertsWithIdPair = outdated ? Collections.emptyList() : GtfsRealtimeExt.toAlertsWithIdPair(gFeedMessage.getEntityList());
 						if (Constants.DEBUG) MTLog.d(ALERTS_LOG_TAG, "loadAgencyServiceUpdateDataFromWWW() > GTFS alerts[%s]: ", alertsWithIdPair.size());
