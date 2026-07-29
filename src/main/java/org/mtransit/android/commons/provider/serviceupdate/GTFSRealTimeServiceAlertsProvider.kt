@@ -29,6 +29,7 @@ import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.gtfs.setTripIdsOutOfSync
 import org.mtransit.android.commons.provider.gtfs.storage
+import kotlin.time.Duration.Companion.minutes
 import com.google.transit.realtime.GtfsRealtime.EntitySelector as GEntitySelector
 
 object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
@@ -105,6 +106,11 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
             targetUUIDs[serviceUpdate.targetUUID]?.let { serviceUpdate.targetUUID = it }
         }
     }
+
+    // Best practices: 10 minutes
+    // https://gtfs.org/documentation/realtime/realtime-best-practices/#feed-publishing-general-practices
+    @JvmStatic
+    val SERVICE_ALERTS_MAX_AGE_MS = 10.times(3).minutes.inWholeMilliseconds
 
     @JvmStatic
     fun GTFSRealTimeProvider.getNew(filter: ServiceUpdateProviderContract.Filter): ServiceUpdates? {

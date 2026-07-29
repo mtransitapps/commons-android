@@ -2,6 +2,7 @@ package org.mtransit.android.commons.provider.vehiclelocations
 
 import android.content.Context
 import androidx.annotation.VisibleForTesting
+import com.google.transit.realtime.headerOrNull
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.SecurityUtils
@@ -20,6 +21,7 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optLongitude
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optPosition
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optSpeed
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestamp
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestampMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optVehicle
@@ -39,6 +41,8 @@ import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationPro
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProviderUtils.vehicleNearbyAgencyLocation
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 import org.mtransit.android.commons.secsToInstant
+import org.mtransit.android.toDateTimeLog
+import org.mtransit.android.toDurationLog
 import java.io.IOException
 import java.io.InterruptedIOException
 import java.net.HttpURLConnection
@@ -46,6 +50,7 @@ import java.net.SocketException
 import java.net.UnknownHostException
 import javax.net.ssl.SSLHandshakeException
 import kotlin.math.min
+import kotlin.time.Duration.Companion.seconds
 import com.google.transit.realtime.GtfsRealtime.FeedMessage as GFeedMessage
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
 import com.google.transit.realtime.GtfsRealtime.VehiclePosition as GVehiclePosition
@@ -168,6 +173,10 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
         } // else keep whatever we have until max validity reached
     }
 
+    // Best practices: 90 seconds
+    // https://gtfs.org/documentation/realtime/realtime-best-practices/#feed-publishing-general-practices
+    private val VEHICLE_POSITIONS_MAX_AGE_MS = 90.times(3).seconds.inWholeMilliseconds
+
     private fun GTFSRealTimeProvider.loadAgencyDataFromWWW(): List<VehicleLocation>? {
         try {
             val context = requireContextCompat()
@@ -186,7 +195,14 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                         val vehicleLocations = mutableListOf<VehicleLocation>()
                         try {
                             val gFeedMessage = GFeedMessage.parseFrom(response.body.bytes())
-                            val gVehiclePositions = gFeedMessage.entityList.toVehicles()
+                            val feedTimestampMs = gFeedMessage.headerOrNull?.optTimestampMs
+                            val outdated = feedTimestampMs?.let {
+                                it + VEHICLE_POSITIONS_MAX_AGE_MS < newLastUpdateInMs
+                            } == true
+                            if (outdated) {
+                                MTLog.w(LOG_TAG, "loadAgencyDataFromWWW() > IGNORE cached feed (too old: ${feedTimestampMs.toDateTimeLog()})")
+                            }
+                            val gVehiclePositions = gFeedMessage.takeIf { !outdated }?.entityList?.toVehicles() ?: emptyList()
                             if (Constants.DEBUG) {
                                 MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > GTFS vehicles[${gVehiclePositions.size}]: ")
                             }
@@ -271,12 +287,18 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
 
     private fun GTFSRealTimeProvider.processVehiclePositions(
         context: Context,
-        newLastUpdateInMs: Long,
+        lastUpdateInMs: Long,
         gVehiclePosition: GVehiclePosition,
         ignoreDirection: Boolean,
     ): Set<VehicleLocation>? {
         val vehicleLat = gVehiclePosition.optPosition?.optLatitude ?: return null
         val vehicleLng = gVehiclePosition.optPosition?.optLongitude ?: return null
+        gVehiclePosition.optTimestampMs?.let { vpTimestamp ->
+            if (vpTimestamp + VEHICLE_POSITIONS_MAX_AGE_MS < lastUpdateInMs) {
+                MTLog.d(LOG_TAG, "processVehiclePositions() > IGNORE ${(lastUpdateInMs - vpTimestamp).toDurationLog()} old: ${gVehiclePosition.toStringExt()}")
+                return null
+            }
+        }
         if (vehicleNearbyAgencyLocation(context, vehicleLat, vehicleLng) == false) return null
         val targetUUIDs = parseProviderTargetUUID(gVehiclePosition, ignoreDirection)?.takeIf { it.isNotBlank() } ?: return null
         return setOf(
@@ -284,7 +306,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                 authority = this.authority,
                 targetUUID = targetUUIDs,
                 targetTripId = gVehiclePosition.optTrip?.let { parseTripId(it) },
-                lastUpdateInMs = newLastUpdateInMs,
+                lastUpdateInMs = lastUpdateInMs,
                 maxValidityInMs = this@processVehiclePositions.vehicleLocationMaxValidityInMs,
                 //
                 vehicleId = gVehiclePosition.optVehicle?.optId,

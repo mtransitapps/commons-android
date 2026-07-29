@@ -36,6 +36,8 @@ import org.mtransit.android.commons.provider.gtfs.makeRequest
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.gtfs.storage
+import org.mtransit.android.toDateTimeLog
+import org.mtransit.android.toDurationLog
 import org.mtransit.commons.SourceUtils
 import java.io.File
 import java.io.IOException
@@ -105,7 +107,13 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     private const val PRINT_ALL_RD_STOP_TIME_UPDATES = false
     // private const val PRINT_ALL_RD_STOP_TIME_UPDATES = true // DEBUG
 
-    private fun GTripUpdate.isUseful(): Boolean {
+    private fun GTripUpdate.isUseful(nowMs: Long): Boolean {
+        optTimestampMs?.let { tuTimestamp ->
+            if (tuTimestamp + TRIP_UPDATE_MAX_AGE_MS < nowMs) {
+                MTLog.d(LOG_TAG, "isUseful() > IGNORE ${(nowMs - tuTimestamp).toDurationLog()} old: ${this.toStringExt()}")
+                return false
+            }
+        }
         optTrip?.let { td -> // cannot match w/ static data
             if (optDelay != null
                 || optStopTimeUpdateList?.isNotEmpty() == true
@@ -117,6 +125,10 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         return false // not useful
     }
 
+    // Best practices: 90 seconds
+    // https://gtfs.org/documentation/realtime/realtime-best-practices/#feed-publishing-general-practices
+    private val TRIP_UPDATE_MAX_AGE_MS = 90.times(3).seconds.inWholeMilliseconds
+
     private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData(
         context: Context,
         filter: ScheduleStatusFilter,
@@ -125,8 +137,15 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData(${filter.targetUUID}, ${staticRDTripIds.size})")
         val lastUpdateInMs = storage.getTripUpdateLastUpdateMs(0L)
             .takeIf { it > 0L } ?: return null // never loaded
+        val nowMs = TimeUtils.currentTimeMillis()
         val feedReadFromSourceMs = storage.getTripUpdateReadFromSourceMs(0L)
-            .takeIf { it > 0L } ?: lastUpdateInMs
+            .takeIf { it > 0L }
+            ?.also { feedTimestamp ->
+                if (feedTimestamp + TRIP_UPDATE_MAX_AGE_MS < nowMs) {
+                    MTLog.w(LOG_TAG, "makeCachedStatusFromAgencyData() > IGNORE cached feed (too old: ${feedTimestamp.toDateTimeLog()})")
+                    return null
+                }
+            } ?: lastUpdateInMs
         val gTripUpdates = gTripUpdates ?: return null
         val sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
             GTFSRealTimeProvider.getAgencyTripUpdatesUrlString(context, "T")
@@ -150,7 +169,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 context.getRDSSchedule(targetAuthority, sortedRDS, filter.isIncludeCancelledTimestampsOrDefault)
             }
             val rdTripUpdates = gTripUpdates
-                .filter { it.isUseful() }
+                .filter { it.isUseful(nowMs) }
                 .filter { gTripUpdate ->
                     gTripUpdate.optTrip?.match(
                         targetRouteIdHash = targetRouteIdHash,
@@ -462,13 +481,15 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                                         MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > - GTFS ${gTripUpdate.toStringExt()}")
                                     }
                                 }
+                                return true
                             } catch (e: IOException) {
                                 MTLog.w(LOG_TAG, e, "loadAgencyDataFromWWW() > error while saving GTFS RT Trip Updates data!")
+                                return false
                             }
                         } catch (e: Exception) {
                             MTLog.w(LOG_TAG, e, "loadAgencyDataFromWWW() > error while parsing GTFS Real Time data!")
+                            return false
                         }
-                        return true
                     }
 
                     else -> {
