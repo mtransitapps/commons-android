@@ -577,17 +577,17 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	private static String agencyTimeZone = null;
+	private static String agencyTimeZoneId = null;
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
 	@NonNull
-	public static String getAGENCY_TIME_ZONE(@NonNull Context context) {
-		if (agencyTimeZone == null) {
-			agencyTimeZone = context.getResources().getString(R.string.gtfs_real_time_agency_time_zone);
+	public static String getAGENCY_TIME_ZONE_ID(@NonNull Context context) {
+		if (agencyTimeZoneId == null) {
+			agencyTimeZoneId = context.getResources().getString(R.string.gtfs_real_time_agency_time_zone);
 		}
-		return agencyTimeZone;
+		return agencyTimeZoneId;
 	}
 
 	@Override
@@ -1244,9 +1244,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					formatter += StringUtils.SPACE_STRING + getAGENCY_TIME_AM_PM_FORMAT(context);
 				}
 				timeParser = new ThreadSafeDateFormatter(formatter, Locale.ENGLISH);
-				String agencyTimeZoneId = getAGENCY_TIME_ZONE(context);
+				String agencyTimeZoneId = getAGENCY_TIME_ZONE_ID(context);
 				if (TextUtils.isEmpty(agencyTimeZoneId)) {
-					agencyTimeZoneId = AgencyUtils.getRDSAgencyTimeZoneId(context);
+					agencyTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context);
 				}
 				if (!TextUtils.isEmpty(agencyTimeZoneId)) {
 					timeParser.setTimeZone(TimeZone.getTimeZone(agencyTimeZoneId));

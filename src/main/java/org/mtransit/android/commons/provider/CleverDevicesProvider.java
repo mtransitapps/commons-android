@@ -276,7 +276,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
-				CleverDevicesPredictionsDataHandler handler = new CleverDevicesPredictionsDataHandler(this, newLastUpdateInMs, AgencyUtils.getRDSAgencyTimeZoneId(context), sourceLabel, rds);
+				CleverDevicesPredictionsDataHandler handler = new CleverDevicesPredictionsDataHandler(this, newLastUpdateInMs, AgencyUtils.getAgencyTimeZoneId(context), sourceLabel, rds);
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(httpUrlConnection.getInputStream()));
 				Collection<POIStatus> statuses = handler.getStatuses();

@@ -35,7 +35,7 @@ object AgencyUtils {
     private val _defaultTimeZoneId: String by lazy { TimeZone.getDefault().id }
 
     @JvmStatic
-    fun getRDSAgencyTimeZoneId(context: Context) =
+    fun getAgencyTimeZoneId(context: Context) =
         context.getAgencyString(
             R.string.poi_agency_timezone,
             R.string.gtfs_rts_timezone, // do not change to avoid breaking compat w/ old modules

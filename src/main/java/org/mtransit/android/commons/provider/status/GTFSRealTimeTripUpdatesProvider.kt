@@ -18,12 +18,15 @@ import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.toNoData
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID
+import org.mtransit.android.commons.provider.agency.AgencyUtils
+import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optArrival
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelay
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDeparture
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduledTimeMs
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStartDate
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStartTime
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopSequence
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeMs
@@ -39,9 +42,11 @@ import org.mtransit.android.commons.provider.gtfs.getRDSSchedule
 import org.mtransit.android.commons.provider.gtfs.getTripIds
 import org.mtransit.android.commons.provider.gtfs.ignoreDirection
 import org.mtransit.android.commons.provider.gtfs.makeRequest
+import org.mtransit.android.commons.provider.gtfs.optTimeZoneId
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.gtfs.storage
+import org.mtransit.android.commons.toMillis
 import org.mtransit.android.toDateTimeLog
 import org.mtransit.android.toDurationLog
 import org.mtransit.commons.SourceUtils
@@ -56,11 +61,12 @@ import kotlin.math.min
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import com.google.transit.realtime.GtfsRealtime.FeedMessage as GFeedMessage
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor as GTripDescriptor
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
-import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUStopTimeEvent
+import kotlinx.datetime.TimeZone as KtTimeZone
 
 object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
@@ -114,26 +120,28 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     private const val PRINT_ALL_RD_STOP_TIME_UPDATES = false
     // private const val PRINT_ALL_RD_STOP_TIME_UPDATES = true // DEBUG
 
-    private fun GTripUpdate.isUseful(nowMs: Long): Boolean {
+    private fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone): Boolean {
         optTimestampMs?.let { tuTimestamp ->
             if (tuTimestamp + TRIP_UPDATE_MAX_AGE_MS < nowMs) {
                 MTLog.d(LOG_TAG, "isUseful() > IGNORE ${(nowMs - tuTimestamp).toDurationLog()} old: ${this.optTrip?.toStringExt(true)}")
                 return false // not useful (too old to display)
             }
         }
-        optStopTimeUpdateList
-            ?.takeUnless { optVehicle?.hasId() == true } // SKIP FUTURE CHECK IF vehicle info provided
-            ?.sortedBy { it.optStopSequence }
-            ?.firstOrNull()
-            ?.takeUnless { it.optDeparture?.hasDelay() == true || it.optArrival?.hasDelay() == true } // SKIP FUTURE CHECK IF delay available
-            ?.takeUnless { it.optDeparture?.hasTimeDelay() == true || it.optArrival?.hasTimeDelay() == true } // SKIP FUTURE CHECK IF computed time delay available
-            ?.let { firstStu ->
-                val timeMs = firstStu.optDeparture?.optTimeMs ?: firstStu.optArrival?.optTimeMs ?: return@let
-                if (nowMs + FUTURE_TRIP_UPDATE_MAX_DIFF_MS < timeMs) {
-                    MTLog.d(LOG_TAG, "isUseful() > IGNORE ${(timeMs - nowMs).toDurationLog()} in the future: ${this.optTrip?.toStringExt(true)}")
-                    return false // not useful (too far in advance to display)
-                }
+        val hasVehicleInfo = optVehicle?.let { it.hasId() || it.hasLabel() || it.hasLicensePlate() } == true
+        val startDateTimeOrFirstTimeMs: Long? = if (hasVehicleInfo) null else
+            (optTrip?.optStart(agencyTimeZone)?.toMillis()
+                ?: optStopTimeUpdateList?.sortedBy { it.optStopSequence }
+                    ?.firstOrNull {
+                        it.hasDeparture() || it.hasArrival()
+                    }?.let {
+                        it.optDeparture?.optTimeMs ?: it.optArrival?.optTimeMs
+                    })
+        startDateTimeOrFirstTimeMs?.let { startDateTimeOrFirstTimeMs ->
+            if (nowMs + FUTURE_TRIP_UPDATE_MAX_DIFF_MS < startDateTimeOrFirstTimeMs) {
+                MTLog.d(LOG_TAG, "isUseful() > IGNORE ${((startDateTimeOrFirstTimeMs - nowMs)).toDurationLog()} in the future: ${this.optTrip?.toStringExt(true)}")
+                return false // not useful (too far in advance to display)
             }
+        }
         if (optDelay != null
             || optStopTimeUpdateList?.isNotEmpty() == true
         ) {
@@ -148,15 +156,13 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         return false // not useful
     }
 
-    private fun GTUStopTimeEvent.hasTimeDelay() =
-        timeDelayMs?.takeIf { it != 0L } != null
-
-    private val GTUStopTimeEvent.timeDelayMs: Long?
-        get() {
-            val timeMs = this.optTimeMs ?: return null
-            val scheduledTimeMs = this.optScheduledTimeMs ?: return null
-            return (timeMs - scheduledTimeMs)
-        }
+    private fun GTripDescriptor.optStart(agencyTimeZone: KtTimeZone): Instant? {
+        return GTFSDateTimeUtils.parseToDateTime(
+            this.optStartDate ?: return null,
+            this.optStartTime ?: return null,
+            agencyTimeZone
+        )
+    }
 
     // Best practices: 90 seconds
     // https://gtfs.org/documentation/realtime/realtime-best-practices/#feed-publishing-general-practices
@@ -204,6 +210,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             val rdSchedules: Collection<Schedule> by lazy {
                 context.getRDSSchedule(targetAuthority, sortedRDS, filter.isIncludeCancelledTimestampsOrDefault)
             }
+            val agencyTimeZoneId = this.optTimeZoneId
+                ?: AgencyUtils.getAgencyTimeZoneId(context)
+            val agencyTimeZone = KtTimeZone.of(agencyTimeZoneId)
             val rdTripUpdates = gTripUpdates
                 .filter { gTripUpdate ->
                     gTripUpdate.optTrip?.match(
@@ -215,7 +224,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         parseTripId = ::parseTripId,
                     ) == true
                 }
-                .filter { it.isUseful(nowMs) }
+                .filter { it.isUseful(nowMs, agencyTimeZone) }
                 .filterDuplicatesTrips()
                 .takeIf { it.isNotEmpty() }
                 ?.mapNotNull { gTripUpdate -> gTripUpdate.optTrip?.let { it to gTripUpdate } }
