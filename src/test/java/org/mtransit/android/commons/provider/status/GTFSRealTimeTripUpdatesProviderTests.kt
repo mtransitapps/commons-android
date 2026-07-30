@@ -11,7 +11,7 @@ import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.Stop
 import org.mtransit.android.commons.data.arrival
-import org.mtransit.android.commons.data.arrivalDiff
+import org.mtransit.android.commons.data.departureArrivalDiff
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.toScheduleTimestamp
@@ -320,7 +320,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
         val result = stopTimeEvent.makeDelay(
             originalTime = timestamp.departure,
             previousSTEDelay = previousDelay,
-            previousCurrentDiff = timestamp.arrivalDiff
+            previousCurrentDiff = timestamp.departureArrivalDiff
         )
 
         assertNotNull(result)

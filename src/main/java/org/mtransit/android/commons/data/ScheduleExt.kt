@@ -122,7 +122,11 @@ var Schedule.Timestamp.originalDepartureDelay: Duration
         originalDepartureDelayMs = value.inWholeMilliseconds
     }
 
-val Schedule.Timestamp.originalDeparture get() = departure - originalDepartureDelay
+fun Schedule.Timestamp.departureMs(hideRealTime: Boolean) = if (hideRealTime) originalDepartureMs else departureT
+fun Schedule.Timestamp.arrivalMs(hideRealTime: Boolean) = if (hideRealTime) originalArrivalMs else arrivalT
+
+val Schedule.Timestamp.originalDepartureMs get() = departureT - originalDepartureDelayMs
+val Schedule.Timestamp.originalDeparture get() = originalDepartureMs.millisToInstant()
 
 /**
  * It's better to be early at the stop, than late and miss the vehicle departure -> truncate (floor by) to early w/ precision
@@ -152,7 +156,7 @@ fun Schedule.Timestamp.updateForRealTime(newArrival: Instant?, newDeparture: Ins
     newArrival?.let { updateArrivalForRealTime(it) }
 }
 
-val Schedule.Timestamp.arrivalDiff get() = this.arrivalDiffMs?.milliseconds?.coerceAtLeast(Duration.ZERO) ?: Duration.ZERO
+val Schedule.Timestamp.departureArrivalDiff get() = this.departureArrivalDiffMs?.coerceAtLeast(0L)?.milliseconds ?: Duration.ZERO
 
 val Schedule.Timestamp.arrival get() = arrivalT.millisToInstant()
 
@@ -162,7 +166,13 @@ var Schedule.Timestamp.originalArrivalDelay: Duration
         originalArrivalDelayMs = value.inWholeMilliseconds
     }
 
-val Schedule.Timestamp.originalArrival get() = arrival - originalArrivalDelay
+val Schedule.Timestamp.originalArrivalMs get() = arrivalT - originalArrivalDelayMs
+val Schedule.Timestamp.originalArrival get() = originalArrivalMs.millisToInstant()
+
+val Schedule.Timestamp.originalDepartureArrivalDiffMs get() = (originalDepartureMs - originalArrivalMs).coerceAtLeast(0L)
+val Schedule.Timestamp.originalDepartureArrivalDiff get() = originalDepartureArrivalDiffMs.milliseconds
+
+fun Schedule.Timestamp.getDepartureArrivalDiff(hideRealTime: Boolean) = if (hideRealTime) originalDepartureArrivalDiff else departureArrivalDiff
 
 private fun computeInstant(
     initialInstant: Instant,

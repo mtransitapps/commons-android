@@ -375,7 +375,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX;
 	//
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_ARRIVAL_DIFF_IDX;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_STOP_SEQUENCE_IDX;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX;
@@ -398,13 +398,13 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX = ++idx; // 2
 		if (FeatureFlags.F_EXPORT_TRIP_ID) {
 			if (FeatureFlags.F_EXPORT_ARRIVAL_W_TRIP_ID) {
-				GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX = ++idx;
+				GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_ARRIVAL_DIFF_IDX = ++idx;
 			} else {
-				GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX = -1;
+				GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_ARRIVAL_DIFF_IDX = -1;
 			}
 			GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX = ++idx;
 		} else {
-			GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX = -1;
+			GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_ARRIVAL_DIFF_IDX = -1;
 			GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX = -1;
 		}
 		if (FeatureFlags.F_EXPORT_STOP_SEQUENCE) {
@@ -451,8 +451,8 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			long lineDirectionId;
 			int lineDeparture;
 			int lineDepartureDelta;
-			String arrivalDiffS;
-			int arrivalDiff;
+			String departureArrivalDiffS;
+			int departureArrivalDiff;
 			Long tTimestampInMs;
 			Long arrivalTimestampMs;
 			Schedule.Timestamp timestamp;
@@ -492,12 +492,12 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 							if (tTimestampInMs != null) {
 								timestamp = new Schedule.Timestamp(tTimestampInMs + diffWithRealityInMs, localTimeZoneId);
 								if (FeatureFlags.F_EXPORT_TRIP_ID) {
-									if (FeatureFlags.F_EXPORT_ARRIVAL_W_TRIP_ID && GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX >= 0) {
-										arrivalDiffS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX + extraIdx];
-										if (!TextUtils.isEmpty(arrivalDiffS) && CharUtils.isDigitsOnly(arrivalDiffS)) {
-											arrivalDiff = Integer.parseInt(arrivalDiffS);
-											if (arrivalDiff > 0) {
-												arrivalTimestampMs = convertToTimestamp(context, lineDeparture - arrivalDiff, dateS);
+									if (FeatureFlags.F_EXPORT_ARRIVAL_W_TRIP_ID && GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_ARRIVAL_DIFF_IDX >= 0) {
+										departureArrivalDiffS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_ARRIVAL_DIFF_IDX + extraIdx];
+										if (!TextUtils.isEmpty(departureArrivalDiffS) && CharUtils.isDigitsOnly(departureArrivalDiffS)) {
+											departureArrivalDiff = Integer.parseInt(departureArrivalDiffS);
+											if (departureArrivalDiff > 0) {
+												arrivalTimestampMs = convertToTimestamp(context, lineDeparture - departureArrivalDiff, dateS);
 												if (arrivalTimestampMs != null) {
 													timestamp.setArrivalT(arrivalTimestampMs);
 												}
