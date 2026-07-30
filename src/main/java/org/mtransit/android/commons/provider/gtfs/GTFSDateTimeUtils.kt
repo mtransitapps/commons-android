@@ -28,9 +28,9 @@ object GTFSDateTimeUtils : MTLog.Loggable {
                 return null
             }
 
-            val hoursCount = parts.getOrNull(0)?.toIntOrNull() ?: return null
-            val minutesCount = parts.getOrNull(1)?.toIntOrNull() ?: return null
-            val secondsCount = parts.getOrNull(2)?.toIntOrNull() ?: return null
+            val hoursCount = parts.getOrNull(0)?.toIntOrNull()?.takeIf { it > 0 } ?: return null
+            val minutesCount = parts.getOrNull(1)?.toIntOrNull()?.takeIf { it in 0..59 } ?: return null
+            val secondsCount = parts.getOrNull(2)?.toIntOrNull()?.takeIf { it in 0..59 } ?: return null
             val durationFromStartOfDay = hoursCount.hours + // compat with 24+ hours
                     minutesCount.minutes + secondsCount.seconds
 
