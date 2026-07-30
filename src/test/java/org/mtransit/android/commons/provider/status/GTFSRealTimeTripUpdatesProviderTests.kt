@@ -1201,7 +1201,6 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun test_match_trip_id_only_matches() {
-        var tripIdsOutOfSync = false
         tripDescriptor {
             tripId = TRIP_ID
         }.match(
@@ -1211,16 +1210,13 @@ class GTFSRealTimeTripUpdatesProviderTests {
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
-            setTripIdsOutOfSync = { tripIdsOutOfSync = it}
         ).let { result ->
             assertTrue(result)
-            assertFalse(tripIdsOutOfSync)
         }
     }
 
     @Test
     fun test_match_trip_id_only_does_not_match() {
-        var tripIdsOutOfSync = false
         tripDescriptor {
             tripId = TRIP_ID
         }.match(
@@ -1230,16 +1226,13 @@ class GTFSRealTimeTripUpdatesProviderTests {
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
-            setTripIdsOutOfSync = { tripIdsOutOfSync = it}
         ).let { result ->
             assertFalse(result)
-            assertFalse(tripIdsOutOfSync)
         }
     }
 
     @Test
     fun test_match_trip_id_does_not_match_and_route_matches() {
-        var tripIdsOutOfSync = false
         tripDescriptor {
             routeId = "1"
             tripId = TRIP_ID
@@ -1250,10 +1243,8 @@ class GTFSRealTimeTripUpdatesProviderTests {
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
-            setTripIdsOutOfSync = { tripIdsOutOfSync = it}
         ).let { result ->
             assertFalse(result)
-            assertTrue(tripIdsOutOfSync)
         }
     }
 

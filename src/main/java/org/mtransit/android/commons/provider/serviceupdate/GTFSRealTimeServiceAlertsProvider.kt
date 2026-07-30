@@ -109,8 +109,9 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
 
     // Best practices: 10 minutes
     // https://gtfs.org/documentation/realtime/realtime-best-practices/#feed-publishing-general-practices
+    // Montréal-based competitor: no limit
     @JvmStatic
-    val SERVICE_ALERTS_MAX_AGE_MS = 10.times(3).minutes.inWholeMilliseconds
+    val SERVICE_ALERTS_MAX_AGE_MS = 10.times(13).minutes.inWholeMilliseconds
 
     @JvmStatic
     fun GTFSRealTimeProvider.getNew(filter: ServiceUpdateProviderContract.Filter): ServiceUpdates? {
