@@ -469,7 +469,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private String tripId = null; // cleaned trip ID (string) // initial used to store trip id INT but replaced after
 		private int stopSequence = -1;
 		@Nullable
-		private Long arrivalDiffMs = null;
+		private Long departureArrivalDiffMs = null;
 		private long originalArrivalDelayMs = 0L;
 
 		@VisibleForTesting
@@ -505,28 +505,28 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		public long getArrivalT() {
-			return getDepartureT() - (arrivalDiffMs == null ? 0L : arrivalDiffMs);
+			return getDepartureT() - (departureArrivalDiffMs == null ? 0L : departureArrivalDiffMs);
 		}
 
 		@Nullable
 		public Long getArrivalTIfDifferent() {
-			return arrivalDiffMs == null ? null : getDepartureT() - arrivalDiffMs;
+			return departureArrivalDiffMs == null ? null : getDepartureT() - departureArrivalDiffMs;
 		}
 
 		public void setArrivalT(long arrivalT) {
-			setArrivalDiffMs(getDepartureT() - arrivalT);
+			setDepartureArrivalDiffMs(getDepartureT() - arrivalT);
 		}
 
-		public void setArrivalDiffMs(@Nullable Long arrivalDiffMs) {
-			if (arrivalDiffMs != null && arrivalDiffMs == 0L) {
-				arrivalDiffMs = null;
+		private void setDepartureArrivalDiffMs(@Nullable Long departureArrivalDiffMs) {
+			if (departureArrivalDiffMs != null && departureArrivalDiffMs == 0L) {
+				departureArrivalDiffMs = null;
 			}
-			this.arrivalDiffMs = arrivalDiffMs;
+			this.departureArrivalDiffMs = departureArrivalDiffMs;
 		}
 
 		@Nullable
-		public Long getArrivalDiffMs() {
-			return arrivalDiffMs;
+		protected Long getDepartureArrivalDiffMs() {
+			return departureArrivalDiffMs;
 		}
 
 		public long getOriginalArrivalDelayMs() {
@@ -730,7 +730,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			if (!Objects.equals(cancelled, timestamp.cancelled)) return false;
 			if (!Objects.equals(tripId, timestamp.tripId)) return false;
 			if (stopSequence != timestamp.stopSequence) return false;
-			if (!Objects.equals(arrivalDiffMs, timestamp.arrivalDiffMs)) return false;
+			if (!Objects.equals(departureArrivalDiffMs, timestamp.departureArrivalDiffMs)) return false;
 			if (originalArrivalDelayMs != timestamp.originalArrivalDelayMs) return false;
 			// if (!Objects.equals(heading, timestamp.heading)) return false; // LAZY
 			return true;
@@ -749,7 +749,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			result = 31 * result + (cancelled != null ? cancelled.hashCode() : 0);
 			result = 31 * result + (tripId != null ? tripId.hashCode() : 0);
 			result = 31 * result + stopSequence;
-			result = 31 * result + (arrivalDiffMs != null ? arrivalDiffMs.hashCode() : 0);
+			result = 31 * result + (departureArrivalDiffMs != null ? departureArrivalDiffMs.hashCode() : 0);
 			result = 31 * result + Long.hashCode(originalArrivalDelayMs);
 			// result = 31 * result + (heading != null ? heading.hashCode() : 0); // LAZY
 			return result;
@@ -764,8 +764,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			if (this.originalDepartureDelayMs != 0L) {
 				sb.append(", oDd:").append(this.originalDepartureDelayMs);
 			}
-			if (arrivalDiffMs != null) {
-				sb.append(", aD:").append(arrivalDiffMs);
+			if (departureArrivalDiffMs != null) {
+				sb.append(", aD:").append(departureArrivalDiffMs);
 			}
 			if (this.originalArrivalDelayMs != 0L) {
 				sb.append(", oAd:").append(this.originalArrivalDelayMs);
@@ -803,7 +803,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		private static final String JSON_DEPARTURE = "t";
 		private static final String JSON_ORIGINAL_DEPARTURE_DELAY = "tOD";
-		private static final String JSON_ARRIVAL_DIFF = "tDiffA";
+		private static final String JSON_DEPARTURE_ARRIVAL_DIFF = "tDiffA";
 		private static final String JSON_ORIGINAL_ARRIVAL_DELAY = "tOA";
 		private static final String JSON_TRIP_ID = "trip_id";
 		private static final String JSON_STOP_SEQUENCE = "stop_seq";
@@ -824,8 +824,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				if (originalDepartureDelayMs != 0L) {
 					timestamp.setOriginalDepartureDelayMs(originalDepartureDelayMs);
 				}
-				if (jTimestamp.has(JSON_ARRIVAL_DIFF)) {
-					timestamp.setArrivalDiffMs(jTimestamp.getLong(JSON_ARRIVAL_DIFF));
+				if (jTimestamp.has(JSON_DEPARTURE_ARRIVAL_DIFF)) {
+					timestamp.setDepartureArrivalDiffMs(jTimestamp.getLong(JSON_DEPARTURE_ARRIVAL_DIFF));
 				}
 				final long originalArrivalDelayMs = jTimestamp.optLong(JSON_ORIGINAL_ARRIVAL_DELAY, 0L);
 				if (originalArrivalDelayMs != 0L) {
@@ -882,8 +882,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				if (timestamp.originalDepartureDelayMs != 0L) {
 					jTimestamp.put(JSON_ORIGINAL_DEPARTURE_DELAY, timestamp.originalDepartureDelayMs);
 				}
-				if (timestamp.arrivalDiffMs != null) {
-					jTimestamp.put(JSON_ARRIVAL_DIFF, timestamp.arrivalDiffMs);
+				if (timestamp.departureArrivalDiffMs != null) {
+					jTimestamp.put(JSON_DEPARTURE_ARRIVAL_DIFF, timestamp.departureArrivalDiffMs);
 				}
 				if (timestamp.originalArrivalDelayMs != 0L) {
 					jTimestamp.put(JSON_ORIGINAL_ARRIVAL_DELAY, timestamp.originalArrivalDelayMs);

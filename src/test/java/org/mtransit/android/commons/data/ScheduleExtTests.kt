@@ -32,7 +32,7 @@ class ScheduleExtTests {
         assertEquals(departure + 1.minutes, timestamp.departure)
         assertEquals(1.minutes, timestamp.originalDepartureDelay)
         assertEquals(departure, timestamp.originalDeparture)
-        assertEquals(4.minutes, timestamp.arrivalDiff)
+        assertEquals(4.minutes, timestamp.departureArrivalDiff)
     }
 
     @Test
@@ -54,7 +54,7 @@ class ScheduleExtTests {
         assertEquals(departure - 5.minutes, timestamp.departure)
         assertEquals((-5).minutes, timestamp.originalDepartureDelay)
         assertEquals(departure, timestamp.originalDeparture)
-        assertEquals(8.minutes, timestamp.arrivalDiff)
+        assertEquals(8.minutes, timestamp.departureArrivalDiff)
     }
 
     @Test
@@ -72,7 +72,7 @@ class ScheduleExtTests {
         assertEquals(departure + 1.minutes, timestamp.departure)
         assertEquals(1.minutes, timestamp.originalDepartureDelay)
         assertEquals(departure, timestamp.originalDeparture)
-        assertEquals(2.minutes, timestamp.arrivalDiff)
+        assertEquals(2.minutes, timestamp.departureArrivalDiff)
     }
 
     @Test

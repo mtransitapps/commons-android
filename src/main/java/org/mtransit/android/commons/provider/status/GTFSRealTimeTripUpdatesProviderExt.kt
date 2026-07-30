@@ -7,7 +7,7 @@ import org.mtransit.android.commons.TimeUtilsK
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.arrival
-import org.mtransit.android.commons.data.arrivalDiff
+import org.mtransit.android.commons.data.departureArrivalDiff
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.getTripTimestamps
 import org.mtransit.android.commons.data.providerPrecision
@@ -251,7 +251,7 @@ internal fun applyDelaySTU(
         ?: return null // impossible to handle
     val timestampOriginalArrival = rdsTripTimestamp.arrival
     val timestampOriginalDeparture = rdsTripTimestamp.departure
-    val timestampOriginalArrivalDiff = rdsTripTimestamp.arrivalDiff
+    val timestampOriginalDepartureArrivalDiff = rdsTripTimestamp.departureArrivalDiff
     var updated = false
     val stuArrivalTime = gStopTimeUpdate.optArrival
         .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
@@ -266,7 +266,7 @@ internal fun applyDelaySTU(
         ?.optTimeInstant
     val stuDepartureDelay = gStopTimeUpdate.optDeparture
         .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
-        .makeDelay(timestampOriginalDeparture, stuArrivalDelay, timestampOriginalArrivalDiff)
+        .makeDelay(timestampOriginalDeparture, stuArrivalDelay, timestampOriginalDepartureArrivalDiff)
     if (stuArrivalTime != null) {
         rdsTripTimestamp.updateArrivalForRealTime(newArrival = stuArrivalTime)
         updated = true
@@ -314,12 +314,12 @@ internal fun applyDelay(
     currentDelay ?: return null
     val rdsTripTimestamp = rdsSchedule?.timestamps?.findClosestTripTimestamp(tripId, stopSequence)
         ?: return currentDelay
-    val currentDiffBetweenArrivalAndDeparture = rdsTripTimestamp.arrivalDiff
+    val currentDepartureArrivalDiff = rdsTripTimestamp.departureArrivalDiff
     val newDelay = if (currentDelay < Duration.ZERO) {
         rdsTripTimestamp.updateForRealTime(delay = currentDelay, rdsSchedule.providerPrecision, PROVIDER_PRECISION)
         currentDelay // do not consume negative delay
-    } else if (currentDiffBetweenArrivalAndDeparture <= currentDelay) {
-        val newDelay = (currentDelay - currentDiffBetweenArrivalAndDeparture).coerceAtLeast(Duration.ZERO)
+    } else if (currentDepartureArrivalDiff <= currentDelay) {
+        val newDelay = (currentDelay - currentDepartureArrivalDiff).coerceAtLeast(Duration.ZERO)
         rdsTripTimestamp.updateForRealTime(arrivalDelay = currentDelay, departureDelay = newDelay, rdsSchedule.providerPrecision, PROVIDER_PRECISION)
         newDelay
     } else {
