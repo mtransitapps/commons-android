@@ -9,16 +9,20 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone as KtTimeZone
 
-object GTFSDateTimeUtils {
+object GTFSDateTimeUtils : MTLog.Loggable {
 
-    fun parseToDateTime(gtfsDateStr: String, gtfsTimeStr: String, agencyTimeZone: KtTimeZone): Instant? {
+    private val LOG_TAG: String = GTFSDateTimeUtils::class.java.simpleName
+
+    override fun getLogTag() = LOG_TAG
+
+    fun parseToDateTime(gtfsDateStr: String?, gtfsTimeStr: String?, agencyTimeZone: KtTimeZone): Instant? {
         try {
-            val cleanedDate = gtfsDateStr.trim()
+            val cleanedDate = gtfsDateStr?.trim() ?: return null
             if (cleanedDate.length != 8) {
                 MTLog.w(this, "Invalid GTFS date format '$cleanedDate'! Must be YYYYMMDD")
                 return null
             }
-            val parts = gtfsTimeStr.trim().split(":")
+            val parts = gtfsTimeStr?.trim()?.split(":") ?: return null
             if (parts.size != 3) {
                 MTLog.w(this, "Invalid GTFS time format '$gtfsTimeStr'! Must be HH:MM:SS")
                 return null
