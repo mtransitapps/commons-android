@@ -23,11 +23,14 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelay
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDeparture
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduledTimeMs
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopSequence
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestampMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optVehicle
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortTripUpdates
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toTripUpdates
@@ -57,6 +60,7 @@ import com.google.transit.realtime.GtfsRealtime.FeedMessage as GFeedMessage
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor as GTripDescriptor
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUStopTimeEvent
 
 object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
@@ -117,14 +121,19 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 return false // not useful (too old to display)
             }
         }
-        optStopTimeUpdateList?.firstOrNull()?.let { firstStu ->
-            if (firstStu.optDeparture?.hasDelay() == true || firstStu.optArrival?.hasDelay() == true) return@let
-            val timeMs = firstStu.optDeparture?.optTimeMs ?: firstStu.optArrival?.optTimeMs ?: return@let
-            if (nowMs + FUTURE_TRIP_UPDATE_MAX_DIFF_MS < timeMs) {
-                MTLog.d(LOG_TAG, "isUseful() > IGNORE ${(timeMs - nowMs).toDurationLog()} in the future: ${this.optTrip?.toStringExt(true)}")
-                return false // not useful (too far in advance to display)
+        optStopTimeUpdateList
+            ?.takeUnless { optVehicle?.hasId() == true } // SKIP FUTURE CHECK IF vehicle info provided
+            ?.sortedBy { it.optStopSequence }
+            ?.firstOrNull()
+            ?.takeUnless { it.optDeparture?.hasDelay() == true || it.optArrival?.hasDelay() == true } // SKIP FUTURE CHECK IF delay available
+            ?.takeUnless { it.optDeparture?.hasTimeDelay() == true || it.optArrival?.hasTimeDelay() == true } // SKIP FUTURE CHECK IF computed time delay available
+            ?.let { firstStu ->
+                val timeMs = firstStu.optDeparture?.optTimeMs ?: firstStu.optArrival?.optTimeMs ?: return@let
+                if (nowMs + FUTURE_TRIP_UPDATE_MAX_DIFF_MS < timeMs) {
+                    MTLog.d(LOG_TAG, "isUseful() > IGNORE ${(timeMs - nowMs).toDurationLog()} in the future: ${this.optTrip?.toStringExt(true)}")
+                    return false // not useful (too far in advance to display)
+                }
             }
-        }
         if (optDelay != null
             || optStopTimeUpdateList?.isNotEmpty() == true
         ) {
@@ -138,6 +147,16 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         MTLog.w(LOG_TAG, "isUseful() > IGNORE (why?): ${this.toStringExt()}")
         return false // not useful
     }
+
+    private fun GTUStopTimeEvent.hasTimeDelay() =
+        timeDelayMs?.takeIf { it != 0L } != null
+
+    private val GTUStopTimeEvent.timeDelayMs: Long?
+        get() {
+            val timeMs = this.optTimeMs ?: return null
+            val scheduledTimeMs = this.optScheduledTimeMs ?: return null
+            return (timeMs - scheduledTimeMs)
+        }
 
     // Best practices: 90 seconds
     // https://gtfs.org/documentation/realtime/realtime-best-practices/#feed-publishing-general-practices
@@ -232,7 +251,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 rdTripUpdates.forEach { (_, gTripUpdate) ->
                     MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > GTFS - ${gTripUpdate.toStringExt()}.")
                     if (PRINT_ALL_RD_STOP_TIME_UPDATES) {
-                        gTripUpdate.stopTimeUpdateList?.forEachIndexed { idx, stu ->
+                        gTripUpdate.optStopTimeUpdateList?.forEachIndexed { idx, stu ->
                             MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > GTFS - [$idx] ${stu.toStringExt()}")
                         }
                     }

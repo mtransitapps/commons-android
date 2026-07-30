@@ -18,6 +18,7 @@ import org.mtransit.android.commons.data.toScheduleTimestamp
 import org.mtransit.android.commons.provider.gtfs.GTFSStatusProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.delayDuration
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.match
 import org.mtransit.android.commons.secsToInstant
@@ -1163,7 +1164,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
             }
         }.sortedBy { (_, stopSequence) -> stopSequence }
 
-        val result = gTripUpdate.stopTimeUpdateList?.fixStopSequence(
+        val result = gTripUpdate.optStopTimeUpdateList?.fixStopSequence(
             tripId = TRIP_ID,
             tripSortedRDS = rdsList,
             sortedTargetUuidAndSequence = sortedTargetUuidAndSequence,
