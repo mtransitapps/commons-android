@@ -156,7 +156,7 @@ fun Schedule.Timestamp.updateForRealTime(newArrival: Instant?, newDeparture: Ins
     newArrival?.let { updateArrivalForRealTime(it) }
 }
 
-val Schedule.Timestamp.departureArrivalDiff get() = this.departureArrivalDiffMs?.milliseconds?.coerceAtLeast(Duration.ZERO) ?: Duration.ZERO
+val Schedule.Timestamp.departureArrivalDiff get() = this.departureArrivalDiffMs?.coerceAtLeast(0L)?.milliseconds ?: Duration.ZERO
 
 val Schedule.Timestamp.arrival get() = arrivalT.millisToInstant()
 
@@ -169,8 +169,8 @@ var Schedule.Timestamp.originalArrivalDelay: Duration
 val Schedule.Timestamp.originalArrivalMs get() = arrivalT - originalArrivalDelayMs
 val Schedule.Timestamp.originalArrival get() = originalArrivalMs.millisToInstant()
 
-val Schedule.Timestamp.originalDepartureArrivalDiffMs get() = originalDepartureMs - originalArrivalMs
-val Schedule.Timestamp.originalDepartureArrivalDiff get() = originalDepartureArrivalDiffMs.milliseconds.coerceAtLeast(Duration.ZERO)
+val Schedule.Timestamp.originalDepartureArrivalDiffMs get() = (originalDepartureMs - originalArrivalMs).coerceAtLeast(0L)
+val Schedule.Timestamp.originalDepartureArrivalDiff get() = originalDepartureArrivalDiffMs.milliseconds
 
 fun Schedule.Timestamp.getDepartureArrivalDiff(hideRealTime: Boolean) = if (hideRealTime) originalDepartureArrivalDiff else departureArrivalDiff
 
