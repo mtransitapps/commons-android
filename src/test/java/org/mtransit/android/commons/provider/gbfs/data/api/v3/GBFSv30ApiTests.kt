@@ -379,7 +379,8 @@ class GBFSv30ApiTests {
                 "        ],\n" +
                 "        \"description\": [\n" +
                 "          {\n" +
-                "            \"text\": \"Extra comfortable seat with additional suspension.\\n\\nPlease be aware of the cargo box lock: you need to press it down before pulling it up again!\",\n" +
+                "            \"text\": \"Extra comfortable seat with additional suspension.\\n\\n" +
+                "Please be aware of the cargo box lock: you need to press it down before pulling it up again!\",\n" +
                 "            \"language\": \"en\"\n" +
                 "          }\n" +
                 "        ],            \n" +
@@ -535,7 +536,8 @@ class GBFSv30ApiTests {
                             assertEquals(1, size)
                             with(this[0]) {
                                 assertEquals(
-                                    "Extra comfortable seat with additional suspension.\n\nPlease be aware of the cargo box lock: you need to press it down before pulling it up again!",
+                                    "Extra comfortable seat with additional suspension.\n\n" +
+                                            "Please be aware of the cargo box lock: you need to press it down before pulling it up again!",
                                     text
                                 )
                                 assertEquals("en", language)
@@ -1563,7 +1565,8 @@ class GBFSv30ApiTests {
                 "        ],\n" +
                 "        \"description\": [\n" +
                 "          {\n" +
-                "            \"text\": \"The three stations on Broadway will be out of service from 12:00am Nov 3 to 3:00pm Nov 6th to accommodate road work\",\n" +
+                "            \"text\": " +
+                "\"The three stations on Broadway will be out of service from 12:00am Nov 3 to 3:00pm Nov 6th to accommodate road work\",\n" +
                 "            \"language\": \"en\"\n" +
                 "          }\n" +
                 "        ],\n" +

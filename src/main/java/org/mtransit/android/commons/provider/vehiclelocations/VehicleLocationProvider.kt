@@ -145,6 +145,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
         )
 
         //@formatter:off
+        @Suppress("MaxLineLength")
         @JvmStatic
         private val VEHICLE_LOCATION_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
             .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_ID, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_ID)

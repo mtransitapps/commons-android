@@ -171,7 +171,9 @@ interface POIProviderContract : ProviderContract {
                     throw UnsupportedOperationException("SQL search selection needs at least 1 keyword (${searchKeywords?.size})!")
                 }
                 if (searchableLikeColumns?.isNotEmpty() != true && searchableEqualColumns?.isNotEmpty() != true) {
-                    throw UnsupportedOperationException("SQL search selection needs at least 1 searchable columns (${searchableLikeColumns?.size}|${searchableEqualColumns?.size})!")
+                    throw UnsupportedOperationException(
+                        "SQL search selection needs at least 1 searchable columns (${searchableLikeColumns?.size}|${searchableEqualColumns?.size})!"
+                    )
                 }
                 searchKeywords
                     .filter { it.isNotEmpty() }
@@ -218,7 +220,9 @@ interface POIProviderContract : ProviderContract {
                         throw UnsupportedOperationException("SQL search selection score needs at least 1 keyword (${searchKeywords?.size})!")
                     }
                     if (searchableLikeColumns?.isNotEmpty() != true && searchableEqualColumns?.isNotEmpty() != true) {
-                        throw UnsupportedOperationException("SQL search selection score needs at least 1 searchable columns (${searchableLikeColumns?.size}|${searchableEqualColumns?.size})!")
+                        throw UnsupportedOperationException(
+                            "SQL search selection score needs at least 1 searchable columns (${searchableLikeColumns?.size}|${searchableEqualColumns?.size})!"
+                        )
                     }
                     var c = 0
                     searchKeywords

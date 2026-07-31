@@ -97,7 +97,8 @@ class HtmlUtilsTest {
             " <img width=\"100%\" src=\"https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-1.jpg\" alt=\"\" />" +
                     "</li> <li> <p>Naviguez pour trouver votre arr&ecirc;t.</p> <div class=\"block-images--container\">" +
                     "<img width=\"100%\" src=\"https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-2.jpg\" alt=\"\" /> " +
-                    "<img width=\"100%\" src=\"https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-3.jpg?sfvrsn=769523da_1\" alt=\"\" /> " +
+                    "<img width=\"100%\" src=\"https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-3.jpg?sfvrsn=769523da_1\" " +
+                    "alt=\"\" /> " +
                     "<img width=\"100%\" src=\"https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-4.jpg\" alt=\"\" />"
         // Act
         val result = HtmlUtils.extractImagesUrls(fromUrl, textHTML)
@@ -127,8 +128,10 @@ class HtmlUtilsTest {
         // Arrange
         val from = "https://exo.quebec/rss?projection=1568"
         val textHTML = "<span id=\"desc_4\" class=\"item_desc\">" +
-                "<p>Du 8 juin au 22 août, en raison de travaux de reconstruction du système de drainage, exo sera contraint de fermer temporairement une partie du stationnement et de modifier des quais d’embarquement.</p>\n" +
-                "<p>Les travaux se dérouleront en 2 phases. La phase 1, durant laquelle la petite boucle d’autobus sera fermée, aura lieu du 8 au 12 juin. Les quais d’embarquement seront relocalisés dans la grande boucle d’autobus et sur l’avenue du Golf, selon le schéma ci-dessous.</p>\n" +
+                "<p>Du 8 juin au 22 août, en raison de travaux de reconstruction du système de drainage, " +
+                "exo sera contraint de fermer temporairement une partie du stationnement et de modifier des quais d’embarquement.</p>\n" +
+                "<p>Les travaux se dérouleront en 2 phases. La phase 1, durant laquelle la petite boucle d’autobus sera fermée, aura lieu du 8 au 12 juin. " +
+                "Les quais d’embarquement seront relocalisés dans la grande boucle d’autobus et sur l’avenue du Golf, selon le schéma ci-dessous.</p>\n" +
                 "<p>La phase 2, durant laquelle une grande partie du stationnement sera fermée, aura lieu du 8 juin au 22 août 2020.</p>\n" +
                 "<p>&nbsp;</p>\n" +
                 "<p><strong>Phase 1 : 8 au 12 juin 2020&nbsp;</strong></p>\n" +
@@ -137,7 +140,9 @@ class HtmlUtilsTest {
                 "<p><strong>Phase 2 : 8 juin au 22 août 2020</strong></p>\n" +
                 "<p><img width=\"100%\" src=\"/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-02.png\"></p>\n" +
                 "<p>&nbsp;</p>\n" +
-                "<p>Nous désirons rappeler à la clientèle que des places de stationnement sont également disponibles au stationnement du parc des Jésuites, situé à l’angle du boulevard Taschereau et de l’avenue Balmoral. De plus, le Golf Espace Rive-Sud offre quelques espaces supplémentaires dans le secteur à proximité des condos.</p>\n" +
+                "<p>Nous désirons rappeler à la clientèle que des places de stationnement sont également disponibles au stationnement du parc des Jésuites, " +
+                "situé à l’angle du boulevard Taschereau et de l’avenue Balmoral. " +
+                "De plus, le Golf Espace Rive-Sud offre quelques espaces supplémentaires dans le secteur à proximité des condos.</p>\n" +
                 "<p>&nbsp;</p>\n" +
                 "<p>Merci de votre collaboration.</p>" +
                 "</span>"
@@ -162,7 +167,16 @@ class HtmlUtilsTest {
         val fromUrl = URI.create("https://exo.quebec/rss?projection=1568").toURL()
         val textHTML =
             "Before" +
-                    "<img width=\"100%\" src=\"img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA88AAAGGCAYAAABFQ7NOPumzhG4J5DdeOIArREpFt7F1DD/6V/tESsW7i+mpBe2dCP5MxyePlH6I1A6R7g40eACYohvCZwvEvm95RM0OHvGxSt0WZpYSVZFZJlIRF86Sgg7cXKy2u/NAb8mnNtbVMnOnqGMTA2zeNvgQ/34eEXBa+AaHhy6Rcci6jYdIV1UTcX8T1RuE9KkRvCFaita0RNTYPBahtQXVNPa0B5ZS1KK2o4hlajoqoBJXxvtYpa5JdUIjufY3B2IXIKy1BUVonysmq0NDWjraERQ11dmOdYNzdOGxvE/Hg/NpancHJ9GpfW2vDgVDVeOlrPOakQVk7+cPEOh6tvBDz8oxAWk8rfXNrUpSEtPUeV/iur6nhMjSjl++bkFHAeKOb5kYuOtiYsL4zg2PoUVueHsMCxdnFqCLPj3QT5Vq4bwQnOXwsTg1iRPvrDvVicHMbx1Vn6PTM4xeeWOObPDHVjaXyI4/oox/VuSAtD6cIg/fpPcDw+ujTFeaOXUN3OOWKU4/UkFsb6ua4bl06u4TL9pyML45oSPjfSrcJq85xjl/m+k33tWgI0P9bH4+jHWF+bRsAXx+VmaoNGwse5bqCtnnDPOVRKhnpadJ4+wflDnpebqf0tNdymDm+88mXBsEuXLsHZ2YnnTgBCQoJ4rcn1JNHbAARznfQtFrVsby9p6+gCDzcxZ3h5uCDA1w0xkQEoKUzFzGQf3rh/Db/71cf4H//pjwYQfjTarID8KDSLPbpOotB/r5Hn337xY3R3t/EYOF7F8fwjQEvbKvlfFLO379ihCt8Ctu5evnATE5DWyC7HG841KiLGpbs7xxUeswKxo0Sbt4S9OG7RtgBZ1sljBeVNcJbXCBhLurcCsoDvV57XdfK/bKvwzG1luWkGsOb4RsAXc5bMH46Tbt5+8PD11+OXKLpEzj28PHj8Lsin//XodSrw3PMYnh/bY/tXsi14rsD/C1Ykjq3apjxwAAAAAElFTkSuQmCC\" alt=\"\" />" +
+                    "<img width=\"100%\" src=\"img src=\"data:image/png;base64," +
+                    "iVBORw0KGgoAAAANSUhEUgAAA88AAAGGCAYAAABFQ7NOPumzhG4J5DdeOIArREpFt7F1DD/6V/tESsW7i+mpBe2dCP5MxyePlH6I1A6R7g40eACYohvCZwvEvm95RM0O" +
+                    "HvGxSt0WZpYSVZFZJlIRF86Sgg7cXKy2u/NAb8mnNtbVMnOnqGMTA2zeNvgQ/34eEXBa+AaHhy6Rcci6jYdIV1UTcX8T1RuE9KkRvCFaita0RNTYPBahtQXVNPa0B5ZS" +
+                    "1KK2o4hlajoqoBJXxvtYpa5JdUIjufY3B2IXIKy1BUVonysmq0NDWjraERQ11dmOdYNzdOGxvE/Hg/NpancHJ9GpfW2vDgVDVeOlrPOakQVk7+cPEOh6tvBDz8oxAWk8" +
+                    "rfXNrUpSEtPUeV/iur6nhMjSjl++bkFHAeKOb5kYuOtiYsL4zg2PoUVueHsMCxdnFqCLPj3QT5Vq4bwQnOXwsTg1iRPvrDvVicHMbx1Vn6PTM4xeeWOObPDHVjaXyI4/" +
+                    "oox/VuSAtD6cIg/fpPcDw+ujTFeaOXUN3OOWKU4/UkFsb6ua4bl06u4TL9pyML45oSPjfSrcJq85xjl/m+k33tWgI0P9bH4+jHWF+bRsAXx+VmaoNGwse5bqCtnnDPOV" +
+                    "RKhnpadJ4+wflDnpebqf0tNdymDm+88mXBsEuXLsHZ2YnnTgBCQoJ4rcn1JNHbAARznfQtFrVsby9p6+gCDzcxZ3h5uCDA1w0xkQEoKUzFzGQf3rh/Db/71cf4H//pjw" +
+                    "YQfjTarID8KDSLPbpOotB/r5Hn337xY3R3t/EYOF7F8fwjQEvbKvlfFLO379ihCt8Ctu5evnATE5DWyC7HG841KiLGpbs7xxUeswKxo0Sbt4S9OG7RtgBZ1sljBeVNcJ" +
+                    "bXCBhLurcCsoDvV57XdfK/bKvwzG1luWkGsOb4RsAXc5bMH46Tbt5+8PD11+OXKLpEzj28PHj8Lsin//XodSrw3PMYnh/bY/tXsi14rsD/C1Ykjq3apjxwAAAAAElFTk" +
+                    "SuQmCC\" alt=\"\" />" +
                     "after"
         // Act
         val result = HtmlUtils.extractImagesUrls(fromUrl, textHTML)
@@ -238,7 +252,15 @@ class HtmlUtilsTest {
         // Arrange
         val textHTML =
             "Before" +
-                    "<img width=\"100%\" src=\"img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA88AAAGGCAYAAABFQ7NOPumzhG4J5DdeOIArREpFt7F1DD/6V/tESsW7i+mpBe2dCP5MxyePlH6I1A6R7g40eACYohvCZwvEvm95RM0OHvGxSt0WZpYSVZFZJlIRF86Sgg7cXKy2u/NAb8mnNtbVMnOnqGMTA2zeNvgQ/34eEXBa+AaHhy6Rcci6jYdIV1UTcX8T1RuE9KkRvCFaita0RNTYPBahtQXVNPa0B5ZS1KK2o4hlajoqoBJXxvtYpa5JdUIjufY3B2IXIKy1BUVonysmq0NDWjraERQ11dmOdYNzdOGxvE/Hg/NpancHJ9GpfW2vDgVDVeOlrPOakQVk7+cPEOh6tvBDz8oxAWk8rfXNrUpSEtPUeV/iur6nhMjSjl++bkFHAeKOb5kYuOtiYsL4zg2PoUVueHsMCxdnFqCLPj3QT5Vq4bwQnOXwsTg1iRPvrDvVicHMbx1Vn6PTM4xeeWOObPDHVjaXyI4/oox/VuSAtD6cIg/fpPcDw+ujTFeaOXUN3OOWKU4/UkFsb6ua4bl06u4TL9pyML45oSPjfSrcJq85xjl/m+k33tWgI0P9bH4+jHWF+bRsAXx+VmaoNGwse5bqCtnnDPOVRKhnpadJ4+wflDnpebqf0tNdymDm+88mXBsEuXLsHZ2YnnTgBCQoJ4rcn1JNHbAARznfQtFrVsby9p6+gCDzcxZ3h5uCDA1w0xkQEoKUzFzGQf3rh/Db/71cf4H//pjwYQfjTarID8KDSLPbpOotB/r5Hn337xY3R3t/EYOF7F8fwjQEvbKvlfFLO379ihCt8Ctu5evnATE5DWyC7HG841KiLGpbs7xxUeswKxo0Sbt4S9OG7RtgBZ1sljBeVNcJbXCBhLurcCsoDvV57XdfK/bKvwzG1luWkGsOb4RsAXc5bMH46Tbt5+8PD11+OXKLpEzj28PHj8Lsin//XodSrw3PMYnh/bY/tXsi14rsD/C1Ykjq3apjxwAAAAAElFTkSuQmCC\" alt=\"\" />" +
+                    "<img width=\"100%\" src=\"img src=\"data:image/png;base64," +
+                    "iVBORw0KGgoAAAANSUhEUgAAA88AAAGGCAYAAABFQ7NOPumzhG4J5DdeOIArREpFt7F1DD/6V/tESsW7i+mpBe2dCP5MxyePlH6I1A6R7g40eACYohvCZwvEvm95RM0OHvGxSt0" +
+                    "WZpYSVZFZJlIRF86Sgg7cXKy2u/NAb8mnNtbVMnOnqGMTA2zeNvgQ/34eEXBa+AaHhy6Rcci6jYdIV1UTcX8T1RuE9KkRvCFaita0RNTYPBahtQXVNPa0B5ZS1KK2o4hlajoqoB" +
+                    "JXxvtYpa5JdUIjufY3B2IXIKy1BUVonysmq0NDWjraERQ11dmOdYNzdOGxvE/Hg/NpancHJ9GpfW2vDgVDVeOlrPOakQVk7+cPEOh6tvBDz8oxAWk8rfXNrUpSEtPUeV/iur6nh" +
+                    "MjSjl++bkFHAeKOb5kYuOtiYsL4zg2PoUVueHsMCxdnFqCLPj3QT5Vq4bwQnOXwsTg1iRPvrDvVicHMbx1Vn6PTM4xeeWOObPDHVjaXyI4/oox/VuSAtD6cIg/fpPcDw+ujTFea" +
+                    "OXUN3OOWKU4/UkFsb6ua4bl06u4TL9pyML45oSPjfSrcJq85xjl/m+k33tWgI0P9bH4+jHWF+bRsAXx+VmaoNGwse5bqCtnnDPOVRKhnpadJ4+wflDnpebqf0tNdymDm+88mXBs" +
+                    "EuXLsHZ2YnnTgBCQoJ4rcn1JNHbAARznfQtFrVsby9p6+gCDzcxZ3h5uCDA1w0xkQEoKUzFzGQf3rh/Db/71cf4H//pjwYQfjTarID8KDSLPbpOotB/r5Hn337xY3R3t/EYOF7F" +
+                    "8fwjQEvbKvlfFLO379ihCt8Ctu5evnATE5DWyC7HG841KiLGpbs7xxUeswKxo0Sbt4S9OG7RtgBZ1sljBeVNcJbXCBhLurcCsoDvV57XdfK/bKvwzG1luWkGsOb4RsAXc5bMH46" +
+                    "Tbt5+8PD11+OXKLpEzj28PHj8Lsin//XodSrw3PMYnh/bY/tXsi14rsD/C1Ykjq3apjxwAAAAAElFTkSuQmCC\" alt=\"\" />" +
                     "after"
         // Act
         val result = HtmlUtils.replaceImgTagWithUrlLink(from, textHTML)
@@ -382,17 +404,22 @@ class HtmlUtilsTest {
         // Arrange
         // Keep the exact reported HTML sample that triggered the review request.
         val textHTML =
-            "<p><strong>56 Tunney&#39;s Pasture:</strong>Depuis Elgin, continuez sur Elgin, tournez &agrave; gauche sur Catherine, puis &agrave; gauche sur Bank, continuez sur Bank, tournez &agrave; droite sur First, puis continuez sur l&#39;itin&eacute;raire habituel.</p>" +
+            "<p><strong>56 Tunney&#39;s Pasture:</strong>" +
+                    "Depuis Elgin, continuez sur Elgin, tournez &agrave; gauche sur Catherine, puis &agrave; gauche sur Bank, continuez sur Bank, " +
+                    "tournez &agrave; droite sur First, puis continuez sur l&#39;itin&eacute;raire habituel.</p>" +
                     "<!--<h4>Carte de la déviation</h4>\n" +
                     "\n" +
-                    "<p><a href=\"https://www.octranspo.com/images/files/maps/detours/2025/.pdf\"><img alt=\"Carte de la déviation pour les circuits 0.\" src=\"https://www.octranspo.com/images/files/maps/detours/2025/.png\" style=\"width: 100%;\" /></a></p>-->"
+                    "<p><a href=\"https://www.octranspo.com/images/files/maps/detours/2025/.pdf\"><img alt=\"Carte de la déviation pour les circuits 0.\" " +
+                    "src=\"https://www.octranspo.com/images/files/maps/detours/2025/.png\" style=\"width: 100%;\" /></a></p>-->"
         // Act
         val result = HtmlUtils.removeComments(textHTML)
         // Assert
         assertNotNull(result)
         assertTrue(result.isNotBlank())
         assertEquals(
-            "<p><strong>56 Tunney&#39;s Pasture:</strong>Depuis Elgin, continuez sur Elgin, tournez &agrave; gauche sur Catherine, puis &agrave; gauche sur Bank, continuez sur Bank, tournez &agrave; droite sur First, puis continuez sur l&#39;itin&eacute;raire habituel.</p>",
+            "<p><strong>56 Tunney&#39;s Pasture:</strong>Depuis Elgin, continuez sur Elgin, tournez &agrave; gauche sur Catherine, " +
+                    "puis &agrave; gauche sur Bank, continuez sur Bank, tournez &agrave; droite sur First, " +
+                    "puis continuez sur l&#39;itin&eacute;raire habituel.</p>",
             result
         )
     }
