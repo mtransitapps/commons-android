@@ -42,7 +42,9 @@ object GTFSProviderDBHelperUtils : MTLog.Loggable {
         var success: Boolean
         do {
             try {
-                success = db.initDbTable(table, sqlCreate, sqlInsert, sqlDrop, files, allStrings, stringsColumnIdx, addStrings, sameColumnsCount, otherColumnsCount, openRawResource)
+                success = db.initDbTable(
+                    table, sqlCreate, sqlInsert, sqlDrop, files, allStrings, stringsColumnIdx, addStrings, sameColumnsCount, otherColumnsCount, openRawResource
+                )
             } catch (e: Exception) {
                 MTLog.w(this, e, "Error while deploying DB table '$table'!")
                 success = false

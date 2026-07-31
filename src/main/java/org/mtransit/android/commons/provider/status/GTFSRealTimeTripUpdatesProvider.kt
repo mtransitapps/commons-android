@@ -243,7 +243,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             val distinctTripId = rdTripUpdates.mapNotNull { it.first.optTripIdNotEmpty }.distinct()
             MTLog.i(
                 LOG_TAG,
-                "Using ${rdTripUpdates.size} trip updates for route '${targetRoute.shortestName}' direction '${targetDirection.headsignValue}': $distinctTripId."
+                "Using ${rdTripUpdates.size} trip updates for route '${targetRoute.shortestName}' direction '${targetDirection.headsignValue}': " +
+                        "$distinctTripId."
             )
             if (Constants.DEBUG) {
                 MTLog.d(
