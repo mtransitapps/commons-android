@@ -18,13 +18,23 @@ import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.toNoData
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelay
+import org.mtransit.android.commons.provider.agency.AgencyUtils
+import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.parseToDateTime
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.hasStopTimeUpdateList
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.hasTimeOrScheduledTime
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optArrival
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDeparture
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optModifiedTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStartDate
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStartTime
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeOrScheduledTimeMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestampMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optVehicle
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortTripUpdates
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toTripUpdates
@@ -33,9 +43,11 @@ import org.mtransit.android.commons.provider.gtfs.getRDSSchedule
 import org.mtransit.android.commons.provider.gtfs.getTripIds
 import org.mtransit.android.commons.provider.gtfs.ignoreDirection
 import org.mtransit.android.commons.provider.gtfs.makeRequest
+import org.mtransit.android.commons.provider.gtfs.optTimeZoneId
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.gtfs.storage
+import org.mtransit.android.commons.toMillis
 import org.mtransit.android.toDateTimeLog
 import org.mtransit.android.toDurationLog
 import org.mtransit.commons.SourceUtils
@@ -54,6 +66,7 @@ import com.google.transit.realtime.GtfsRealtime.FeedMessage as GFeedMessage
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor as GTripDescriptor
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
+import kotlinx.datetime.TimeZone as KtTimeZone
 
 object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
@@ -107,27 +120,47 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     private const val PRINT_ALL_RD_STOP_TIME_UPDATES = false
     // private const val PRINT_ALL_RD_STOP_TIME_UPDATES = true // DEBUG
 
-    private fun GTripUpdate.isUseful(nowMs: Long): Boolean {
+    private fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone): Boolean {
         optTimestampMs?.let { tuTimestamp ->
             if (tuTimestamp + TRIP_UPDATE_MAX_AGE_MS < nowMs) {
-                MTLog.d(LOG_TAG, "isUseful() > IGNORE ${(nowMs - tuTimestamp).toDurationLog()} old: ${this.toStringExt()}")
-                return false
+                MTLog.d(LOG_TAG, "isUseful() > IGNORE ${(nowMs - tuTimestamp).toDurationLog()} old: ${this.optTrip?.toStringExt(true)}")
+                return false // not useful (too old to display)
             }
         }
+        val hasVehicleInfo = optVehicle?.let { it.hasId() || it.hasLabel() || it.hasLicensePlate() } == true
+        val startDateTimeOrFirstTimeMs: Long? = if (hasVehicleInfo) null else
+            (optTrip?.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
+                ?: optTrip?.optModifiedTrip?.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
+                ?: optStopTimeUpdateList // not sorting because GTFS spec requires it to be already sorted & it's a fallback
+                    ?.firstOrNull { it.optDeparture?.hasTimeOrScheduledTime() == true || it.optArrival?.hasTimeOrScheduledTime() == true }
+                    ?.let {
+                        it.optDeparture?.optTimeOrScheduledTimeMs ?: it.optArrival?.optTimeOrScheduledTimeMs
+                    })
+        startDateTimeOrFirstTimeMs?.let { timeMs ->
+            if (nowMs + FUTURE_TRIP_UPDATE_MAX_DIFF_MS < timeMs) {
+                MTLog.d(LOG_TAG, "isUseful() > IGNORE ${((timeMs - nowMs)).toDurationLog()} in the future: ${this.optTrip?.toStringExt(true)}")
+                return false // not useful (too far in advance to display)
+            }
+        }
+        if (hasDelay() || hasStopTimeUpdateList()) {
+            return true // useful (contains delay or STUs)
+        }
         optTrip?.let { td -> // cannot match w/ static data
-            if (optDelay != null
-                || optStopTimeUpdateList?.isNotEmpty() == true
-                || td.optScheduleRelationship?.let { it != GTDScheduleRelationship.SCHEDULED } == true
-            ) {
+            if (td.optScheduleRelationship?.let { it != GTDScheduleRelationship.SCHEDULED } == true) {
                 return true // useful
             }
         }
+        MTLog.w(LOG_TAG, "isUseful() > IGNORE (why?): ${this.toStringExt()}")
         return false // not useful
     }
 
     // Best practices: 90 seconds
     // https://gtfs.org/documentation/realtime/realtime-best-practices/#feed-publishing-general-practices
-    private val TRIP_UPDATE_MAX_AGE_MS = 90.times(3).seconds.inWholeMilliseconds
+    // Montréal-based competitor: 10 minutes
+    private val TRIP_UPDATE_MAX_AGE_MS = 90.times(7).seconds.inWholeMilliseconds
+
+    // Montréal-based competitor: 4.5 hours (?)
+    private val FUTURE_TRIP_UPDATE_MAX_DIFF_MS = 90.minutes.times(3).inWholeMilliseconds
 
     private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData(
         context: Context,
@@ -155,7 +188,6 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             val targetAuthority = filter.targetAuthority
             val targetRouteIdHash = targetRoute.originalIdHash.toString()
             val targetDirectionOriginalId = targetDirection.originalDirectionIdOrNull
-            var tripIdsOutOfSync = false
             if (DEBUG_STATIC_RT_MATCH) {
                 MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > target trip IDs [${staticRDTripIds.size}]:")
                 staticRDTripIds.chunked(9).forEach {
@@ -168,8 +200,13 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             val rdSchedules: Collection<Schedule> by lazy {
                 context.getRDSSchedule(targetAuthority, sortedRDS, filter.isIncludeCancelledTimestampsOrDefault)
             }
+            val agencyTimeZoneId = this.optTimeZoneId
+                ?: AgencyUtils.getAgencyTimeZoneId(context)
+            val agencyTimeZone = runCatching { KtTimeZone.of(agencyTimeZoneId) }.getOrElse { e ->
+                MTLog.w(LOG_TAG, e, "makeCachedStatusFromAgencyData() > error getting timezone from '$agencyTimeZoneId'!")
+                KtTimeZone.currentSystemDefault()
+            }
             val rdTripUpdates = gTripUpdates
-                .filter { it.isUseful(nowMs) }
                 .filter { gTripUpdate ->
                     gTripUpdate.optTrip?.match(
                         targetRouteIdHash = targetRouteIdHash,
@@ -178,20 +215,12 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         ignoreDirection = ignoreDirection,
                         parseRouteId = ::parseRouteId,
                         parseTripId = ::parseTripId,
-                        setTripIdsOutOfSync = {
-                            tripIdsOutOfSync = it
-                        },
                     ) == true
                 }
+                .filter { it.isUseful(nowMs, agencyTimeZone) }
                 .filterDuplicatesTrips()
                 .takeIf { it.isNotEmpty() }
                 ?.mapNotNull { gTripUpdate -> gTripUpdate.optTrip?.let { it to gTripUpdate } }
-            if (tripIdsOutOfSync) {
-                MTLog.i(
-                    LOG_TAG,
-                    "Trip IDs (might be) out of sync (or real-time route/direction ID provided) for route '${targetRoute.shortestName}' direction '${targetDirection.headsignValue}'."
-                )
-            }
             rdTripUpdates ?: run {
                 sortedRDS.forEach { rds ->
                     rds.makeSchedule(
@@ -224,7 +253,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 rdTripUpdates.forEach { (_, gTripUpdate) ->
                     MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > GTFS - ${gTripUpdate.toStringExt()}.")
                     if (PRINT_ALL_RD_STOP_TIME_UPDATES) {
-                        gTripUpdate.stopTimeUpdateList?.forEachIndexed { idx, stu ->
+                        gTripUpdate.optStopTimeUpdateList?.forEachIndexed { idx, stu ->
                             MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > GTFS - [$idx] ${stu.toStringExt()}")
                         }
                     }
@@ -247,6 +276,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         }
     }
 
+    // Montréal-based competitor: match with 'trip_id' first,
+    // else use 'route_id', 'direction_id', 'start_date' & 'start_time' to try to match correct trip as fallback
+
     @VisibleForTesting
     internal fun GTripDescriptor.match(
         targetRouteIdHash: String,
@@ -255,42 +287,49 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         ignoreDirection: Boolean,
         parseRouteId: (GTripDescriptor) -> String?,
         parseTripId: (GTripDescriptor) -> String?,
-        setTripIdsOutOfSync: (Boolean) -> Unit,
     ): Boolean {
-        parseRouteId(this)?.let { rtRouteIdHash ->
-            if (rtRouteIdHash != targetRouteIdHash) {
-                // if (DEBUG_STATIC_RT_MATCH) { // too much log
-                // MTLog.d(LOG_TAG, "match() > IGNORE: wrong route ID '$rtRouteIdHash' (t:$targetRouteIdHash)")
-                // }
-                return false // NOT A MATCH
+        parseTripId(this)?.let { tripId ->
+            if (tripId in staticRDTripIds) {
+                return true // MATCH
             }
         }
-        @Suppress("SimplifyBooleanWithConstants")
-        if (!ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID || optTripIdNotEmpty == null) {
-            optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
-                if (directionId != targetDirectionOriginalId) {
-                    if (DEBUG_STATIC_RT_MATCH) {
-                        MTLog.d(
-                            LOG_TAG,
-                            "match() > IGNORE: wrong direction ID '$directionId' for ${toStringExt(short = true)}"
-                        )
+        @Suppress("ConstantConditionIf")
+        if (false) { // FIXME later try to match with route_id & direction_id & start date+time
+            parseRouteId(this)?.let { rtRouteIdHash ->
+                if (rtRouteIdHash != targetRouteIdHash) {
+                    // if (DEBUG_STATIC_RT_MATCH) { // too much log
+                    // MTLog.d(LOG_TAG, "match() > IGNORE: wrong route ID '$rtRouteIdHash' (t:$targetRouteIdHash)")
+                    // }
+                    return false // NOT A MATCH
+                }
+            }
+            @Suppress("SimplifyBooleanWithConstants")
+            if (!ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID || optTripIdNotEmpty == null) {
+                optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
+                    if (directionId != targetDirectionOriginalId) {
+                        if (DEBUG_STATIC_RT_MATCH) {
+                            MTLog.d(
+                                LOG_TAG,
+                                "match() > IGNORE: wrong direction ID '$directionId' for ${toStringExt(short = true)}"
+                            )
+                        }
+                        return false // NOT A MATCH
+                    }
+                }
+            }
+            parseTripId(this)?.let { tripId ->
+                if (tripId !in staticRDTripIds) {
+                    if (hasRouteId()) {
+                        if (DEBUG_STATIC_RT_MATCH) {
+                            MTLog.d(LOG_TAG, "match() > IGNORE: wrong trip ID ($tripId) for ${toStringExt(short = true)}")
+                        }
                     }
                     return false // NOT A MATCH
                 }
             }
+            return true // MATCH
         }
-        parseTripId(this)?.let { tripId ->
-            if (tripId !in staticRDTripIds) {
-                if (hasRouteId()) {
-                    if (DEBUG_STATIC_RT_MATCH) {
-                        MTLog.d(LOG_TAG, "match() > IGNORE: wrong trip ID ($tripId) for ${toStringExt(short = true)}")
-                    }
-                    setTripIdsOutOfSync(true)
-                }
-                return false // NOT A MATCH
-            }
-        }
-        return true // MATCH
+        return false // NOT A MATCH
     }
 
     private val OLDEST_FOR_REAL_TIME = 1.minutes

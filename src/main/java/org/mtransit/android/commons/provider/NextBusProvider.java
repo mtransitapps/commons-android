@@ -1072,7 +1072,7 @@ public class NextBusProvider extends MTContentProvider implements
 					final SAXParserFactory spf = SAXParserFactory.newInstance();
 					final SAXParser sp = spf.newSAXParser();
 					final XMLReader xr = sp.getXMLReader();
-					final NextBusPredictionsDataHandler handler = new NextBusPredictionsDataHandler(this, sourceLabel, newLastUpdateInMs, AgencyUtils.getRDSAgencyTimeZoneId(context));
+					final NextBusPredictionsDataHandler handler = new NextBusPredictionsDataHandler(this, sourceLabel, newLastUpdateInMs, AgencyUtils.getAgencyTimeZoneId(context));
 					xr.setContentHandler(handler);
 					xr.parse(new InputSource(response.body().byteStream()));
 					final Collection<? extends POIStatus> statuses = handler.getStatuses();

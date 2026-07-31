@@ -358,7 +358,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 
 	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, @Nullable String jsonString, @NonNull RouteDirectionStop rds, @Nullable String sourceLabel, long newLastUpdateInMs) {
 		try {
-			final String localTimeZoneId = AgencyUtils.getRDSAgencyTimeZoneId(context);
+			final String localTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context);
 			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_DATA)) {

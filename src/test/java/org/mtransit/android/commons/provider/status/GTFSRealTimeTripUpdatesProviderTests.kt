@@ -18,6 +18,7 @@ import org.mtransit.android.commons.data.toScheduleTimestamp
 import org.mtransit.android.commons.provider.gtfs.GTFSStatusProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.delayDuration
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.match
 import org.mtransit.android.commons.secsToInstant
@@ -1163,7 +1164,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
             }
         }.sortedBy { (_, stopSequence) -> stopSequence }
 
-        val result = gTripUpdate.stopTimeUpdateList?.fixStopSequence(
+        val result = gTripUpdate.optStopTimeUpdateList?.fixStopSequence(
             tripId = TRIP_ID,
             tripSortedRDS = rdsList,
             sortedTargetUuidAndSequence = sortedTargetUuidAndSequence,
@@ -1201,7 +1202,6 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun test_match_trip_id_only_matches() {
-        var tripIdsOutOfSync = false
         tripDescriptor {
             tripId = TRIP_ID
         }.match(
@@ -1211,16 +1211,13 @@ class GTFSRealTimeTripUpdatesProviderTests {
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
-            setTripIdsOutOfSync = { tripIdsOutOfSync = it}
         ).let { result ->
             assertTrue(result)
-            assertFalse(tripIdsOutOfSync)
         }
     }
 
     @Test
     fun test_match_trip_id_only_does_not_match() {
-        var tripIdsOutOfSync = false
         tripDescriptor {
             tripId = TRIP_ID
         }.match(
@@ -1230,16 +1227,13 @@ class GTFSRealTimeTripUpdatesProviderTests {
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
-            setTripIdsOutOfSync = { tripIdsOutOfSync = it}
         ).let { result ->
             assertFalse(result)
-            assertFalse(tripIdsOutOfSync)
         }
     }
 
     @Test
     fun test_match_trip_id_does_not_match_and_route_matches() {
-        var tripIdsOutOfSync = false
         tripDescriptor {
             routeId = "1"
             tripId = TRIP_ID
@@ -1250,10 +1244,8 @@ class GTFSRealTimeTripUpdatesProviderTests {
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
-            setTripIdsOutOfSync = { tripIdsOutOfSync = it}
         ).let { result ->
             assertFalse(result)
-            assertTrue(tripIdsOutOfSync)
         }
     }
 

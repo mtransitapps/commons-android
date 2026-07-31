@@ -175,7 +175,8 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
 
     // Best practices: 90 seconds
     // https://gtfs.org/documentation/realtime/realtime-best-practices/#feed-publishing-general-practices
-    private val VEHICLE_POSITIONS_MAX_AGE_MS = 90.times(3).seconds.inWholeMilliseconds
+    // Montréal-based competitor: 3 minutes
+    private val VEHICLE_POSITIONS_MAX_AGE_MS = 90.times(2).seconds.inWholeMilliseconds
 
     private fun GTFSRealTimeProvider.loadAgencyDataFromWWW(): List<VehicleLocation>? {
         try {

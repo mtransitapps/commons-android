@@ -226,7 +226,8 @@ object GtfsRealtimeExt {
 
     val GTripUpdate.optTrip get() = if (hasTrip()) trip else null
     val GTripUpdate.optVehicle get() = if (hasVehicle()) vehicle else null
-    val GTripUpdate.optStopTimeUpdateList get() = stopTimeUpdateList?.takeIf { it.isNotEmpty() }
+    fun GTripUpdate.hasStopTimeUpdateList() = stopTimeUpdateList.isNotEmpty()
+    val GTripUpdate.optStopTimeUpdateList get() = if (hasStopTimeUpdateList()) stopTimeUpdateList else null
     val GTripUpdate.optTimestamp get() = if (hasTimestamp()) timestamp else null
     val GTripUpdate.optTimestampMs get() = optTimestamp?.secToMs()
     val GTripUpdate.optDelay get() = if (hasDelay()) delay else null
@@ -299,6 +300,9 @@ object GtfsRealtimeExt {
     val GTUStopTimeEvent.optScheduledTime get() = if (hasScheduledTime()) scheduledTime else null
     val GTUStopTimeEvent.optScheduledTimeMs get() = optScheduledTime?.secToMs()
     val GTUStopTimeEvent.optScheduledTimeInstant get() = optScheduledTime?.secsToInstant()
+    fun GTUStopTimeEvent.hasTimeOrScheduledTime() = hasTime() || hasScheduledTime()
+    val GTUStopTimeEvent.optTimeOrScheduledTime get() = optTime ?: optScheduledTime
+    val GTUStopTimeEvent.optTimeOrScheduledTimeMs get() = optTimeOrScheduledTime?.secToMs()
 
     @JvmStatic
     @JvmOverloads
