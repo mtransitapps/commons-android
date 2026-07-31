@@ -21,19 +21,17 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.ALLOW_IGNORE_T
 import org.mtransit.android.commons.provider.agency.AgencyUtils
 import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.parseToDateTime
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.hasStopTimeUpdateList
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.hasTimeOrScheduledTime
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optArrival
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelay
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDeparture
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optModifiedTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduledTimeMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStartDate
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStartTime
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopSequence
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeMs
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeOrScheduleTimeMs
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeOrScheduledTimeMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestampMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
@@ -134,11 +132,10 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         val startDateTimeOrFirstTimeMs: Long? = if (hasVehicleInfo) null else
             (optTrip?.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
                 ?: optTrip?.optModifiedTrip?.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
-                ?: optStopTimeUpdateList?.sortedBy { it.optStopSequence }
-                    ?.firstOrNull {
-                        it.optDeparture?.optTimeOrScheduleTimeMs != null || it.optArrival?.optTimeOrScheduleTimeMs != null
-                    }?.let {
-                        it.optDeparture?.optTimeOrScheduleTimeMs ?: it.optArrival?.optTimeOrScheduleTimeMs
+                ?: optStopTimeUpdateList // not sorting because GTFS spec requires it to be already sorted & it's a fallback
+                    ?.firstOrNull { it.optDeparture?.hasTimeOrScheduledTime() == true || it.optArrival?.hasTimeOrScheduledTime() == true }
+                    ?.let {
+                        it.optDeparture?.optTimeOrScheduledTimeMs ?: it.optArrival?.optTimeOrScheduledTimeMs
                     })
         startDateTimeOrFirstTimeMs?.let { timeMs ->
             if (nowMs + FUTURE_TRIP_UPDATE_MAX_DIFF_MS < timeMs) {

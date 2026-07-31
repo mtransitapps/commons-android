@@ -300,8 +300,9 @@ object GtfsRealtimeExt {
     val GTUStopTimeEvent.optScheduledTime get() = if (hasScheduledTime()) scheduledTime else null
     val GTUStopTimeEvent.optScheduledTimeMs get() = optScheduledTime?.secToMs()
     val GTUStopTimeEvent.optScheduledTimeInstant get() = optScheduledTime?.secsToInstant()
-    val GTUStopTimeEvent.optTimeOrScheduleTime get() = optTime ?: optScheduledTime
-    val GTUStopTimeEvent.optTimeOrScheduleTimeMs get() = optTimeOrScheduleTime?.secToMs()
+    fun GTUStopTimeEvent.hasTimeOrScheduledTime() = hasTime() || hasScheduledTime()
+    val GTUStopTimeEvent.optTimeOrScheduledTime get() = optTime ?: optScheduledTime
+    val GTUStopTimeEvent.optTimeOrScheduledTimeMs get() = optTimeOrScheduledTime?.secToMs()
 
     @JvmStatic
     @JvmOverloads
