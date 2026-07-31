@@ -18,7 +18,7 @@ object GTFSDateTimeUtils : MTLog.Loggable {
     fun parseToDateTime(gtfsDateStr: String?, gtfsTimeStr: String?, agencyTimeZone: KtTimeZone): Instant? {
         try {
             val cleanedDate = gtfsDateStr?.trim() ?: return null
-            if (cleanedDate.length != 8) {
+            if (cleanedDate.length != 8 || cleanedDate.any { !it.isDigit() }) {
                 MTLog.w(this, "Invalid GTFS date format '$cleanedDate'! Must be YYYYMMDD")
                 return null
             }
@@ -28,7 +28,7 @@ object GTFSDateTimeUtils : MTLog.Loggable {
                 return null
             }
 
-            val hoursCount = parts.getOrNull(0)?.toIntOrNull()?.takeIf { it > 0 } ?: return null
+            val hoursCount = parts.getOrNull(0)?.toIntOrNull()?.takeIf { it >= 0 } ?: return null
             val minutesCount = parts.getOrNull(1)?.toIntOrNull()?.takeIf { it in 0..59 } ?: return null
             val secondsCount = parts.getOrNull(2)?.toIntOrNull()?.takeIf { it in 0..59 } ?: return null
             val durationFromStartOfDay = hoursCount.hours + // compat with 24+ hours

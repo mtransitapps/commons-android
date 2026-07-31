@@ -20,8 +20,12 @@ class GTFSDateTimeUtilsTest {
         ("20260730" to "24:24:00").let { (date, time) ->
             GTFSDateTimeUtils.parseToDateTime(date, time, timeZone)
         }.let { result ->
-            println(result?.toEpochMilliseconds())
             assertEquals(1785479040_000L.millisToInstant(), result)
+        }
+        ("20260730" to "00:24:00").let { (date, time) ->
+            GTFSDateTimeUtils.parseToDateTime(date, time, timeZone)
+        }.let { result ->
+            assertEquals(1785392640_000L.millisToInstant(), result)
         }
         (null to null).let { (date, time) ->
             GTFSDateTimeUtils.parseToDateTime(date, time, timeZone)

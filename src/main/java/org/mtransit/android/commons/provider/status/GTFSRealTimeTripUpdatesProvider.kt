@@ -20,17 +20,20 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID
 import org.mtransit.android.commons.provider.agency.AgencyUtils
 import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.parseToDateTime
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.hasStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optArrival
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelay
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDeparture
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optModifiedTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduledTimeMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStartDate
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStartTime
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopSequence
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeMs
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeOrScheduleTimeMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestampMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
@@ -133,9 +136,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 ?: optTrip?.optModifiedTrip?.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
                 ?: optStopTimeUpdateList?.sortedBy { it.optStopSequence }
                     ?.firstOrNull {
-                        it.hasDeparture() || it.hasArrival()
+                        it.optDeparture?.optTimeOrScheduleTimeMs != null || it.optArrival?.optTimeOrScheduleTimeMs != null
                     }?.let {
-                        it.optDeparture?.optTimeMs ?: it.optArrival?.optTimeMs
+                        it.optDeparture?.optTimeOrScheduleTimeMs ?: it.optArrival?.optTimeOrScheduleTimeMs
                     })
         startDateTimeOrFirstTimeMs?.let { timeMs ->
             if (nowMs + FUTURE_TRIP_UPDATE_MAX_DIFF_MS < timeMs) {
@@ -143,10 +146,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 return false // not useful (too far in advance to display)
             }
         }
-        if (optDelay != null
-            || optStopTimeUpdateList?.isNotEmpty() == true
-        ) {
-            return true // useful
+        if (hasDelay() || hasStopTimeUpdateList()) {
+            return true // useful (contains delay or STUs)
         }
         optTrip?.let { td -> // cannot match w/ static data
             if (td.optScheduleRelationship?.let { it != GTDScheduleRelationship.SCHEDULED } == true) {
@@ -205,7 +206,10 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             }
             val agencyTimeZoneId = this.optTimeZoneId
                 ?: AgencyUtils.getAgencyTimeZoneId(context)
-            val agencyTimeZone = KtTimeZone.of(agencyTimeZoneId)
+            val agencyTimeZone = runCatching { KtTimeZone.of(agencyTimeZoneId) }.getOrElse { e ->
+                MTLog.w(LOG_TAG, e, "makeCachedStatusFromAgencyData() > error getting timezone from '$agencyTimeZoneId'!")
+                KtTimeZone.currentSystemDefault()
+            }
             val rdTripUpdates = gTripUpdates
                 .filter { gTripUpdate ->
                     gTripUpdate.optTrip?.match(
