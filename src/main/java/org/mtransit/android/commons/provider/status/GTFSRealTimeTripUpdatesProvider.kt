@@ -121,16 +121,22 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     // private const val PRINT_ALL_RD_STOP_TIME_UPDATES = true // DEBUG
 
     private fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone): Boolean {
+        val optTrip = optTrip ?: return false // not useful
+        optTrip.optScheduleRelationship?.let { scheduleRelationship ->
+            if (scheduleRelationship != GTDScheduleRelationship.SCHEDULED) {
+                return true // useful (no max age)
+            }
+        }
         optTimestampMs?.let { tuTimestamp ->
             if (tuTimestamp + TRIP_UPDATE_MAX_AGE_MS < nowMs) {
-                MTLog.d(LOG_TAG, "isUseful() > IGNORE ${(nowMs - tuTimestamp).toDurationLog()} old: ${this.optTrip?.toStringExt(true)}")
+                MTLog.d(LOG_TAG, "isUseful() > IGNORE ${(nowMs - tuTimestamp).toDurationLog()} old: ${optTrip.toStringExt(true)}")
                 return false // not useful (too old to display)
             }
         }
         val hasVehicleInfo = optVehicle?.let { it.hasId() || it.hasLabel() || it.hasLicensePlate() } == true
         val startDateTimeOrFirstTimeMs: Long? = if (hasVehicleInfo) null else
-            (optTrip?.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
-                ?: optTrip?.optModifiedTrip?.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
+            (optTrip.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
+                ?: optTrip.optModifiedTrip?.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
                 ?: optStopTimeUpdateList // not sorting because GTFS spec requires it to be already sorted & it's a fallback
                     ?.firstOrNull { it.optDeparture?.hasTimeOrScheduledTime() == true || it.optArrival?.hasTimeOrScheduledTime() == true }
                     ?.let {
@@ -138,17 +144,12 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     })
         startDateTimeOrFirstTimeMs?.let { timeMs ->
             if (nowMs + FUTURE_TRIP_UPDATE_MAX_DIFF_MS < timeMs) {
-                MTLog.d(LOG_TAG, "isUseful() > IGNORE ${((timeMs - nowMs)).toDurationLog()} in the future: ${this.optTrip?.toStringExt(true)}")
+                MTLog.d(LOG_TAG, "isUseful() > IGNORE ${((timeMs - nowMs)).toDurationLog()} in the future: ${optTrip.toStringExt(true)}")
                 return false // not useful (too far in advance to display)
             }
         }
         if (hasDelay() || hasStopTimeUpdateList()) {
             return true // useful (contains delay or STUs)
-        }
-        optTrip?.let { td -> // cannot match w/ static data
-            if (td.optScheduleRelationship?.let { it != GTDScheduleRelationship.SCHEDULED } == true) {
-                return true // useful
-            }
         }
         MTLog.w(LOG_TAG, "isUseful() > IGNORE (why?): ${this.toStringExt()}")
         return false // not useful
