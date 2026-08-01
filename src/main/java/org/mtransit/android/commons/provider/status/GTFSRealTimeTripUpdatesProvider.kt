@@ -123,7 +123,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     private fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone): Boolean {
         val optTrip = optTrip ?: return false // not useful
         optTrip.optScheduleRelationship?.let { scheduleRelationship ->
-            if (scheduleRelationship != GTDScheduleRelationship.SCHEDULED) {
+            if (scheduleRelationship == GTDScheduleRelationship.DELETED
+                || scheduleRelationship == GTDScheduleRelationship.CANCELED
+            ) {
                 return true // useful (no max age)
             }
         }
@@ -150,6 +152,11 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         }
         if (hasDelay() || hasStopTimeUpdateList()) {
             return true // useful (contains delay or STUs)
+        }
+        optTrip.optScheduleRelationship?.let { scheduleRelationship ->
+            if (scheduleRelationship != GTDScheduleRelationship.SCHEDULED) {
+                return true // useful
+            }
         }
         MTLog.w(LOG_TAG, "isUseful() > IGNORE (why?): ${this.toStringExt()}")
         return false // not useful
