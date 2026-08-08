@@ -9,7 +9,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
@@ -20,6 +19,7 @@ import org.mtransit.android.commons.provider.scheduletimestamp.ScheduleTimestamp
 import org.mtransit.android.commons.provider.scheduletimestamp.ScheduleTimestampsProviderContract;
 import org.mtransit.commons.FeatureFlags;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Set;
@@ -47,9 +47,11 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 		final long startsAtInMs = filter.getStartsAtInMs();
 		final long endsAtInMs = filter.getEndsAtInMs();
 		final Context context = provider.requireContextCompat();
-		final ThreadSafeDateFormatter dateFormat = GTFSStatusProvider.getDateFormat(context);
-		final ThreadSafeDateFormatter timeFormat = GTFSStatusProvider.getTimeFormat(context);
-		final TimeZone timeZone = TimeZone.getTimeZone(AgencyUtils.getAgencyTimeZoneId(context));
+		final String agencyTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context);
+		final TimeZone timeZone = TimeZone.getTimeZone(agencyTimeZoneId);
+		final DateFormat dateFormat = GTFSStatusProvider.getNewDateFormat(timeZone);
+		final DateFormat timeFormat = GTFSStatusProvider.getNewTimeFormat(timeZone);
+		final DateFormat dateAndTimeFormat = GTFSStatusProvider.getNewDateAndTimeFormat(timeZone);
 		final Calendar startsAt = TimeUtils.getNewCalendar(timeZone, startsAtInMs);
 		startsAt.add(Calendar.DATE, -1); // starting yesterday
 		Set<Schedule.Timestamp> dayTimestamps;
@@ -61,8 +63,8 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 		while (startsAt.getTimeInMillis() <= endsAtInMs) {
 			final Calendar lookupStartAt = TimeUtils.getNewCalendar(timeZone, startsAt.getTimeInMillis());
 			GTFSStatusProvider.alignLookupStartTime(lastServiceDate, dateFormat, lookupStartAt, lastDepartureInMs);
-			lookupDayDate = dateFormat.formatThreadSafe(lookupStartAt);
-			lookupDayTime = timeFormat.formatThreadSafe(lookupStartAt);
+			lookupDayDate = dateFormat.format(lookupStartAt);
+			lookupDayTime = timeFormat.format(lookupStartAt);
 			if (dataRequests == 0) { // IF yesterday DO override computed date & time with GTFS format for 24+
 				lookupDayTime = String.valueOf(Integer.parseInt(lookupDayTime) + GTFSStatusProvider.TWENTY_FOUR_HOURS);
 			} else { // ELSE IF tomorrow or later DO
@@ -75,12 +77,14 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 					rds.getStop().getId(),
 					lookupDayDate,
 					lookupDayTime,
-					startsAt.getTimeInMillis() - lookupStartAt.getTimeInMillis()
+					startsAt.getTimeInMillis() - lookupStartAt.getTimeInMillis(),
+					dateAndTimeFormat,
+					agencyTimeZoneId
 			);
 			if (startsAt.getTimeInMillis() > lookupStartAt.getTimeInMillis() // already looking at OLD schedule
 					&& dayTimestamps.isEmpty()) {
 				lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
-				lookupDayDate = dateFormat.formatThreadSafe(lookupStartAt); // try 1 week before once
+				lookupDayDate = dateFormat.format(lookupStartAt); // try 1 week before once
 				dayTimestamps = GTFSStatusProvider.findScheduleList(
 						provider,
 						rds.getRoute().getId(),
@@ -88,7 +92,9 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 						rds.getStop().getId(),
 						lookupDayDate,
 						lookupDayTime,
-						startsAt.getTimeInMillis() - lookupStartAt.getTimeInMillis()
+						startsAt.getTimeInMillis() - lookupStartAt.getTimeInMillis(),
+						dateAndTimeFormat,
+						agencyTimeZoneId
 				);
 			}
 			dataRequests++; // 1 more data request done
