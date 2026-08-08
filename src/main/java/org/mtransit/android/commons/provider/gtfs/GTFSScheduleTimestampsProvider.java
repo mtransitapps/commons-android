@@ -81,8 +81,9 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 					dateAndTimeFormat,
 					agencyTimeZoneId
 			);
-			if (startsAt.getTimeInMillis() > lookupStartAt.getTimeInMillis() // already looking at OLD schedule
-					&& dayTimestamps.isEmpty()) {
+			if (dayTimestamps.isEmpty()
+					&& startsAt.getTimeInMillis() > lookupStartAt.getTimeInMillis() // already looking at OLD schedule
+			) {
 				lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
 				lookupDayDate = dateFormat.format(lookupStartAt.getTime()); // try 1 week before once
 				dayTimestamps = GTFSStatusProvider.findScheduleList(

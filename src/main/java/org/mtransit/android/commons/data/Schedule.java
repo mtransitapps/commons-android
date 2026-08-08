@@ -455,8 +455,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private int headsignType = Direction.HEADSIGN_TYPE_NONE;
 		@Nullable
 		private String headsignValue = null;
-		@Nullable
-		private String localTimeZoneId = null;
+		@NonNull
+		private final String localTimeZoneId;
 		@Nullable
 		private Boolean realTime = null;
 		@Nullable
@@ -474,7 +474,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		@VisibleForTesting
 		public Timestamp(long departureT) {
-			this.departureInMs = departureT;
+			this(departureT, TimeZone.getDefault().getID());
 		}
 
 		public Timestamp(long departureT, @NonNull TimeZone localTimeZone) {
@@ -620,11 +620,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return Direction.getNewHeading(this.headsignType, this.headsignValue);
 		}
 
-		private void setLocalTimeZoneId(@Nullable String localTimeZone) {
-			this.localTimeZoneId = localTimeZone;
-		}
-
-		@Nullable
+		@NonNull
 		public String getLocalTimeZoneId() {
 			return localTimeZoneId;
 		}
@@ -742,7 +738,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			result = 31 * result + Long.hashCode(originalDepartureDelayMs);
 			result = 31 * result + headsignType;
 			result = 31 * result + (headsignValue != null ? headsignValue.hashCode() : 0);
-			result = 31 * result + (localTimeZoneId != null ? localTimeZoneId.hashCode() : 0);
+			result = 31 * result + localTimeZoneId.hashCode();
 			result = 31 * result + (realTime != null ? realTime.hashCode() : 0);
 			result = 31 * result + (oldSchedule != null ? oldSchedule.hashCode() : 0);
 			result = 31 * result + (accessible != null ? accessible : 0);
@@ -758,7 +754,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@NonNull
 		@Override
 		public String toString() {
-			StringBuilder sb = new StringBuilder(Timestamp.class.getSimpleName());
+			final StringBuilder sb = new StringBuilder(Timestamp.class.getSimpleName());
 			sb.append('{');
 			sb.append("d=").append(Constants.DEBUG ? MTLog.formatDateTime(getDepartureT()) : getDepartureT());
 			if (this.originalDepartureDelayMs != 0L) {
@@ -782,9 +778,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			if (headsignValue != null) {
 				sb.append(", hv:'").append(headsignValue).append('\'');
 			}
-			if (localTimeZoneId != null) {
-				sb.append(", tz:'").append(localTimeZoneId).append('\'');
-			}
+			sb.append(", tz:'").append(localTimeZoneId).append('\'');
 			if (realTime != null) {
 				sb.append(", rt:").append(realTime);
 			}
@@ -809,7 +803,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private static final String JSON_STOP_SEQUENCE = "stop_seq";
 		private static final String JSON_HEADSIGN_TYPE = "ht";
 		private static final String JSON_HEADSIGN_VALUE = "hv";
-		private static final String JSON_LOCAL_TIME_ZONE = "localTimeZone";
+		private static final String JSON_LOCAL_TIME_ZONE_ID = "localTimeZone";
 		private static final String JSON_REAL_TIME = "rt";
 		private static final String JSON_OLD_SCHEDULE = "old";
 		private static final String JSON_ACCESSIBLE = "a11y";
@@ -819,7 +813,12 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		static Timestamp parseJSON(@NonNull JSONObject jTimestamp) {
 			try {
 				final long departureInMs = jTimestamp.getLong(JSON_DEPARTURE);
-				final Timestamp timestamp = new Timestamp(departureInMs);
+				String localTimeZoneId = jTimestamp.optString(JSON_LOCAL_TIME_ZONE_ID);
+				if (TextUtils.isEmpty(localTimeZoneId)) {
+					MTLog.w(LOG_TAG, "Timestamp missing timezone in JSON (using device TZ) '%s'!", jTimestamp);
+					localTimeZoneId = TimeZone.getDefault().getID();
+				}
+				final Timestamp timestamp = new Timestamp(departureInMs, localTimeZoneId);
 				final long originalDepartureDelayMs = jTimestamp.optLong(JSON_ORIGINAL_DEPARTURE_DELAY, 0L);
 				if (originalDepartureDelayMs != 0L) {
 					timestamp.setOriginalDepartureDelayMs(originalDepartureDelayMs);
@@ -845,10 +844,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					if (headSignType == Direction.HEADSIGN_TYPE_NO_PICKUP) {
 						timestamp.setHeadsign(headSignType, null);
 					}
-				}
-				final String localTimeZone = jTimestamp.optString(JSON_LOCAL_TIME_ZONE);
-				if (!TextUtils.isEmpty(localTimeZone)) {
-					timestamp.setLocalTimeZoneId(localTimeZone);
 				}
 				if (jTimestamp.has(JSON_REAL_TIME)) {
 					timestamp.setRealTime(jTimestamp.optBoolean(JSON_REAL_TIME, false));
@@ -878,6 +873,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		public static JSONObject toJSON(@NonNull Timestamp timestamp) {
 			try {
 				final JSONObject jTimestamp = new JSONObject();
+				jTimestamp.put(JSON_LOCAL_TIME_ZONE_ID, timestamp.localTimeZoneId);
 				jTimestamp.put(JSON_DEPARTURE, timestamp.departureInMs);
 				if (timestamp.originalDepartureDelayMs != 0L) {
 					jTimestamp.put(JSON_ORIGINAL_DEPARTURE_DELAY, timestamp.originalDepartureDelayMs);
@@ -901,9 +897,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					if (timestamp.headsignType == Direction.HEADSIGN_TYPE_NO_PICKUP) {
 						jTimestamp.put(JSON_HEADSIGN_TYPE, timestamp.headsignType);
 					}
-				}
-				if (timestamp.localTimeZoneId != null) {
-					jTimestamp.put(JSON_LOCAL_TIME_ZONE, timestamp.localTimeZoneId);
 				}
 				if (timestamp.realTime != null) {
 					jTimestamp.put(JSON_REAL_TIME, timestamp.realTime);

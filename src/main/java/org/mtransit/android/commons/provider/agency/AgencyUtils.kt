@@ -44,7 +44,7 @@ object AgencyUtils : MTLog.Loggable {
             R.string.gtfs_rts_timezone, // do not change to avoid breaking compat w/ old modules
             R.string.bike_station_timezone,
         ) ?: run {
-            MTLog.w(LOG_TAG, "Impossible to read agency timezone! (using device timezone)")
+            MTLog.w(LOG_TAG, "No agency timezone configured (using device timezone)!")
             TimeZone.getDefault().id
         }
 }

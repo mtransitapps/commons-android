@@ -282,6 +282,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			if (dayTimestamps.isEmpty()
 					&& startsAt.getTimeInMillis() > lookupStartAt.getTimeInMillis() // already looking at OLD schedule
 			) {
+				lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
 				lookupDayDate = dateFormat.format(lookupStartAt.getTime()); // try 1 week before once
 				dayTimestamps = findScheduleList(
 						provider,
