@@ -63,8 +63,8 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 		while (startsAt.getTimeInMillis() <= endsAtInMs) {
 			final Calendar lookupStartAt = TimeUtils.getNewCalendar(timeZone, startsAt.getTimeInMillis());
 			GTFSStatusProvider.alignLookupStartTime(lastServiceDate, dateFormat, lookupStartAt, lastDepartureInMs);
-			lookupDayDate = dateFormat.format(lookupStartAt);
-			lookupDayTime = timeFormat.format(lookupStartAt);
+			lookupDayDate = dateFormat.format(lookupStartAt.getTime());
+			lookupDayTime = timeFormat.format(lookupStartAt.getTime());
 			if (dataRequests == 0) { // IF yesterday DO override computed date & time with GTFS format for 24+
 				lookupDayTime = String.valueOf(Integer.parseInt(lookupDayTime) + GTFSStatusProvider.TWENTY_FOUR_HOURS);
 			} else { // ELSE IF tomorrow or later DO
@@ -84,7 +84,7 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 			if (startsAt.getTimeInMillis() > lookupStartAt.getTimeInMillis() // already looking at OLD schedule
 					&& dayTimestamps.isEmpty()) {
 				lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
-				lookupDayDate = dateFormat.format(lookupStartAt); // try 1 week before once
+				lookupDayDate = dateFormat.format(lookupStartAt.getTime()); // try 1 week before once
 				dayTimestamps = GTFSStatusProvider.findScheduleList(
 						provider,
 						rds.getRoute().getId(),

@@ -259,8 +259,8 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		while (dataRequests < maxDataRequests) {
 			final Calendar lookupStartAt = TimeUtils.getNewCalendar(timeZone, startsAt.getTimeInMillis());
 			alignLookupStartTime(lastServiceDate, dateFormat, lookupStartAt, lastDepartureInMs);
-			lookupDayDate = dateFormat.format(lookupStartAt);
-			lookupDayTime = timeFormat.format(lookupStartAt);
+			lookupDayDate = dateFormat.format(lookupStartAt.getTime());
+			lookupDayTime = timeFormat.format(lookupStartAt.getTime());
 			if (dataRequests == 0) { // IF yesterday DO override computed date & time with GTFS format for 24+
 				lookupDayTime = String.valueOf(Integer.parseInt(lookupDayTime) + TWENTY_FOUR_HOURS);
 			} else if (dataRequests == 1) { // ELSE IF today DO
@@ -282,7 +282,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			if (dayTimestamps.isEmpty()
 					&& startsAt.getTimeInMillis() > lookupStartAt.getTimeInMillis() // already looking at OLD schedule
 			) {
-				lookupDayDate = dateFormat.format(lookupStartAt); // try 1 week before once
+				lookupDayDate = dateFormat.format(lookupStartAt.getTime()); // try 1 week before once
 				dayTimestamps = findScheduleList(
 						provider,
 						rds.getRoute().getId(),
@@ -328,7 +328,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	) {
 		if (lastServiceDate != null) {
 			try {
-				while (Integer.parseInt(dateFormat.format(lookupStartAt)) > lastServiceDate) {
+				while (Integer.parseInt(dateFormat.format(lookupStartAt.getTime())) > lastServiceDate) {
 					lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
 				}
 			} catch (Exception e) {
@@ -613,8 +613,8 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		while (dataRequests < maxDataRequests) {
 			final Calendar lookupStartAt = TimeUtils.getNewCalendar(timeZone, startsAt.getTimeInMillis());
 			alignLookupStartTime(lastServiceDate, dateFormat, lookupStartAt, lastDepartureInMs);
-			lookupDayDate = dateFormat.format(lookupStartAt);
-			lookupDayTime = timeFormat.format(lookupStartAt);
+			lookupDayDate = dateFormat.format(lookupStartAt.getTime());
+			lookupDayTime = timeFormat.format(lookupStartAt.getTime());
 			if (dataRequests == 0) { // IF yesterday DO override computed date & time with GTFS format for 24+
 				lookupDayTime = String.valueOf(Integer.parseInt(lookupDayTime) + TWENTY_FOUR_HOURS);
 			} else if (dataRequests == 1) { // ELSE IF today DO
@@ -636,7 +636,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 					&& MIDNIGHT.equals(lookupDayTime) // not a partial schedule
 			) {
 				lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
-				lookupDayDate = dateFormat.format(lookupStartAt); // try 1 week before once
+				lookupDayDate = dateFormat.format(lookupStartAt.getTime()); // try 1 week before once
 				dayFrequencies = findFrequencyList(
 						provider,
 						rds.getRoute().getId(),
