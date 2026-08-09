@@ -869,6 +869,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 								newLastUpdateInMs,
 								PROVIDER_PRECISION_IN_MS,
 								jArretParcours.isDescenteSeulement(),
+								QUEBEC_CITY_TZ.getID(),
 								sourceLabel,
 								true // NO DATA // keep = no service today
 						)
@@ -883,6 +884,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 					newLastUpdateInMs,
 					PROVIDER_PRECISION_IN_MS,
 					jArretParcours.isDescenteSeulement(),
+					QUEBEC_CITY_TZ.getID(),
 					sourceLabel
 			);
 			for (int r = 0; r < jHoraires.size(); r++) {

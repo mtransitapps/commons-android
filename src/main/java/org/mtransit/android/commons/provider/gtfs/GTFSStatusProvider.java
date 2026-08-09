@@ -148,6 +148,8 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			return null;
 		}
 		final ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
+		final Context context = provider.requireContextCompat();
+		final String agencyTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context);
 		final Schedule schedule = new Schedule(
 				null,
 				scheduleStatusFilter.getTargetUUID(),
@@ -156,13 +158,14 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 				PROVIDER_READ_FROM_SOURCE_AT_IN_MS,
 				PROVIDER_PRECISION_IN_MS,
 				scheduleStatusFilter.getRouteDirectionStop().isNoPickup(),
-				GTFSProvider.getSOURCE_LABEL(provider.requireContextCompat())
+				agencyTimeZoneId,
+				GTFSProvider.getSOURCE_LABEL(context)
 		);
-		if (isSCHEDULE_AVAILABLE(provider.requireContextCompat())) {
-			schedule.setTimestampsAndSort(findTimestamps(provider, scheduleStatusFilter));
+		if (isSCHEDULE_AVAILABLE(context)) {
+			schedule.setTimestampsAndSort(findTimestamps(provider, scheduleStatusFilter, agencyTimeZoneId));
 		}
-		if (isFREQUENCY_AVAILABLE(provider.requireContextCompat())) {
-			schedule.setFrequenciesAndSort(findFrequencies(provider, scheduleStatusFilter));
+		if (isFREQUENCY_AVAILABLE(context)) {
+			schedule.setFrequenciesAndSort(findFrequencies(provider, scheduleStatusFilter, agencyTimeZoneId));
 		}
 		return schedule;
 	}
@@ -223,7 +226,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_COUNT = 5;
 
 	@NonNull
-	private static ArrayList<Schedule.Timestamp> findTimestamps(@NonNull GTFSProvider provider, @NonNull ScheduleStatusFilter filter) {
+	private static ArrayList<Schedule.Timestamp> findTimestamps(@NonNull GTFSProvider provider, @NonNull ScheduleStatusFilter filter, @NonNull String agencyTimeZoneId) {
 		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<>();
 		final RouteDirectionStop rds = filter.getRouteDirectionStop();
 		final int maxDataRequests = filter.getMaxDataRequestsOrDefault();
@@ -233,7 +236,6 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		final long timestamp = filter.getTimestampOrDefault(); // NOW
 		final long minTimestampCoveredIntMs = timestamp + minDurationCoveredInMs;
 		final Context context = provider.requireContextCompat();
-		final String agencyTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context);
 		final TimeZone timeZone = TimeZone.getTimeZone(agencyTimeZoneId);
 		final DateFormat dateFormat = getNewDateFormat(timeZone);
 		final DateFormat timeFormat = getNewTimeFormat(timeZone);
@@ -591,7 +593,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	}
 
 	@NonNull
-	private static ArrayList<Schedule.Frequency> findFrequencies(@NonNull GTFSProvider provider, @NonNull ScheduleStatusFilter filter) {
+	private static ArrayList<Schedule.Frequency> findFrequencies(@NonNull GTFSProvider provider, @NonNull ScheduleStatusFilter filter, @NonNull String agencyTimeZoneId) {
 		final ArrayList<Schedule.Frequency> allFrequencies = new ArrayList<>();
 		final RouteDirectionStop rds = filter.getRouteDirectionStop();
 		final int maxDataRequests = filter.getMaxDataRequestsOrDefault();
@@ -599,7 +601,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		final long timestamp = filter.getTimestampOrDefault(); // NOW
 		final long minTimestampCovered = timestamp + minDurationCoveredInMs;
 		final Context context = provider.requireContextCompat();
-		final TimeZone timeZone = TimeZone.getTimeZone(AgencyUtils.getAgencyTimeZoneId(context));
+		final TimeZone timeZone = TimeZone.getTimeZone(agencyTimeZoneId);
 		final DateFormat dateFormat = getNewDateFormat(timeZone);
 		final DateFormat timeFormat = getNewTimeFormat(timeZone);
 		final DateFormat dateAndTimeFormat = getNewDateAndTimeFormat(timeZone);

@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.provider.agency
 
 import android.content.Context
+import org.mtransit.android.commons.BuildConfig
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.R
 import java.util.TimeZone
@@ -44,6 +45,9 @@ object AgencyUtils : MTLog.Loggable {
             R.string.gtfs_rts_timezone, // do not change to avoid breaking compat w/ old modules
             R.string.bike_station_timezone,
         ) ?: run {
+            if (BuildConfig.DEBUG) {
+                throw RuntimeException("No agency timezone configured!")
+            }
             MTLog.w(LOG_TAG, "No agency timezone configured (using device timezone)!")
             TimeZone.getDefault().id
         }

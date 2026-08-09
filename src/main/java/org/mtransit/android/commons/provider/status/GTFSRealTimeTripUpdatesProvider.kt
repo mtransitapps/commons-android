@@ -43,7 +43,6 @@ import org.mtransit.android.commons.provider.gtfs.getRDSSchedule
 import org.mtransit.android.commons.provider.gtfs.getTripIds
 import org.mtransit.android.commons.provider.gtfs.ignoreDirection
 import org.mtransit.android.commons.provider.gtfs.makeRequest
-import org.mtransit.android.commons.provider.gtfs.optTimeZoneId
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.gtfs.storage
@@ -208,8 +207,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             val rdSchedules: Collection<Schedule> by lazy {
                 context.getRDSSchedule(targetAuthority, sortedRDS, filter.isIncludeCancelledTimestampsOrDefault)
             }
-            val agencyTimeZoneId = this.optTimeZoneId
-                ?: AgencyUtils.getAgencyTimeZoneId(context)
+            val agencyTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context)
             val agencyTimeZone = runCatching { KtTimeZone.of(agencyTimeZoneId) }.getOrElse { e ->
                 MTLog.w(LOG_TAG, e, "makeCachedStatusFromAgencyData() > error getting timezone from '$agencyTimeZoneId'!")
                 KtTimeZone.currentSystemDefault()

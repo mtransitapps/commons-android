@@ -21,7 +21,8 @@ fun makeSchedule(
     providerPrecisionInMs: Long,
     isNoPickup: Boolean = false,
     sourceLabel: String? = null,
-    noData: Boolean = false
+    noData: Boolean = false,
+    localTimeZoneId: String? = null,
 ) = Schedule(
     id,
     targetUUID,
@@ -30,6 +31,7 @@ fun makeSchedule(
     readFromSourceAtInMs,
     providerPrecisionInMs,
     isNoPickup,
+    localTimeZoneId,
     sourceLabel,
     noData,
 )

@@ -276,7 +276,9 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
-				CleverDevicesPredictionsDataHandler handler = new CleverDevicesPredictionsDataHandler(this, newLastUpdateInMs, AgencyUtils.getAgencyTimeZoneId(context), sourceLabel, rds);
+				CleverDevicesPredictionsDataHandler handler = new CleverDevicesPredictionsDataHandler(
+						this, newLastUpdateInMs, AgencyUtils.getAgencyTimeZoneId(context), sourceLabel, rds
+				);
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(httpUrlConnection.getInputStream()));
 				Collection<POIStatus> statuses = handler.getStatuses();
@@ -447,7 +449,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		private final CleverDevicesProvider provider;
 		private final long lastUpdateInMs;
 		@NonNull
-		private final String timeZoneId;
+		private final String localTimeZoneId;
 		@Nullable
 		private final String sourceLabel;
 		@NonNull
@@ -465,14 +467,16 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		@NonNull
 		private final HashSet<POIStatus> statuses = new HashSet<>();
 
-		CleverDevicesPredictionsDataHandler(@NonNull CleverDevicesProvider provider,
-											long lastUpdateInMs,
-											@NonNull String timeZoneId,
-											@Nullable String sourceLabel,
-											@NonNull RouteDirectionStop rds) {
+		CleverDevicesPredictionsDataHandler(
+				@NonNull CleverDevicesProvider provider,
+				long lastUpdateInMs,
+				@NonNull String localTimeZoneId,
+				@Nullable String sourceLabel,
+				@NonNull RouteDirectionStop rds
+		) {
 			this.provider = provider;
 			this.lastUpdateInMs = lastUpdateInMs;
-			this.timeZoneId = timeZoneId;
+			this.localTimeZoneId = localTimeZoneId;
 			this.sourceLabel = sourceLabel;
 			this.rds = rds;
 		}
@@ -543,7 +547,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 					return;
 				}
 				long t = TimeUtils.timeToTheMinuteMillis(this.lastUpdateInMs) + TimeUnit.MINUTES.toMillis(minutes);
-				Schedule.Timestamp timestamp = new Schedule.Timestamp(t, this.timeZoneId);
+				Schedule.Timestamp timestamp = new Schedule.Timestamp(t, this.localTimeZoneId);
 				if (!TextUtils.isEmpty(this.currentFd)) {
 					timestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, cleanTripHeadsign(this.provider.requireContextCompat(), this.currentFd.toString().trim(), rds));
 				}
@@ -564,6 +568,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 						this.lastUpdateInMs,
 						PROVIDER_PRECISION_IN_MS,
 						false,
+						this.localTimeZoneId,
 						this.sourceLabel
 				);
 				newSchedule.setTimestampsAndSort(this.currentTimestamps);

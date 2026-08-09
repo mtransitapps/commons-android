@@ -13,6 +13,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.Constants;
+import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.StringUtils;
@@ -51,10 +52,13 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private boolean noPickup;
 
+	@Nullable
+	private final String localTimeZoneId;
+
 	@NonNull
 	private final List<Frequency> frequencies = new ArrayList<>();
 
-	public Schedule(@NonNull POIStatus status, long providerPrecisionInMs, boolean noPickup) {
+	public Schedule(@NonNull POIStatus status, long providerPrecisionInMs, boolean noPickup, @Nullable String localTimeZoneId) {
 		this(
 				status.getId(),
 				status.getTargetUUID(),
@@ -63,6 +67,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				status.getReadFromSourceAtInMs(),
 				providerPrecisionInMs,
 				noPickup,
+				localTimeZoneId,
 				status.getSourceLabel(),
 				status.isNoData()
 		);
@@ -76,9 +81,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			long readFromSourceAtInMs,
 			long providerPrecisionInMs,
 			boolean noPickup,
+			@Nullable String localTimeZoneId,
 			@Nullable String sourceLabel
 	) {
-		this(id, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, providerPrecisionInMs, noPickup, sourceLabel, false);
+		this(id, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, providerPrecisionInMs, noPickup, localTimeZoneId, sourceLabel, false);
 	}
 
 	public Schedule(
@@ -89,17 +95,24 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			long readFromSourceAtInMs,
 			long providerPrecisionInMs,
 			boolean noPickup,
+			@Nullable String localTimeZoneId,
 			@Nullable String sourceLabel,
 			boolean noData
 	) {
 		super(id, targetUUID, POI.ITEM_STATUS_TYPE_SCHEDULE, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, noData);
-		this.noPickup = noPickup;
 		this.providerPrecisionInMs = providerPrecisionInMs;
+		this.noPickup = noPickup;
+		this.localTimeZoneId = localTimeZoneId;
 		resetTimestampsUntilInMs();
 	}
 
 	public boolean isNoPickup() {
 		return noPickup;
+	}
+
+	@Nullable
+	public String getLocalTimeZoneId() {
+		return localTimeZoneId;
 	}
 
 	public long getProviderPrecisionInMs() {
@@ -141,7 +154,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		try {
 			final long providerPrecisionInMs = extrasJSON.getInt(JSON_PROVIDER_PRECISION_IN_MS);
 			final boolean noPickup = extrasJSON.optBoolean(JSON_IS_NO_PICKUP, false);
-			final Schedule schedule = new Schedule(status, providerPrecisionInMs, noPickup);
+			final String localTimeZoneId = JSONUtils.optString(extrasJSON, JSON_LOCAL_TIME_ZONE_ID);
+			final Schedule schedule = new Schedule(status, providerPrecisionInMs, noPickup, localTimeZoneId);
 			final JSONArray jTimestamps = extrasJSON.getJSONArray(JSON_TIMESTAMPS);
 			for (int i = 0; i < jTimestamps.length(); i++) {
 				final JSONObject jTimestamp = jTimestamps.getJSONObject(i);
@@ -165,6 +179,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private static final String JSON_IS_NO_PICKUP = "decentOnly"; // do NOT change JSON key string value!
 	private static final String JSON_TIMESTAMPS = "timestamps";
 	private static final String JSON_FREQUENCIES = "frequencies";
+	private static final String JSON_LOCAL_TIME_ZONE_ID = "tz";
 
 	@Nullable
 	@Override
@@ -173,6 +188,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			JSONObject json = new JSONObject();
 			json.put(JSON_PROVIDER_PRECISION_IN_MS, this.providerPrecisionInMs);
 			json.put(JSON_IS_NO_PICKUP, this.noPickup);
+			if (this.localTimeZoneId != null) {
+				json.put(JSON_LOCAL_TIME_ZONE_ID, this.localTimeZoneId);
+			}
 			JSONArray jTimestamps = new JSONArray();
 			for (Timestamp timestamp : this.timestamps) {
 				jTimestamps.put(timestamp.toJSON());
@@ -623,11 +641,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@NonNull
 		public String getLocalTimeZoneId() {
 			return localTimeZoneId;
-		}
-
-		@Deprecated
-		public boolean hasLocalTimeZoneId() {
-			return !TextUtils.isEmpty(this.localTimeZoneId);
 		}
 
 		public void setRealTime(@Nullable Boolean realTime) {

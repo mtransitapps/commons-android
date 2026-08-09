@@ -1379,6 +1379,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 					newLastUpdateInMs,
 					PROVIDER_PRECISION_IN_MS,
 					false,
+					MONTREAL_TZ.getID(),
 					sourceLabel
 			);
 			for (int r = 0; r < jResults.size(); r++) {
