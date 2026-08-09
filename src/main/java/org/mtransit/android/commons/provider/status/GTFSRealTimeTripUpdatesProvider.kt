@@ -234,6 +234,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         maxValidityInMs = statusMaxValidityInMs,
                         readFromSourceAtInMs = feedReadFromSourceMs,
                         providerPrecisionInMs = PROVIDER_PRECISION_IN_MS,
+                        localTimeZoneId = agencyTimeZoneId,
                         sourceLabel = sourceLabel,
                         noData = true, // NO DATA
                     ).let { noDataStatus ->

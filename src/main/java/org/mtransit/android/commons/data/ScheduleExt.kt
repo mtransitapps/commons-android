@@ -20,9 +20,9 @@ fun makeSchedule(
     readFromSourceAtInMs: Long,
     providerPrecisionInMs: Long,
     isNoPickup: Boolean = false,
+    localTimeZoneId: String?,
     sourceLabel: String? = null,
     noData: Boolean = false,
-    localTimeZoneId: String? = null,
 ) = Schedule(
     id,
     targetUUID,
@@ -41,6 +41,7 @@ fun RouteDirectionStop.makeSchedule(
     maxValidityInMs: Long,
     readFromSourceAtInMs: Long,
     providerPrecisionInMs: Long,
+    localTimeZoneId: String,
     sourceLabel: String,
     noData: Boolean,
 ) = makeSchedule(
@@ -49,6 +50,7 @@ fun RouteDirectionStop.makeSchedule(
     maxValidityInMs = maxValidityInMs,
     readFromSourceAtInMs = readFromSourceAtInMs,
     providerPrecisionInMs = providerPrecisionInMs,
+    localTimeZoneId = localTimeZoneId,
     sourceLabel = sourceLabel,
     noData = noData
 ).apply {
@@ -63,6 +65,7 @@ fun Schedule.toNoData() = makeSchedule(
     readFromSourceAtInMs = readFromSourceAtInMs,
     providerPrecisionInMs = providerPrecisionInMs,
     isNoPickup = isNoPickup,
+    localTimeZoneId = localTimeZoneId,
     sourceLabel = sourceLabel,
     noData = true // NO DATA
 )

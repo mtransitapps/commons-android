@@ -1269,6 +1269,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
         maxValidityInMs = nowInMs,
         readFromSourceAtInMs = nowInMs,
         providerPrecisionInMs = GTFSStatusProvider.PROVIDER_PRECISION_IN_MS,
+        localTimeZoneId = LOCAL_TZ_ID,
     ).apply {
         setTimestampsAndSort(timestamps)
     }
