@@ -53,6 +53,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 		sortTimestamps();
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	public void sortTimestamps() {
 		CollectionUtils.sort(this.timestamps, Schedule.TIMESTAMPS_COMPARATOR);
 	}
@@ -122,7 +123,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 				final Schedule.Timestamp newTimestamp = Schedule.Timestamp.parseJSON(jTimestamp);
 				if (newTimestamp == null) continue;
 				if (localTimeZoneId == null) {
-					//noinspection deprecation, DeprecatedCall
+					//noinspection DiscouragedApi
 					localTimeZoneId = newTimestamp.getLocalTimeZoneId();
 				}
 				scheduleTimestamps.addTimestampWithoutSort(newTimestamp);

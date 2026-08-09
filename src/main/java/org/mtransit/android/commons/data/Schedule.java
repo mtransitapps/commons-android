@@ -163,7 +163,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				final Timestamp timestamp = Timestamp.parseJSON(jTimestamp);
 				if (timestamp == null) continue;
 				if (localTimeZoneId == null) {
-					//noinspection deprecation, DeprecatedCall
+					//noinspection DiscouragedApi
 					localTimeZoneId = timestamp.getLocalTimeZoneId();
 				}
 				timestamps.add(timestamp);
@@ -470,7 +470,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private int headsignType = Direction.HEADSIGN_TYPE_NONE;
 		@Nullable
 		private String headsignValue = null;
-		@NonNull
+		@Nullable
 		private final String localTimeZoneId; // TODO remove once migrated fully to Schedule TZ
 		@Nullable
 		private Boolean realTime = null;
@@ -489,14 +489,14 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		@VisibleForTesting
 		public Timestamp(long departureT) {
-			this(departureT, TimeZone.getDefault().getID());
+			this(departureT, (String) null);
 		}
 
 		public Timestamp(long departureT, @NonNull TimeZone localTimeZone) {
 			this(departureT, localTimeZone.getID());
 		}
 
-		public Timestamp(long departureT, @NonNull String localTimeZoneId) {
+		public Timestamp(long departureT, @Nullable String localTimeZoneId) {
 			this.departureInMs = departureT;
 			this.localTimeZoneId = localTimeZoneId;
 		}
@@ -635,12 +635,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return Direction.getNewHeading(this.headsignType, this.headsignValue);
 		}
 
-		/**
-		 * @deprecated use schedule TZ if available
-		 */
-		@SuppressWarnings("DeprecatedIsStillUsed") // migrating to Schedule TZ
-		@Deprecated
-		@NonNull
+		@Discouraged(message = "should use parent Schedule local time zone")
+		@Nullable
 		public String getLocalTimeZoneId() {
 			return localTimeZoneId;
 		}
@@ -753,7 +749,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			result = 31 * result + Long.hashCode(originalDepartureDelayMs);
 			result = 31 * result + headsignType;
 			result = 31 * result + (headsignValue != null ? headsignValue.hashCode() : 0);
-			result = 31 * result + localTimeZoneId.hashCode();
+			result = 31 * result + (localTimeZoneId != null ? localTimeZoneId.hashCode() : 0);
 			result = 31 * result + (realTime != null ? realTime.hashCode() : 0);
 			result = 31 * result + (oldSchedule != null ? oldSchedule.hashCode() : 0);
 			result = 31 * result + (accessible != null ? accessible : 0);
@@ -793,7 +789,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			if (headsignValue != null) {
 				sb.append(", hv:'").append(headsignValue).append('\'');
 			}
-			sb.append(", tz:'").append(localTimeZoneId).append('\'');
+			if (localTimeZoneId != null) {
+				sb.append(", tz:'").append(localTimeZoneId).append('\'');
+			}
 			if (realTime != null) {
 				sb.append(", rt:").append(realTime);
 			}
@@ -828,13 +826,12 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		static Timestamp parseJSON(@NonNull JSONObject jTimestamp) {
 			try {
 				final long departureInMs = jTimestamp.getLong(JSON_DEPARTURE);
-				String localTimeZoneId = jTimestamp.optString(JSON_LOCAL_TIME_ZONE_ID);
-				if (TextUtils.isEmpty(localTimeZoneId)) {
+				final String localTimeZoneId = JSONUtils.optString(jTimestamp, JSON_LOCAL_TIME_ZONE_ID);
+				if (localTimeZoneId == null) {
 					if (BuildConfig.DEBUG) {
-						throw new RuntimeException("Timestamp missing timezone in JSON!");
+						throw new IllegalStateException("Timestamp missing timezone in JSON!");
 					}
-					MTLog.w(LOG_TAG, "Timestamp missing timezone in JSON (using device TZ) '%s'!", jTimestamp);
-					localTimeZoneId = TimeZone.getDefault().getID();
+					MTLog.w(LOG_TAG, "Timestamp missing timezone in JSON '%s'!", jTimestamp);
 				}
 				final Timestamp timestamp = new Timestamp(departureInMs, localTimeZoneId);
 				final long originalDepartureDelayMs = jTimestamp.optLong(JSON_ORIGINAL_DEPARTURE_DELAY, 0L);
@@ -891,8 +888,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		public static JSONObject toJSON(@NonNull Timestamp timestamp) {
 			try {
 				final JSONObject jTimestamp = new JSONObject();
-				jTimestamp.put(JSON_LOCAL_TIME_ZONE_ID, timestamp.localTimeZoneId);
 				jTimestamp.put(JSON_DEPARTURE, timestamp.departureInMs);
+				if (timestamp.localTimeZoneId != null) {
+					jTimestamp.put(JSON_LOCAL_TIME_ZONE_ID, timestamp.localTimeZoneId);
+				}
 				if (timestamp.originalDepartureDelayMs != 0L) {
 					jTimestamp.put(JSON_ORIGINAL_DEPARTURE_DELAY, timestamp.originalDepartureDelayMs);
 				}
