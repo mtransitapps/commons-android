@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.data
 
+import android.annotation.SuppressLint
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.floorBy
 import org.mtransit.android.commons.millisToInstant
@@ -269,6 +270,7 @@ fun Schedule.Timestamp.toStringShort() = buildString {
     if (tripId != null) {
         append("[tId:").append(tripId).append("]")
     }
+    @SuppressLint("DeprecatedCall")
     @Suppress("DEPRECATION") // migrating
     localTimeZoneId.let {
         append("[tz:").append(it).append("]")

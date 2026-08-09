@@ -122,7 +122,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 				final Schedule.Timestamp newTimestamp = Schedule.Timestamp.parseJSON(jTimestamp);
 				if (newTimestamp == null) continue;
 				if (localTimeZoneId == null) {
-					//noinspection deprecation
+					//noinspection deprecation, DeprecatedCall
 					localTimeZoneId = newTimestamp.getLocalTimeZoneId();
 				}
 				scheduleTimestamps.addTimestampWithoutSort(newTimestamp);

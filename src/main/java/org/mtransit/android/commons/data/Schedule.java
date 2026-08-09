@@ -163,7 +163,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				final Timestamp timestamp = Timestamp.parseJSON(jTimestamp);
 				if (timestamp == null) continue;
 				if (localTimeZoneId == null) {
-					//noinspection deprecation
+					//noinspection deprecation, DeprecatedCall
 					localTimeZoneId = timestamp.getLocalTimeZoneId();
 				}
 				timestamps.add(timestamp);
