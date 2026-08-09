@@ -12,6 +12,7 @@ import androidx.annotation.VisibleForTesting;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.mtransit.android.commons.BuildConfig;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
@@ -154,14 +155,21 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		try {
 			final long providerPrecisionInMs = extrasJSON.getInt(JSON_PROVIDER_PRECISION_IN_MS);
 			final boolean noPickup = extrasJSON.optBoolean(JSON_IS_NO_PICKUP, false);
-			final String localTimeZoneId = JSONUtils.optString(extrasJSON, JSON_LOCAL_TIME_ZONE_ID);
-			final Schedule schedule = new Schedule(status, providerPrecisionInMs, noPickup, localTimeZoneId);
+			String localTimeZoneId = JSONUtils.optString(extrasJSON, JSON_LOCAL_TIME_ZONE_ID);
+			final ArrayList<Timestamp> timestamps = new ArrayList<>();
 			final JSONArray jTimestamps = extrasJSON.getJSONArray(JSON_TIMESTAMPS);
 			for (int i = 0; i < jTimestamps.length(); i++) {
 				final JSONObject jTimestamp = jTimestamps.getJSONObject(i);
-				schedule.addTimestampWithoutSort(Timestamp.parseJSON(jTimestamp));
+				final Timestamp timestamp = Timestamp.parseJSON(jTimestamp);
+				if (timestamp == null) continue;
+				if (localTimeZoneId == null) {
+					//noinspection deprecation
+					localTimeZoneId = timestamp.getLocalTimeZoneId();
+				}
+				timestamps.add(timestamp);
 			}
-			schedule.sortTimestamps();
+			final Schedule schedule = new Schedule(status, providerPrecisionInMs, noPickup, localTimeZoneId);
+			schedule.setTimestampsAndSort(timestamps);
 			final JSONArray jFrequencies = extrasJSON.getJSONArray(JSON_FREQUENCIES);
 			for (int i = 0; i < jFrequencies.length(); i++) {
 				final JSONObject jFrequency = jFrequencies.getJSONObject(i);
@@ -279,17 +287,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	public int getTimestampsCount() {
 		return this.timestamps.size();
-	}
-
-	@Nullable
-	public TimeZone getTimeZone() {
-		for (Timestamp timestamp : this.timestamps) {
-			final String localTimeZoneId = timestamp.getLocalTimeZoneId();
-			if (localTimeZoneId != null) {
-				return TimeZone.getTimeZone(localTimeZoneId);
-			}
-		}
-		return null;
 	}
 
 	protected static final long MIN_UI_PRECISION_IN_MS = TimeUnit.MINUTES.toMillis(1L);
@@ -474,7 +471,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		private String headsignValue = null;
 		@NonNull
-		private final String localTimeZoneId;
+		private final String localTimeZoneId; // TODO remove once migrated fully to Schedule TZ
 		@Nullable
 		private Boolean realTime = null;
 		@Nullable
@@ -638,6 +635,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return Direction.getNewHeading(this.headsignType, this.headsignValue);
 		}
 
+		/**
+		 * @deprecated use schedule TZ if available
+		 */
+		@SuppressWarnings("DeprecatedIsStillUsed") // migrating to Schedule TZ
+		@Deprecated
 		@NonNull
 		public String getLocalTimeZoneId() {
 			return localTimeZoneId;
@@ -828,6 +830,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				final long departureInMs = jTimestamp.getLong(JSON_DEPARTURE);
 				String localTimeZoneId = jTimestamp.optString(JSON_LOCAL_TIME_ZONE_ID);
 				if (TextUtils.isEmpty(localTimeZoneId)) {
+					if (BuildConfig.DEBUG) {
+						throw new RuntimeException("Timestamp missing timezone in JSON!");
+					}
 					MTLog.w(LOG_TAG, "Timestamp missing timezone in JSON (using device TZ) '%s'!", jTimestamp);
 					localTimeZoneId = TimeZone.getDefault().getID();
 				}
