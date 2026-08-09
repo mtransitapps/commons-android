@@ -46,9 +46,9 @@ object AgencyUtils : MTLog.Loggable {
             R.string.bike_station_timezone,
         ) ?: run {
             if (BuildConfig.DEBUG) {
-                throw RuntimeException("No agency timezone configured!")
+                throw IllegalStateException("No agency timezone configured!")
             }
-            MTLog.w(LOG_TAG, "No agency timezone configured (using device timezone)!")
+            MTLog.w(LOG_TAG, "No agency timezone configured (using device TZ)!")
             TimeZone.getDefault().id
         }
 }
