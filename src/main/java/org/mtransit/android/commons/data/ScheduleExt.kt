@@ -266,6 +266,7 @@ fun Schedule.Timestamp.toStringShort() = buildString {
     if (tripId != null) {
         append("[tId:").append(tripId).append("]")
     }
+    @Suppress("DEPRECATION") // migrating
     localTimeZoneId.let {
         append("[tz:").append(it).append("]")
     }
