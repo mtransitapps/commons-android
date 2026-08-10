@@ -469,6 +469,12 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return context.getString(R.string.bike_station_color);
 	}
 
+	@Nullable
+	@Override
+	public String getAgencyTimeZoneId(@NonNull Context context) {
+		return context.getString(R.string.bike_station_timezone);
+	}
+
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */

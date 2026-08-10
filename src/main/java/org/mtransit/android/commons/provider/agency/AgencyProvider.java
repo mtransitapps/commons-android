@@ -46,6 +46,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		uriMatcher.addURI(authority, AgencyProviderContract.DEPLOYED_PATH, ContentProviderConstants.DEPLOYED);
 		uriMatcher.addURI(authority, AgencyProviderContract.LABEL_PATH, ContentProviderConstants.LABEL);
 		uriMatcher.addURI(authority, AgencyProviderContract.COLOR_PATH, ContentProviderConstants.COLOR);
+		uriMatcher.addURI(authority, AgencyProviderContract.TIMEZONE_ID_PATH, ContentProviderConstants.TIMEZONE_ID);
 		uriMatcher.addURI(authority, AgencyProviderContract.SHORT_NAME_PATH, ContentProviderConstants.SHORT_NAME);
 		uriMatcher.addURI(authority, AgencyProviderContract.SETUP_REQUIRED_PATH, ContentProviderConstants.SETUP_REQUIRED);
 		uriMatcher.addURI(authority, AgencyProviderContract.AREA_PATH, ContentProviderConstants.AREA);
@@ -70,6 +71,8 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 			return getLabel();
 		case ContentProviderConstants.COLOR:
 			return getColor();
+		case ContentProviderConstants.TIMEZONE_ID:
+			return getTimeZoneId();
 		case ContentProviderConstants.SHORT_NAME:
 			return getShortName();
 		case ContentProviderConstants.DEPLOYED:
@@ -127,6 +130,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		case ContentProviderConstants.DEPLOYED:
 		case ContentProviderConstants.LABEL:
 		case ContentProviderConstants.COLOR:
+		case ContentProviderConstants.TIMEZONE_ID:
 		case ContentProviderConstants.SHORT_NAME:
 		case ContentProviderConstants.VERSION:
 		case ContentProviderConstants.SETUP_REQUIRED:
@@ -150,6 +154,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		case ContentProviderConstants.DEPLOYED:
 		case ContentProviderConstants.LABEL:
 		case ContentProviderConstants.COLOR:
+		case ContentProviderConstants.TIMEZONE_ID:
 		case ContentProviderConstants.SHORT_NAME:
 		case ContentProviderConstants.VERSION:
 		case ContentProviderConstants.SETUP_REQUIRED:
@@ -172,6 +177,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 				VERSION_PATH,
 				LABEL_PATH,
 				COLOR_PATH,
+				TIMEZONE_ID_PATH,
 				SHORT_NAME_PATH,
 				DEPLOYED_PATH,
 				SETUP_REQUIRED_PATH,
@@ -186,6 +192,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 				getAgencyVersion(),
 				getAgencyLabel(),
 				getAgencyColor(),
+				getAgencyTimeZoneId(),
 				getAgencyShortName(),
 				isAgencyDeployedInt(),
 				isAgencySetupRequiredInt(),
@@ -226,17 +233,33 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	@NonNull
 	public Cursor getColor() {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[]{COLOR_PATH});
+		final MatrixCursor matrixCursor = new MatrixCursor(new String[]{COLOR_PATH});
 		matrixCursor.addRow(new Object[]{getAgencyColor()});
 		return matrixCursor;
 	}
 
+	@Nullable
 	private String getAgencyColor() {
 		return getAgencyColorString(requireContextCompat());
 	}
 
 	@Nullable
 	public abstract String getAgencyColorString(@NonNull Context context);
+
+	@NonNull
+	public Cursor getTimeZoneId() {
+		final MatrixCursor matrixCursor = new MatrixCursor(new String[]{TIMEZONE_ID_PATH});
+		matrixCursor.addRow(new Object[]{getAgencyTimeZoneId()});
+		return matrixCursor;
+	}
+
+	@Nullable
+	private String getAgencyTimeZoneId() {
+		return getAgencyTimeZoneId(requireContextCompat());
+	}
+
+	@Nullable
+	public abstract String getAgencyTimeZoneId(@NonNull Context context);
 
 	private Cursor getShortName() {
 		MatrixCursor matrixCursor = new MatrixCursor(new String[]{SHORT_NAME_PATH});
