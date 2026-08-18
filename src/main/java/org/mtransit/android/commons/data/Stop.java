@@ -205,6 +205,11 @@ public class Stop {
 
 	}
 
+	@Nullable
+	public String getTimeZoneId() {
+		return this.timeZoneId;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (o == null) return false;
