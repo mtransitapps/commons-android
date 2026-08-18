@@ -3,6 +3,7 @@ package org.mtransit.android.commons.data;
 import static org.mtransit.android.commons.StringUtils.EMPTY;
 
 import android.database.Cursor;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -206,7 +207,8 @@ public class Stop {
 	}
 
 	@Nullable
-	public String getTimeZoneId() {
+	public String getTimeZoneIdOrNull() {
+		if (TextUtils.isEmpty(this.timeZoneId)) return null;
 		return this.timeZoneId;
 	}
 
@@ -221,7 +223,9 @@ public class Stop {
 				&& Double.compare(lat, stop.lat) == 0
 				&& Double.compare(lng, stop.lng) == 0
 				&& accessible == stop.accessible
-				&& Objects.equals(originalIdHash, stop.originalIdHash);
+				&& Objects.equals(originalIdHash, stop.originalIdHash)
+				&& Objects.equals(timeZoneId, stop.timeZoneId)
+				;
 	}
 
 	@Override
@@ -233,7 +237,8 @@ public class Stop {
 				lat,
 				lng,
 				accessible,
-				originalIdHash
+				originalIdHash,
+				timeZoneId
 		);
 	}
 }
