@@ -78,6 +78,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	static final String T_STOP_K_LNG = GTFSCommons.T_STOP_K_LNG;
 	static final String T_STOP_K_ACCESSIBLE = GTFSCommons.T_STOP_K_ACCESSIBLE;
 	static final String T_STOP_K_ORIGINAL_ID_HASH = GTFSCommons.T_STOP_K_ORIGINAL_ID_HASH;
+	static final String T_STOP_K_TIMEZONE_ID = GTFSCommons.T_STOP_K_TIMEZONE_ID;
 	private static final int[] T_STOP_STRINGS_COLUMN_IDX = GTFSCommons.T_STOP_STRINGS_COLUMN_IDX;
 	private static final String T_STOP_SQL_CREATE = GTFSCommons.getT_STOP_SQL_CREATE();
 	private static final String T_STOP_SQL_INSERT = GTFSCommons.getT_STOP_SQL_INSERT();

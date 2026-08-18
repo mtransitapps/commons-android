@@ -36,34 +36,18 @@ public class Stop {
 
 	@Nullable
 	private final Integer originalIdHash;
+	@Nullable
+	private final String timeZoneId;
 
-	@Deprecated
-	public Stop(int id,
-				@NonNull String code,
-				@NonNull String name,
-				double lat,
-				double lng) {
-		this(id, code, name, lat, lng, Accessibility.DEFAULT, GTFSCommons.DEFAULT_ID_HASH);
-	}
-
-	@Deprecated
-	public Stop(int id,
-				@NonNull String code,
-				@NonNull String name,
-				double lat,
-				double lng,
-				int accessible
-	) {
-		this(id, code, name, lat, lng, accessible, GTFSCommons.DEFAULT_ID_HASH);
-	}
-
-	public Stop(int id,
-				@NonNull String code,
-				@NonNull String name,
-				double lat,
-				double lng,
-				int accessible,
-				@Nullable Integer originalIdHash
+	public Stop(
+			int id,
+			@NonNull String code,
+			@NonNull String name,
+			double lat,
+			double lng,
+			int accessible,
+			@Nullable Integer originalIdHash,
+			@Nullable String timeZoneId
 	) {
 		this.id = id;
 		this.code = code;
@@ -72,6 +56,7 @@ public class Stop {
 		this.lng = lng;
 		this.accessible = accessible;
 		this.originalIdHash = originalIdHash;
+		this.timeZoneId = timeZoneId;
 	}
 
 	public Stop(@NonNull Stop stop) {
@@ -82,7 +67,8 @@ public class Stop {
 				stop.lat,
 				stop.lng,
 				stop.accessible,
-				stop.originalIdHash
+				stop.originalIdHash,
+				stop.timeZoneId
 		);
 	}
 
@@ -95,7 +81,8 @@ public class Stop {
 				CursorExtKt.getDouble(c, GTFSProviderContract.StopColumns.T_STOP_K_LAT),
 				CursorExtKt.getDouble(c, GTFSProviderContract.StopColumns.T_STOP_K_LNG),
 				CursorExtKt.optIntNN(c, GTFSProviderContract.StopColumns.T_STOP_K_ACCESSIBLE, Accessibility.DEFAULT),
-				CursorExtKt.optInt(c, GTFSProviderContract.StopColumns.T_STOP_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH)
+				CursorExtKt.optInt(c, GTFSProviderContract.StopColumns.T_STOP_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH),
+				CursorExtKt.optString(c, GTFSProviderContract.StopColumns.T_STOP_K_TIMEZONE_ID, null)
 		);
 	}
 
@@ -110,6 +97,7 @@ public class Stop {
 				", lng=" + lng +
 				", a11y=" + accessible +
 				", odIDHash=" + originalIdHash +
+				", tz='" + timeZoneId + '\'' +
 				'}';
 	}
 
@@ -120,6 +108,7 @@ public class Stop {
 	private static final String JSON_LNG = "lng";
 	private static final String JSON_ACCESSIBLE = "a11y";
 	private static final String JSON_ORIGINAL_ID_HASH = "o_id_hash";
+	private static final String JSON_TIMEZONE_ID = "tz";
 
 	@Nullable
 	public static JSONObject toJSON(@NonNull Stop stop) {
@@ -133,6 +122,9 @@ public class Stop {
 					;
 			jStop.put(JSON_ACCESSIBLE, stop.getAccessible());
 			jStop.put(JSON_ORIGINAL_ID_HASH, stop.getOriginalIdHash());
+			if (stop.timeZoneId != null) {
+				jStop.put(JSON_TIMEZONE_ID, stop.timeZoneId);
+			}
 			return jStop;
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while converting to JSON (%s)!", stop);
@@ -150,7 +142,8 @@ public class Stop {
 					jStop.getDouble(JSON_LAT),
 					jStop.getDouble(JSON_LNG),
 					JSONUtils.optInt(jStop, JSON_ACCESSIBLE, Accessibility.DEFAULT),
-					JSONUtils.optInt(jStop, JSON_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH)
+					JSONUtils.optInt(jStop, JSON_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH),
+					JSONUtils.optString(jStop, JSON_TIMEZONE_ID)
 			);
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jStop);

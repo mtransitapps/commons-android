@@ -133,6 +133,7 @@ public interface GTFSProviderContract {
 		public static final String T_STOP_K_LNG = T_STOP + "_" + "lng";
 		public static final String T_STOP_K_ACCESSIBLE = T_STOP + "_" + "a11y";
 		public static final String T_STOP_K_ORIGINAL_ID_HASH = T_STOP + "_" + "o_id_hash";
+		public static final String T_STOP_K_TIMEZONE_ID = T_STOP + "_" + "tz";
 		private static final String T_DIRECTION_STOPS = "trip_stops"; // do not change to avoid breaking compat w/ old modules
 		public static final String T_DIRECTION_STOPS_K_STOP_SEQUENCE = T_DIRECTION_STOPS + "_" + "stop_sequence";
 		public static final String T_DIRECTION_STOPS_K_NO_PICKUP = T_DIRECTION_STOPS + "_" + "decent_only";
@@ -147,6 +148,7 @@ public interface GTFSProviderContract {
 		public static final String T_STOP_K_LNG = "lng";
 		public static final String T_STOP_K_ACCESSIBLE = "a11y";
 		public static final String T_STOP_K_ORIGINAL_ID_HASH = "o_id_hash";
+		public static final String T_STOP_K_TIMEZONE_ID = "tz";
 	}
 
 	class DirectionColumns {
@@ -170,6 +172,7 @@ public interface GTFSProviderContract {
 		public static final String T_STOP_K_LNG = T_STOP + "_" + "lng";
 		public static final String T_STOP_K_ACCESSIBLE = T_STOP + "_" + "a11y";
 		public static final String T_STOP_K_ORIGINAL_ID_HASH = T_STOP + "_" + "o_id_hash";
+		public static final String T_STOP_K_TIMEZONE_ID = T_STOP + "_" + "tz";
 		private static final String T_DIRECTION_STOPS = "trip_stops"; // do not change to avoid breaking compat w/ old modules
 		public static final String T_DIRECTION_STOPS_K_STOP_SEQUENCE = T_DIRECTION_STOPS + "_" + "stop_sequence";
 		public static final String T_DIRECTION_STOPS_K_NO_PICKUP = T_DIRECTION_STOPS + "_" + "decent_only";

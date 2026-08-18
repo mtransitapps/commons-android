@@ -948,6 +948,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		}
 	}
 
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	private synchronized void deleteOldAndCacheNewServiceUpdates(ServiceUpdates serviceUpdates) { // SYNC because may have multiple concurrent same route call
 		if (serviceUpdates != null) {
 			for (ServiceUpdate serviceUpdate : serviceUpdates) {

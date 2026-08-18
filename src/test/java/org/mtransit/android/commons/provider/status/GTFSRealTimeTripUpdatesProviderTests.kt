@@ -14,6 +14,7 @@ import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.departureArrivalDiff
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.makeSchedule
+import org.mtransit.android.commons.data.makeStop
 import org.mtransit.android.commons.data.toScheduleTimestamp
 import org.mtransit.android.commons.provider.gtfs.GTFSStatusProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.delayDuration
@@ -1290,14 +1291,10 @@ class GTFSRealTimeTripUpdatesProviderTests {
             "headsign",
             1
         ),
-        Stop(
-            stopId,
-            "#$stopId",
-            "Stop #$stopId",
-            1.0,
-            2.0,
-            Accessibility.DEFAULT,
-            stopId, // "$stopId".hashCode()
+        makeStop(
+            stopId = stopId,
+            stopOriginalIdHash = stopId, // "$stopId".hashCode()
+            stopTimeZoneId = LOCAL_TZ_ID
         ),
         false,
         false,

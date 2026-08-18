@@ -226,7 +226,7 @@ public class RouteDirectionStop extends DefaultPOI {
 	@Override
 	public JSONObject toJSON() {
 		try {
-			JSONObject json = new JSONObject();
+			final JSONObject json = new JSONObject();
 			json.put(JSON_ROUTE, Route.toJSON(getRoute()));
 			json.put(JSON_DIRECTION, Direction.toJSON(getDirection()));
 			json.put(JSON_STOP, Stop.toJSON(getStop()));
@@ -332,7 +332,8 @@ public class RouteDirectionStop extends DefaultPOI {
 						CursorExtKt.getDouble(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LAT),
 						CursorExtKt.getDouble(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LNG),
 						CursorExtKt.optIntNN(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE, Accessibility.DEFAULT),
-						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH)
+						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH),
+						CursorExtKt.optString(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_TIMEZONE_ID, null)
 				),
 				CursorExtKt.getBoolean(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP),
 				CursorExtKt.optBoolean(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_ALWAYS_LAST_TRIP_STOP)

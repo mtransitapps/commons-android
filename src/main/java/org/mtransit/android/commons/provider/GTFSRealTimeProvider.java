@@ -829,9 +829,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			deleteAllRequired = true; // too old to display
 		}
 		final long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
-		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
-			updateAllAgencyServiceUpdateDataFromWWW(context, deleteAllRequired); // try to update
+		if (!deleteAllRequired && nowInMs <= lastUpdateInMs + minUpdateMs) {
+			return;
 		}
+		updateAllAgencyServiceUpdateDataFromWWW(context, deleteAllRequired); // try to update
 	}
 
 	private void updateAllAgencyServiceUpdateDataFromWWW(@NonNull Context context, boolean deleteAllRequired) {

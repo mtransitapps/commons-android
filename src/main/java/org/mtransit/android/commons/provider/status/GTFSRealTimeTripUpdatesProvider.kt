@@ -428,9 +428,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             deleteAllRequired = true // too old to display
         }
         val minUpdateMs = min(statusMaxValidityInMs, getStatusValidityInMs(inFocus))
-        if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
-            updateAllAgencyDataFromWWW(context, deleteAllRequired) // try to update
-        }
+        if (!deleteAllRequired && nowInMs <= lastUpdateInMs + minUpdateMs) return
+        updateAllAgencyDataFromWWW(context, deleteAllRequired) // try to update
     }
 
     private fun GTFSRealTimeProvider.updateAllAgencyDataFromWWW(context: Context, deleteAllRequired: Boolean) {
