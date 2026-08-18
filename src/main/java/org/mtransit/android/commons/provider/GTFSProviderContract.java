@@ -53,7 +53,9 @@ public interface GTFSProviderContract {
 		projection.add(RouteDirectionStopColumns.T_STOP_K_LNG);
 		projection.add(RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE);
 		projection.add(RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH);
-		projection.add(RouteDirectionStopColumns.T_STOP_K_TIMEZONE_ID);
+		if (FeatureFlags.F_EXPORT_STOP_TIMEZONE_ID) {
+			projection.add(RouteDirectionStopColumns.T_STOP_K_TIMEZONE_ID);
+		}
 		return projection.toArray(new String[0]);
 	}
 

@@ -210,7 +210,9 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LNG, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LNG);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ACCESSIBLE, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH);
-		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_TIMEZONE_ID, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_TIMEZONE_ID);
+		if (FeatureFlags.F_EXPORT_STOP_TIMEZONE_ID) {
+			sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_TIMEZONE_ID, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_TIMEZONE_ID);
+		}
 		//
 		sb.appendTableColumn(GTFSProviderDbHelper.T_DIRECTION_STOPS, GTFSProviderDbHelper.T_DIRECTION_STOPS_K_STOP_SEQUENCE, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_STOP_SEQUENCE);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_DIRECTION_STOPS, GTFSProviderDbHelper.T_DIRECTION_STOPS_K_NO_PICKUP, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP);

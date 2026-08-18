@@ -291,6 +291,9 @@ public class RouteDirectionStop extends DefaultPOI {
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LNG, getStop().getLng());
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE, getStop().getAccessible());
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH, getStop().getOriginalIdHash());
+		if (FeatureFlags.F_EXPORT_STOP_TIMEZONE_ID) {
+			values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_TIMEZONE_ID, getStop().getTimeZoneIdOrNull());
+		}
 		// T_DIRECTION_STOPS_K_STOP_SEQUENCE not used in RouteDirectionStop class
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP, SqlUtils.toSQLBoolean(isNoPickup()));
 		if (FeatureFlags.F_EXPORT_DIRECTION_STOP_LAST) {

@@ -14,6 +14,7 @@ import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 
 import java.util.Objects;
@@ -123,8 +124,10 @@ public class Stop {
 					;
 			jStop.put(JSON_ACCESSIBLE, stop.getAccessible());
 			jStop.put(JSON_ORIGINAL_ID_HASH, stop.getOriginalIdHash());
-			if (stop.timeZoneId != null) {
-				jStop.put(JSON_TIMEZONE_ID, stop.timeZoneId);
+			if (FeatureFlags.F_EXPORT_STOP_TIMEZONE_ID) {
+				if (stop.timeZoneId != null) {
+					jStop.put(JSON_TIMEZONE_ID, stop.timeZoneId);
+				}
 			}
 			return jStop;
 		} catch (JSONException jsone) {
