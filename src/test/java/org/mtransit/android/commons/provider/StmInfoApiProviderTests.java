@@ -47,7 +47,7 @@ public class StmInfoApiProviderTests {
 
 	private static final Route DEFAULT_ROUTE = new Route(AUTHORITY, 1, "1", "route 1", "color");
 	private static final Direction DEFAULT_DIRECTION = new Direction(AUTHORITY, 1, Direction.HEADSIGN_TYPE_STRING, "trip 1", 1);
-	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0, 1);
+	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0, 1, null);
 
 	private final Context context = mock();
 	private final Resources resources = mock();
@@ -619,7 +619,7 @@ public class StmInfoApiProviderTests {
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
-				new Stop(1, stopCode, "stop 1", 0, 0, 0, 1),
+				new Stop(1, stopCode, "stop 1", 0, 0, 0, 1, null),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP;
 		// Act
@@ -639,7 +639,7 @@ public class StmInfoApiProviderTests {
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
-				new Stop(1, stopCode, "stop 1", 0, 0, 0, 1),
+				new Stop(1, stopCode, "stop 1", 0, 0, 0, 1, null),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
@@ -659,7 +659,7 @@ public class StmInfoApiProviderTests {
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
-				new Stop(1, "67890", "stop 1", 0, 0, 0, 1),
+				new Stop(1, "67890", "stop 1", 0, 0, 0, 1, null),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP;
 		// Act
@@ -679,7 +679,7 @@ public class StmInfoApiProviderTests {
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
-				new Stop(1, "67890", "stop 1", 0, 0, 0, 1),
+				new Stop(1, "67890", "stop 1", 0, 0, 0, 1, null),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
@@ -697,7 +697,7 @@ public class StmInfoApiProviderTests {
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
-				new Stop(1, "12345", "stop 1", 0, 0, 0, 1),
+				new Stop(1, "12345", "stop 1", 0, 0, 0, 1, null),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP;
 		// Act
@@ -715,7 +715,7 @@ public class StmInfoApiProviderTests {
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
-				new Stop(1, "12345", "stop 1", 0, 0, 0, 1),
+				new Stop(1, "12345", "stop 1", 0, 0, 0, 1, null),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
