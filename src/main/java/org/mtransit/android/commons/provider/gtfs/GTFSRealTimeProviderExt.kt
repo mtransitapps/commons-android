@@ -11,7 +11,6 @@ import org.mtransit.android.commons.data.Stop
 import org.mtransit.android.commons.data.toRouteDirection
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.MT_HASH_SECRET_AND_DATE
-import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAGENCY_TIME_ZONE_ID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAGENCY_URL_HEADER_NAMES
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAGENCY_URL_HEADER_VALUES
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAGENCY_URL_TOKEN
@@ -39,8 +38,6 @@ import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTU
 val Int.isValidDirection get() = this in 0..1
 val GTFSRealTimeProvider.ignoreDirection get() = isIGNORE_DIRECTION(requireContextCompat())
 val GTFSRealTimeProvider.targetAuthority get() = getTARGET_AUTHORITY(requireContextCompat())
-val GTFSRealTimeProvider.timeZoneId get() = getAGENCY_TIME_ZONE_ID(requireContextCompat())
-val GTFSRealTimeProvider.optTimeZoneId get() = timeZoneId.takeIf { it.isNotBlank() }
 
 fun GTFSRealTimeProvider.parseAgencyId(es: GEntitySelector) = es.optAgencyIdNotEmpty?.let { parseAgencyId(it) }
 fun GTFSRealTimeProvider.parseAgencyId(gAgencyId: String) = gAgencyId.originalIdToId(agencyIdCleanupPattern)

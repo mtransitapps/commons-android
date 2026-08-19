@@ -43,7 +43,6 @@ import org.mtransit.android.commons.provider.gtfs.getRDSSchedule
 import org.mtransit.android.commons.provider.gtfs.getTripIds
 import org.mtransit.android.commons.provider.gtfs.ignoreDirection
 import org.mtransit.android.commons.provider.gtfs.makeRequest
-import org.mtransit.android.commons.provider.gtfs.optTimeZoneId
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.gtfs.storage
@@ -208,8 +207,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             val rdSchedules: Collection<Schedule> by lazy {
                 context.getRDSSchedule(targetAuthority, sortedRDS, filter.isIncludeCancelledTimestampsOrDefault)
             }
-            val agencyTimeZoneId = this.optTimeZoneId
-                ?: AgencyUtils.getAgencyTimeZoneId(context)
+            val agencyTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context)
             val agencyTimeZone = runCatching { KtTimeZone.of(agencyTimeZoneId) }.getOrElse { e ->
                 MTLog.w(LOG_TAG, e, "makeCachedStatusFromAgencyData() > error getting timezone from '$agencyTimeZoneId'!")
                 KtTimeZone.currentSystemDefault()
@@ -236,6 +234,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         maxValidityInMs = statusMaxValidityInMs,
                         readFromSourceAtInMs = feedReadFromSourceMs,
                         providerPrecisionInMs = PROVIDER_PRECISION_IN_MS,
+                        localTimeZoneId = agencyTimeZoneId,
                         sourceLabel = sourceLabel,
                         noData = true, // NO DATA
                     ).let { noDataStatus ->
@@ -429,9 +428,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             deleteAllRequired = true // too old to display
         }
         val minUpdateMs = min(statusMaxValidityInMs, getStatusValidityInMs(inFocus))
-        if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
-            updateAllAgencyDataFromWWW(context, deleteAllRequired) // try to update
-        }
+        if (!deleteAllRequired && nowInMs <= lastUpdateInMs + minUpdateMs) return
+        updateAllAgencyDataFromWWW(context, deleteAllRequired) // try to update
     }
 
     private fun GTFSRealTimeProvider.updateAllAgencyDataFromWWW(context: Context, deleteAllRequired: Boolean) {

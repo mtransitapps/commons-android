@@ -561,6 +561,12 @@ public class GTFSProvider extends AgencyProvider implements
 		return context.getString(R.string.gtfs_rts_color); // do not change to avoid breaking compat w/ old modules
 	}
 
+	@Nullable
+	@Override
+	public String getAgencyTimeZoneId(@NonNull Context context) {
+		return context.getString(R.string.gtfs_rts_timezone);
+	}
+
 	/**
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */

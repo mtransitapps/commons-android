@@ -10,7 +10,8 @@ fun makeRDS(
     originalDirectionId: Int? = 1,
     directionId: Long = originalDirectionId?.let { routeId * 100L + it } ?: (routeId * 100L + 9L),
     stopId: Int = 1,
-    stopOriginalIdHash: Int? = stopId.toString().hashCode() // stopId, // "$stopId".hashCode()
+    stopOriginalIdHash: Int? = stopId.toString().hashCode(), // stopId, // "$stopId".hashCode()
+    stopTimeZoneId: String? = "UTC",
 ) = RouteDirectionStop(
     1,
     Route(
@@ -29,17 +30,28 @@ fun makeRDS(
         "Head-Sign $originalDirectionId",
         routeId,
     ),
-    Stop(
-        stopId,
-        "#$stopId",
-        "Stop #$stopId",
-        1.0,
-        2.0,
-        Accessibility.DEFAULT,
-        stopOriginalIdHash,
+    makeStop(
+        stopId = stopId,
+        stopOriginalIdHash = stopOriginalIdHash,
+        stopTimeZoneId = stopTimeZoneId,
     ),
     false,
     false,
+)
+
+fun makeStop(
+    stopId: Int = 1,
+    stopOriginalIdHash: Int? = stopId.toString().hashCode(), // stopId, // "$stopId".hashCode()
+    stopTimeZoneId: String? = "UTC",
+) = Stop(
+    stopId,
+    "#$stopId",
+    "Stop #$stopId",
+    1.0,
+    2.0,
+    Accessibility.DEFAULT,
+    stopOriginalIdHash,
+    stopTimeZoneId,
 )
 
 fun Route.getGTFSRTTargetUUID(): String =

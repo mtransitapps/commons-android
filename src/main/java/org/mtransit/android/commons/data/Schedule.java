@@ -12,7 +12,9 @@ import androidx.annotation.VisibleForTesting;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.mtransit.android.commons.BuildConfig;
 import org.mtransit.android.commons.Constants;
+import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.StringUtils;
@@ -51,10 +53,13 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private boolean noPickup;
 
+	@Nullable
+	private final String localTimeZoneId;
+
 	@NonNull
 	private final List<Frequency> frequencies = new ArrayList<>();
 
-	public Schedule(@NonNull POIStatus status, long providerPrecisionInMs, boolean noPickup) {
+	public Schedule(@NonNull POIStatus status, long providerPrecisionInMs, boolean noPickup, @Nullable String localTimeZoneId) {
 		this(
 				status.getId(),
 				status.getTargetUUID(),
@@ -63,6 +68,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				status.getReadFromSourceAtInMs(),
 				providerPrecisionInMs,
 				noPickup,
+				localTimeZoneId,
 				status.getSourceLabel(),
 				status.isNoData()
 		);
@@ -76,9 +82,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			long readFromSourceAtInMs,
 			long providerPrecisionInMs,
 			boolean noPickup,
+			@Nullable String localTimeZoneId,
 			@Nullable String sourceLabel
 	) {
-		this(id, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, providerPrecisionInMs, noPickup, sourceLabel, false);
+		this(id, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, providerPrecisionInMs, noPickup, localTimeZoneId, sourceLabel, false);
 	}
 
 	public Schedule(
@@ -89,17 +96,24 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			long readFromSourceAtInMs,
 			long providerPrecisionInMs,
 			boolean noPickup,
+			@Nullable String localTimeZoneId,
 			@Nullable String sourceLabel,
 			boolean noData
 	) {
 		super(id, targetUUID, POI.ITEM_STATUS_TYPE_SCHEDULE, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, noData);
-		this.noPickup = noPickup;
 		this.providerPrecisionInMs = providerPrecisionInMs;
+		this.noPickup = noPickup;
+		this.localTimeZoneId = localTimeZoneId;
 		resetTimestampsUntilInMs();
 	}
 
 	public boolean isNoPickup() {
 		return noPickup;
+	}
+
+	@Nullable
+	public String getLocalTimeZoneId() {
+		return localTimeZoneId;
 	}
 
 	public long getProviderPrecisionInMs() {
@@ -141,13 +155,21 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		try {
 			final long providerPrecisionInMs = extrasJSON.getInt(JSON_PROVIDER_PRECISION_IN_MS);
 			final boolean noPickup = extrasJSON.optBoolean(JSON_IS_NO_PICKUP, false);
-			final Schedule schedule = new Schedule(status, providerPrecisionInMs, noPickup);
+			String localTimeZoneId = JSONUtils.optString(extrasJSON, JSON_LOCAL_TIME_ZONE_ID);
+			final ArrayList<Timestamp> timestamps = new ArrayList<>();
 			final JSONArray jTimestamps = extrasJSON.getJSONArray(JSON_TIMESTAMPS);
 			for (int i = 0; i < jTimestamps.length(); i++) {
 				final JSONObject jTimestamp = jTimestamps.getJSONObject(i);
-				schedule.addTimestampWithoutSort(Timestamp.parseJSON(jTimestamp));
+				final Timestamp timestamp = Timestamp.parseJSON(jTimestamp);
+				if (timestamp == null) continue;
+				if (localTimeZoneId == null) {
+					//noinspection DiscouragedApi
+					localTimeZoneId = timestamp.getLocalTimeZoneId();
+				}
+				timestamps.add(timestamp);
 			}
-			schedule.sortTimestamps();
+			final Schedule schedule = new Schedule(status, providerPrecisionInMs, noPickup, localTimeZoneId);
+			schedule.setTimestampsAndSort(timestamps);
 			final JSONArray jFrequencies = extrasJSON.getJSONArray(JSON_FREQUENCIES);
 			for (int i = 0; i < jFrequencies.length(); i++) {
 				final JSONObject jFrequency = jFrequencies.getJSONObject(i);
@@ -165,6 +187,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private static final String JSON_IS_NO_PICKUP = "decentOnly"; // do NOT change JSON key string value!
 	private static final String JSON_TIMESTAMPS = "timestamps";
 	private static final String JSON_FREQUENCIES = "frequencies";
+	private static final String JSON_LOCAL_TIME_ZONE_ID = "tz";
 
 	@Nullable
 	@Override
@@ -173,6 +196,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			JSONObject json = new JSONObject();
 			json.put(JSON_PROVIDER_PRECISION_IN_MS, this.providerPrecisionInMs);
 			json.put(JSON_IS_NO_PICKUP, this.noPickup);
+			if (this.localTimeZoneId != null) {
+				json.put(JSON_LOCAL_TIME_ZONE_ID, this.localTimeZoneId);
+			}
 			JSONArray jTimestamps = new JSONArray();
 			for (Timestamp timestamp : this.timestamps) {
 				jTimestamps.put(timestamp.toJSON());
@@ -261,17 +287,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	public int getTimestampsCount() {
 		return this.timestamps.size();
-	}
-
-	@Nullable
-	public TimeZone getTimeZone() {
-		for (Timestamp timestamp : this.timestamps) {
-			final String localTimeZoneId = timestamp.getLocalTimeZoneId();
-			if (localTimeZoneId != null) {
-				return TimeZone.getTimeZone(localTimeZoneId);
-			}
-		}
-		return null;
 	}
 
 	protected static final long MIN_UI_PRECISION_IN_MS = TimeUnit.MINUTES.toMillis(1L);
@@ -456,7 +471,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		private String headsignValue = null;
 		@Nullable
-		private String localTimeZoneId = null;
+		private final String localTimeZoneId; // TODO remove once migrated fully to Schedule TZ
 		@Nullable
 		private Boolean realTime = null;
 		@Nullable
@@ -474,14 +489,14 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		@VisibleForTesting
 		public Timestamp(long departureT) {
-			this.departureInMs = departureT;
+			this(departureT, (String) null);
 		}
 
 		public Timestamp(long departureT, @NonNull TimeZone localTimeZone) {
 			this(departureT, localTimeZone.getID());
 		}
 
-		public Timestamp(long departureT, @NonNull String localTimeZoneId) {
+		public Timestamp(long departureT, @Nullable String localTimeZoneId) {
 			this.departureInMs = departureT;
 			this.localTimeZoneId = localTimeZoneId;
 		}
@@ -620,18 +635,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return Direction.getNewHeading(this.headsignType, this.headsignValue);
 		}
 
-		private void setLocalTimeZoneId(@Nullable String localTimeZone) {
-			this.localTimeZoneId = localTimeZone;
-		}
-
+		@Discouraged(message = "should use parent Schedule local time zone")
 		@Nullable
 		public String getLocalTimeZoneId() {
 			return localTimeZoneId;
-		}
-
-		@Deprecated
-		public boolean hasLocalTimeZoneId() {
-			return !TextUtils.isEmpty(this.localTimeZoneId);
 		}
 
 		public void setRealTime(@Nullable Boolean realTime) {
@@ -758,7 +765,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@NonNull
 		@Override
 		public String toString() {
-			StringBuilder sb = new StringBuilder(Timestamp.class.getSimpleName());
+			final StringBuilder sb = new StringBuilder(Timestamp.class.getSimpleName());
 			sb.append('{');
 			sb.append("d=").append(Constants.DEBUG ? MTLog.formatDateTime(getDepartureT()) : getDepartureT());
 			if (this.originalDepartureDelayMs != 0L) {
@@ -809,7 +816,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private static final String JSON_STOP_SEQUENCE = "stop_seq";
 		private static final String JSON_HEADSIGN_TYPE = "ht";
 		private static final String JSON_HEADSIGN_VALUE = "hv";
-		private static final String JSON_LOCAL_TIME_ZONE = "localTimeZone";
+		private static final String JSON_LOCAL_TIME_ZONE_ID = "localTimeZone";
 		private static final String JSON_REAL_TIME = "rt";
 		private static final String JSON_OLD_SCHEDULE = "old";
 		private static final String JSON_ACCESSIBLE = "a11y";
@@ -819,7 +826,14 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		static Timestamp parseJSON(@NonNull JSONObject jTimestamp) {
 			try {
 				final long departureInMs = jTimestamp.getLong(JSON_DEPARTURE);
-				final Timestamp timestamp = new Timestamp(departureInMs);
+				final String localTimeZoneId = JSONUtils.optString(jTimestamp, JSON_LOCAL_TIME_ZONE_ID);
+				if (localTimeZoneId == null) {
+					if (BuildConfig.DEBUG) {
+						throw new IllegalStateException("Timestamp missing timezone in JSON!");
+					}
+					MTLog.w(LOG_TAG, "Timestamp missing timezone in JSON '%s'!", jTimestamp);
+				}
+				final Timestamp timestamp = new Timestamp(departureInMs, localTimeZoneId);
 				final long originalDepartureDelayMs = jTimestamp.optLong(JSON_ORIGINAL_DEPARTURE_DELAY, 0L);
 				if (originalDepartureDelayMs != 0L) {
 					timestamp.setOriginalDepartureDelayMs(originalDepartureDelayMs);
@@ -845,10 +859,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					if (headSignType == Direction.HEADSIGN_TYPE_NO_PICKUP) {
 						timestamp.setHeadsign(headSignType, null);
 					}
-				}
-				final String localTimeZone = jTimestamp.optString(JSON_LOCAL_TIME_ZONE);
-				if (!TextUtils.isEmpty(localTimeZone)) {
-					timestamp.setLocalTimeZoneId(localTimeZone);
 				}
 				if (jTimestamp.has(JSON_REAL_TIME)) {
 					timestamp.setRealTime(jTimestamp.optBoolean(JSON_REAL_TIME, false));
@@ -879,6 +889,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			try {
 				final JSONObject jTimestamp = new JSONObject();
 				jTimestamp.put(JSON_DEPARTURE, timestamp.departureInMs);
+				if (timestamp.localTimeZoneId != null) {
+					jTimestamp.put(JSON_LOCAL_TIME_ZONE_ID, timestamp.localTimeZoneId);
+				}
 				if (timestamp.originalDepartureDelayMs != 0L) {
 					jTimestamp.put(JSON_ORIGINAL_DEPARTURE_DELAY, timestamp.originalDepartureDelayMs);
 				}
@@ -901,9 +914,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					if (timestamp.headsignType == Direction.HEADSIGN_TYPE_NO_PICKUP) {
 						jTimestamp.put(JSON_HEADSIGN_TYPE, timestamp.headsignType);
 					}
-				}
-				if (timestamp.localTimeZoneId != null) {
-					jTimestamp.put(JSON_LOCAL_TIME_ZONE, timestamp.localTimeZoneId);
 				}
 				if (timestamp.realTime != null) {
 					jTimestamp.put(JSON_REAL_TIME, timestamp.realTime);

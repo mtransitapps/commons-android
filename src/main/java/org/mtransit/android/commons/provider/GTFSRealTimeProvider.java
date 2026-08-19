@@ -576,20 +576,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		return agencyTimeAmPmFormat;
 	}
 
-	@Nullable
-	private static String agencyTimeZoneId = null;
-
-	/**
-	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
-	 */
-	@NonNull
-	public static String getAGENCY_TIME_ZONE_ID(@NonNull Context context) {
-		if (agencyTimeZoneId == null) {
-			agencyTimeZoneId = context.getResources().getString(R.string.gtfs_real_time_agency_time_zone);
-		}
-		return agencyTimeZoneId;
-	}
-
 	@Override
 	public long getStatusMaxValidityInMs() {
 		return GTFSRealTimeTripUpdatesProvider.adaptForCachedAPI(StatusProviderContract.super.getStatusMaxValidityInMs(), getContext());
@@ -843,9 +829,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			deleteAllRequired = true; // too old to display
 		}
 		final long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
-		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
-			updateAllAgencyServiceUpdateDataFromWWW(context, deleteAllRequired); // try to update
+		if (!deleteAllRequired && nowInMs <= lastUpdateInMs + minUpdateMs) {
+			return;
 		}
+		updateAllAgencyServiceUpdateDataFromWWW(context, deleteAllRequired); // try to update
 	}
 
 	private void updateAllAgencyServiceUpdateDataFromWWW(@NonNull Context context, boolean deleteAllRequired) {
@@ -1244,13 +1231,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					formatter += StringUtils.SPACE_STRING + getAGENCY_TIME_AM_PM_FORMAT(context);
 				}
 				timeParser = new ThreadSafeDateFormatter(formatter, Locale.ENGLISH);
-				String agencyTimeZoneId = getAGENCY_TIME_ZONE_ID(context);
-				if (TextUtils.isEmpty(agencyTimeZoneId)) {
-					agencyTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context);
-				}
-				if (!TextUtils.isEmpty(agencyTimeZoneId)) {
-					timeParser.setTimeZone(TimeZone.getTimeZone(agencyTimeZoneId));
-				}
+				final String agencyTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context);
+				timeParser.setTimeZone(TimeZone.getTimeZone(agencyTimeZoneId));
 			} catch (Exception e) {
 				MTLog.w(ALERTS_LOG_TAG, e, "Error while initializing time formatter!");
 				timeParser = null;

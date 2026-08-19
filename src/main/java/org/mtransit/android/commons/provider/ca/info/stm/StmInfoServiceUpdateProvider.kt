@@ -97,9 +97,7 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
             deleteAllRequired = true // too old to display
         }
         val minUpdate = serviceUpdateMaxValidity.coerceAtMost(getServiceUpdateValidity(inFocus))
-        if (!deleteAllRequired && lastUpdate + minUpdate >= now) {
-            return
-        }
+        if (!deleteAllRequired && lastUpdate + minUpdate >= now) return
         updateAllAgencyDataFromWWW(context, deleteAllRequired) // try to update
     }
 

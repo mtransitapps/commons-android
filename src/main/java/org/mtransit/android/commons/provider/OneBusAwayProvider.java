@@ -375,6 +375,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 								newLastUpdateInMs,
 								PROVIDER_PRECISION_IN_MS,
 								false,
+								localTimeZoneId,
 								sourceLabel
 						);
 						for (int l = 0; l < jArrivalsAndDepartures.length(); l++) {

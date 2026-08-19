@@ -10,6 +10,7 @@ public interface AgencyProviderContract extends ProviderContract {
 	String VERSION_PATH = "version";
 	String LABEL_PATH = "label";
 	String COLOR_PATH = "color";
+	String TIMEZONE_ID_PATH = "tz";
 	String SHORT_NAME_PATH = "shortName";
 	String DEPLOYED_PATH = "deployed";
 	String SETUP_REQUIRED_PATH = "setupRequired";

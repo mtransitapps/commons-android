@@ -18,6 +18,7 @@ public final class ContentProviderConstants {
 	public static final int DEPLOYED = 102;
 	public static final int LABEL = 103;
 	public static final int COLOR = 114;
+	public static final int TIMEZONE_ID = 119;
 	public static final int SHORT_NAME = 109;
 	public static final int SETUP_REQUIRED = 104;
 	//

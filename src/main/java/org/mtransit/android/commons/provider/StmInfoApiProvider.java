@@ -948,6 +948,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		}
 	}
 
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	private synchronized void deleteOldAndCacheNewServiceUpdates(ServiceUpdates serviceUpdates) { // SYNC because may have multiple concurrent same route call
 		if (serviceUpdates != null) {
 			for (ServiceUpdate serviceUpdate : serviceUpdates) {
@@ -1379,6 +1380,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 					newLastUpdateInMs,
 					PROVIDER_PRECISION_IN_MS,
 					false,
+					MONTREAL_TZ.getID(),
 					sourceLabel
 			);
 			for (int r = 0; r < jResults.size(); r++) {

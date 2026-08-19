@@ -30,7 +30,7 @@ public class OneBusAwayProviderTests {
 			"blue"
 	);
 
-	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0, 1);
+	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0, 1, null);
 
 	private final Context context = mock();
 

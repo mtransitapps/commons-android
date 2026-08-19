@@ -17,7 +17,6 @@ import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
@@ -36,6 +35,8 @@ import org.mtransit.commons.sql.SQLUtils;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -147,6 +148,8 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			return null;
 		}
 		final ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
+		final Context context = provider.requireContextCompat();
+		final String agencyTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context);
 		final Schedule schedule = new Schedule(
 				null,
 				scheduleStatusFilter.getTargetUUID(),
@@ -155,43 +158,33 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 				PROVIDER_READ_FROM_SOURCE_AT_IN_MS,
 				PROVIDER_PRECISION_IN_MS,
 				scheduleStatusFilter.getRouteDirectionStop().isNoPickup(),
-				GTFSProvider.getSOURCE_LABEL(provider.requireContextCompat())
+				agencyTimeZoneId,
+				GTFSProvider.getSOURCE_LABEL(context)
 		);
-		if (isSCHEDULE_AVAILABLE(provider.requireContextCompat())) {
-			schedule.setTimestampsAndSort(findTimestamps(provider, scheduleStatusFilter));
+		if (isSCHEDULE_AVAILABLE(context)) {
+			schedule.setTimestampsAndSort(findTimestamps(provider, scheduleStatusFilter, agencyTimeZoneId));
 		}
-		if (isFREQUENCY_AVAILABLE(provider.requireContextCompat())) {
-			schedule.setFrequenciesAndSort(findFrequencies(provider, scheduleStatusFilter));
+		if (isFREQUENCY_AVAILABLE(context)) {
+			schedule.setFrequenciesAndSort(findFrequencies(provider, scheduleStatusFilter, agencyTimeZoneId));
 		}
 		return schedule;
 	}
 
 	private static final String DATE_FORMAT_PATTERN = "yyyyMMdd";
 
-	@Nullable
-	private static ThreadSafeDateFormatter dateFormat;
-
 	@NonNull
-	static ThreadSafeDateFormatter getDateFormat(@NonNull Context context) {
-		if (dateFormat == null) {
-			dateFormat = new ThreadSafeDateFormatter(DATE_FORMAT_PATTERN, Locale.ENGLISH);
-			final String localTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context);
-			dateFormat.setTimeZone(TimeZone.getTimeZone(localTimeZoneId));
-		}
+	static DateFormat getNewDateFormat(@NonNull TimeZone timeZone) {
+		final DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN, Locale.ENGLISH);
+		dateFormat.setTimeZone(timeZone);
 		return dateFormat;
 	}
 
 	private static final String TIME_FORMAT_PATTERN = "HHmmss";
-	@Nullable
-	private static ThreadSafeDateFormatter timeFormat;
 
 	@NonNull
-	static ThreadSafeDateFormatter getTimeFormat(@NonNull Context context) {
-		if (timeFormat == null) {
-			timeFormat = new ThreadSafeDateFormatter(TIME_FORMAT_PATTERN, Locale.ENGLISH);
-			final String localTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context);
-			timeFormat.setTimeZone(TimeZone.getTimeZone(localTimeZoneId));
-		}
+	static DateFormat getNewTimeFormat(@NonNull TimeZone timeZone) {
+		final DateFormat timeFormat = new SimpleDateFormat(TIME_FORMAT_PATTERN, Locale.ENGLISH);
+		timeFormat.setTimeZone(timeZone);
 		return timeFormat;
 	}
 
@@ -233,7 +226,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_COUNT = 5;
 
 	@NonNull
-	private static ArrayList<Schedule.Timestamp> findTimestamps(@NonNull GTFSProvider provider, @NonNull ScheduleStatusFilter filter) {
+	private static ArrayList<Schedule.Timestamp> findTimestamps(@NonNull GTFSProvider provider, @NonNull ScheduleStatusFilter filter, @NonNull String agencyTimeZoneId) {
 		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<>();
 		final RouteDirectionStop rds = filter.getRouteDirectionStop();
 		final int maxDataRequests = filter.getMaxDataRequestsOrDefault();
@@ -243,10 +236,10 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		final long timestamp = filter.getTimestampOrDefault(); // NOW
 		final long minTimestampCoveredIntMs = timestamp + minDurationCoveredInMs;
 		final Context context = provider.requireContextCompat();
-		final ThreadSafeDateFormatter dateFormat = getDateFormat(context);
-		final ThreadSafeDateFormatter timeFormat = getTimeFormat(context);
-		final String localTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context);
-		final TimeZone timeZone = TimeZone.getTimeZone(localTimeZoneId);
+		final TimeZone timeZone = TimeZone.getTimeZone(agencyTimeZoneId);
+		final DateFormat dateFormat = getNewDateFormat(timeZone);
+		final DateFormat timeFormat = getNewTimeFormat(timeZone);
+		final DateFormat dateAndTimeFormat = getNewDateAndTimeFormat(timeZone);
 		final Calendar startsAt = TimeUtils.getNewCalendar(timeZone, timestamp);
 		if (lookBehindInMs > PROVIDER_PRECISION_IN_MS) {
 			if (lookBehindInMs > 0L) {
@@ -268,8 +261,8 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		while (dataRequests < maxDataRequests) {
 			final Calendar lookupStartAt = TimeUtils.getNewCalendar(timeZone, startsAt.getTimeInMillis());
 			alignLookupStartTime(lastServiceDate, dateFormat, lookupStartAt, lastDepartureInMs);
-			lookupDayDate = dateFormat.formatThreadSafe(lookupStartAt);
-			lookupDayTime = timeFormat.formatThreadSafe(lookupStartAt);
+			lookupDayDate = dateFormat.format(lookupStartAt.getTime());
+			lookupDayTime = timeFormat.format(lookupStartAt.getTime());
 			if (dataRequests == 0) { // IF yesterday DO override computed date & time with GTFS format for 24+
 				lookupDayTime = String.valueOf(Integer.parseInt(lookupDayTime) + TWENTY_FOUR_HOURS);
 			} else if (dataRequests == 1) { // ELSE IF today DO
@@ -284,12 +277,15 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 					rds.getStop().getId(),
 					lookupDayDate,
 					lookupDayTime,
-					startsAt.getTimeInMillis() - lookupStartAt.getTimeInMillis()
+					startsAt.getTimeInMillis() - lookupStartAt.getTimeInMillis(),
+					dateAndTimeFormat,
+					agencyTimeZoneId
 			);
 			if (dayTimestamps.isEmpty()
 					&& startsAt.getTimeInMillis() > lookupStartAt.getTimeInMillis() // already looking at OLD schedule
 			) {
-				lookupDayDate = dateFormat.formatThreadSafe(lookupStartAt); // try 1 week before once
+				lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
+				lookupDayDate = dateFormat.format(lookupStartAt.getTime()); // try 1 week before once
 				dayTimestamps = findScheduleList(
 						provider,
 						rds.getRoute().getId(),
@@ -297,7 +293,9 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 						rds.getStop().getId(),
 						lookupDayDate,
 						lookupDayTime,
-						startsAt.getTimeInMillis() - lookupStartAt.getTimeInMillis()
+						startsAt.getTimeInMillis() - lookupStartAt.getTimeInMillis(),
+						dateAndTimeFormat,
+						agencyTimeZoneId
 				);
 			}
 			dataRequests++; // 1 more data request done
@@ -327,13 +325,13 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 
 	static void alignLookupStartTime(
 			@Nullable Integer lastServiceDate,
-			@NonNull ThreadSafeDateFormatter dateFormat,
+			@NonNull DateFormat dateFormat,
 			@NonNull Calendar lookupStartAt,
 			long lastDepartureInMs
 	) {
 		if (lastServiceDate != null) {
 			try {
-				while (Integer.parseInt(dateFormat.formatThreadSafe(lookupStartAt)) > lastServiceDate) {
+				while (Integer.parseInt(dateFormat.format(lookupStartAt.getTime())) > lastServiceDate) {
 					lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
 				}
 			} catch (Exception e) {
@@ -427,7 +425,9 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			long directionId, // includes routeId,
 			int stopId,
 			String dateS, String timeS,
-			long diffWithRealityInMs
+			long diffWithRealityInMs,
+			@NonNull DateFormat dateAndTimeFormat,
+			@NonNull String agencyTimeZoneId
 	) {
 		final int timeI = FeatureFlags.F_SCHEDULE_IN_MINUTES ? Integer.parseInt(timeS) / 100 : Integer.parseInt(timeS);
 		Set<Schedule.Timestamp> result = new HashSet<>();
@@ -436,7 +436,6 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		BufferedReader br = null;
 		String line = null;
 		final Context context = provider.requireContextCompat();
-		final String localTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context);
 		String fileName = String.format(getSTOP_SCHEDULE_RAW_FILE_FORMAT(context), stopId);
 		try {
 			@SuppressLint("DiscouragedApi")
@@ -487,17 +486,17 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 						final int extraIdx = i * GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA;
 						lineDepartureDelta = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX + extraIdx]);
 						lineDeparture += lineDepartureDelta;
-						tTimestampInMs = convertToTimestamp(context, lineDeparture, dateS);
+						tTimestampInMs = convertToTimestamp(dateAndTimeFormat, lineDeparture, dateS);
 						if (lineDeparture > timeI) {
 							if (tTimestampInMs != null) {
-								timestamp = new Schedule.Timestamp(tTimestampInMs + diffWithRealityInMs, localTimeZoneId);
+								timestamp = new Schedule.Timestamp(tTimestampInMs + diffWithRealityInMs, agencyTimeZoneId);
 								if (FeatureFlags.F_EXPORT_TRIP_ID) {
 									if (FeatureFlags.F_EXPORT_ARRIVAL_W_TRIP_ID && GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_ARRIVAL_DIFF_IDX >= 0) {
 										departureArrivalDiffS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_ARRIVAL_DIFF_IDX + extraIdx];
 										if (!TextUtils.isEmpty(departureArrivalDiffS) && CharUtils.isDigitsOnly(departureArrivalDiffS)) {
 											departureArrivalDiff = Integer.parseInt(departureArrivalDiffS);
 											if (departureArrivalDiff > 0) {
-												arrivalTimestampMs = convertToTimestamp(context, lineDeparture - departureArrivalDiff, dateS);
+												arrivalTimestampMs = convertToTimestamp(dateAndTimeFormat, lineDeparture - departureArrivalDiff, dateS);
 												if (arrivalTimestampMs != null) {
 													timestamp.setArrivalT(arrivalTimestampMs);
 												}
@@ -594,7 +593,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	}
 
 	@NonNull
-	private static ArrayList<Schedule.Frequency> findFrequencies(@NonNull GTFSProvider provider, @NonNull ScheduleStatusFilter filter) {
+	private static ArrayList<Schedule.Frequency> findFrequencies(@NonNull GTFSProvider provider, @NonNull ScheduleStatusFilter filter, @NonNull String agencyTimeZoneId) {
 		final ArrayList<Schedule.Frequency> allFrequencies = new ArrayList<>();
 		final RouteDirectionStop rds = filter.getRouteDirectionStop();
 		final int maxDataRequests = filter.getMaxDataRequestsOrDefault();
@@ -602,9 +601,10 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		final long timestamp = filter.getTimestampOrDefault(); // NOW
 		final long minTimestampCovered = timestamp + minDurationCoveredInMs;
 		final Context context = provider.requireContextCompat();
-		final ThreadSafeDateFormatter dateFormat = getDateFormat(context);
-		final ThreadSafeDateFormatter timeFormat = getTimeFormat(context);
-		final TimeZone timeZone = TimeZone.getTimeZone(AgencyUtils.getAgencyTimeZoneId(context));
+		final TimeZone timeZone = TimeZone.getTimeZone(agencyTimeZoneId);
+		final DateFormat dateFormat = getNewDateFormat(timeZone);
+		final DateFormat timeFormat = getNewTimeFormat(timeZone);
+		final DateFormat dateAndTimeFormat = getNewDateAndTimeFormat(timeZone);
 		final Calendar startsAt = TimeUtils.getNewCalendar(timeZone, timestamp);
 		startsAt.add(Calendar.DATE, -1); // starting yesterday
 		HashSet<Schedule.Frequency> dayFrequencies;
@@ -616,8 +616,8 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		while (dataRequests < maxDataRequests) {
 			final Calendar lookupStartAt = TimeUtils.getNewCalendar(timeZone, startsAt.getTimeInMillis());
 			alignLookupStartTime(lastServiceDate, dateFormat, lookupStartAt, lastDepartureInMs);
-			lookupDayDate = dateFormat.formatThreadSafe(lookupStartAt);
-			lookupDayTime = timeFormat.formatThreadSafe(lookupStartAt);
+			lookupDayDate = dateFormat.format(lookupStartAt.getTime());
+			lookupDayTime = timeFormat.format(lookupStartAt.getTime());
 			if (dataRequests == 0) { // IF yesterday DO override computed date & time with GTFS format for 24+
 				lookupDayTime = String.valueOf(Integer.parseInt(lookupDayTime) + TWENTY_FOUR_HOURS);
 			} else if (dataRequests == 1) { // ELSE IF today DO
@@ -631,21 +631,23 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 					rds.getDirection().getId(),
 					lookupDayDate,
 					lookupDayTime,
-					startsAt.getTimeInMillis() - lookupStartAt.getTimeInMillis()
+					startsAt.getTimeInMillis() - lookupStartAt.getTimeInMillis(),
+					dateAndTimeFormat
 			);
 			if (dayFrequencies.isEmpty()
 					&& startsAt.getTimeInMillis() > lookupStartAt.getTimeInMillis() // already looking at OLD schedule
 					&& MIDNIGHT.equals(lookupDayTime) // not a partial schedule
 			) {
 				lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
-				lookupDayDate = dateFormat.formatThreadSafe(lookupStartAt); // try 1 week before once
+				lookupDayDate = dateFormat.format(lookupStartAt.getTime()); // try 1 week before once
 				dayFrequencies = findFrequencyList(
 						provider,
 						rds.getRoute().getId(),
 						rds.getDirection().getId(),
 						lookupDayDate,
 						lookupDayTime,
-						startsAt.getTimeInMillis() - lookupStartAt.getTimeInMillis()
+						startsAt.getTimeInMillis() - lookupStartAt.getTimeInMillis(),
+						dateAndTimeFormat
 				);
 			}
 			dataRequests++; // 1 more data request done
@@ -663,10 +665,15 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	}
 
 	@NonNull
-	private static HashSet<Schedule.Frequency> findFrequencyList(@NonNull GTFSProvider provider,
-																 long routeId, long directionId,
-																 String dateS, String timeS,
-																 long diffWithRealityInMs) {
+	private static HashSet<Schedule.Frequency> findFrequencyList(
+			@NonNull GTFSProvider provider,
+			long routeId,
+			long directionId,
+			String dateS,
+			String timeS,
+			long diffWithRealityInMs,
+			@NonNull DateFormat dateAndTimeFormat
+	) {
 		long timeI = Long.parseLong(timeS);
 		final HashSet<Schedule.Frequency> result = new HashSet<>();
 		final Set<Pair<String, Integer>> serviceIdOrIntAndExceptionTypes = findServicesAndExceptionTypes(provider, dateS);
@@ -714,8 +721,8 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 					endTime = Integer.parseInt(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_END_TIME_IDX]);
 					if (timeI <= endTime) {
 						startTime = Integer.parseInt(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_START_TIME_IDX]);
-						tStartTimeInMs = convertToTimestamp(context, startTime, dateS);
-						tEndTimeInMs = convertToTimestamp(context, endTime, dateS);
+						tStartTimeInMs = convertToTimestamp(dateAndTimeFormat, startTime, dateS);
+						tEndTimeInMs = convertToTimestamp(dateAndTimeFormat, endTime, dateS);
 						tHeadway = Integer.parseInt(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_HEADWAY_IDX]);
 						//noinspection ConstantConditions
 						if (tStartTimeInMs != null && tEndTimeInMs != null && tHeadway != null) {
@@ -742,12 +749,12 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static final String TIME_FORMATTER = "%06d";
 
 	@Nullable
-	private static Long convertToTimestamp(Context context, int timeInt, String dateS) {
+	private static Long convertToTimestamp(@NonNull DateFormat dateAndTimeFormat, int timeInt, String dateS) {
 		try {
 			if (FeatureFlags.F_SCHEDULE_IN_MINUTES) {
 				timeInt *= 100; // HHMM -> HHMMSS
 			}
-			final Date parsedDate = getToTimestampFormat(context).parseThreadSafe(
+			final Date parsedDate = dateAndTimeFormat.parse(
 					dateS + String.format(Locale.ENGLISH, TIME_FORMATTER, timeInt)
 			);
 			return parsedDate == null ? null : parsedDate.getTime();
@@ -757,18 +764,12 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		}
 	}
 
-	private static final String TO_TIMESTAMP_FORMAT_PATTERN = "yyyyMMdd" + "HHmmss";
-
-	@Nullable
-	private static ThreadSafeDateFormatter toTimestampFormat;
+	private static final String DATE_AND_TIME_FORMAT_PATTERN = DATE_FORMAT_PATTERN + TIME_FORMAT_PATTERN;
 
 	@NonNull
-	private static ThreadSafeDateFormatter getToTimestampFormat(Context context) {
-		if (toTimestampFormat == null) {
-			toTimestampFormat = new ThreadSafeDateFormatter(TO_TIMESTAMP_FORMAT_PATTERN, Locale.ENGLISH);
-			final String localTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context);
-			toTimestampFormat.setTimeZone(TimeZone.getTimeZone(localTimeZoneId));
-		}
+	static DateFormat getNewDateAndTimeFormat(@NonNull TimeZone timeZone) {
+		final DateFormat toTimestampFormat = new SimpleDateFormat(DATE_AND_TIME_FORMAT_PATTERN, Locale.ENGLISH);
+		toTimestampFormat.setTimeZone(timeZone);
 		return toTimestampFormat;
 	}
 

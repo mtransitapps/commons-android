@@ -20,8 +20,9 @@ fun makeSchedule(
     readFromSourceAtInMs: Long,
     providerPrecisionInMs: Long,
     isNoPickup: Boolean = false,
+    localTimeZoneId: String?,
     sourceLabel: String? = null,
-    noData: Boolean = false
+    noData: Boolean = false,
 ) = Schedule(
     id,
     targetUUID,
@@ -30,6 +31,7 @@ fun makeSchedule(
     readFromSourceAtInMs,
     providerPrecisionInMs,
     isNoPickup,
+    localTimeZoneId,
     sourceLabel,
     noData,
 )
@@ -39,6 +41,7 @@ fun RouteDirectionStop.makeSchedule(
     maxValidityInMs: Long,
     readFromSourceAtInMs: Long,
     providerPrecisionInMs: Long,
+    localTimeZoneId: String,
     sourceLabel: String,
     noData: Boolean,
 ) = makeSchedule(
@@ -47,6 +50,7 @@ fun RouteDirectionStop.makeSchedule(
     maxValidityInMs = maxValidityInMs,
     readFromSourceAtInMs = readFromSourceAtInMs,
     providerPrecisionInMs = providerPrecisionInMs,
+    localTimeZoneId = localTimeZoneId,
     sourceLabel = sourceLabel,
     noData = noData
 ).apply {
@@ -61,6 +65,7 @@ fun Schedule.toNoData() = makeSchedule(
     readFromSourceAtInMs = readFromSourceAtInMs,
     providerPrecisionInMs = providerPrecisionInMs,
     isNoPickup = isNoPickup,
+    localTimeZoneId = localTimeZoneId,
     sourceLabel = sourceLabel,
     noData = true // NO DATA
 )
@@ -264,6 +269,7 @@ fun Schedule.Timestamp.toStringShort() = buildString {
     if (tripId != null) {
         append("[tId:").append(tripId).append("]")
     }
+    //noinspection DiscouragedApi
     localTimeZoneId?.let {
         append("[tz:").append(it).append("]")
     }
