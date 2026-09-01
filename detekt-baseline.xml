@@ -204,49 +204,29 @@
     <ID>ReturnCount:AppUpdateUtils.kt:AppUpdateUtils$private fun triggerRefreshIfNecessary</ID>
     <ID>ReturnCount:Area.kt:Area$fun isEntirelyInside: Boolean</ID>
     <ID>ReturnCount:Area.kt:Area.Companion$fun areOverlapping: Boolean</ID>
-    <ID>ReturnCount:Area.kt:Area.Companion$private fun areCompletelyOverlapping: Boolean</ID>
     <ID>ReturnCount:BatteryUtils.kt:BatteryUtils$@JvmStatic fun shouldUseBatteryForOptionalWork: Boolean</ID>
-    <ID>ReturnCount:GBFSDateAdapter.kt:GBFSDateAdapter$override fun deserialize: Date?</ID>
     <ID>ReturnCount:GBFSStorage.kt:GBFSStorage$@WorkerThread fun getArea: Area?</ID>
     <ID>ReturnCount:GTFSDateTimeUtils.kt:GTFSDateTimeUtils$fun parseToDateTime: Instant?</ID>
-    <ID>ReturnCount:GTFSProviderDBHelperUtils.kt:GTFSProviderDBHelperUtils$private fun SQLiteDatabase.initDbTable: Boolean</ID>
     <ID>ReturnCount:GTFSRTAlertsManager.kt:GTFSRTAlertsManager$@JvmStatic fun parseSeverity: Int</ID>
-    <ID>ReturnCount:GTFSRealTimeProviderExt.kt:fun GTFSRealTimeProvider.makeRequest: Request?</ID>
     <ID>ReturnCount:GTFSRealTimeServiceAlertsProvider.kt:GTFSRealTimeServiceAlertsProvider$@JvmStatic fun GTFSRealTimeProvider.parseProviderTargetUUID: String?</ID>
-    <ID>ReturnCount:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$@JvmStatic fun GTFSRealTimeProvider.getCached: POIStatus?</ID>
     <ID>ReturnCount:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$@VisibleForTesting internal fun GTripDescriptor.match: Boolean</ID>
     <ID>ReturnCount:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: Boolean</ID>
     <ID>ReturnCount:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData: POIStatus?</ID>
     <ID>ReturnCount:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyDataLock: POIStatus?</ID>
     <ID>ReturnCount:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTripUpdate.isUseful: Boolean</ID>
-    <ID>ReturnCount:GTFSRealTimeTripUpdatesProviderExt.kt:@VisibleForTesting internal fun GTUStopTimeUpdate.isSameStop: Boolean</ID>
     <ID>ReturnCount:GTFSRealTimeTripUpdatesProviderExt.kt:@VisibleForTesting internal fun processRDTripUpdate</ID>
-    <ID>ReturnCount:GTFSRealTimeTripUpdatesProviderExt.kt:internal fun applyDelay: Duration?</ID>
     <ID>ReturnCount:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$@VisibleForTesting internal fun GTFSRealTimeProvider.parseProviderTargetUUID: String?</ID>
     <ID>ReturnCount:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
     <ID>ReturnCount:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.processVehiclePositions: Set&lt;VehicleLocation&gt;?</ID>
-    <ID>ReturnCount:GTFSStringsUtils.kt:GTFSStringsUtils$@Suppress("DiscouragedApi") @JvmStatic fun &lt;T: Collection&lt;Schedule.Timestamp&gt;&gt; updateStrings: T</ID>
-    <ID>ReturnCount:GTFSTripIdsUtils.kt:GTFSTripIdsUtils$@Suppress("DiscouragedApi") @JvmStatic fun &lt;T : Collection&lt;Schedule.Timestamp&gt;&gt; updateTripIds: T</ID>
-    <ID>ReturnCount:InstagramNewsProvider.kt:InstagramNewsProvider$private fun loadAgencyNewsDataFromWWW: ArrayList&lt;News&gt;?</ID>
-    <ID>ReturnCount:InstagramNewsProvider.kt:InstagramNewsProvider$private fun readImages: List&lt;String&gt;</ID>
     <ID>ReturnCount:ModuleReceiver.kt:ModuleReceiver$override fun onReceive</ID>
-    <ID>ReturnCount:ModuleReceiver.kt:ModuleReceiver$private fun isMyPackage: Boolean</ID>
-    <ID>ReturnCount:NewsTextFormatter.kt:NewsTextFormatter$@JvmStatic fun getHTMLAfterTitleSpace: String</ID>
     <ID>ReturnCount:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun NextBusProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
     <ID>ReturnCount:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun NextBusProvider.processVehiclePositions: Set&lt;VehicleLocation&gt;?</ID>
     <ID>ReturnCount:POIProviderContract.kt:POIProviderContract.Filter$fun getSqlSelection: String?</ID>
-    <ID>ReturnCount:POIProviderContract.kt:POIProviderContract.Filter.Companion$@JvmStatic fun toJSON: JSONObject?</ID>
-    <ID>ReturnCount:ScheduleStatusFilter.kt:ScheduleStatusFilter.Companion$fun fromJSON: StatusProviderContract.Filter?</ID>
-    <ID>ReturnCount:ServiceUpdates.kt:ServiceUpdates$@Suppress("unused") // main app only fun isSeverityWarningXorInfo: Pair&lt;Boolean, Boolean&gt;</ID>
-    <ID>ReturnCount:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$@VisibleForTesting internal fun List&lt;EtatServiceResponse.Alert.TranslatedText&gt;.parseTranslations: Map&lt;String, String&gt;?</ID>
-    <ID>ReturnCount:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun EtatServiceResponse.Alert.isActive: Boolean</ID>
     <ID>ReturnCount:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun StmInfoApiProvider.loadAgencyDataFromWWW: ServiceUpdates?</ID>
     <ID>ReturnCount:TwitterDateAdapter.kt:TwitterDateAdapter$override fun deserialize: Date?</ID>
     <ID>ReturnCount:TwitterDateAdapter.kt:TwitterDateAdapter$override fun serialize: JsonElement?</ID>
-    <ID>ReturnCount:TwitterNewsProvider.kt:TwitterNewsProvider$private fun getHTMLText: String?</ID>
     <ID>ReturnCount:TwitterNewsProvider.kt:TwitterNewsProvider$private fun loadAgencyNewsDataFromWWW: ArrayList&lt;News&gt;?</ID>
     <ID>ReturnCount:TwitterNewsProvider.kt:TwitterNewsProvider$private fun loadUserTimeline</ID>
-    <ID>ReturnCount:TwitterNewsProvider.kt:TwitterNewsProvider$private fun pickBestVideoVariant: TweetMediaVariant?</ID>
     <ID>ReturnCount:VehicleLocationProvider.kt:VehicleLocationProvider.Companion$private fun &lt;P : VehicleLocationProviderContract&gt; P.getVehicleLocations: Cursor</ID>
     <ID>ReturnCount:VehicleLocationProviderUtils.kt:VehicleLocationProviderUtils$@VisibleForTesting internal fun vehicleNearbyAgencyLocation: Boolean?</ID>
     <ID>ReturnCount:YouTubeDateAdapter.kt:YouTubeDateAdapter$override fun deserialize: Date?</ID>
