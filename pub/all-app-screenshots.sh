@@ -10,7 +10,6 @@ setGitProjectName
 APP_ANDROID_DIR="$ROOT_DIR/app-android"
 LISTINGS_DIR="$APP_ANDROID_DIR/src/main/play/listings"
 
-
 if [[ $PROJECT_NAME == "mtransit-for-android" ]]; then
 #   echo ">> Capturing All App Screenshots... SKIP ('$PROJECT_NAME' screenshots not supported yet)"
 #   exit 1 # error
