@@ -11,8 +11,9 @@ APP_ANDROID_DIR="$ROOT_DIR/app-android"
 LISTINGS_DIR="$APP_ANDROID_DIR/src/main/play/listings"
 
 if [[ $PROJECT_NAME == "mtransit-for-android" ]]; then
-#   echo ">> Capturing All App Screenshots... SKIP ('$PROJECT_NAME' screenshots not supported yet)"
-#   exit 1 # error
+  echo ">> Capturing All App Screenshots... SKIP ('$PROJECT_NAME' screenshots not supported yet, use 'main-app-screenshot.sh')"
+  exit 1 # error
+  # WIP: (not working)
   for DIR in $LISTINGS_DIR/*; do
     if [[ -d "$DIR" ]]; then
       LANG=$(basename $DIR)
