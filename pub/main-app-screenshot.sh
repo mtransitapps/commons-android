@@ -131,7 +131,7 @@ CONFIG_DIR=$PROJECT_DIR/config
 # 
 # echo " - agency authority: '$FILTER_AGENCY_AUTHORITY'"
 
-if ! [[ "$NUMBER" =~ ^[1-8]+$ ]]; then
+if ! [[ "$NUMBER" =~ ^[1-8]$ ]]; then
   echo "> Invalid screenshot number '$NUMBER'!"
   exit 1 #error
 fi
