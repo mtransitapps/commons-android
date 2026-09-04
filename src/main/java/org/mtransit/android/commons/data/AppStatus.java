@@ -47,15 +47,32 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		);
 	}
 
-	public AppStatus(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs,
-	                 boolean appInstalled, boolean appEnabled, boolean updateAvailable,
-	                 @Nullable String sourceLabel) {
+	public AppStatus(
+			@Nullable Integer id,
+			@NonNull String targetUUID,
+			long lastUpdateInMs,
+			long maxValidityInMs,
+			long readFromSourceAtInMs,
+			boolean appInstalled,
+			boolean appEnabled,
+			boolean updateAvailable,
+			@Nullable String sourceLabel
+	) {
 		this(id, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, appInstalled, appEnabled, updateAvailable, sourceLabel, false);
 	}
 
-	private AppStatus(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs,
-	                  boolean appInstalled, boolean appEnabled, boolean updateAvailable,
-	                  @Nullable String sourceLabel, boolean noData) {
+	private AppStatus(
+			@Nullable Integer id,
+			@NonNull String targetUUID,
+			long lastUpdateInMs,
+			long maxValidityInMs,
+			long readFromSourceAtInMs,
+			boolean appInstalled,
+			boolean appEnabled,
+			boolean updateAvailable,
+			@Nullable String sourceLabel,
+			boolean noData
+	) {
 		super(id, targetUUID, POI.ITEM_STATUS_TYPE_APP, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, noData);
 		setAppInstalled(appInstalled);
 		setAppEnabled(appEnabled);
