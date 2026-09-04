@@ -56,10 +56,10 @@
         <item quantity="other">%d emplacements</item>
         <item quantity="many">%d emplacements</item>
     </plurals>
-    <string name="app_status_not_installed">AJOUTER</string>
+    <string name="app_status_not_installed">&#65291;</string><!-- Fullwidth Plus Sign -->
     <string name="app_status_warning">&#9888;</string>
     <string name="app_status_installed">&#10003;</string>
-    <string name="app_status_update_available">METTRE À JOUR</string>
+    <string name="app_status_update_available">&#8635;</string><!-- Clockwise Triangle-Headed Arrow -->
     <string name="db_channel_name">Horaire</string>
     <string name="db_channel_description">Notification affichant la progression de l\'installation/mise à jour de l\'horaire.</string>
     <string name="db_deploying">Installation de l\'horaire &#8230;</string>

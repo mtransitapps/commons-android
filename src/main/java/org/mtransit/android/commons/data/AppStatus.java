@@ -16,7 +16,6 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
 
-@SuppressWarnings({"WeakerAccess", "unused"})
 public class AppStatus extends POIStatus implements MTLog.Loggable {
 
 	private static final String LOG_TAG = AppStatus.class.getSimpleName();
@@ -33,7 +32,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 
 	private boolean updateAvailable = false;
 
-	public AppStatus(@NonNull POIStatus status, boolean appInstalled, boolean appEnabled, boolean updateAvailable) {
+	private AppStatus(@NonNull POIStatus status, boolean appInstalled, boolean appEnabled, boolean updateAvailable) {
 		this(
 				status.getId(),
 				status.getTargetUUID(),
@@ -54,9 +53,9 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		this(id, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, appInstalled, appEnabled, updateAvailable, sourceLabel, false);
 	}
 
-	public AppStatus(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs,
-					 boolean appInstalled, boolean appEnabled, boolean updateAvailable,
-					 @Nullable String sourceLabel, boolean noData) {
+	private AppStatus(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs,
+	                  boolean appInstalled, boolean appEnabled, boolean updateAvailable,
+	                  @Nullable String sourceLabel, boolean noData) {
 		super(id, targetUUID, POI.ITEM_STATUS_TYPE_APP, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, noData);
 		setAppInstalled(appInstalled);
 		setAppEnabled(appEnabled);
@@ -74,21 +73,21 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 				'}';
 	}
 
-	public void setAppInstalled(boolean appInstalled) {
+	private void setAppInstalled(boolean appInstalled) {
 		if (this.appInstalled != appInstalled) {
 			this.appInstalled = appInstalled;
 			this.statusMsg = null; // reset
 		}
 	}
 
-	public void setAppEnabled(boolean appEnabled) {
+	private void setAppEnabled(boolean appEnabled) {
 		if (this.appEnabled != appEnabled) {
 			this.appEnabled = appEnabled;
 			this.statusMsg = null; // reset
 		}
 	}
 
-	public void setUpdateAvailable(boolean updateAvailable) {
+	private void setUpdateAvailable(boolean updateAvailable) {
 		if (this.updateAvailable != updateAvailable) {
 			this.updateAvailable = updateAvailable;
 			this.statusMsg = null; // reset
@@ -103,7 +102,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		return appEnabled;
 	}
 
-	public boolean isUpdateAvailable() {
+	private boolean isUpdateAvailable() {
 		return updateAvailable;
 	}
 
@@ -135,15 +134,21 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 				if (isAppEnabled()) {
 					if (isUpdateAvailable()) {
 						statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.app_status_update_available));
+						SpanUtils.setAllNN(statusMsbSSB, SpanUtils.getNew150PercentSizeSpan());
+						SpanUtils.setAllNN(statusMsbSSB, SpanUtils.getNewBoldStyleSpan());
 					} else {
 						statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.app_status_installed));
+						// Bold & big enough by default
 					}
 				} else { // APP NOT ENABLED!
 					statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.app_status_warning));
 					SpanUtils.setAllNN(statusMsbSSB, SpanUtils.getNew150PercentSizeSpan());
+					SpanUtils.setAllNN(statusMsbSSB, SpanUtils.getNewBoldStyleSpan());
 				}
 			} else {
 				statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.app_status_not_installed));
+				// Big enough by default
+				SpanUtils.setAllNN(statusMsbSSB, SpanUtils.getNewBoldStyleSpan());
 			}
 			SpanUtils.setAllNN(statusMsbSSB, STATUS_FONT, getStatusTextColor(context));
 			this.statusMsg = statusMsbSSB;
