@@ -94,6 +94,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		if (this.appInstalled != appInstalled) {
 			this.appInstalled = appInstalled;
 			this.statusMsg = null; // reset
+			this.statusMsgA11y = null; // reset
 		}
 	}
 
@@ -101,6 +102,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		if (this.appEnabled != appEnabled) {
 			this.appEnabled = appEnabled;
 			this.statusMsg = null; // reset
+			this.statusMsgA11y = null; // reset
 		}
 	}
 
@@ -108,6 +110,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		if (this.updateAvailable != updateAvailable) {
 			this.updateAvailable = updateAvailable;
 			this.statusMsg = null; // reset
+			this.statusMsgA11y = null; // reset
 		}
 	}
 
@@ -125,6 +128,8 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 
 	@Nullable
 	private CharSequence statusMsg;
+	@Nullable
+	private CharSequence statusMsgA11y;
 
 	private static final TypefaceSpan STATUS_FONT = SpanUtils.getNewTypefaceSpan(POIStatus.getStatusTextFont());
 
@@ -171,6 +176,27 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 			this.statusMsg = statusMsbSSB;
 		}
 		return this.statusMsg;
+	}
+
+	public @NonNull CharSequence getStatusMsgA11y(@NonNull Context context) {
+		if (this.statusMsgA11y == null) {
+			SpannableStringBuilder statusMsbA11ySSB;
+			if (isAppInstalled()) {
+				if (isAppEnabled()) {
+					if (isUpdateAvailable()) {
+						statusMsbA11ySSB = new SpannableStringBuilder(context.getString(R.string.app_status_update_available));
+					} else {
+						statusMsbA11ySSB = new SpannableStringBuilder(context.getString(R.string.app_status_installed));
+					}
+				} else { // APP NOT ENABLED!
+					statusMsbA11ySSB = new SpannableStringBuilder(context.getString(R.string.app_status_warning));
+				}
+			} else {
+				statusMsbA11ySSB = new SpannableStringBuilder(context.getString(R.string.app_status_not_installed));
+			}
+			this.statusMsgA11y = statusMsbA11ySSB;
+		}
+		return this.statusMsgA11y;
 	}
 
 	@NonNull
