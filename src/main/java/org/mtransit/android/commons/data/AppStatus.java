@@ -184,15 +184,15 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 			if (isAppInstalled()) {
 				if (isAppEnabled()) {
 					if (isUpdateAvailable()) {
-						statusMsbA11ySSB = new SpannableStringBuilder(context.getString(R.string.app_status_update_available));
+						statusMsbA11ySSB = new SpannableStringBuilder(context.getString(R.string.app_status_update_available_a11y));
 					} else {
-						statusMsbA11ySSB = new SpannableStringBuilder(context.getString(R.string.app_status_installed));
+						statusMsbA11ySSB = new SpannableStringBuilder(context.getString(R.string.app_status_installed_a11y));
 					}
 				} else { // APP NOT ENABLED!
-					statusMsbA11ySSB = new SpannableStringBuilder(context.getString(R.string.app_status_warning));
+					statusMsbA11ySSB = new SpannableStringBuilder(context.getString(R.string.app_status_warning_a11y));
 				}
 			} else {
-				statusMsbA11ySSB = new SpannableStringBuilder(context.getString(R.string.app_status_not_installed));
+				statusMsbA11ySSB = new SpannableStringBuilder(context.getString(R.string.app_status_not_installed_a11y));
 			}
 			this.statusMsgA11y = statusMsbA11ySSB;
 		}
