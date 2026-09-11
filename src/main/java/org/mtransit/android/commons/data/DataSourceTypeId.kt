@@ -39,4 +39,9 @@ object DataSourceTypeId {
     fun isGTFSType(@DataSourceType type: Int?): Boolean {
         return type in 0..99
     }
+
+    @JvmStatic
+    fun isRDSType(@DataSourceType type: Int?): Boolean {
+        return type in 0..99 || type == EX_TRAM
+    }
 }
