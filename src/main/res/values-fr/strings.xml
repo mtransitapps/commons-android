@@ -72,8 +72,8 @@
     <string name="please_install_new_app_from_google_play">Ouverture Play Store &#8230;\n\nMerci d\'installer la nouvelle application (gratuite).</string>
     <string name="please_uninstall_old_app">Merci de désinstaller l\'ancienne application.</string>
     <string name="please_uninstall_app_device_not_supported">Merci de désinstaller l\'application.\n\nDésolé, cet appareil n\'est plus supporté.</string>
-    <string name="module_app_installed_default"><b>Les données de l\'agence de transport</b> pour <b>MonTransit</b> installées &#10003;.</string>
-    <string name="module_app_installed_and_module"><![CDATA[ <b>%s</b> pour <b>MonTransit</b> installée &#10003;. ]]></string>
+    <string name="module_app_installed_default"><b>Les données de l\'agence de transport</b> pour <b>MonTransit</b> installées.</string>
+    <string name="module_app_installed_and_module"><![CDATA[ <b>%s</b> pour <b>MonTransit</b> installée. ]]></string>
     <string name="congratulations_module_app_installed_default"><![CDATA[ Félicitations! <br/><br/>Vous avez installé <b>les données de l\'agence de transport</b> pour <b>MonTransit</b>. ]]></string>
     <string name="congratulations_module_app_installed_and_module"><![CDATA[ Félicitations! <br/><br/>Vous avez installé <b>%s</b> pour <b>MonTransit</b>. ]]></string>
     <string name="why_title">Pourquoi ?</string>

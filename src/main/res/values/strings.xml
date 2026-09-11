@@ -68,8 +68,8 @@
     <string name="please_install_new_app_from_google_play">Opening Play Store&#8230;\n\nPlease install the new application (free).</string>
     <string name="please_uninstall_old_app">Please uninstall the old application.</string>
     <string name="please_uninstall_app_device_not_supported">Please uninstall the application.\n\nSorry, this device is not supported anymore.</string>
-    <string name="module_app_installed_default"><b>Transit agency data</b> for <b>MonTransit</b> installed &#10003; .</string>
-    <string name="module_app_installed_and_module"><![CDATA[ <b>%s</b> for <b>MonTransit</b> installed &#10003;. ]]></string>
+    <string name="module_app_installed_default"><b>Transit agency data</b> for <b>MonTransit</b> installed.</string>
+    <string name="module_app_installed_and_module"><![CDATA[ <b>%s</b> for <b>MonTransit</b> installed. ]]></string>
     <string name="congratulations_module_app_installed_default"><![CDATA[ Congratulations! <br/><br/>You have installed the <b>transit agency data</b> for <b>MonTransit</b>. ]]></string>
     <string name="congratulations_module_app_installed_and_module"><![CDATA[ Congratulations! <br/><br/>You have installed <b>%s</b> for <b>MonTransit</b>. ]]></string>
     <string name="why_title">Why?</string>

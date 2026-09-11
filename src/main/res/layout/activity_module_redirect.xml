@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/module_installed_root"
     android:layout_width="match_parent"
@@ -19,6 +20,9 @@
         android:id="@+id/module_installed_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:drawableStart="@drawable/ic_baseline_check_box_black_24"
+        android:drawablePadding="8dp"
+        android:gravity="start"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textStyle="normal"
         tools:ignore="UseCompatTextViewDrawableXml"
@@ -90,10 +94,13 @@
         android:id="@+id/module_open_download_app_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:ellipsize="end"
         android:gravity="center_horizontal"
+        android:maxLines="1"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textStyle="bold"
         android:visibility="gone"
+        app:autoSizeTextType="uniform"
         tools:text="@string/action_download_main_app"
         tools:visibility="visible" />
 
