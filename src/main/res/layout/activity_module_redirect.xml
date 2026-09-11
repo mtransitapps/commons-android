@@ -90,7 +90,7 @@
         tools:text="@string/action_download_main_app"
         tools:visibility="gone" />
 
-    <TextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/module_open_download_app_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
