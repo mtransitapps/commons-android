@@ -90,7 +90,6 @@
     <ID>LongMethod:VehicleLocationProviderUtilsTest.kt:VehicleLocationProviderUtilsTest$@Test fun test_vehicleNearbyAgencyLocation</ID>
     <ID>LongMethod:YouTubeNewsProvider.kt:YouTubeNewsProvider$private fun loadUserUploadsPlaylist</ID>
     <ID>LoopWithTooManyJumpStatements:GTFSRealTimeTripUpdatesProviderExt.kt:while</ID>
-    <ID>MagicNumber:DataSourceType.kt:DataSourceTypeId$99</ID>
     <ID>MagicNumber:GTFSDateTimeUtils.kt:GTFSDateTimeUtils$3</ID>
     <ID>MagicNumber:GTFSDateTimeUtils.kt:GTFSDateTimeUtils$8</ID>
     <ID>MagicNumber:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$567</ID>
@@ -103,7 +102,6 @@
     <ID>MagicNumber:VehicleLocationProviderUtils.kt:VehicleLocationProviderUtils$1000</ID>
     <ID>MagicNumber:YouTubeNewsProvider.kt:YouTubeNewsProvider$10L</ID>
     <ID>MatchingDeclarationName:CommonsMain.kt:AndroidMain</ID>
-    <ID>MatchingDeclarationName:DataSourceType.kt:DataSourceTypeId</ID>
     <ID>MayBeConstant:GBFSAnalyticsApiModel.kt:GBFSAnalyticsApiModel$// A token identifier that was issued by the rental app to the viewing app. val TOKEN = "token"</ID>
     <ID>MayBeConstant:GBFSAnalyticsApiModel.kt:GBFSAnalyticsApiModel$// Advertising ID (IDFA on iOS, AAID on Android) val AD_ID = "ad_id"</ID>
     <ID>MayBeConstant:GBFSAnalyticsApiModel.kt:GBFSAnalyticsApiModel$// like "client_id=google.com" val CLIENT_ID = "client_id"</ID>

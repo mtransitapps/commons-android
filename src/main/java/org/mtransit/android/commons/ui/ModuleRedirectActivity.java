@@ -328,7 +328,11 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 			this.appInstalledTv.setText(appInstalledText);
 		}
 		if (this.whyDescriptionTv != null) {
-			this.whyDescriptionTv.setText(getText(R.string.why_multiple_apps));
+			if (type != null && DataSourceTypeId.isRDSType(type)) {
+				this.whyDescriptionTv.setText(getText(R.string.why_multiple_apps_rds));
+			} else {
+				this.whyDescriptionTv.setText(getText(R.string.why_multiple_apps));
+			}
 		}
 		if (this.rootView != null) {
 			this.rootView.setBackgroundColor(ColorUtils.parseColor(bgColor));
@@ -446,7 +450,9 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 			openMainApp();
 			// }
 		} else {
-			StoreUtils.viewAppPage(this, Constants.MAIN_APP_PACKAGE_NAME, LinkUtils.NO_LABEL,
+			StoreUtils.viewAppPage(this,
+					Constants.MAIN_APP_PACKAGE_NAME_RELEASE, // always release flavor for Play Store
+					LinkUtils.NO_LABEL,
 					PackageManagerExtKt.toSimplePkg(getPackageName()), "mt-module", null, null, null);
 		}
 		finish();

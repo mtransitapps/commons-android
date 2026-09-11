@@ -51,10 +51,13 @@ public final class Constants {
 	@SuppressWarnings("ConstantValue")
 	public static final boolean IS_DEBUG_BUILD = BUILD_TYPE_DEBUG.equals(BuildConfig.BUILD_TYPE);
 
+	public static final String MAIN_APP_PACKAGE_NAME_RELEASE = "org.mtransit.android";
+	public static final String MAIN_APP_PACKAGE_NAME_DEBUG = "org.mtransit.android.debug";
+
 	@SuppressWarnings("ConstantValue")
 	public static final String MAIN_APP_PACKAGE_NAME = IS_DEBUG_BUILD ?
-			"org.mtransit.android.debug" :
-			"org.mtransit.android";
+			MAIN_APP_PACKAGE_NAME_DEBUG :
+			MAIN_APP_PACKAGE_NAME_RELEASE;
 
 	public static final long ADAPTER_NOTIFY_THRESHOLD_IN_MS = TimeUnit.MILLISECONDS.toMillis(250L);
 
