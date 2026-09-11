@@ -20,12 +20,16 @@ object DataSourceTypeId {
 
     const val INVALID = -1
 
+    // Google Extended GTFS Route Types starts at 100
+    private const val GTFS_TYPE_ID_MAX = 99
+
     const val LIGHT_RAIL = 0
     const val SUBWAY = 1
     const val RAIL = 2
     const val BUS = 3
     const val FERRY = 4
 
+    // https://developers.google.com/transit/gtfs/reference/extended-route-types
     const val EX_TRAM = 900 // Tram service - Streetcar
 
     const val BIKE = 100
@@ -37,11 +41,11 @@ object DataSourceTypeId {
 
     @JvmStatic
     fun isGTFSType(@DataSourceType type: Int?): Boolean {
-        return type in 0..99
+        return type in 0..GTFS_TYPE_ID_MAX
     }
 
     @JvmStatic
     fun isRDSType(@DataSourceType type: Int?): Boolean {
-        return type in 0..99 || type == EX_TRAM
+        return type in 0..GTFS_TYPE_ID_MAX || type == EX_TRAM
     }
 }
