@@ -46,7 +46,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
         private val DEPARTURE = 1772722800L.secsToInstant() // 2026-03-06 10:00:
 
-        private const val NOW_IN_MS = 123456789_000L
+        private const val NOW_IN_MS = 1234567890_000L // Friday, February 13, 2009 at 11:31:30 p.m. UTC
 
         private const val READ_FROM_MS = NOW_IN_MS
 
