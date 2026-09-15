@@ -2,22 +2,13 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
+    <ID>AbstractClassCanBeInterface:GBFSCommonApiModel.kt:GBFSCommonApiModel$GBFSCommonApiModel</ID>
     <ID>ComplexCondition:POIProviderContract.kt:POIProviderContract.Filter$isAreaFilter(this) &amp;&amp; this.lat != null &amp;&amp; this.lng != null &amp;&amp; this.aroundDiff != null</ID>
     <ID>ComplexCondition:POIProviderContract.kt:POIProviderContract.Filter$this.minLat != null &amp;&amp; this.maxLat != null &amp;&amp; this.minLng != null &amp;&amp; this.maxLng != null</ID>
     <ID>ComplexCondition:POIProviderContract.kt:POIProviderContract.Filter$this.optLoadedMinLat != null &amp;&amp; this.optLoadedMaxLat != null &amp;&amp; this.optLoadedMinLng != null &amp;&amp; this.optLoadedMaxLng != null</ID>
     <ID>ComplexCondition:VehicleLocationProviderUtils.kt:VehicleLocationProviderUtils$agencyAreaMaxLat == null || agencyAreaMinLat == null || agencyAreaMaxLng == null || agencyAreaMinLng == null</ID>
     <ID>CyclomaticComplexMethod:AppUpdateUtils.kt:AppUpdateUtils$private fun triggerRefreshIfNecessary</ID>
     <ID>CyclomaticComplexMethod:BatteryUtils.kt:BatteryUtils$@JvmStatic fun shouldUseBatteryForOptionalWork: Boolean</ID>
-    <ID>CyclomaticComplexMethod:GBFSv21ApiTests.kt:GBFSv21ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
-    <ID>CyclomaticComplexMethod:GBFSv22ApiTests.kt:GBFSv22ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
-    <ID>CyclomaticComplexMethod:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
-    <ID>CyclomaticComplexMethod:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_vehicle_types_json_parsing</ID>
-    <ID>CyclomaticComplexMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_geofencing_zones_json_parsing</ID>
-    <ID>CyclomaticComplexMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
-    <ID>CyclomaticComplexMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_station_status_json_parsing</ID>
-    <ID>CyclomaticComplexMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_information_json_parsing</ID>
-    <ID>CyclomaticComplexMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_regions_json_parsing</ID>
-    <ID>CyclomaticComplexMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_vehicle_types_json_parsing</ID>
     <ID>CyclomaticComplexMethod:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$@VisibleForTesting internal fun GTripDescriptor.match: Boolean</ID>
     <ID>CyclomaticComplexMethod:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: Boolean</ID>
     <ID>CyclomaticComplexMethod:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData: POIStatus?</ID>
@@ -32,63 +23,50 @@
     <ID>CyclomaticComplexMethod:POIProviderContract.kt:POIProviderContract.Filter.Companion$@JvmStatic fun toJSON: JSONObject?</ID>
     <ID>CyclomaticComplexMethod:POIProviderContract.kt:POIProviderContract.Filter.Companion$private fun fromJSON: Filter?</ID>
     <ID>CyclomaticComplexMethod:PreferencesExt.kt:inline fun &lt;reified T&gt; SharedPreferences.get: T?</ID>
-    <ID>CyclomaticComplexMethod:ScheduleExtTests.kt:ScheduleExtTests$@Test fun test_updateDepartureForRealTime</ID>
-    <ID>CyclomaticComplexMethod:ScheduleExtTests.kt:ScheduleExtTests$@Test fun test_updateForRealTime_w_arrival</ID>
     <ID>CyclomaticComplexMethod:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$@VisibleForTesting internal fun EtatServiceResponse?.toServiceUpdates: ServiceUpdates</ID>
     <ID>CyclomaticComplexMethod:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun StmInfoApiProvider.loadAgencyDataFromWWW: ServiceUpdates?</ID>
     <ID>CyclomaticComplexMethod:TwitterNewsProvider.kt:TwitterNewsProvider$private fun loadUserTimeline</ID>
     <ID>CyclomaticComplexMethod:TwitterNewsProvider.kt:TwitterNewsProvider$private fun readNews: News?</ID>
     <ID>CyclomaticComplexMethod:VehicleLocationProvider.kt:VehicleLocationProvider.Companion$private fun &lt;P : VehicleLocationProviderContract&gt; P.getVehicleLocations: Cursor</ID>
     <ID>CyclomaticComplexMethod:YouTubeNewsProvider.kt:YouTubeNewsProvider$private fun loadUserUploadsPlaylist</ID>
-    <ID>LargeClass:GBFSv23ApiTests.kt:GBFSv23ApiTests</ID>
-    <ID>LargeClass:GBFSv30ApiTests.kt:GBFSv30ApiTests</ID>
-    <ID>LargeClass:GTFSRealTimeTripUpdatesProviderTests.kt:GTFSRealTimeTripUpdatesProviderTests</ID>
+    <ID>HasPlatformType:GtfsRealTimeStorage.kt:GtfsRealTimeStorage$@WorkerThread fun getServiceUpdateLanguages</ID>
+    <ID>ImplicitDefaultLocale:GTFSProviderDBHelperUtils.kt:GTFSProviderDBHelperUtils$String.format(sqlInsert, line)</ID>
+    <ID>ImplicitDefaultLocale:InstagramNewsProvider.kt:InstagramNewsProvider$String.format(MENTION_AND_SCREEN_NAME, user.username ?: username)</ID>
+    <ID>ImplicitDefaultLocale:YouTubeNewsProvider.kt:YouTubeNewsProvider$YOUTUBE_VIDEO_LINK_AND_VIDEO_ID.format(videoId)</ID>
+    <ID>InjectDispatcher:AgencyProviderDeployWorker.kt:AgencyProviderDeployWorker$IO</ID>
     <ID>LongMethod:AppUpdateUtils.kt:AppUpdateUtils$private fun triggerRefreshIfNecessary</ID>
-    <ID>LongMethod:GBFSv20ApiTests.kt:GBFSv20ApiTests$@Test fun test_gbfs_json_parsing</ID>
-    <ID>LongMethod:GBFSv21ApiTests.kt:GBFSv21ApiTests$@Test fun test_gbfs_json_parsing</ID>
-    <ID>LongMethod:GBFSv21ApiTests.kt:GBFSv21ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
-    <ID>LongMethod:GBFSv21ApiTests.kt:GBFSv21ApiTests$@Test fun test_vehicle_types_json_parsing</ID>
-    <ID>LongMethod:GBFSv22ApiTests.kt:GBFSv22ApiTests$@Test fun test_gbfs_json_parsing</ID>
-    <ID>LongMethod:GBFSv22ApiTests.kt:GBFSv22ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
-    <ID>LongMethod:GBFSv22ApiTests.kt:GBFSv22ApiTests$@Test fun test_vehicle_types_json_parsing</ID>
-    <ID>LongMethod:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_gbfs_json_parsing</ID>
-    <ID>LongMethod:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
-    <ID>LongMethod:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_system_information_json_parsing</ID>
-    <ID>LongMethod:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_vehicle_types_json_parsing</ID>
-    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_geofencing_zones_json_parsing</ID>
-    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_manifest_json_parsing</ID>
-    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_station_information_json_parsing_physical_station_limited_hours_of_operation</ID>
-    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
-    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_station_status_json_parsing</ID>
-    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_alerts_json_parsing</ID>
-    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_information_json_parsing</ID>
-    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_pricing_plans_json_parsing_1</ID>
-    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_pricing_plans_json_parsing_2</ID>
-    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_regions_json_parsing</ID>
-    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_vehicle_status_json_parsing_car_sharing</ID>
-    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_vehicle_status_json_parsing_micro_mobility</ID>
-    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_vehicle_types_json_parsing</ID>
-    <ID>LongMethod:GTFSRealTimeServiceAlertsProviderTest.kt:GTFSRealTimeServiceAlertsProviderTest$@Test fun test_getCached</ID>
-    <ID>LongMethod:GTFSRealTimeServiceAlertsProviderTest.kt:GTFSRealTimeServiceAlertsProviderTest$@Test fun test_parseProviderTargetUUID</ID>
     <ID>LongMethod:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: Boolean</ID>
     <ID>LongMethod:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData: POIStatus?</ID>
-    <ID>LongMethod:GTFSRealTimeTripUpdatesProviderTests.kt:GTFSRealTimeTripUpdatesProviderTests$@Test fun test_fixStopSequence_fix_wrong_and_ignore_repeated</ID>
-    <ID>LongMethod:GTFSRealTimeTripUpdatesProviderTests.kt:GTFSRealTimeTripUpdatesProviderTests$@Test fun test_processRDTripUpdate_combined_complex_stop_id</ID>
-    <ID>LongMethod:GTFSRealTimeTripUpdatesProviderTests.kt:GTFSRealTimeTripUpdatesProviderTests$@Test fun test_processRDTripUpdate_combined_complex_stop_sequence</ID>
-    <ID>LongMethod:GTFSRealTimeTripUpdatesProviderTests.kt:GTFSRealTimeTripUpdatesProviderTests$@Test fun test_processRDTripUpdate_combined_complex_stop_sequence_repeated_stop</ID>
     <ID>LongMethod:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
-    <ID>LongMethod:GTFSRealTimeVehiclePositionsProviderTest.kt:GTFSRealTimeVehiclePositionsProviderTest$@Test fun test_getCached</ID>
-    <ID>LongMethod:GTFSRealTimeVehiclePositionsProviderTest.kt:GTFSRealTimeVehiclePositionsProviderTest$@Test fun test_parseProviderTargetUUID</ID>
     <ID>LongMethod:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun NextBusProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
     <ID>LongMethod:POIProviderContract.kt:POIProviderContract.Filter.Companion$private fun fromJSON: Filter?</ID>
-    <ID>LongMethod:ScheduleExtTests.kt:ScheduleExtTests$@Test fun test_updateForRealTime_w_arrival</ID>
     <ID>LongMethod:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$@VisibleForTesting internal fun EtatServiceResponse?.toServiceUpdates: ServiceUpdates</ID>
     <ID>LongMethod:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun StmInfoApiProvider.loadAgencyDataFromWWW: ServiceUpdates?</ID>
     <ID>LongMethod:TwitterNewsProvider.kt:TwitterNewsProvider$private fun loadUserTimeline</ID>
     <ID>LongMethod:TwitterNewsProvider.kt:TwitterNewsProvider$private fun readNews: News?</ID>
     <ID>LongMethod:VehicleLocationProvider.kt:VehicleLocationProvider.Companion$private fun &lt;P : VehicleLocationProviderContract&gt; P.getVehicleLocations: Cursor</ID>
-    <ID>LongMethod:VehicleLocationProviderUtilsTest.kt:VehicleLocationProviderUtilsTest$@Test fun test_vehicleNearbyAgencyLocation</ID>
     <ID>LongMethod:YouTubeNewsProvider.kt:YouTubeNewsProvider$private fun loadUserUploadsPlaylist</ID>
+    <ID>LongParameterList:Area.kt:Area.Companion$fun isInside: Boolean</ID>
+    <ID>LongParameterList:GTFSProviderDBHelperUtils.kt:GTFSProviderDBHelperUtils$@JvmStatic @JvmOverloads fun initDbTableWithRetry</ID>
+    <ID>LongParameterList:GTFSProviderDBHelperUtils.kt:GTFSProviderDBHelperUtils$private fun SQLiteDatabase.initDbTable: Boolean</ID>
+    <ID>LongParameterList:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$@VisibleForTesting internal fun GTripDescriptor.match: Boolean</ID>
+    <ID>LongParameterList:GTFSRealTimeTripUpdatesProviderExt.kt:@VisibleForTesting internal fun processRDTripUpdate</ID>
+    <ID>LongParameterList:GTFSRealTimeTripUpdatesProviderExt.kt:internal fun applyDelaySTU: Duration?</ID>
+    <ID>LongParameterList:InstagramNewsProvider.kt:InstagramNewsProvider$private fun loadUserTimeline</ID>
+    <ID>LongParameterList:InstagramNewsProvider.kt:InstagramNewsProvider$private fun readNews: News</ID>
+    <ID>LongParameterList:POIProviderContract.kt:POIProviderContract.Filter.Companion$@SuppressLint("DiscouragedApi") fun getNewAreaFilter</ID>
+    <ID>LongParameterList:PreferenceListener.kt:PreferenceListener</ID>
+    <ID>LongParameterList:ScheduleExt.kt:fun RouteDirectionStop.makeSchedule</ID>
+    <ID>LongParameterList:ScheduleExt.kt:fun makeSchedule</ID>
+    <ID>LongParameterList:ServiceUpdateKtx.kt:fun makeServiceUpdate</ID>
+    <ID>LongParameterList:StatusProviderContract.kt:StatusProviderContract.Filter.Companion$@JvmStatic fun from: Filter?</ID>
+    <ID>LongParameterList:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$@VisibleForTesting internal fun EtatServiceResponse?.toServiceUpdates: ServiceUpdates</ID>
+    <ID>LongParameterList:TwitterNewsProvider.kt:TwitterNewsProvider$private fun loadUserTimeline</ID>
+    <ID>LongParameterList:TwitterNewsProvider.kt:TwitterNewsProvider$private fun readNews: News?</ID>
+    <ID>LongParameterList:TwitterV2Api.kt:TwitterV2Api$@GET("2/users/{id}/tweets") fun getUsersIdTweets: Call&lt;TweetsResponse&gt;</ID>
+    <ID>LongParameterList:VehicleLocationProviderUtils.kt:VehicleLocationProviderUtils$@VisibleForTesting internal fun vehicleNearbyAgencyLocation: Boolean?</ID>
+    <ID>LongParameterList:YouTubeNewsProvider.kt:YouTubeNewsProvider$private fun loadUserUploadsPlaylist</ID>
+    <ID>LongParameterList:YouTubeV3Api.kt:YouTubeV3Api$@GET("v3/channels") fun getChannels: Call&lt;ChannelsResponse&gt;</ID>
     <ID>LoopWithTooManyJumpStatements:GTFSRealTimeTripUpdatesProviderExt.kt:while</ID>
     <ID>MagicNumber:GTFSDateTimeUtils.kt:GTFSDateTimeUtils$3</ID>
     <ID>MagicNumber:GTFSDateTimeUtils.kt:GTFSDateTimeUtils$8</ID>
@@ -105,28 +83,6 @@
     <ID>MayBeConstant:GBFSAnalyticsApiModel.kt:GBFSAnalyticsApiModel$// A token identifier that was issued by the rental app to the viewing app. val TOKEN = "token"</ID>
     <ID>MayBeConstant:GBFSAnalyticsApiModel.kt:GBFSAnalyticsApiModel$// Advertising ID (IDFA on iOS, AAID on Android) val AD_ID = "ad_id"</ID>
     <ID>MayBeConstant:GBFSAnalyticsApiModel.kt:GBFSAnalyticsApiModel$// like "client_id=google.com" val CLIENT_ID = "client_id"</ID>
-    <ID>NestedBlockDepth:GBFSv20ApiTests.kt:GBFSv20ApiTests$@Test fun test_gbfs_json_parsing</ID>
-    <ID>NestedBlockDepth:GBFSv21ApiTests.kt:GBFSv21ApiTests$@Test fun test_gbfs_json_parsing</ID>
-    <ID>NestedBlockDepth:GBFSv21ApiTests.kt:GBFSv21ApiTests$@Test fun test_station_information_json_parsing_physical_station</ID>
-    <ID>NestedBlockDepth:GBFSv21ApiTests.kt:GBFSv21ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
-    <ID>NestedBlockDepth:GBFSv22ApiTests.kt:GBFSv22ApiTests$@Test fun test_gbfs_json_parsing</ID>
-    <ID>NestedBlockDepth:GBFSv22ApiTests.kt:GBFSv22ApiTests$@Test fun test_station_information_json_parsing_physical_station</ID>
-    <ID>NestedBlockDepth:GBFSv22ApiTests.kt:GBFSv22ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
-    <ID>NestedBlockDepth:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_gbfs_json_parsing</ID>
-    <ID>NestedBlockDepth:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_station_information_json_parsing_physical_station</ID>
-    <ID>NestedBlockDepth:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
-    <ID>NestedBlockDepth:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_vehicle_types_json_parsing</ID>
-    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_geofencing_zones_json_parsing</ID>
-    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_station_information_json_parsing_physical_station_limited_hours_of_operation</ID>
-    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
-    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_station_status_json_parsing</ID>
-    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_alerts_json_parsing</ID>
-    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_pricing_plans_json_parsing_1</ID>
-    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_pricing_plans_json_parsing_2</ID>
-    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_regions_json_parsing</ID>
-    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_vehicle_status_json_parsing_car_sharing</ID>
-    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_vehicle_status_json_parsing_micro_mobility</ID>
-    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_vehicle_types_json_parsing</ID>
     <ID>NestedBlockDepth:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$@VisibleForTesting internal fun GTripDescriptor.match: Boolean</ID>
     <ID>NestedBlockDepth:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: Boolean</ID>
     <ID>NestedBlockDepth:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
@@ -134,16 +90,13 @@
     <ID>NestedBlockDepth:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$@VisibleForTesting internal fun EtatServiceResponse?.toServiceUpdates: ServiceUpdates</ID>
     <ID>NestedBlockDepth:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun StmInfoApiProvider.loadAgencyDataFromWWW: ServiceUpdates?</ID>
     <ID>NewLineAtEndOfFile:Accessibility.kt:org.mtransit.android.commons.data.Accessibility.kt</ID>
-    <ID>NewLineAtEndOfFile:AccessibilityTest.kt:org.mtransit.android.commons.data.AccessibilityTest.kt</ID>
     <ID>NewLineAtEndOfFile:AgencyProviderDeployWorker.kt:org.mtransit.android.commons.provider.agency.AgencyProviderDeployWorker.kt</ID>
     <ID>NewLineAtEndOfFile:AppUpdateActivity.kt:org.mtransit.android.commons.ui.AppUpdateActivity.kt</ID>
     <ID>NewLineAtEndOfFile:AppUpdateLauncher.kt:org.mtransit.android.commons.AppUpdateLauncher.kt</ID>
     <ID>NewLineAtEndOfFile:AppUpdateUtils.kt:org.mtransit.android.commons.AppUpdateUtils.kt</ID>
     <ID>NewLineAtEndOfFile:BundleExt.kt:org.mtransit.android.commons.BundleExt.kt</ID>
-    <ID>NewLineAtEndOfFile:ColorUtilsTest.kt:org.mtransit.android.commons.ColorUtilsTest.kt</ID>
     <ID>NewLineAtEndOfFile:CommonsMain.kt:org.mtransit.android.scratch.CommonsMain.kt</ID>
     <ID>NewLineAtEndOfFile:CursorExt.kt:org.mtransit.android.commons.CursorExt.kt</ID>
-    <ID>NewLineAtEndOfFile:DataSourceType.kt:org.mtransit.android.commons.data.DataSourceType.kt</ID>
     <ID>NewLineAtEndOfFile:GBFSAnalyticsApiModel.kt:org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSAnalyticsApiModel.kt</ID>
     <ID>NewLineAtEndOfFile:GBFSCommonApiModel.kt:org.mtransit.android.commons.provider.gbfs.data.api.v2.common.GBFSCommonApiModel.kt</ID>
     <ID>NewLineAtEndOfFile:GBFSDateAdapter.kt:org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSDateAdapter.kt</ID>
@@ -154,7 +107,6 @@
     <ID>NewLineAtEndOfFile:GBFSLocalizedURLApiModel.kt:org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSLocalizedURLApiModel.kt</ID>
     <ID>NewLineAtEndOfFile:GBFSParser.kt:org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSParser.kt</ID>
     <ID>NewLineAtEndOfFile:GBFSParser.kt:org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSParser.kt</ID>
-    <ID>NewLineAtEndOfFile:GBFSProviderTest.kt:org.mtransit.android.commons.provider.GBFSProviderTest.kt</ID>
     <ID>NewLineAtEndOfFile:GBFSRentalUrisApiModel.kt:org.mtransit.android.commons.provider.gbfs.data.api.v2.common.GBFSRentalUrisApiModel.kt</ID>
     <ID>NewLineAtEndOfFile:GBFSRentalUrisApiModel.kt:org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSRentalUrisApiModel.kt</ID>
     <ID>NewLineAtEndOfFile:GBFSStationInformationApiModel.kt:org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSStationInformationApiModel.kt</ID>
@@ -165,14 +117,8 @@
     <ID>NewLineAtEndOfFile:GBFSVehicleTypesApiModel.kt:org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSVehicleTypesApiModel.kt</ID>
     <ID>NewLineAtEndOfFile:GBFSVehicleTypesApiModel.kt:org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSVehicleTypesApiModel.kt</ID>
     <ID>NewLineAtEndOfFile:GBFSVehicleTypesCountApiModel.kt:org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSVehicleTypesCountApiModel.kt</ID>
-    <ID>NewLineAtEndOfFile:GBFSv20ApiTests.kt:org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSv20ApiTests.kt</ID>
-    <ID>NewLineAtEndOfFile:GBFSv21ApiTests.kt:org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSv21ApiTests.kt</ID>
-    <ID>NewLineAtEndOfFile:GBFSv22ApiTests.kt:org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSv22ApiTests.kt</ID>
-    <ID>NewLineAtEndOfFile:GBFSv23ApiTests.kt:org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSv23ApiTests.kt</ID>
-    <ID>NewLineAtEndOfFile:GBFSv30ApiTests.kt:org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSv30ApiTests.kt</ID>
     <ID>NewLineAtEndOfFile:GBGSSystemRegionsApiModel.kt:org.mtransit.android.commons.provider.gbfs.data.api.v3.GBGSSystemRegionsApiModel.kt</ID>
     <ID>NewLineAtEndOfFile:GTFSRTAlertsManager.kt:org.mtransit.android.commons.provider.gtfs.alert.GTFSRTAlertsManager.kt</ID>
-    <ID>NewLineAtEndOfFile:GTFSStatusProviderTest.kt:org.mtransit.android.commons.provider.gtfs.GTFSStatusProviderTest.kt</ID>
     <ID>NewLineAtEndOfFile:GTFSStringsUtils.kt:org.mtransit.android.commons.provider.gtfs.GTFSStringsUtils.kt</ID>
     <ID>NewLineAtEndOfFile:GsonExt.kt:org.mtransit.android.commons.GsonExt.kt</ID>
     <ID>NewLineAtEndOfFile:HtmlExt.kt:org.mtransit.android.commons.HtmlExt.kt</ID>
@@ -185,19 +131,24 @@
     <ID>NewLineAtEndOfFile:ModuleReceiver.kt:org.mtransit.android.commons.receiver.ModuleReceiver.kt</ID>
     <ID>NewLineAtEndOfFile:NetworkComponents.kt:org.mtransit.android.commons.di.NetworkComponents.kt</ID>
     <ID>NewLineAtEndOfFile:NewsTextFormatter.kt:org.mtransit.android.commons.provider.news.NewsTextFormatter.kt</ID>
-    <ID>NewLineAtEndOfFile:NextBusProviderTest.kt:org.mtransit.android.commons.provider.NextBusProviderTest.kt</ID>
-    <ID>NewLineAtEndOfFile:RssNewProviderUtilsTest.kt:org.mtransit.android.commons.provider.news.rss.RssNewProviderUtilsTest.kt</ID>
     <ID>NewLineAtEndOfFile:ScheduleExt.kt:org.mtransit.android.commons.data.ScheduleExt.kt</ID>
     <ID>NewLineAtEndOfFile:SecureStringUtils.kt:org.mtransit.android.commons.SecureStringUtils.kt</ID>
     <ID>NewLineAtEndOfFile:ServiceUpdateCleaner.kt:org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateCleaner.kt</ID>
     <ID>NewLineAtEndOfFile:StringExt.kt:org.mtransit.android.commons.StringExt.kt</ID>
-    <ID>NewLineAtEndOfFile:StringUtilsTest.kt:org.mtransit.android.commons.StringUtilsTest.kt</ID>
     <ID>NewLineAtEndOfFile:TwitterDateAdapter.kt:org.mtransit.android.commons.provider.news.twitter.TwitterDateAdapter.kt</ID>
     <ID>NewLineAtEndOfFile:TwitterStorage.kt:org.mtransit.android.commons.provider.news.twitter.TwitterStorage.kt</ID>
     <ID>NewLineAtEndOfFile:YouTubeNewsDbHelper.kt:org.mtransit.android.commons.provider.news.youtube.YouTubeNewsDbHelper.kt</ID>
     <ID>NewLineAtEndOfFile:YouTubeNewsProvider.kt:org.mtransit.android.commons.provider.YouTubeNewsProvider.kt</ID>
     <ID>NewLineAtEndOfFile:YouTubeUtils.kt:org.mtransit.android.commons.provider.news.youtube.YouTubeUtils.kt</ID>
-    <ID>NewLineAtEndOfFile:YouTubeUtilsTest.kt:org.mtransit.android.commons.provider.news.youtube.YouTubeUtilsTest.kt</ID>
+    <ID>NoNameShadowing:GTFSRealTimeServiceAlertsProvider.kt:GTFSRealTimeServiceAlertsProvider$tripIdsOutOfSync</ID>
+    <ID>NoNameShadowing:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$inFocus</ID>
+    <ID>NoNameShadowing:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$inFocus</ID>
+    <ID>NoNameShadowing:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$tripIdsOutOfSync</ID>
+    <ID>NoNameShadowing:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$inFocus</ID>
+    <ID>NoNameShadowing:POIProviderContract.kt:POIProviderContract.Filter.Companion$c</ID>
+    <ID>NoNameShadowing:ServiceUpdateDbHelper.kt:ServiceUpdateDbHelper.Companion$dbVersion</ID>
+    <ID>NoNameShadowing:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$inFocus</ID>
+    <ID>NoNameShadowing:VehicleLocationDbHelper.kt:VehicleLocationDbHelper.Companion$dbVersion</ID>
     <ID>ReturnCount:Accessibility.kt:Accessibility$@JvmStatic fun combine: Int</ID>
     <ID>ReturnCount:AppUpdateUtils.kt:AppUpdateUtils$private fun triggerRefreshIfNecessary</ID>
     <ID>ReturnCount:Area.kt:Area$fun isEntirelyInside: Boolean</ID>
@@ -281,6 +232,94 @@
     <ID>TooManyFunctions:TwitterNewsProvider.kt:TwitterNewsProvider : NewsProvider</ID>
     <ID>TooManyFunctions:VehicleLocationProvider.kt:VehicleLocationProvider$Companion</ID>
     <ID>TooManyFunctions:YouTubeNewsProvider.kt:YouTubeNewsProvider : NewsProvider</ID>
+    <ID>UnnecessarySafeCall:ServiceUpdateProviderContract.kt:ServiceUpdateProviderContract.Filter.Companion$authority?.let { authority -&gt; json.optJSONObject(JSON_ROUTE)?.let { Route.fromJSON(it, authority) } }</ID>
+    <ID>UnnecessarySafeCall:ServiceUpdateProviderContract.kt:ServiceUpdateProviderContract.Filter.Companion$authority?.let { authority -&gt; json.optJSONObject(JSON_ROUTE_DIRECTION)?.let { RouteDirection.fromJSON(it, authority) } }</ID>
+    <ID>UnnecessarySafeCall:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$((filter.poi as? RouteDirectionStop)?.getTargetUUIDs(includeStopTags = true) ?: filter.routeDirection?.getTargetUUIDs() ?: filter.route?.getTargetUUIDs()) ?.let { targetUUIDs -&gt; getCached(targetUUIDs) }</ID>
+    <ID>UnreachableCode:AppUpdateLauncher.kt:AppUpdateLauncher$intent.resolveActivity(context.packageManager) != null</ID>
+    <ID>UnreachableCode:GTFSRealTimeProviderExt.kt:parseAgencyId(it)</ID>
+    <ID>UnreachableCode:GTFSRealTimeProviderExt.kt:parseTripId(it)</ID>
+    <ID>UnreachableCode:GTFSRealTimeServiceAlertsProvider.kt:GTFSRealTimeServiceAlertsProvider$return getAgencyRouteTypeTagTargetUUID(agencyTag, routeType)</ID>
+    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$optTrip.optModifiedTrip?.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()</ID>
+    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:it == stopSequence</ID>
+    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:processRDTripUpdate( tripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, rdSchedulesByUUID, isSameStop = this::isSameStop, feedReadFromSourceMs = feedReadFromSourceMs, fixStopSequence = { it?.fixStopSequence( tripId = tripId, tripSortedRDS = tripSortedRDS, sortedTargetUuidAndSequence = sortedTargetUuidAndSequence, isSameStop = this::isSameStop, parseStopId = this::parseStopId, ) }, includeCancelledTimestamps = includeCancelledTimestamps, )</ID>
+    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:val gTripId = td.optTripIdNotEmpty ?: return@forEach</ID>
+    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(tripId, tripSchedules, tripSortedRDS)</ID>
+    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:val tripId = parseTripId(gTripId)</ID>
+    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:val tripRdsUUIDs = rdsUUIDsByTripId[tripId] ?: return@forEach // trip ID not in static data</ID>
+    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:val tripSchedules = tripRdsUUIDs.mapNotNull { rdSchedulesByUUID[it] }</ID>
+    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:val tripSortedRDS = sortedRDS .filter { rds -&gt; rds.uuid in tripRdsUUIDs } .takeIf { it.isNotEmpty() } ?: return@forEach</ID>
+    <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$gVehiclePosition.optTimestampMs?.let { vpTimestamp -&gt; if (vpTimestamp + VEHICLE_POSITIONS_MAX_AGE_MS &lt; lastUpdateInMs) { MTLog.d(LOG_TAG, "processVehiclePositions() &gt; IGNORE ${(lastUpdateInMs - vpTimestamp).toDurationLog()} old: ${gVehiclePosition.toStringExt()}") return null } }</ID>
+    <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$return null</ID>
+    <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$return setOf( VehicleLocation( authority = this.authority, targetUUID = targetUUIDs, targetTripId = gVehiclePosition.optTrip?.let { parseTripId(it) }, lastUpdateInMs = lastUpdateInMs, maxValidityInMs = this@processVehiclePositions.vehicleLocationMaxValidityInMs, // vehicleId = gVehiclePosition.optVehicle?.optId, vehicleLabel = gVehiclePosition.optVehicle?.optLabel, reportTimestamp = gVehiclePosition.optTimestamp?.secsToInstant(), latitude = vehicleLat, longitude = vehicleLng, bearingDegrees = gVehiclePosition.optPosition?.optBearing?.toInt(), // in degrees speedMetersPerSecond = gVehiclePosition.optPosition?.optSpeed?.toInt(), // in meters per second ) )</ID>
+    <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$val targetUUIDs = parseProviderTargetUUID(gVehiclePosition, ignoreDirection)?.takeIf { it.isNotBlank() } ?: return null</ID>
+    <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$val vehicleLat = gVehiclePosition.optPosition?.optLatitude ?: return null</ID>
+    <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$val vehicleLng = gVehiclePosition.optPosition?.optLongitude ?: return null</ID>
+    <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$vehicleNearbyAgencyLocation(context, vehicleLat, vehicleLng) == false</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("(${it.toStringExt("detail")})")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("a18n=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("bearing=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("cause=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("congestionLevel=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("currentStatus=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("currentStopSequence=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("effect=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("feedVersion:$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("gtfsRTVersion:$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("id=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("label=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("lat=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("licensePlate=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("lon=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("occupancyPct=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("occupancyStatus=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("odometer=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("speed=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "a=" else "agencyId=") + it)</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "a=" else "arrival=") + it.toStringExt(short = true))</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "d=" else "departure=") + it.toStringExt(short = true))</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "m=" else "modificationsId=") + it)</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "rt=" else "routeType=") + it)</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "t=" else "affectedTripId=") + it)</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "t=" else "tripId=") + it)</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(if (short) "do:$it" else "dropOffType=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(if (short) "hs:$it" else "stopHeadsign=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(if (short) "id:$it" else "aStopId=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(if (short) "oc=$it" else "depOcc=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(if (short) "pu:$it" else "pickupType=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(if (short) "seq=$it" else "stopSeq=$it")</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(it.toStringExt("desc", debug))</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(it.toStringExt("header", debug))</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(it.toStringExt("url", debug))</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(it.toStringExt(short = true))</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$it to fe.id</ID>
+    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$it.isNotEmpty()</ID>
+    <ID>UnreachableCode:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$(filter.poi as? RouteDirectionStop)?.getTargetUUIDs(includeStopTags = true) ?: filter.routeDirection?.getTargetUUIDs() ?: filter.route?.getTargetUUIDs()</ID>
+    <ID>UnreachableCode:TwitterNewsProvider.kt:TwitterNewsProvider$!deleteAllDone</ID>
+    <ID>UnreachableCode:VehicleLocationProviderContract.kt:VehicleLocationProviderContract.Filter.Companion$json.optString(JSON_AUTHORITY, fallback = null) ?: poi?.authority ?: return null</ID>
+    <ID>UnusedImport:Area.kt:import org.mtransit.android.commons.getDouble</ID>
+    <ID>UnusedImport:GTFSRealTimeTripUpdatesProviderExt.kt:import com.google.transit.realtime.copy</ID>
+    <ID>UnusedImport:Trip.kt:import org.mtransit.android.commons.getLong</ID>
+    <ID>UnusedImport:Trip.kt:import org.mtransit.android.commons.getString</ID>
+    <ID>UnusedImport:YouTubeNewsDbHelper.kt:import org.mtransit.android.commons.StringUtils</ID>
+    <ID>UnusedPrivateFunction:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun Route.getRouteTag</ID>
+    <ID>UnusedPrivateFunction:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun Route.getTargetUUIDs</ID>
+    <ID>UnusedPrivateFunction:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun RouteDirection.getRouteTag</ID>
+    <ID>UnusedPrivateFunction:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun RouteDirection.getTargetUUIDs</ID>
+    <ID>UnusedPrivateFunction:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun RouteDirectionStop.getRouteTag</ID>
+    <ID>UnusedPrivateFunction:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun RouteDirectionStop.getTargetUUIDs</ID>
+    <ID>UnusedPrivateFunction:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun Route.getRouteTag</ID>
+    <ID>UnusedPrivateFunction:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun Route.getTargetUUIDs: Map&lt;String, String&gt;</ID>
+    <ID>UnusedPrivateFunction:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun RouteDirection.getDirectionTag</ID>
+    <ID>UnusedPrivateFunction:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun RouteDirection.getRouteTag</ID>
+    <ID>UnusedPrivateFunction:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun RouteDirection.getTargetUUIDs: Map&lt;String, String&gt;</ID>
+    <ID>UnusedPrivateFunction:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun RouteDirectionStop.getDirectionTag</ID>
+    <ID>UnusedPrivateFunction:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun RouteDirectionStop.getRouteTag</ID>
+    <ID>UnusedPrivateProperty:StatusProviderExt.kt:private val StatusProviderContract.dbTableName: String get() = this.statusDbTableName</ID>
+    <ID>UseCheckOrError:AgencyUtils.kt:AgencyUtils$throw IllegalStateException("No agency timezone configured!")</ID>
+    <ID>UseOrEmpty:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$gFeedMessage.takeIf { !outdated }?.entityList?.toVehicles() ?: emptyList()</ID>
+    <ID>UseOrEmpty:PreferencesExt.kt:defaultValue as? Set&lt;String&gt; ?: emptySet()</ID>
+    <ID>UseOrEmpty:PreferencesExt.kt:defaultValue as? String ?: ""</ID>
+    <ID>UseOrEmpty:TwitterNewsProvider.kt:TwitterNewsProvider$author?.profileImageUrl ?: ""</ID>
     <ID>WildcardImport:GBFSVehicleTypesApiModel.kt:import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSVehicleTypesApiModel.*</ID>
   </CurrentIssues>
 </SmellBaseline>
