@@ -1,0 +1,106 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ArrayPrimitive:AccessibilityTest.kt:AccessibilityTest.Companion$arrayOf(Accessibility.NOT_POSSIBLE, Accessibility.NOT_POSSIBLE, Accessibility.NOT_POSSIBLE)</ID>
+    <ID>ArrayPrimitive:AccessibilityTest.kt:AccessibilityTest.Companion$arrayOf(Accessibility.NOT_POSSIBLE, Accessibility.POSSIBLE, Accessibility.NOT_POSSIBLE)</ID>
+    <ID>ArrayPrimitive:AccessibilityTest.kt:AccessibilityTest.Companion$arrayOf(Accessibility.NOT_POSSIBLE, Accessibility.UNKNOWN, Accessibility.NOT_POSSIBLE)</ID>
+    <ID>ArrayPrimitive:AccessibilityTest.kt:AccessibilityTest.Companion$arrayOf(Accessibility.POSSIBLE, Accessibility.NOT_POSSIBLE, Accessibility.NOT_POSSIBLE)</ID>
+    <ID>ArrayPrimitive:AccessibilityTest.kt:AccessibilityTest.Companion$arrayOf(Accessibility.POSSIBLE, Accessibility.POSSIBLE, Accessibility.POSSIBLE)</ID>
+    <ID>ArrayPrimitive:AccessibilityTest.kt:AccessibilityTest.Companion$arrayOf(Accessibility.POSSIBLE, Accessibility.UNKNOWN, Accessibility.POSSIBLE)</ID>
+    <ID>ArrayPrimitive:AccessibilityTest.kt:AccessibilityTest.Companion$arrayOf(Accessibility.UNKNOWN, Accessibility.NOT_POSSIBLE, Accessibility.NOT_POSSIBLE)</ID>
+    <ID>ArrayPrimitive:AccessibilityTest.kt:AccessibilityTest.Companion$arrayOf(Accessibility.UNKNOWN, Accessibility.POSSIBLE, Accessibility.POSSIBLE)</ID>
+    <ID>ArrayPrimitive:AccessibilityTest.kt:AccessibilityTest.Companion$arrayOf(Accessibility.UNKNOWN, Accessibility.UNKNOWN, Accessibility.UNKNOWN)</ID>
+    <ID>CyclomaticComplexMethod:GBFSv21ApiTests.kt:GBFSv21ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
+    <ID>CyclomaticComplexMethod:GBFSv22ApiTests.kt:GBFSv22ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
+    <ID>CyclomaticComplexMethod:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
+    <ID>CyclomaticComplexMethod:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_vehicle_types_json_parsing</ID>
+    <ID>CyclomaticComplexMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_geofencing_zones_json_parsing</ID>
+    <ID>CyclomaticComplexMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
+    <ID>CyclomaticComplexMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_station_status_json_parsing</ID>
+    <ID>CyclomaticComplexMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_information_json_parsing</ID>
+    <ID>CyclomaticComplexMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_regions_json_parsing</ID>
+    <ID>CyclomaticComplexMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_vehicle_types_json_parsing</ID>
+    <ID>CyclomaticComplexMethod:ScheduleExtTests.kt:ScheduleExtTests$@Test fun test_updateDepartureForRealTime</ID>
+    <ID>CyclomaticComplexMethod:ScheduleExtTests.kt:ScheduleExtTests$@Test fun test_updateForRealTime_w_arrival</ID>
+    <ID>LargeClass:GBFSv23ApiTests.kt:GBFSv23ApiTests</ID>
+    <ID>LargeClass:GBFSv30ApiTests.kt:GBFSv30ApiTests</ID>
+    <ID>LargeClass:GTFSRealTimeTripUpdatesProviderTests.kt:GTFSRealTimeTripUpdatesProviderTests</ID>
+    <ID>LongMethod:GBFSv20ApiTests.kt:GBFSv20ApiTests$@Test fun test_gbfs_json_parsing</ID>
+    <ID>LongMethod:GBFSv21ApiTests.kt:GBFSv21ApiTests$@Test fun test_gbfs_json_parsing</ID>
+    <ID>LongMethod:GBFSv21ApiTests.kt:GBFSv21ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
+    <ID>LongMethod:GBFSv21ApiTests.kt:GBFSv21ApiTests$@Test fun test_vehicle_types_json_parsing</ID>
+    <ID>LongMethod:GBFSv22ApiTests.kt:GBFSv22ApiTests$@Test fun test_gbfs_json_parsing</ID>
+    <ID>LongMethod:GBFSv22ApiTests.kt:GBFSv22ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
+    <ID>LongMethod:GBFSv22ApiTests.kt:GBFSv22ApiTests$@Test fun test_vehicle_types_json_parsing</ID>
+    <ID>LongMethod:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_gbfs_json_parsing</ID>
+    <ID>LongMethod:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
+    <ID>LongMethod:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_system_information_json_parsing</ID>
+    <ID>LongMethod:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_vehicle_types_json_parsing</ID>
+    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_geofencing_zones_json_parsing</ID>
+    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_manifest_json_parsing</ID>
+    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_station_information_json_parsing_physical_station_limited_hours_of_operation</ID>
+    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
+    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_station_status_json_parsing</ID>
+    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_alerts_json_parsing</ID>
+    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_information_json_parsing</ID>
+    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_pricing_plans_json_parsing_1</ID>
+    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_pricing_plans_json_parsing_2</ID>
+    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_regions_json_parsing</ID>
+    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_vehicle_status_json_parsing_car_sharing</ID>
+    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_vehicle_status_json_parsing_micro_mobility</ID>
+    <ID>LongMethod:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_vehicle_types_json_parsing</ID>
+    <ID>LongMethod:GTFSRealTimeServiceAlertsProviderTest.kt:GTFSRealTimeServiceAlertsProviderTest$@Test fun test_getCached</ID>
+    <ID>LongMethod:GTFSRealTimeServiceAlertsProviderTest.kt:GTFSRealTimeServiceAlertsProviderTest$@Test fun test_parseProviderTargetUUID</ID>
+    <ID>LongMethod:GTFSRealTimeTripUpdatesProviderTests.kt:GTFSRealTimeTripUpdatesProviderTests$@Test fun test_fixStopSequence_fix_wrong_and_ignore_repeated</ID>
+    <ID>LongMethod:GTFSRealTimeTripUpdatesProviderTests.kt:GTFSRealTimeTripUpdatesProviderTests$@Test fun test_processRDTripUpdate_combined_complex_stop_id</ID>
+    <ID>LongMethod:GTFSRealTimeTripUpdatesProviderTests.kt:GTFSRealTimeTripUpdatesProviderTests$@Test fun test_processRDTripUpdate_combined_complex_stop_sequence</ID>
+    <ID>LongMethod:GTFSRealTimeTripUpdatesProviderTests.kt:GTFSRealTimeTripUpdatesProviderTests$@Test fun test_processRDTripUpdate_combined_complex_stop_sequence_repeated_stop</ID>
+    <ID>LongMethod:GTFSRealTimeVehiclePositionsProviderTest.kt:GTFSRealTimeVehiclePositionsProviderTest$@Test fun test_getCached</ID>
+    <ID>LongMethod:GTFSRealTimeVehiclePositionsProviderTest.kt:GTFSRealTimeVehiclePositionsProviderTest$@Test fun test_parseProviderTargetUUID</ID>
+    <ID>LongMethod:ScheduleExtTests.kt:ScheduleExtTests$@Test fun test_updateForRealTime_w_arrival</ID>
+    <ID>LongMethod:VehicleLocationProviderUtilsTest.kt:VehicleLocationProviderUtilsTest$@Test fun test_vehicleNearbyAgencyLocation</ID>
+    <ID>LongParameterList:RouteDirectionStopTestFixtures.kt:fun makeRDS</ID>
+    <ID>LongParameterList:ServiceUpdateTestFixtures.kt:fun makeServiceUpdate</ID>
+    <ID>LongParameterList:StmInfoServiceUpdateProviderTest.kt:StmInfoServiceUpdateProviderTest$private fun makeAlert</ID>
+    <ID>LongParameterList:VehicleLocationTestFixtures.kt:fun makeVehicleLocation</ID>
+    <ID>NestedBlockDepth:GBFSv20ApiTests.kt:GBFSv20ApiTests$@Test fun test_gbfs_json_parsing</ID>
+    <ID>NestedBlockDepth:GBFSv21ApiTests.kt:GBFSv21ApiTests$@Test fun test_gbfs_json_parsing</ID>
+    <ID>NestedBlockDepth:GBFSv21ApiTests.kt:GBFSv21ApiTests$@Test fun test_station_information_json_parsing_physical_station</ID>
+    <ID>NestedBlockDepth:GBFSv21ApiTests.kt:GBFSv21ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
+    <ID>NestedBlockDepth:GBFSv22ApiTests.kt:GBFSv22ApiTests$@Test fun test_gbfs_json_parsing</ID>
+    <ID>NestedBlockDepth:GBFSv22ApiTests.kt:GBFSv22ApiTests$@Test fun test_station_information_json_parsing_physical_station</ID>
+    <ID>NestedBlockDepth:GBFSv22ApiTests.kt:GBFSv22ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
+    <ID>NestedBlockDepth:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_gbfs_json_parsing</ID>
+    <ID>NestedBlockDepth:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_station_information_json_parsing_physical_station</ID>
+    <ID>NestedBlockDepth:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
+    <ID>NestedBlockDepth:GBFSv23ApiTests.kt:GBFSv23ApiTests$@Test fun test_vehicle_types_json_parsing</ID>
+    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_geofencing_zones_json_parsing</ID>
+    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_station_information_json_parsing_physical_station_limited_hours_of_operation</ID>
+    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_station_information_json_parsing_virtual_station</ID>
+    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_station_status_json_parsing</ID>
+    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_alerts_json_parsing</ID>
+    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_pricing_plans_json_parsing_1</ID>
+    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_pricing_plans_json_parsing_2</ID>
+    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_system_regions_json_parsing</ID>
+    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_vehicle_status_json_parsing_car_sharing</ID>
+    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_vehicle_status_json_parsing_micro_mobility</ID>
+    <ID>NestedBlockDepth:GBFSv30ApiTests.kt:GBFSv30ApiTests$@Test fun test_vehicle_types_json_parsing</ID>
+    <ID>NewLineAtEndOfFile:AccessibilityTest.kt:org.mtransit.android.commons.data.AccessibilityTest.kt</ID>
+    <ID>NewLineAtEndOfFile:ColorUtilsTest.kt:org.mtransit.android.commons.ColorUtilsTest.kt</ID>
+    <ID>NewLineAtEndOfFile:GBFSProviderTest.kt:org.mtransit.android.commons.provider.GBFSProviderTest.kt</ID>
+    <ID>NewLineAtEndOfFile:GBFSv20ApiTests.kt:org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSv20ApiTests.kt</ID>
+    <ID>NewLineAtEndOfFile:GBFSv21ApiTests.kt:org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSv21ApiTests.kt</ID>
+    <ID>NewLineAtEndOfFile:GBFSv22ApiTests.kt:org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSv22ApiTests.kt</ID>
+    <ID>NewLineAtEndOfFile:GBFSv23ApiTests.kt:org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSv23ApiTests.kt</ID>
+    <ID>NewLineAtEndOfFile:GBFSv30ApiTests.kt:org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSv30ApiTests.kt</ID>
+    <ID>NewLineAtEndOfFile:GTFSStatusProviderTest.kt:org.mtransit.android.commons.provider.gtfs.GTFSStatusProviderTest.kt</ID>
+    <ID>NewLineAtEndOfFile:NextBusProviderTest.kt:org.mtransit.android.commons.provider.NextBusProviderTest.kt</ID>
+    <ID>NewLineAtEndOfFile:RssNewProviderUtilsTest.kt:org.mtransit.android.commons.provider.news.rss.RssNewProviderUtilsTest.kt</ID>
+    <ID>NewLineAtEndOfFile:StringUtilsTest.kt:org.mtransit.android.commons.StringUtilsTest.kt</ID>
+    <ID>NewLineAtEndOfFile:YouTubeUtilsTest.kt:org.mtransit.android.commons.provider.news.youtube.YouTubeUtilsTest.kt</ID>
+    <ID>UnusedImport:GTFSRealTimeTripUpdatesProviderTests.kt:import org.mtransit.android.commons.data.Accessibility</ID>
+    <ID>UnusedImport:GTFSRealTimeTripUpdatesProviderTests.kt:import org.mtransit.android.commons.data.Stop</ID>
+    <ID>UnusedImport:GTFSStatusProviderTest.kt:import org.mtransit.android.commons.provider.gtfs.GTFSStatusProvider</ID>
+  </CurrentIssues>
+</SmellBaseline>
