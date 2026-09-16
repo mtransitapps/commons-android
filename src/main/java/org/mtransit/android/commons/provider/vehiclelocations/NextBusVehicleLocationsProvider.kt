@@ -31,9 +31,11 @@ object NextBusVehicleLocationsProvider {
 
     @JvmStatic
     fun NextBusProvider.getCached(filter: VehicleLocationProviderContract.Filter): List<VehicleLocation>? =
-        (filter.rds?.getTargetUUIDs(this)
-            ?: filter.routeDirection?.getTargetUUIDs(this)
-            ?: filter.route?.getTargetUUIDs(this))
+        (
+            filter.rds?.getTargetUUIDs(this)
+                ?: filter.routeDirection?.getTargetUUIDs(this)
+                ?: filter.route?.getTargetUUIDs(this)
+            )
             ?.let { targetUUIDs ->
                 getCached(targetUUIDs, tripIds = null) // NO GTFS trip.id information available
             }
@@ -91,7 +93,7 @@ object NextBusVehicleLocationsProvider {
     @Synchronized
     private fun NextBusProvider.updateAgencyDataIfRequiredSync(lastUpdateInMs: Long, inFocus: Boolean) {
         val context = requireContextCompat()
-        if (getStorage(context).getVehicleLocationLastUpdateMs(0L) > lastUpdateInMs) return  // too late, another thread already updated
+        if (getStorage(context).getVehicleLocationLastUpdateMs(0L) > lastUpdateInMs) return // too late, another thread already updated
         val nowInMs = TimeUtils.currentTimeMillis()
         var deleteAllRequired = false
         if (lastUpdateInMs + vehicleLocationMaxValidityInMs < nowInMs) {
@@ -136,7 +138,7 @@ object NextBusVehicleLocationsProvider {
                                 if (Constants.DEBUG) {
                                     MTLog.d(
                                         this@NextBusVehicleLocationsProvider,
-                                        "loadAgencyDataFromWWW() > NextBus nVehicle: ${nVehicle}."
+                                        "loadAgencyDataFromWWW() > NextBus nVehicle: $nVehicle."
                                     )
                                 }
                                 processVehiclePositions(context, newLastUpdate, nVehicle)
@@ -194,7 +196,7 @@ object NextBusVehicleLocationsProvider {
         nVehicle: VehicleLocationsResponse.Vehicle,
     ): Set<VehicleLocation>? {
         val vehicleLat = nVehicle.lat?.toFloat() ?: return null
-        val vehicleLng =  nVehicle.lon?.toFloat() ?: return null
+        val vehicleLng = nVehicle.lon?.toFloat() ?: return null
         if (vehicleNearbyAgencyLocation(context, vehicleLat, vehicleLng) == false) return null
         val targetUUIDs = parseProviderTargetUUID(nVehicle)?.takeIf { it.isNotBlank() } ?: return null
         return setOf(

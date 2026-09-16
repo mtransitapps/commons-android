@@ -25,36 +25,36 @@ class GBFSv23ApiTests {
     @Test
     fun test_gbfs_json_parsing() {
         val string = "{\n" +
-                "  \"last_updated\": 1640887163,\n" +
-                "  \"ttl\": 0,\n" +
-                "  \"version\": \"2.3\",\n" +
-                "  \"data\": {\n" +
-                "    \"en\": {\n" +
-                "      \"feeds\": [\n" +
-                "        {\n" +
-                "          \"name\": \"system_information\",\n" +
-                "          \"url\": \"https://www.example.com/gbfs/1/en/system_information\"\n" +
-                "        },\n" +
-                "        {\n" +
-                "          \"name\": \"station_information\",\n" +
-                "          \"url\": \"https://www.example.com/gbfs/1/en/station_information\"\n" +
-                "        }\n" +
-                "      ]\n" +
-                "    },\n" +
-                "    \"fr\" : {\n" +
-                "      \"feeds\": [\n" +
-                "        {\n" +
-                "          \"name\": \"system_information\",\n" +
-                "          \"url\": \"https://www.example.com/gbfs/1/fr/system_information\"\n" +
-                "        },\n" +
-                "        {\n" +
-                "          \"name\": \"station_information\",\n" +
-                "          \"url\": \"https://www.example.com/gbfs/1/fr/station_information\"\n" +
-                "        }\n" +
-                "      ]\n" +
-                "    }\n" +
-                "  }\n" +
-                "}"
+            "  \"last_updated\": 1640887163,\n" +
+            "  \"ttl\": 0,\n" +
+            "  \"version\": \"2.3\",\n" +
+            "  \"data\": {\n" +
+            "    \"en\": {\n" +
+            "      \"feeds\": [\n" +
+            "        {\n" +
+            "          \"name\": \"system_information\",\n" +
+            "          \"url\": \"https://www.example.com/gbfs/1/en/system_information\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"name\": \"station_information\",\n" +
+            "          \"url\": \"https://www.example.com/gbfs/1/en/station_information\"\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    },\n" +
+            "    \"fr\" : {\n" +
+            "      \"feeds\": [\n" +
+            "        {\n" +
+            "          \"name\": \"system_information\",\n" +
+            "          \"url\": \"https://www.example.com/gbfs/1/fr/system_information\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"name\": \"station_information\",\n" +
+            "          \"url\": \"https://www.example.com/gbfs/1/fr/station_information\"\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  }\n" +
+            "}"
 
         val result: GBFSGbfsApiModel = GBFSParser.gson.fromJson(string)
 
@@ -102,22 +102,22 @@ class GBFSv23ApiTests {
     @Test
     fun test_gbfs_versions_json_parsing() {
         val string = "{\n" +
-                "  \"last_updated\": 1640887163,\n" +
-                "  \"ttl\": 0,\n" +
-                "  \"version\": \"2.3\",\n" +
-                "  \"data\": {\n" +
-                "    \"versions\": [\n" +
-                "      {\n" +
-                "        \"version\": \"2.0\",\n" +
-                "        \"url\": \"https://www.example.com/gbfs/2/gbfs\"\n" +
-                "      },\n" +
-                "      {\n" +
-                "        \"version\": \"2.3\",\n" +
-                "        \"url\": \"https://www.example.com/gbfs/2-3/gbfs\"\n" +
-                "      }\n" +
-                "    ]\n" +
-                "  }\n" +
-                "}"
+            "  \"last_updated\": 1640887163,\n" +
+            "  \"ttl\": 0,\n" +
+            "  \"version\": \"2.3\",\n" +
+            "  \"data\": {\n" +
+            "    \"versions\": [\n" +
+            "      {\n" +
+            "        \"version\": \"2.0\",\n" +
+            "        \"url\": \"https://www.example.com/gbfs/2/gbfs\"\n" +
+            "      },\n" +
+            "      {\n" +
+            "        \"version\": \"2.3\",\n" +
+            "        \"url\": \"https://www.example.com/gbfs/2-3/gbfs\"\n" +
+            "      }\n" +
+            "    ]\n" +
+            "  }\n" +
+            "}"
 
         val result: GBFSGbfsVersionsApiModel = GBFSParser.gson.fromJson(string)
 
@@ -143,47 +143,47 @@ class GBFSv23ApiTests {
     @Test
     fun test_system_information_json_parsing() {
         val string = "{\n" +
-                "  \"last_updated\": 1640887163,\n" +
-                "  \"ttl\": 1800,\n" +
-                "  \"version\": \"2.3\",\n" +
-                "  \"data\": {\n" +
-                "    \"system_id\": \"example_city_name\",\n" +
-                "    \"language\": \"en\",\n" +
-                "    \"name\": \"Example Bike Rental\",\n" +
-                "    \"short_name\": \"Example Bike\",\n" +
-                "    \"operator\": \"Example Sharing, Inc\",\n" +
-                "    \"url\": \"https://www.example.com\",\n" +
-                "    \"purchase_url\": \"https://www.example.com\",\n" +
-                "    \"start_date\": \"2010-06-10\",\n" +
-                "    \"phone_number\": \"1-800-555-1234\",\n" +
-                "    \"email\": \"customerservice@example.com\",\n" +
-                "    \"feed_contact_email\": \"datafeed@example.com\",\n" +
-                "    \"timezone\": \"America/Chicago\",\n" +
-                "    \"license_url\": \"https://www.example.com/data-license.html\",\n" +
-                "    \"terms_url\": \"https://www.example.com/terms\",\n" +
-                "    \"terms_last_updated\": \"2021-06-21\",\n" +
-                "    \"privacy_url\": \"https://www.example.com/privacy-policy\",\n" +
-                "    \"privacy_last_updated\": \"2019-01-13\",\n" +
-                "    \"rental_apps\": {\n" +
-                "      \"android\": {\n" +
-                "        \"discovery_uri\": \"com.example.android://\",\n" +
-                "        \"store_uri\": \"https://play.google.com/store/apps/details?id=com.example.android\"\n" +
-                "      },\n" +
-                "      \"ios\": {\n" +
-                "        \"store_uri\": \"https://apps.apple.com/app/apple-store/id123456789\",\n" +
-                "        \"discovery_uri\": \"com.example.ios://\"\n" +
-                "      }\n" +
-                "    },\n" +
-                "    \"brand_assets\": {\n" +
-                "        \"brand_last_modified\": \"2021-06-15\",\n" +
-                "        \"brand_image_url\": \"https://www.example.com/assets/brand_image.svg\",\n" +
-                "        \"brand_image_url_dark\": \"https://www.example.com/assets/brand_image_dark.svg\",\n" +
-                "        \"color\": \"#C2D32C\",\n" +
-                "        \"brand_terms_url\": \"https://www.example.com/assets/brand.pdf\"\n" +
-                "      }\n" +
-                "      \n" +
-                "  }\n" +
-                "}"
+            "  \"last_updated\": 1640887163,\n" +
+            "  \"ttl\": 1800,\n" +
+            "  \"version\": \"2.3\",\n" +
+            "  \"data\": {\n" +
+            "    \"system_id\": \"example_city_name\",\n" +
+            "    \"language\": \"en\",\n" +
+            "    \"name\": \"Example Bike Rental\",\n" +
+            "    \"short_name\": \"Example Bike\",\n" +
+            "    \"operator\": \"Example Sharing, Inc\",\n" +
+            "    \"url\": \"https://www.example.com\",\n" +
+            "    \"purchase_url\": \"https://www.example.com\",\n" +
+            "    \"start_date\": \"2010-06-10\",\n" +
+            "    \"phone_number\": \"1-800-555-1234\",\n" +
+            "    \"email\": \"customerservice@example.com\",\n" +
+            "    \"feed_contact_email\": \"datafeed@example.com\",\n" +
+            "    \"timezone\": \"America/Chicago\",\n" +
+            "    \"license_url\": \"https://www.example.com/data-license.html\",\n" +
+            "    \"terms_url\": \"https://www.example.com/terms\",\n" +
+            "    \"terms_last_updated\": \"2021-06-21\",\n" +
+            "    \"privacy_url\": \"https://www.example.com/privacy-policy\",\n" +
+            "    \"privacy_last_updated\": \"2019-01-13\",\n" +
+            "    \"rental_apps\": {\n" +
+            "      \"android\": {\n" +
+            "        \"discovery_uri\": \"com.example.android://\",\n" +
+            "        \"store_uri\": \"https://play.google.com/store/apps/details?id=com.example.android\"\n" +
+            "      },\n" +
+            "      \"ios\": {\n" +
+            "        \"store_uri\": \"https://apps.apple.com/app/apple-store/id123456789\",\n" +
+            "        \"discovery_uri\": \"com.example.ios://\"\n" +
+            "      }\n" +
+            "    },\n" +
+            "    \"brand_assets\": {\n" +
+            "        \"brand_last_modified\": \"2021-06-15\",\n" +
+            "        \"brand_image_url\": \"https://www.example.com/assets/brand_image.svg\",\n" +
+            "        \"brand_image_url_dark\": \"https://www.example.com/assets/brand_image_dark.svg\",\n" +
+            "        \"color\": \"#C2D32C\",\n" +
+            "        \"brand_terms_url\": \"https://www.example.com/assets/brand.pdf\"\n" +
+            "      }\n" +
+            "      \n" +
+            "  }\n" +
+            "}"
 
         val result: GBFSSystemInformationApiModel = GBFSParser.gson.fromJson(string)
 
@@ -237,110 +237,110 @@ class GBFSv23ApiTests {
     @Test
     fun test_vehicle_types_json_parsing() {
         val string = "{\n" +
-                "  \"last_updated\": 1640887163,\n" +
-                "  \"ttl\": 0,\n" +
-                "  \"version\": \"2.3\",\n" +
-                "  \"data\": {\n" +
-                "    \"vehicle_types\": [\n" +
-                "      {\n" +
-                "        \"vehicle_type_id\": \"abc123\",\n" +
-                "        \"form_factor\": \"bicycle\",\n" +
-                "        \"propulsion_type\": \"human\",\n" +
-                "        \"name\": \"Example Basic Bike\",\n" +
-                "        \"wheel_count\": 2,\n" +
-                "        \"default_reserve_time\": 30,\n" +
-                "        \"return_constraint\": \"any_station\",\n" +
-                "        \"vehicle_assets\": {\n" +
-                "          \"icon_url\": \"https://www.example.com/assets/icon_bicycle.svg\",\n" +
-                "          \"icon_url_dark\": \"https://www.example.com/assets/icon_bicycle_dark.svg\",\n" +
-                "          \"icon_last_modified\": \"2021-06-15\"\n" +
-                "        },\n" +
-                "        \"default_pricing_plan_id\": \"bike_plan_1\",\n" +
-                "        \"pricing_plan_ids\": [\n" +
-                "          \"bike_plan_1\",\n" +
-                "          \"bike_plan_2\",\n" +
-                "          \"bike_plan_3\"\n" +
-                "        ]\n" +
-                "      },\n" +
-                "      {\n" +
-                "        \"vehicle_type_id\": \"cargo123\",\n" +
-                "        \"form_factor\": \"cargo_bicycle\",\n" +
-                "        \"propulsion_type\": \"human\",\n" +
-                "        \"name\": \"Example Cargo Bike\",\n" +
-                "        \"wheel_count\": 3,\n" +
-                "        \"default_reserve_time\": 30,\n" +
-                "        \"return_constraint\": \"roundtrip_station\",\n" +
-                "        \"vehicle_assets\": {\n" +
-                "          \"icon_url\": \"https://www.example.com/assets/icon_cargobicycle.svg\",\n" +
-                "          \"icon_url_dark\": \"https://www.example.com/assets/icon_cargobicycle_dark.svg\",\n" +
-                "          \"icon_last_modified\": \"2021-06-15\"\n" +
-                "        },\n" +
-                "        \"default_pricing_plan_id\": \"cargo_plan_1\",\n" +
-                "        \"pricing_plan_ids\": [\n" +
-                "          \"cargo_plan_1\",\n" +
-                "          \"cargo_plan_2\",\n" +
-                "          \"cargo_plan_3\"\n" +
-                "        ]\n" +
-                "      },\n" +
-                "      {\n" +
-                "        \"vehicle_type_id\": \"def456\",\n" +
-                "        \"form_factor\": \"scooter_standing\",\n" +
-                "        \"propulsion_type\": \"electric\",\n" +
-                "        \"name\": \"Example E-scooter V2\",\n" +
-                "        \"wheel_count\": 2,\n" +
-                "        \"max_permitted_speed\": 25,\n" +
-                "        \"rated_power\": 350,\n" +
-                "        \"default_reserve_time\": 30,\n" +
-                "        \"max_range_meters\": 12345,\n" +
-                "        \"return_constraint\": \"free_floating\",\n" +
-                "        \"vehicle_assets\": {\n" +
-                "          \"icon_url\": \"https://www.example.com/assets/icon_escooter.svg\",\n" +
-                "          \"icon_url_dark\": \"https://www.example.com/assets/icon_escooter_dark.svg\",\n" +
-                "          \"icon_last_modified\": \"2021-06-15\"\n" +
-                "        },\n" +
-                "        \"default_pricing_plan_id\": \"scooter_plan_1\"\n" +
-                "      },\n" +
-                "      {\n" +
-                "        \"vehicle_type_id\": \"car1\",\n" +
-                "        \"form_factor\": \"car\",\n" +
-                "        \"rider_capacity\": 5,\n" +
-                "        \"cargo_volume_capacity\": 200,\n" +
-                "        \"propulsion_type\": \"combustion_diesel\",\n" +
-                "        \"eco_label\": [\n" +
-                "          {\n" +
-                "            \"country_code\": \"FR\",\n" +
-                "            \"eco_sticker\": \"critair_1\"\n" +
-                "          },\n" +
-                "          {\n" +
-                "            \"country_code\": \"DE\",\n" +
-                "            \"eco_sticker\": \"euro_2\"\n" +
-                "          }\n" +
-                "        ],\n" +
-                "        \"name\": \"Four-door Sedan\",\n" +
-                "        \"wheel_count\": 4,\n" +
-                "        \"default_reserve_time\": 0,\n" +
-                "        \"max_range_meters\": 523992,\n" +
-                "        \"return_constraint\": \"roundtrip_station\",\n" +
-                "        \"vehicle_accessories\": [\n" +
-                "          \"doors_4\",\n" +
-                "          \"automatic\",\n" +
-                "          \"cruise_control\"\n" +
-                "        ],\n" +
-                "        \"g_CO2_km\": 120,\n" +
-                "        \"vehicle_image\": \"https://www.example.com/assets/renault-clio.jpg\",\n" +
-                "        \"make\": \"Renault\",\n" +
-                "        \"model\": \"Clio\",\n" +
-                "        \"color\": \"white\",\n" +
-                "        \"vehicle_assets\": {\n" +
-                "          \"icon_url\": \"https://www.example.com/assets/icon_car.svg\",\n" +
-                "          \"icon_url_dark\": \"https://www.example.com/assets/icon_car_dark.svg\",\n" +
-                "          \"icon_last_modified\": \"2021-06-15\"\n" +
-                "        },\n" +
-                "        \"default_pricing_plan_id\": \"car_plan_1\"\n" +
-                "      }\n" +
-                "    ]\n" +
-                "  }\n" +
-                "}"
+            "  \"last_updated\": 1640887163,\n" +
+            "  \"ttl\": 0,\n" +
+            "  \"version\": \"2.3\",\n" +
+            "  \"data\": {\n" +
+            "    \"vehicle_types\": [\n" +
+            "      {\n" +
+            "        \"vehicle_type_id\": \"abc123\",\n" +
+            "        \"form_factor\": \"bicycle\",\n" +
+            "        \"propulsion_type\": \"human\",\n" +
+            "        \"name\": \"Example Basic Bike\",\n" +
+            "        \"wheel_count\": 2,\n" +
+            "        \"default_reserve_time\": 30,\n" +
+            "        \"return_constraint\": \"any_station\",\n" +
+            "        \"vehicle_assets\": {\n" +
+            "          \"icon_url\": \"https://www.example.com/assets/icon_bicycle.svg\",\n" +
+            "          \"icon_url_dark\": \"https://www.example.com/assets/icon_bicycle_dark.svg\",\n" +
+            "          \"icon_last_modified\": \"2021-06-15\"\n" +
+            "        },\n" +
+            "        \"default_pricing_plan_id\": \"bike_plan_1\",\n" +
+            "        \"pricing_plan_ids\": [\n" +
+            "          \"bike_plan_1\",\n" +
+            "          \"bike_plan_2\",\n" +
+            "          \"bike_plan_3\"\n" +
+            "        ]\n" +
+            "      },\n" +
+            "      {\n" +
+            "        \"vehicle_type_id\": \"cargo123\",\n" +
+            "        \"form_factor\": \"cargo_bicycle\",\n" +
+            "        \"propulsion_type\": \"human\",\n" +
+            "        \"name\": \"Example Cargo Bike\",\n" +
+            "        \"wheel_count\": 3,\n" +
+            "        \"default_reserve_time\": 30,\n" +
+            "        \"return_constraint\": \"roundtrip_station\",\n" +
+            "        \"vehicle_assets\": {\n" +
+            "          \"icon_url\": \"https://www.example.com/assets/icon_cargobicycle.svg\",\n" +
+            "          \"icon_url_dark\": \"https://www.example.com/assets/icon_cargobicycle_dark.svg\",\n" +
+            "          \"icon_last_modified\": \"2021-06-15\"\n" +
+            "        },\n" +
+            "        \"default_pricing_plan_id\": \"cargo_plan_1\",\n" +
+            "        \"pricing_plan_ids\": [\n" +
+            "          \"cargo_plan_1\",\n" +
+            "          \"cargo_plan_2\",\n" +
+            "          \"cargo_plan_3\"\n" +
+            "        ]\n" +
+            "      },\n" +
+            "      {\n" +
+            "        \"vehicle_type_id\": \"def456\",\n" +
+            "        \"form_factor\": \"scooter_standing\",\n" +
+            "        \"propulsion_type\": \"electric\",\n" +
+            "        \"name\": \"Example E-scooter V2\",\n" +
+            "        \"wheel_count\": 2,\n" +
+            "        \"max_permitted_speed\": 25,\n" +
+            "        \"rated_power\": 350,\n" +
+            "        \"default_reserve_time\": 30,\n" +
+            "        \"max_range_meters\": 12345,\n" +
+            "        \"return_constraint\": \"free_floating\",\n" +
+            "        \"vehicle_assets\": {\n" +
+            "          \"icon_url\": \"https://www.example.com/assets/icon_escooter.svg\",\n" +
+            "          \"icon_url_dark\": \"https://www.example.com/assets/icon_escooter_dark.svg\",\n" +
+            "          \"icon_last_modified\": \"2021-06-15\"\n" +
+            "        },\n" +
+            "        \"default_pricing_plan_id\": \"scooter_plan_1\"\n" +
+            "      },\n" +
+            "      {\n" +
+            "        \"vehicle_type_id\": \"car1\",\n" +
+            "        \"form_factor\": \"car\",\n" +
+            "        \"rider_capacity\": 5,\n" +
+            "        \"cargo_volume_capacity\": 200,\n" +
+            "        \"propulsion_type\": \"combustion_diesel\",\n" +
+            "        \"eco_label\": [\n" +
+            "          {\n" +
+            "            \"country_code\": \"FR\",\n" +
+            "            \"eco_sticker\": \"critair_1\"\n" +
+            "          },\n" +
+            "          {\n" +
+            "            \"country_code\": \"DE\",\n" +
+            "            \"eco_sticker\": \"euro_2\"\n" +
+            "          }\n" +
+            "        ],\n" +
+            "        \"name\": \"Four-door Sedan\",\n" +
+            "        \"wheel_count\": 4,\n" +
+            "        \"default_reserve_time\": 0,\n" +
+            "        \"max_range_meters\": 523992,\n" +
+            "        \"return_constraint\": \"roundtrip_station\",\n" +
+            "        \"vehicle_accessories\": [\n" +
+            "          \"doors_4\",\n" +
+            "          \"automatic\",\n" +
+            "          \"cruise_control\"\n" +
+            "        ],\n" +
+            "        \"g_CO2_km\": 120,\n" +
+            "        \"vehicle_image\": \"https://www.example.com/assets/renault-clio.jpg\",\n" +
+            "        \"make\": \"Renault\",\n" +
+            "        \"model\": \"Clio\",\n" +
+            "        \"color\": \"white\",\n" +
+            "        \"vehicle_assets\": {\n" +
+            "          \"icon_url\": \"https://www.example.com/assets/icon_car.svg\",\n" +
+            "          \"icon_url_dark\": \"https://www.example.com/assets/icon_car_dark.svg\",\n" +
+            "          \"icon_last_modified\": \"2021-06-15\"\n" +
+            "        },\n" +
+            "        \"default_pricing_plan_id\": \"car_plan_1\"\n" +
+            "      }\n" +
+            "    ]\n" +
+            "  }\n" +
+            "}"
 
         val result: GBFSVehicleTypesApiModel = GBFSParser.gson.fromJson(string)
 
@@ -468,28 +468,28 @@ class GBFSv23ApiTests {
     @Test
     fun test_station_information_json_parsing_physical_station() {
         val string = "{\n" +
-                "  \"last_updated\": 1640887163,\n" +
-                "  \"ttl\": 0,\n" +
-                "  \"version\": \"2.3\",\n" +
-                "  \"data\": {\n" +
-                "    \"stations\": [\n" +
-                "      {\n" +
-                "        \"station_id\": \"pga\",\n" +
-                "        \"name\": \"Parking garage A\",\n" +
-                "        \"lat\": 12.345678,\n" +
-                "        \"lon\": 45.678901,\n" +
-                "        \"parking_type\": \"underground_parking\",\n" +
-                "        \"parking_hoop\": false,\n" +
-                "        \"contact_phone\": \"+33109874321\",\n" +
-                "        \"is_charging_station\": true,\n" +
-                "        \"vehicle_type_capacity\": {\n" +
-                "          \"abc123\": 7,\n" +
-                "          \"def456\": 9\n" +
-                "        }\n" +
-                "      }\n" +
-                "    ]\n" +
-                "  }\n" +
-                "}"
+            "  \"last_updated\": 1640887163,\n" +
+            "  \"ttl\": 0,\n" +
+            "  \"version\": \"2.3\",\n" +
+            "  \"data\": {\n" +
+            "    \"stations\": [\n" +
+            "      {\n" +
+            "        \"station_id\": \"pga\",\n" +
+            "        \"name\": \"Parking garage A\",\n" +
+            "        \"lat\": 12.345678,\n" +
+            "        \"lon\": 45.678901,\n" +
+            "        \"parking_type\": \"underground_parking\",\n" +
+            "        \"parking_hoop\": false,\n" +
+            "        \"contact_phone\": \"+33109874321\",\n" +
+            "        \"is_charging_station\": true,\n" +
+            "        \"vehicle_type_capacity\": {\n" +
+            "          \"abc123\": 7,\n" +
+            "          \"def456\": 9\n" +
+            "        }\n" +
+            "      }\n" +
+            "    ]\n" +
+            "  }\n" +
+            "}"
 
         val result: GBFSStationInformationApiModel = GBFSParser.gson.fromJson(string)
 
@@ -525,58 +525,58 @@ class GBFSv23ApiTests {
     @Test
     fun test_station_information_json_parsing_virtual_station() {
         val string = "{\n" +
-                "  \"last_updated\": 1640887163,\n" +
-                "  \"ttl\": 0,\n" +
-                "  \"version\": \"2.3\",\n" +
-                "  \"data\": {\n" +
-                "    \"stations\": [\n" +
-                "      {\n" +
-                "        \"station_id\": \"station12\",\n" +
-                "        \"name\": \"SE Belmont & SE 10 th\",\n" +
-                "        \"lat\": 45.516445,\n" +
-                "        \"lon\": -122.655775,\n" +
-                "        \"is_valet_station\": false,\n" +
-                "        \"is_virtual_station\": true,\n" +
-                "        \"is_charging_station\": false,\n" +
-                "        \"station_area\": {\n" +
-                "          \"type\": \"MultiPolygon\",\n" +
-                "          \"coordinates\": [\n" +
-                "            [\n" +
-                "              [\n" +
-                "                [\n" +
-                "                  -122.655775,\n" +
-                "                  45.516445\n" +
-                "                ],\n" +
-                "                [\n" +
-                "                  -122.655705,\n" +
-                "                  45.516445\n" +
-                "                ],\n" +
-                "                [\n" +
-                "                  -122.655705,\n" +
-                "                  45.516495\n" +
-                "                ],\n" +
-                "                [\n" +
-                "                  -122.655775,\n" +
-                "                  45.516495\n" +
-                "                ],\n" +
-                "                [\n" +
-                "                  -122.655775,\n" +
-                "                  45.516445\n" +
-                "                ]\n" +
-                "              ]\n" +
-                "            ]\n" +
-                "          ]\n" +
-                "        },\n" +
-                "        \"capacity\": 16,\n" +
-                "        \"vehicle_capacity\": {\n" +
-                "          \"abc123\": 8,\n" +
-                "          \"def456\": 8,\n" +
-                "          \"ghi789\": 16\n" +
-                "        }\n" +
-                "      }\n" +
-                "    ]\n" +
-                "  }\n" +
-                "}"
+            "  \"last_updated\": 1640887163,\n" +
+            "  \"ttl\": 0,\n" +
+            "  \"version\": \"2.3\",\n" +
+            "  \"data\": {\n" +
+            "    \"stations\": [\n" +
+            "      {\n" +
+            "        \"station_id\": \"station12\",\n" +
+            "        \"name\": \"SE Belmont & SE 10 th\",\n" +
+            "        \"lat\": 45.516445,\n" +
+            "        \"lon\": -122.655775,\n" +
+            "        \"is_valet_station\": false,\n" +
+            "        \"is_virtual_station\": true,\n" +
+            "        \"is_charging_station\": false,\n" +
+            "        \"station_area\": {\n" +
+            "          \"type\": \"MultiPolygon\",\n" +
+            "          \"coordinates\": [\n" +
+            "            [\n" +
+            "              [\n" +
+            "                [\n" +
+            "                  -122.655775,\n" +
+            "                  45.516445\n" +
+            "                ],\n" +
+            "                [\n" +
+            "                  -122.655705,\n" +
+            "                  45.516445\n" +
+            "                ],\n" +
+            "                [\n" +
+            "                  -122.655705,\n" +
+            "                  45.516495\n" +
+            "                ],\n" +
+            "                [\n" +
+            "                  -122.655775,\n" +
+            "                  45.516495\n" +
+            "                ],\n" +
+            "                [\n" +
+            "                  -122.655775,\n" +
+            "                  45.516445\n" +
+            "                ]\n" +
+            "              ]\n" +
+            "            ]\n" +
+            "          ]\n" +
+            "        },\n" +
+            "        \"capacity\": 16,\n" +
+            "        \"vehicle_capacity\": {\n" +
+            "          \"abc123\": 8,\n" +
+            "          \"def456\": 8,\n" +
+            "          \"ghi789\": 16\n" +
+            "        }\n" +
+            "      }\n" +
+            "    ]\n" +
+            "  }\n" +
+            "}"
 
         val result: GBFSStationInformationApiModel = GBFSParser.gson.fromJson(string)
 

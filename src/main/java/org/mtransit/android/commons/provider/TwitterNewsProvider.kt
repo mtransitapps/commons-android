@@ -70,7 +70,7 @@ class TwitterNewsProvider : NewsProvider() {
 
         private const val AGENCY_SOURCE_LABEL = "X"
 
-        private const val API_MAX_RESULT = 5  // min 5, default 10, max 100
+        private const val API_MAX_RESULT = 5 // min 5, default 10, max 100
 
         private val TWEETS_EXCLUDE = setOf(
             "replies", // not showing replies to users
@@ -236,7 +236,7 @@ class TwitterNewsProvider : NewsProvider() {
 
     private fun getDBHelper(context: Context): TwitterNewsDbHelper {
         when (val currentDbHelper: TwitterNewsDbHelper? = _dbHelper) {
-            null -> {  // initialize
+            null -> { // initialize
                 val newDbHelper = getNewDbHelper(context)
                 _dbHelper = newDbHelper
                 _currentDbVersion = currentDbVersion
@@ -354,7 +354,7 @@ class TwitterNewsProvider : NewsProvider() {
         if (lastUpdateInMs > lastLastUpdateInMs // IF new more recent last update DO
             && LocaleUtils.getDefaultLanguage() == lastUpdateLang
         ) {
-            return  // too late, another thread already updated
+            return // too late, another thread already updated
         }
         val nowInMs = TimeUtils.currentTimeMillis()
         var deleteAllRequired = false
@@ -414,7 +414,7 @@ class TwitterNewsProvider : NewsProvider() {
         } ?: run {
             token = this.providedBearerToken?.takeIf { it.isNotBlank() }
                 ?: this._bearerToken.takeIf { it.isNotBlank() }
-                        ?: return null
+                ?: return null
             getTwitterApi(context, BASE_HOST_URL)
         }
         try {
@@ -691,19 +691,18 @@ class TwitterNewsProvider : NewsProvider() {
                     )
                 }
             status.entities?.hashtags?.mapNotNull { it.tag }?.forEach { hashTagTag ->
-                val hashTag = "#${hashTagTag}"
+                val hashTag = "#$hashTagTag"
                 textHTML = textHTML.replace(
                     hashTag,
                     getURL(getHashTagURL(hashTagTag), hashTag)
                 )
             }
             status.entities?.mentions?.mapNotNull { it.username }?.forEach { mentionUsername ->
-                val userMention = "@${mentionUsername}"
+                val userMention = "@$mentionUsername"
                 textHTML = textHTML.replace(
                     userMention,
                     getURL(getAuthorProfileURL(mentionUsername), userMention)
                 )
-
             }
             textHTML += appendVideoAndGIF(includedExpansions, status.attachments?.mediaKeys)
             textHTML = HtmlUtils.toHTML(textHTML)

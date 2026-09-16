@@ -22,36 +22,36 @@ class GBFSv22ApiTests {
     @Test
     fun test_gbfs_json_parsing() {
         val string = "{\n" +
-                "  \"last_updated\": 1609866247,\n" +
-                "  \"ttl\": 0,\n" +
-                "  \"version\": \"2.2\",\n" +
-                "  \"data\": {\n" +
-                "    \"en\": {\n" +
-                "      \"feeds\": [\n" +
-                "        {\n" +
-                "          \"name\": \"system_information\",\n" +
-                "          \"url\": \"https://www.example.com/gbfs/1/en/system_information\"\n" +
-                "        },\n" +
-                "        {\n" +
-                "          \"name\": \"station_information\",\n" +
-                "          \"url\": \"https://www.example.com/gbfs/1/en/station_information\"\n" +
-                "        }\n" +
-                "      ]\n" +
-                "    },\n" +
-                "    \"fr\" : {\n" +
-                "      \"feeds\": [\n" +
-                "        {\n" +
-                "          \"name\": \"system_information\",\n" +
-                "          \"url\": \"https://www.example.com/gbfs/1/fr/system_information\"\n" +
-                "        },\n" +
-                "        {\n" +
-                "          \"name\": \"station_information\",\n" +
-                "          \"url\": \"https://www.example.com/gbfs/1/fr/station_information\"\n" +
-                "        }\n" +
-                "      ]\n" +
-                "    }\n" +
-                "  }\n" +
-                "}"
+            "  \"last_updated\": 1609866247,\n" +
+            "  \"ttl\": 0,\n" +
+            "  \"version\": \"2.2\",\n" +
+            "  \"data\": {\n" +
+            "    \"en\": {\n" +
+            "      \"feeds\": [\n" +
+            "        {\n" +
+            "          \"name\": \"system_information\",\n" +
+            "          \"url\": \"https://www.example.com/gbfs/1/en/system_information\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"name\": \"station_information\",\n" +
+            "          \"url\": \"https://www.example.com/gbfs/1/en/station_information\"\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    },\n" +
+            "    \"fr\" : {\n" +
+            "      \"feeds\": [\n" +
+            "        {\n" +
+            "          \"name\": \"system_information\",\n" +
+            "          \"url\": \"https://www.example.com/gbfs/1/fr/system_information\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"name\": \"station_information\",\n" +
+            "          \"url\": \"https://www.example.com/gbfs/1/fr/station_information\"\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  }\n" +
+            "}"
 
         val result: GBFSGbfsApiModel = GBFSParser.gson.fromJson(string)
 
@@ -99,22 +99,22 @@ class GBFSv22ApiTests {
     @Test
     fun test_gbfs_versions_json_parsing() {
         val string = "{\n" +
-                "  \"last_updated\": 1609866247,\n" +
-                "  \"ttl\": 0,\n" +
-                "  \"version\": \"2.2\",\n" +
-                "  \"data\": {\n" +
-                "    \"versions\": [\n" +
-                "      {\n" +
-                "        \"version\":\"2.0\",\n" +
-                "        \"url\":\"https://www.example.com/gbfs/2/gbfs\"\n" +
-                "      },\n" +
-                "      {\n" +
-                "        \"version\":\"2.2\",\n" +
-                "        \"url\":\"https://www.example.com/gbfs/2-2/gbfs\"\n" +
-                "      }\n" +
-                "    ]\n" +
-                "  }\n" +
-                "}"
+            "  \"last_updated\": 1609866247,\n" +
+            "  \"ttl\": 0,\n" +
+            "  \"version\": \"2.2\",\n" +
+            "  \"data\": {\n" +
+            "    \"versions\": [\n" +
+            "      {\n" +
+            "        \"version\":\"2.0\",\n" +
+            "        \"url\":\"https://www.example.com/gbfs/2/gbfs\"\n" +
+            "      },\n" +
+            "      {\n" +
+            "        \"version\":\"2.2\",\n" +
+            "        \"url\":\"https://www.example.com/gbfs/2-2/gbfs\"\n" +
+            "      }\n" +
+            "    ]\n" +
+            "  }\n" +
+            "}"
 
         val result: GBFSGbfsVersionsApiModel = GBFSParser.gson.fromJson(string)
 
@@ -140,25 +140,25 @@ class GBFSv22ApiTests {
     @Test
     fun test_system_information_json_parsing() {
         val string = "{\n" +
-                "  \"last_updated\":1611598155,\n" +
-                "  \"ttl\":1800,\n" +
-                "  \"version\": \"2.2\",\n" +
-                "  \"data\":{\n" +
-                "    \"phone_number\":\"1-800-555-1234\",\n" +
-                "    \"name\":\"Example Ride\",\n" +
-                "    \"operator\":\"Example Sharing, Inc\",\n" +
-                "    \"start_date\":\"2010-06-10\",\n" +
-                "    \"purchase_url\":\"https://www.exampleride.org\",\n" +
-                "    \"timezone\":\"US/Central\",\n" +
-                "    \"license_url\":\"https://exampleride.org/data-license.html\",\n" +
-                "    \"short_name\":\"Example Ride\",\n" +
-                "    \"email\":\"customerservice@exampleride.org\",\n" +
-                "    \"url\":\"http://www.exampleride.org\",\n" +
-                "    \"feed_contact_email\": \"datafeed@exampleride.org\",\n" +
-                "    \"system_id\":\"example_ride\",\n" +
-                "    \"language\":\"en\"\n" +
-                "  }\n" +
-                "}"
+            "  \"last_updated\":1611598155,\n" +
+            "  \"ttl\":1800,\n" +
+            "  \"version\": \"2.2\",\n" +
+            "  \"data\":{\n" +
+            "    \"phone_number\":\"1-800-555-1234\",\n" +
+            "    \"name\":\"Example Ride\",\n" +
+            "    \"operator\":\"Example Sharing, Inc\",\n" +
+            "    \"start_date\":\"2010-06-10\",\n" +
+            "    \"purchase_url\":\"https://www.exampleride.org\",\n" +
+            "    \"timezone\":\"US/Central\",\n" +
+            "    \"license_url\":\"https://exampleride.org/data-license.html\",\n" +
+            "    \"short_name\":\"Example Ride\",\n" +
+            "    \"email\":\"customerservice@exampleride.org\",\n" +
+            "    \"url\":\"http://www.exampleride.org\",\n" +
+            "    \"feed_contact_email\": \"datafeed@exampleride.org\",\n" +
+            "    \"system_id\":\"example_ride\",\n" +
+            "    \"language\":\"en\"\n" +
+            "  }\n" +
+            "}"
 
         val result: GBFSSystemInformationApiModel = GBFSParser.gson.fromJson(string)
 
@@ -187,34 +187,34 @@ class GBFSv22ApiTests {
     @Test
     fun test_vehicle_types_json_parsing() {
         val string = "{\n" +
-                "  \"last_updated\": 1609866247,\n" +
-                "  \"ttl\": 0,\n" +
-                "  \"version\": \"2.2\",\n" +
-                "  \"data\": {\n" +
-                "    \"vehicle_types\": [\n" +
-                "      {\n" +
-                "        \"vehicle_type_id\": \"abc123\",\n" +
-                "        \"form_factor\": \"bicycle\",\n" +
-                "        \"propulsion_type\": \"human\",\n" +
-                "        \"name\": \"Example Basic Bike\"\n" +
-                "      },\n" +
-                "      {\n" +
-                "        \"vehicle_type_id\": \"def456\",\n" +
-                "        \"form_factor\": \"scooter\",\n" +
-                "        \"propulsion_type\": \"electric\",\n" +
-                "        \"name\": \"Example E-scooter V2\",\n" +
-                "        \"max_range_meters\": 12345\n" +
-                "      },\n" +
-                "      {\n" +
-                "        \"vehicle_type_id\": \"car1\",\n" +
-                "        \"form_factor\": \"car\",\n" +
-                "        \"propulsion_type\": \"combustion\",\n" +
-                "        \"name\": \"Foor-door Sedan\",\n" +
-                "        \"max_range_meters\": 523992\n" +
-                "      }\n" +
-                "    ]\n" +
-                "  }\n" +
-                "}"
+            "  \"last_updated\": 1609866247,\n" +
+            "  \"ttl\": 0,\n" +
+            "  \"version\": \"2.2\",\n" +
+            "  \"data\": {\n" +
+            "    \"vehicle_types\": [\n" +
+            "      {\n" +
+            "        \"vehicle_type_id\": \"abc123\",\n" +
+            "        \"form_factor\": \"bicycle\",\n" +
+            "        \"propulsion_type\": \"human\",\n" +
+            "        \"name\": \"Example Basic Bike\"\n" +
+            "      },\n" +
+            "      {\n" +
+            "        \"vehicle_type_id\": \"def456\",\n" +
+            "        \"form_factor\": \"scooter\",\n" +
+            "        \"propulsion_type\": \"electric\",\n" +
+            "        \"name\": \"Example E-scooter V2\",\n" +
+            "        \"max_range_meters\": 12345\n" +
+            "      },\n" +
+            "      {\n" +
+            "        \"vehicle_type_id\": \"car1\",\n" +
+            "        \"form_factor\": \"car\",\n" +
+            "        \"propulsion_type\": \"combustion\",\n" +
+            "        \"name\": \"Foor-door Sedan\",\n" +
+            "        \"max_range_meters\": 523992\n" +
+            "      }\n" +
+            "    ]\n" +
+            "  }\n" +
+            "}"
 
         val result: GBFSVehicleTypesApiModel = GBFSParser.gson.fromJson(string)
 
@@ -254,24 +254,24 @@ class GBFSv22ApiTests {
     @Test
     fun test_station_information_json_parsing_physical_station() {
         val string = "{\n" +
-                "  \"last_updated\": 1609866247,\n" +
-                "  \"ttl\": 0,\n" +
-                "  \"version\": \"2.2\",\n" +
-                "  \"data\": {\n" +
-                "    \"stations\": [\n" +
-                "      {\n" +
-                "        \"station_id\": \"pga\",\n" +
-                "        \"name\": \"Parking garage A\",\n" +
-                "        \"lat\": 12.345678,\n" +
-                "        \"lon\": 45.678901,\n" +
-                "        \"vehicle_type_capacity\": {\n" +
-                "          \"abc123\": 7,\n" +
-                "          \"def456\": 9\n" +
-                "        }\n" +
-                "      }\n" +
-                "    ]\n" +
-                "  }\n" +
-                "}"
+            "  \"last_updated\": 1609866247,\n" +
+            "  \"ttl\": 0,\n" +
+            "  \"version\": \"2.2\",\n" +
+            "  \"data\": {\n" +
+            "    \"stations\": [\n" +
+            "      {\n" +
+            "        \"station_id\": \"pga\",\n" +
+            "        \"name\": \"Parking garage A\",\n" +
+            "        \"lat\": 12.345678,\n" +
+            "        \"lon\": 45.678901,\n" +
+            "        \"vehicle_type_capacity\": {\n" +
+            "          \"abc123\": 7,\n" +
+            "          \"def456\": 9\n" +
+            "        }\n" +
+            "      }\n" +
+            "    ]\n" +
+            "  }\n" +
+            "}"
 
         val result: GBFSStationInformationApiModel = GBFSParser.gson.fromJson(string)
 
@@ -303,55 +303,55 @@ class GBFSv22ApiTests {
     @Test
     fun test_station_information_json_parsing_virtual_station() {
         val string = "{\n" +
-                "  \"last_updated\":1609866247,\n" +
-                "  \"ttl\":0,\n" +
-                "  \"version\":\"2.2\",\n" +
-                "  \"data\":{\n" +
-                "    \"stations\":[\n" +
-                "      {\n" +
-                "        \"station_id\":\"station12\",\n" +
-                "        \"name\":\"SE Belmont & SE 10 th\",\n" +
-                "        \"is_valet_station\":false,\n" +
-                "        \"is_virtual_station\":true,\n" +
-                "        \"station_area\":{\n" +
-                "          \"type\":\"MultiPolygon\",\n" +
-                "          \"coordinates\":[\n" +
-                "            [\n" +
-                "              [\n" +
-                "                [\n" +
-                "                  -122.655775,\n" +
-                "                  45.516445\n" +
-                "                ],\n" +
-                "                [\n" +
-                "                  -122.655705,\n" +
-                "                  45.516445\n" +
-                "                ],\n" +
-                "                [\n" +
-                "                  -122.655705,\n" +
-                "                  45.516495\n" +
-                "                ],\n" +
-                "                [\n" +
-                "                  -122.655775,\n" +
-                "                  45.516495\n" +
-                "                ],\n" +
-                "                [\n" +
-                "                  -122.655775,\n" +
-                "                  45.516445\n" +
-                "                ]\n" +
-                "              ]\n" +
-                "            ]\n" +
-                "          ]\n" +
-                "        },\n" +
-                "        \"capacity\":16,\n" +
-                "        \"vehicle_capacity\":{\n" +
-                "          \"abc123\":8,\n" +
-                "          \"def456\":8,\n" +
-                "          \"ghi789\":16\n" +
-                "        }\n" +
-                "      }\n" +
-                "    ]\n" +
-                "  }\n" +
-                "}"
+            "  \"last_updated\":1609866247,\n" +
+            "  \"ttl\":0,\n" +
+            "  \"version\":\"2.2\",\n" +
+            "  \"data\":{\n" +
+            "    \"stations\":[\n" +
+            "      {\n" +
+            "        \"station_id\":\"station12\",\n" +
+            "        \"name\":\"SE Belmont & SE 10 th\",\n" +
+            "        \"is_valet_station\":false,\n" +
+            "        \"is_virtual_station\":true,\n" +
+            "        \"station_area\":{\n" +
+            "          \"type\":\"MultiPolygon\",\n" +
+            "          \"coordinates\":[\n" +
+            "            [\n" +
+            "              [\n" +
+            "                [\n" +
+            "                  -122.655775,\n" +
+            "                  45.516445\n" +
+            "                ],\n" +
+            "                [\n" +
+            "                  -122.655705,\n" +
+            "                  45.516445\n" +
+            "                ],\n" +
+            "                [\n" +
+            "                  -122.655705,\n" +
+            "                  45.516495\n" +
+            "                ],\n" +
+            "                [\n" +
+            "                  -122.655775,\n" +
+            "                  45.516495\n" +
+            "                ],\n" +
+            "                [\n" +
+            "                  -122.655775,\n" +
+            "                  45.516445\n" +
+            "                ]\n" +
+            "              ]\n" +
+            "            ]\n" +
+            "          ]\n" +
+            "        },\n" +
+            "        \"capacity\":16,\n" +
+            "        \"vehicle_capacity\":{\n" +
+            "          \"abc123\":8,\n" +
+            "          \"def456\":8,\n" +
+            "          \"ghi789\":16\n" +
+            "        }\n" +
+            "      }\n" +
+            "    ]\n" +
+            "  }\n" +
+            "}"
 
         val result: GBFSStationInformationApiModel = GBFSParser.gson.fromJson(string)
 

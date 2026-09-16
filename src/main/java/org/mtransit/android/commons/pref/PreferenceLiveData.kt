@@ -35,5 +35,4 @@ abstract class PreferenceLiveData<T>(
 
     @AnyThread
     abstract fun getPreferencesValue(): T
-
 }

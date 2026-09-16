@@ -16,4 +16,3 @@ fun JSONObject.optBoolean(name: String, fallback: Boolean? = null) =
 
 fun JSONObject.optString(name: String, fallback: String? = null) =
     takeIf { it.has(name) && !it.isNull(name) }?.optString(name) ?: fallback
-

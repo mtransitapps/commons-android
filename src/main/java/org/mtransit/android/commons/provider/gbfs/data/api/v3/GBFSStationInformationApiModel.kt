@@ -99,7 +99,6 @@ data class GBFSStationInformationApiModel(
 
                 @SerializedName("phone")
                 PHONE,
-
             }
 
             @Suppress("unused")

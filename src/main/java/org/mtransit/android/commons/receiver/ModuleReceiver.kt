@@ -19,7 +19,6 @@ import org.mtransit.android.commons.provider.GTFSProvider
 import org.mtransit.android.commons.provider.agency.AgencyProviderContract
 import org.mtransit.commons.FeatureFlags
 
-
 class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
 
     companion object {

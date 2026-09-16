@@ -43,20 +43,20 @@ fun PackageManager.getAppName(context: Context) = getAppName(context.packageName
 
 fun PackageManager.getAppName(pkg: String) = try {
     this.getApplicationLabel(this.getApplicationInfoCompat(pkg, 0))
-} catch (e: PackageManager.NameNotFoundException) {
+} catch (_: PackageManager.NameNotFoundException) {
     null
 }
 
 fun PackageManager.isAppInstalled(pkg: String) = try {
     this.getPackageInfoCompat(pkg, PackageManager.GET_ACTIVITIES)
     true
-} catch (e: PackageManager.NameNotFoundException) {
+} catch (_: PackageManager.NameNotFoundException) {
     false
 }
 
 fun PackageManager.getAppEnabledSetting(pkg: String) = try {
     this.getApplicationEnabledSetting(pkg)
-} catch (e: IllegalArgumentException) {
+} catch (_: IllegalArgumentException) {
     -1 // app does not exist;
 }
 
@@ -68,7 +68,7 @@ fun PackageManager.getAppLongVersionCode(context: Context) = getAppLongVersionCo
 fun PackageManager.getAppLongVersionCode(pkg: String, default: Long = -1L) = try {
     PackageInfoCompat.getLongVersionCode(this.getPackageInfoCompat(pkg, 0))
 } catch (e: PackageManager.NameNotFoundException) {
-    MTLog.d(LOG_TAG, "Pkg '$pkg' not found while reading long version code!")
+    MTLog.d(LOG_TAG, e, "Pkg '$pkg' not found while reading long version code!")
     default
 }
 
@@ -77,14 +77,14 @@ fun PackageManager.getAppVersionName(context: Context) = getAppVersionName(conte
 fun PackageManager.getAppVersionName(pkg: String): String? = try {
     this.getPackageInfoCompat(pkg, 0).versionName
 } catch (e: PackageManager.NameNotFoundException) {
-    MTLog.d(LOG_TAG, "Pkg '$pkg' not found while reading version name!")
+    MTLog.d(LOG_TAG, e, "Pkg '$pkg' not found while reading version name!")
     null
 }
 
 fun PackageManager.getPackageProvidersWithMetaData(pkg: String) = try {
     this.getPackageInfoCompat(pkg, PackageManager.GET_PROVIDERS or PackageManager.GET_META_DATA)
 } catch (e: PackageManager.NameNotFoundException) {
-    MTLog.d(LOG_TAG, "Pkg '$pkg' not found while reading providers metadata!")
+    MTLog.d(LOG_TAG, e, "Pkg '$pkg' not found while reading providers metadata!")
     null
 }
 

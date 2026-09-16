@@ -80,7 +80,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     fun Long.adaptForCachedAPI(context: Context?) =
         if (context?.let { GTFSRealTimeProvider.getAGENCY_TRIP_UPDATES_URL_CACHED(it) }?.isNotBlank() == true) {
             this.coerceAtLeast(1.minutes.inWholeMilliseconds) // fewer calls to Cached API $$
-        } else this
+        } else {
+            this
+        }
 
     @JvmStatic
     fun GTFSRealTimeProvider.getCached(statusFilter: StatusProviderContract.Filter): POIStatus? {
@@ -135,14 +137,19 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             }
         }
         val hasVehicleInfo = optVehicle?.let { it.hasId() || it.hasLabel() || it.hasLicensePlate() } == true
-        val startDateTimeOrFirstTimeMs: Long? = if (hasVehicleInfo) null else
-            (optTrip.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
-                ?: optTrip.optModifiedTrip?.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
-                ?: optStopTimeUpdateList // not sorting because GTFS spec requires it to be already sorted & it's a fallback
-                    ?.firstOrNull { it.optDeparture?.hasTimeOrScheduledTime() == true || it.optArrival?.hasTimeOrScheduledTime() == true }
-                    ?.let {
-                        it.optDeparture?.optTimeOrScheduledTimeMs ?: it.optArrival?.optTimeOrScheduledTimeMs
-                    })
+        val startDateTimeOrFirstTimeMs: Long? = if (hasVehicleInfo) {
+            null
+        } else {
+            (
+                optTrip.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
+                    ?: optTrip.optModifiedTrip?.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
+                    ?: optStopTimeUpdateList // not sorting because GTFS spec requires it to be already sorted & it's a fallback
+                        ?.firstOrNull { it.optDeparture?.hasTimeOrScheduledTime() == true || it.optArrival?.hasTimeOrScheduledTime() == true }
+                        ?.let {
+                            it.optDeparture?.optTimeOrScheduledTimeMs ?: it.optArrival?.optTimeOrScheduledTimeMs
+                        }
+                )
+        }
         startDateTimeOrFirstTimeMs?.let { timeMs ->
             if (nowMs + FUTURE_TRIP_UPDATE_MAX_DIFF_MS < timeMs) {
                 MTLog.d(LOG_TAG, "isUseful() > IGNORE ${((timeMs - nowMs)).toDurationLog()} in the future: ${optTrip.toStringExt(true)}")
@@ -251,7 +258,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             MTLog.i(
                 LOG_TAG,
                 "Using ${rdTripUpdates.size} trip updates for route '${targetRoute.shortestName}' direction '${targetDirection.headsignValue}': " +
-                        "$distinctTripId."
+                    "$distinctTripId."
             )
             if (Constants.DEBUG) {
                 MTLog.d(
@@ -387,7 +394,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             // remove timestamps that are not real-time & outside of min/max date for real-time
             rdsSchedule.timestamps
                 .filterNot {
-                    it.isRealTimeOrCancelled || oldestDateForRealTime < it.arrival && it.departure < maxFutureDateForRealTime
+                    it.isRealTimeOrCancelled || (oldestDateForRealTime < it.arrival && it.departure < maxFutureDateForRealTime)
                 }
                 .forEach { rdsSchedule.removeTimestamp(it) }
             cacheStatus(rdsSchedule)
@@ -421,7 +428,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
     @Synchronized
     private fun GTFSRealTimeProvider.updateAgencyDataIfRequiredSync(context: Context, lastUpdateInMs: Long, inFocus: Boolean) {
-        if (storage.getTripUpdateLastUpdateMs(0L) > lastUpdateInMs) return  // too late, another thread already updated
+        if (storage.getTripUpdateLastUpdateMs(0L) > lastUpdateInMs) return // too late, another thread already updated
         val nowInMs = TimeUtils.currentTimeMillis()
         var deleteAllRequired = false
         if (lastUpdateInMs + statusMaxValidityInMs < nowInMs) {

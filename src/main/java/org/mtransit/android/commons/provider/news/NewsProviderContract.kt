@@ -130,7 +130,9 @@ interface NewsProviderContract : ProviderContract {
         }
     }
 
-    data class Filter @Discouraged("use static methods instead") constructor(
+    data class Filter
+    @Discouraged("use static methods instead")
+    constructor(
         override val cacheOnly: Boolean? = null,
         override val cacheValidityInMs: Long? = null,
         override val inFocus: Boolean? = null,
@@ -197,7 +199,6 @@ interface NewsProviderContract : ProviderContract {
                                     add(jArticleUUIDs.getString(i))
                                 }
                             }
-
                         },
                         targetsUUIDs = json.optJSONArray(JSON_TARGETS_UUIDS)?.takeIf { it.length() > 0 }?.let { jTargetUUIDs ->
                             buildList {

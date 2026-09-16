@@ -131,7 +131,7 @@ class GtfsRealTimeStorage(
     }
 
     @WorkerThread
-    fun getServiceUpdateLanguages(default: Set<String>?) =
+    fun getServiceUpdateLanguages(default: Set<String>?): Set<String?>? =
         prefLcl.getStringSet(PREF_KEY_SERVICE_UPDATE_LANGUAGES, default)
 
     @WorkerThread
@@ -155,5 +155,4 @@ class GtfsRealTimeStorage(
     }
 
     // endregion
-
 }

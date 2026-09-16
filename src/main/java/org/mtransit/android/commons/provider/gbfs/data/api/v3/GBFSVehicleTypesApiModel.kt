@@ -1,7 +1,7 @@
 package org.mtransit.android.commons.provider.gbfs.data.api.v3
 
 import com.google.gson.annotations.SerializedName
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSVehicleTypesApiModel.*
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSCommonApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSCountryCodeApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSDateApiType

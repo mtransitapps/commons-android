@@ -65,7 +65,9 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
     fun Long.adaptForCachedAPI(context: Context?) =
         if (context?.let { GTFSRealTimeProvider.getAGENCY_VEHICLE_POSITIONS_URL_CACHED(it) }?.isNotBlank() == true) {
             this * 2L // fewer calls to Cached API $$
-        } else this
+        } else {
+            this
+        }
 
     private var _tripIdsOutOfSync: Boolean? = null
 
@@ -100,10 +102,13 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
         @Suppress("SimplifyBooleanWithConstants")
         return filter.getTargetUUIDs(this, includeAgencyTag = INCLUDE_AGENCY_TAG && !tripIdsOutOfSync)
             ?.let { targetUUIDs ->
-                val tripIds = if (tripIdsOutOfSync) null
-                else filter.targetAuthority?.let { targetAuthority ->
-                    filter.routeId?.let { routeId ->
-                        getTripIds(targetAuthority, routeId, filter.directionId)
+                val tripIds = if (tripIdsOutOfSync) {
+                    null
+                } else {
+                    filter.targetAuthority?.let { targetAuthority ->
+                        filter.routeId?.let { routeId ->
+                            getTripIds(targetAuthority, routeId, filter.directionId)
+                        }
                     }
                 }
                 targetUUIDs to tripIds?.takeIf { it.isNotEmpty() } // no trip IDS == fallback to primary target UUID only
@@ -146,7 +151,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
 
     @Synchronized
     private fun GTFSRealTimeProvider.updateAgencyDataIfRequiredSync(lastUpdateInMs: Long, inFocus: Boolean) {
-        if (storage.getVehicleLocationLastUpdateMs(0L) > lastUpdateInMs) return  // too late, another thread already updated
+        if (storage.getVehicleLocationLastUpdateMs(0L) > lastUpdateInMs) return // too late, another thread already updated
         val nowInMs = TimeUtils.currentTimeMillis()
         var deleteAllRequired = false
         if (lastUpdateInMs + vehicleLocationMaxValidityInMs < nowInMs) {
@@ -331,8 +336,11 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
             MTLog.d(LOG_TAG, "parseTargetUUID() > unhandled start date & time: ${gTripDescriptor.toStringExt()}")
         }
         when (gTripDescriptor.scheduleRelationship) {
-            GTDScheduleRelationship.SCHEDULED -> {} // handled
-            @Suppress("DEPRECATION")
+            GTDScheduleRelationship.SCHEDULED -> {
+                // handled
+            }
+
+            //noinspection DEPRECATION
             GTDScheduleRelationship.ADDED,
             GTDScheduleRelationship.UNSCHEDULED,
             GTDScheduleRelationship.CANCELED,

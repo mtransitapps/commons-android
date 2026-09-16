@@ -4,7 +4,6 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SqlUtils
-import org.mtransit.android.commons.StringUtils
 import org.mtransit.android.commons.provider.news.NewsProvider.NewsDbHelper
 
 class YouTubeNewsDbHelper(

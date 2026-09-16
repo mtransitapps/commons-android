@@ -18,13 +18,12 @@ data class Trip(
 
         @JvmStatic
         fun fromCursor(c: Cursor) = Trip(
-            tripId = c.getString(GTFSProviderContract.TripColumns.T_TRIP_K_TRIP_ID),
-            routeId = c.getLong(GTFSProviderContract.TripColumns.T_TRIP_K_ROUTE_ID),
-            directionId = c.getLong(GTFSProviderContract.TripColumns.T_TRIP_K_DIRECTION_ID),
-            serviceId = c.getString(GTFSProviderContract.TripColumns.T_TRIP_K_SERVICE_ID),
+            tripId = c.getString(columnName = GTFSProviderContract.TripColumns.T_TRIP_K_TRIP_ID),
+            routeId = c.getLong(columnName = GTFSProviderContract.TripColumns.T_TRIP_K_ROUTE_ID),
+            directionId = c.getLong(columnName = GTFSProviderContract.TripColumns.T_TRIP_K_DIRECTION_ID),
+            serviceId = c.getString(columnName = GTFSProviderContract.TripColumns.T_TRIP_K_SERVICE_ID),
         )
     }
 
     override fun getLogTag() = LOG_TAG
 }
-

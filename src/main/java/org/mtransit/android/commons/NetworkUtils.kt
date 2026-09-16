@@ -13,7 +13,6 @@ import javax.net.ssl.SSLSocketFactory
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 
-
 @Suppress("MemberVisibilityCanBePrivate")
 object NetworkUtils {
 
@@ -35,7 +34,6 @@ object NetworkUtils {
     fun setupDefaultInterceptors(okhttpBuild: OkHttpClient.Builder, context: Context?) = okhttpBuild.apply {
         addInterceptor(getHttpLoggingInterceptor())
         getHttpLoggingInterceptor(context)?.let { addInterceptor(it) }
-
     }
 
     @JvmStatic

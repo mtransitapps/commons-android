@@ -3,8 +3,8 @@ package org.mtransit.android.commons.provider.nextbus
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.annotation.WorkerThread
-import org.mtransit.android.commons.PreferenceUtils
 import androidx.core.content.edit
+import org.mtransit.android.commons.PreferenceUtils
 
 class NextBusStorage(
     context: Context,

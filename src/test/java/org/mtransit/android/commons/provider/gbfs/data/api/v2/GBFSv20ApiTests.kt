@@ -19,36 +19,36 @@ class GBFSv20ApiTests {
     @Test
     fun test_gbfs_json_parsing() {
         val string = "{\n" +
-                "  \"last_updated\": 1434054678,\n" +
-                "  \"ttl\": 0,\n" +
-                "  \"version\": \"2.0\",\n" +
-                "  \"data\": {\n" +
-                "    \"en\": {\n" +
-                "      \"feeds\": [\n" +
-                "        {\n" +
-                "          \"name\": \"system_information\",\n" +
-                "          \"url\": \"https://www.example.com/gbfs/1/en/system_information\"\n" +
-                "        },\n" +
-                "        {\n" +
-                "          \"name\": \"station_information\",\n" +
-                "          \"url\": \"https://www.example.com/gbfs/1/en/station_information\"\n" +
-                "        }\n" +
-                "      ]\n" +
-                "    },\n" +
-                "    \"fr\" : {\n" +
-                "      \"feeds\": [\n" +
-                "        {\n" +
-                "          \"name\": \"system_information\",\n" +
-                "          \"url\": \"https://www.example.com/gbfs/1/fr/system_information\"\n" +
-                "        },\n" +
-                "        {\n" +
-                "          \"name\": \"station_information\",\n" +
-                "          \"url\": \"https://www.example.com/gbfs/1/fr/station_information\"\n" +
-                "        }\n" +
-                "      ]\n" +
-                "    }\n" +
-                "  }\n" +
-                "}"
+            "  \"last_updated\": 1434054678,\n" +
+            "  \"ttl\": 0,\n" +
+            "  \"version\": \"2.0\",\n" +
+            "  \"data\": {\n" +
+            "    \"en\": {\n" +
+            "      \"feeds\": [\n" +
+            "        {\n" +
+            "          \"name\": \"system_information\",\n" +
+            "          \"url\": \"https://www.example.com/gbfs/1/en/system_information\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"name\": \"station_information\",\n" +
+            "          \"url\": \"https://www.example.com/gbfs/1/en/station_information\"\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    },\n" +
+            "    \"fr\" : {\n" +
+            "      \"feeds\": [\n" +
+            "        {\n" +
+            "          \"name\": \"system_information\",\n" +
+            "          \"url\": \"https://www.example.com/gbfs/1/fr/system_information\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"name\": \"station_information\",\n" +
+            "          \"url\": \"https://www.example.com/gbfs/1/fr/station_information\"\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  }\n" +
+            "}"
 
         val result: GBFSGbfsApiModel = GBFSParser.gson.fromJson(string)
 
@@ -96,22 +96,22 @@ class GBFSv20ApiTests {
     @Test
     fun test_gbfs_versions_json_parsing() {
         val string = "{\n" +
-                "  \"last_updated\": 1434054678,\n" +
-                "  \"ttl\": 0,\n" +
-                "  \"version\": \"2.0\",\n" +
-                "  \"data\": {\n" +
-                "    \"versions\": [\n" +
-                "      {\n" +
-                "        \"version\":\"1.0\",\n" +
-                "        \"url\":\"https://www.example.com/gbfs/1/gbfs\"\n" +
-                "      },\n" +
-                "      {\n" +
-                "        \"version\":\"2.0\",\n" +
-                "        \"url\":\"https://www.example.com/gbfs/2/gbfs\"\n" +
-                "      }\n" +
-                "    ]\n" +
-                "  }\n" +
-                "}"
+            "  \"last_updated\": 1434054678,\n" +
+            "  \"ttl\": 0,\n" +
+            "  \"version\": \"2.0\",\n" +
+            "  \"data\": {\n" +
+            "    \"versions\": [\n" +
+            "      {\n" +
+            "        \"version\":\"1.0\",\n" +
+            "        \"url\":\"https://www.example.com/gbfs/1/gbfs\"\n" +
+            "      },\n" +
+            "      {\n" +
+            "        \"version\":\"2.0\",\n" +
+            "        \"url\":\"https://www.example.com/gbfs/2/gbfs\"\n" +
+            "      }\n" +
+            "    ]\n" +
+            "  }\n" +
+            "}"
 
         val result: GBFSGbfsVersionsApiModel = GBFSParser.gson.fromJson(string)
 
@@ -137,25 +137,25 @@ class GBFSv20ApiTests {
     @Test
     fun test_system_information_json_parsing() {
         val string = "{\n" +
-                "  \"last_updated\":1611598155,\n" +
-                "  \"ttl\":1800,\n" +
-                "  \"version\": \"2.0\",\n" +
-                "  \"data\":{\n" +
-                "    \"phone_number\":\"1-800-555-1234\",\n" +
-                "    \"name\":\"Example Ride\",\n" +
-                "    \"operator\":\"Example Sharing, Inc\",\n" +
-                "    \"start_date\":\"2010-06-10\",\n" +
-                "    \"purchase_url\":\"https://www.exampleride.org\",\n" +
-                "    \"timezone\":\"US/Central\",\n" +
-                "    \"license_url\":\"https://exampleride.org/data-license.html\",\n" +
-                "    \"short_name\":\"Example Ride\",\n" +
-                "    \"email\":\"customerservice@exampleride.org\",\n" +
-                "    \"url\":\"http://www.exampleride.org\",\n" +
-                "    \"feed_contact_email\": datafeed@exampleride.org,\n" +
-                "    \"system_id\":\"example_ride\",\n" +
-                "    \"language\":\"en\"\n" +
-                "  }\n" +
-                "}"
+            "  \"last_updated\":1611598155,\n" +
+            "  \"ttl\":1800,\n" +
+            "  \"version\": \"2.0\",\n" +
+            "  \"data\":{\n" +
+            "    \"phone_number\":\"1-800-555-1234\",\n" +
+            "    \"name\":\"Example Ride\",\n" +
+            "    \"operator\":\"Example Sharing, Inc\",\n" +
+            "    \"start_date\":\"2010-06-10\",\n" +
+            "    \"purchase_url\":\"https://www.exampleride.org\",\n" +
+            "    \"timezone\":\"US/Central\",\n" +
+            "    \"license_url\":\"https://exampleride.org/data-license.html\",\n" +
+            "    \"short_name\":\"Example Ride\",\n" +
+            "    \"email\":\"customerservice@exampleride.org\",\n" +
+            "    \"url\":\"http://www.exampleride.org\",\n" +
+            "    \"feed_contact_email\": datafeed@exampleride.org,\n" +
+            "    \"system_id\":\"example_ride\",\n" +
+            "    \"language\":\"en\"\n" +
+            "  }\n" +
+            "}"
 
         val result: GBFSSystemInformationApiModel = GBFSParser.gson.fromJson(string)
 

@@ -19,8 +19,20 @@ object Accessibility {
     @JvmOverloads
     fun decorate(name: String, accessible: Int, before: Boolean = false): String {
         return when (accessible) {
-            POSSIBLE -> if (name.isEmpty()) POSSIBLE_CHAR else if (before) "$POSSIBLE_CHAR $name" else "$name $POSSIBLE_CHAR"
-            NOT_POSSIBLE -> if (name.isEmpty()) NOT_POSSIBLE_CHAR else if (before) "$NOT_POSSIBLE_CHAR $name" else "$name $NOT_POSSIBLE_CHAR"
+            POSSIBLE -> if (name.isEmpty()) {
+                POSSIBLE_CHAR
+            } else if (before) {
+                "$POSSIBLE_CHAR $name"
+            } else {
+                "$name $POSSIBLE_CHAR"
+            }
+            NOT_POSSIBLE -> if (name.isEmpty()) {
+                NOT_POSSIBLE_CHAR
+            } else if (before) {
+                "$NOT_POSSIBLE_CHAR $name"
+            } else {
+                "$name $NOT_POSSIBLE_CHAR"
+            }
             else -> name
         }
     }

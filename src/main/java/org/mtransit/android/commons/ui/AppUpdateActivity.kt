@@ -13,7 +13,8 @@ import org.mtransit.android.commons.BuildConfig
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.R
 
-class AppUpdateActivity : Activity(),
+class AppUpdateActivity :
+    Activity(),
     MTLog.Loggable {
 
     companion object {
@@ -98,7 +99,6 @@ class AppUpdateActivity : Activity(),
                 close()
             }
         }
-
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {

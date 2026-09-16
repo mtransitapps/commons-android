@@ -96,7 +96,9 @@ interface POIProviderContract : ProviderContract {
     }
 
     @Suppress("unused")
-    data class Filter @Discouraged("use static methods instead") constructor(
+    data class Filter
+    @Discouraged("use static methods instead")
+    constructor(
         override val cacheOnly: Boolean? = null,
         override val cacheValidityInMs: Long? = null,
         override val inFocus: Boolean? = null,
@@ -143,8 +145,14 @@ interface POIProviderContract : ProviderContract {
 
             @SuppressLint("DiscouragedApi")
             fun getNewAreaFilter(
-                minLat: Double, maxLat: Double, minLng: Double, maxLng: Double,
-                optLoadedMinLat: Double?, optLoadedMaxLat: Double?, optLoadedMinLng: Double?, optLoadedMaxLng: Double?
+                minLat: Double,
+                maxLat: Double,
+                minLng: Double,
+                maxLng: Double,
+                optLoadedMinLat: Double?,
+                optLoadedMaxLat: Double?,
+                optLoadedMinLng: Double?,
+                optLoadedMaxLng: Double?
             ) = Filter(
                 minLat = minLat, maxLat = maxLat, minLng = minLng, maxLng = maxLng,
                 optLoadedMinLat = optLoadedMinLat, optLoadedMaxLat = optLoadedMaxLat, optLoadedMinLng = optLoadedMinLng, optLoadedMaxLng = optLoadedMaxLng
@@ -289,6 +297,7 @@ interface POIProviderContract : ProviderContract {
                         lng = json.getDouble(JSON_LNG)
                         aroundDiff = json.getDouble(JSON_AROUND_DIFF)
                     } catch (jsone: JSONException) {
+                        MTLog.d(LOG_TAG, jsone, "Error while parsing lat/lng/around from JSON object '$json'")
                         lat = null
                         lng = null
                         aroundDiff = null
@@ -303,6 +312,7 @@ interface POIProviderContract : ProviderContract {
                         optLoadedMinLng = json.optDouble(JSON_OPT_LOADED_MIN_LNG, null)
                         optLoadedMaxLng = json.optDouble(JSON_OPT_LOADED_MAX_LNG, null)
                     } catch (jsone: JSONException) {
+                        MTLog.d(LOG_TAG, jsone, "Error while parsing min/max lat/lng from JSON object '$json'")
                         minLat = null
                         maxLat = null
                         minLng = null
@@ -354,10 +364,10 @@ interface POIProviderContract : ProviderContract {
                         },
                     ).takeIf {
                         (it.lat != null && it.lng != null && it.aroundDiff != null)
-                                || (it.minLat != null && it.maxLat != null && it.minLng != null && it.maxLng != null)
-                                || (it.uuids?.isNotEmpty() == true)
-                                || (it.searchKeywords?.isNotEmpty() == true)
-                                || (it.sqlSelection != null)
+                            || (it.minLat != null && it.maxLat != null && it.minLng != null && it.maxLng != null)
+                            || (it.uuids?.isNotEmpty() == true)
+                            || (it.searchKeywords?.isNotEmpty() == true)
+                            || (it.sqlSelection != null)
                     }
                 } catch (jsone: JSONException) {
                     MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '$json'")
@@ -476,8 +486,10 @@ interface POIProviderContract : ProviderContract {
         }
 
         fun getSqlSelection(
-            uuidTableColumn: String, latTableColumn: String,
-            lngTableColumn: String, searchableLikeColumns: Array<String>,
+            uuidTableColumn: String,
+            latTableColumn: String,
+            lngTableColumn: String,
+            searchableLikeColumns: Array<String>,
             searchableEqualColumns: Array<String>
         ): String? {
             if (isAreaFilter(this) && this.lat != null && this.lng != null && this.aroundDiff != null) {

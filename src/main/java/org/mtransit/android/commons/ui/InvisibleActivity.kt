@@ -8,7 +8,8 @@ import org.mtransit.android.commons.BuildConfig
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.R
 
-class InvisibleActivity : Activity(),
+class InvisibleActivity :
+    Activity(),
     MTLog.Loggable {
 
     companion object {

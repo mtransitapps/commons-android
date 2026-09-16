@@ -74,7 +74,7 @@ class GTFSRealTimeVehiclePositionsProviderTest {
         val getCachedVehicleLocations: (targetUUIDs: Collection<String>, tripIds: Set<String>?) -> List<VehicleLocation>? = { targetUUIDs, tripIds ->
             cachedVehicleLocation.filter { vehicleLocation ->
                 targetUUIDs.contains(vehicleLocation.targetUUID)
-                        && vehicleLocation.targetTripId?.let { tripIds?.contains(it) } != false // ignore if target tripID or local trip ID null
+                    && vehicleLocation.targetTripId?.let { tripIds?.contains(it) } != false // ignore if target tripID or local trip ID null
             }.map { it.copy() }
         }
         gtfsRealTimeProvider.getCached(
