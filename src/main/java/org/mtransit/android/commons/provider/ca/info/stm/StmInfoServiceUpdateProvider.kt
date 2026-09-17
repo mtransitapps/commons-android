@@ -48,13 +48,13 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
 
     @JvmStatic
     fun StmInfoApiProvider.getCached(filter: ServiceUpdateProviderContract.Filter): ServiceUpdates? {
-        return (
+        val targetUUIDs =
             (filter.poi as? RouteDirectionStop)?.getTargetUUIDs(includeStopTags = true)
                 ?: filter.routeDirection?.getTargetUUIDs()
                 ?: filter.route?.getTargetUUIDs()
-            )?.let { targetUUIDs ->
-                getCached(targetUUIDs)
-            }
+        return targetUUIDs?.let { targetUUIDs ->
+            getCached(targetUUIDs)
+        }
     }
 
     fun StmInfoApiProvider.getCached(targetUUIDs: Map<String, String>) = buildServiceUpdates {
@@ -261,21 +261,15 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
             val targetUUIDs: Set<String> = buildSet {
                 routeShortNames.forEach { routeShortName ->
                     if (stopIds.isEmpty()) {
-                        (
-                            getAgencyRouteDirectionTagTargetUUID(routeShortName, directionId)
-                                ?: getAgencyRouteTagTargetUUID(routeShortName)
-                            ).let {
-                                add(it)
-                            }
-                    } else {
-                        stopIds.forEach { stopId ->
-                            (
-                                getAgencyRouteDirectionStopTagTargetUUID(routeShortName, directionId, stopId)
-                                    ?: getAgencyRouteStopTagTargetUUID(routeShortName, stopId)
-                                ).let {
-                                    add(it)
-                                }
-                        }
+                        val uuid = getAgencyRouteDirectionTagTargetUUID(routeShortName, directionId)
+                            ?: getAgencyRouteTagTargetUUID(routeShortName)
+                        add(uuid)
+                        return@forEach
+                    }
+                    stopIds.forEach { stopId ->
+                        val uuid = getAgencyRouteDirectionStopTagTargetUUID(routeShortName, directionId, stopId)
+                            ?: getAgencyRouteStopTagTargetUUID(routeShortName, stopId)
+                        add(uuid)
                     }
                 }
             }
