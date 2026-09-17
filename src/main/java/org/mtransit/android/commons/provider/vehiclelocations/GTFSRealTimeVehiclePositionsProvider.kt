@@ -340,7 +340,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                 // handled
             }
 
-            //noinspection DEPRECATION
+            @Suppress("DEPRECATION")
             GTDScheduleRelationship.ADDED,
             GTDScheduleRelationship.UNSCHEDULED,
             GTDScheduleRelationship.CANCELED,
