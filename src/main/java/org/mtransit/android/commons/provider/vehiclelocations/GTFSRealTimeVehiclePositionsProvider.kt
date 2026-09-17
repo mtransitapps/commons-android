@@ -335,12 +335,10 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
         if (gTripDescriptor.hasStartTime() || gTripDescriptor.hasStartDate()) {
             MTLog.d(LOG_TAG, "parseTargetUUID() > unhandled start date & time: ${gTripDescriptor.toStringExt()}")
         }
+        @Suppress("DEPRECATION")
         when (gTripDescriptor.scheduleRelationship) {
-            GTDScheduleRelationship.SCHEDULED -> {
-                // handled
-            }
+            GTDScheduleRelationship.SCHEDULED -> { } // handled
 
-            @Suppress("DEPRECATION")
             GTDScheduleRelationship.ADDED,
             GTDScheduleRelationship.UNSCHEDULED,
             GTDScheduleRelationship.CANCELED,

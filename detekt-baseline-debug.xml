@@ -95,7 +95,6 @@
     <ID>ImplicitDefaultLocale:GTFSProviderDBHelperUtils.kt:GTFSProviderDBHelperUtils$String.format(sqlInsert, line)</ID>
     <ID>ImplicitDefaultLocale:InstagramNewsProvider.kt:InstagramNewsProvider$String.format(MENTION_AND_SCREEN_NAME, user.username ?: username)</ID>
     <ID>ImplicitDefaultLocale:YouTubeNewsProvider.kt:YouTubeNewsProvider$YOUTUBE_VIDEO_LINK_AND_VIDEO_ID.format(videoId)</ID>
-    <ID>Indentation:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$ </ID>
     <ID>InjectDispatcher:AgencyProviderDeployWorker.kt:AgencyProviderDeployWorker$IO</ID>
     <ID>LongMethod:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: Boolean</ID>
     <ID>LongMethod:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData: POIStatus?</ID>
@@ -217,9 +216,6 @@
     <ID>TooManyFunctions:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider : Loggable</ID>
     <ID>TooManyFunctions:TwitterNewsProvider.kt:TwitterNewsProvider : NewsProvider</ID>
     <ID>TooManyFunctions:YouTubeNewsProvider.kt:YouTubeNewsProvider : NewsProvider</ID>
-    <ID>UnnecessarySafeCall:ServiceUpdateProviderContract.kt:ServiceUpdateProviderContract.Filter.Companion$authority?.let { authority -&gt; json.optJSONObject(JSON_ROUTE)?.let { Route.fromJSON(it, authority) } }</ID>
-    <ID>UnnecessarySafeCall:ServiceUpdateProviderContract.kt:ServiceUpdateProviderContract.Filter.Companion$authority?.let { authority -&gt; json.optJSONObject(JSON_ROUTE_DIRECTION)?.let { RouteDirection.fromJSON(it, authority) } }</ID>
-    <ID>UnnecessarySafeCall:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$( (filter.poi as? RouteDirectionStop)?.getTargetUUIDs(includeStopTags = true) ?: filter.routeDirection?.getTargetUUIDs() ?: filter.route?.getTargetUUIDs() )?.let { targetUUIDs -&gt; getCached(targetUUIDs) }</ID>
     <ID>UnreachableCode:AppUpdateLauncher.kt:AppUpdateLauncher$intent.resolveActivity(context.packageManager) != null</ID>
     <ID>UnreachableCode:GTFSRealTimeProviderExt.kt:parseAgencyId(it)</ID>
     <ID>UnreachableCode:GTFSRealTimeProviderExt.kt:parseTripId(it)</ID>
