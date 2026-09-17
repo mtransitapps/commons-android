@@ -26,6 +26,7 @@ object Accessibility {
             } else {
                 "$name $POSSIBLE_CHAR"
             }
+
             NOT_POSSIBLE -> if (name.isEmpty()) {
                 NOT_POSSIBLE_CHAR
             } else if (before) {
@@ -33,6 +34,7 @@ object Accessibility {
             } else {
                 "$name $NOT_POSSIBLE_CHAR"
             }
+
             else -> name
         }
     }

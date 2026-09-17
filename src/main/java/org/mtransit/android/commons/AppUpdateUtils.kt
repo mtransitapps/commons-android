@@ -139,8 +139,7 @@ object AppUpdateUtils : MTLog.Loggable {
             broadcastUpdateAvailable(lastAvailableVersionCode, currentVersionCode, newAvailableVersionCode, context)
             return // USE DEBUG FORCE UPDATE++
         }
-        getAppUpdateManager(context).appUpdateInfo.addOnCompleteListener { task ->
-            // ASYNC
+        getAppUpdateManager(context).appUpdateInfo.addOnCompleteListener { task -> // ASYNC
             if (!task.isSuccessful) {
                 if (BuildConfig.DEBUG) {
                     MTLog.d(this, task.exception, "App update info did NOT complete successfully!")

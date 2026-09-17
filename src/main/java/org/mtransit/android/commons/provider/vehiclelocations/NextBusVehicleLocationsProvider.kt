@@ -30,15 +30,14 @@ import kotlin.time.Instant
 object NextBusVehicleLocationsProvider {
 
     @JvmStatic
-    fun NextBusProvider.getCached(filter: VehicleLocationProviderContract.Filter): List<VehicleLocation>? =
-        (
-            filter.rds?.getTargetUUIDs(this)
-                ?: filter.routeDirection?.getTargetUUIDs(this)
-                ?: filter.route?.getTargetUUIDs(this)
-            )
-            ?.let { targetUUIDs ->
-                getCached(targetUUIDs, tripIds = null) // NO GTFS trip.id information available
-            }
+    fun NextBusProvider.getCached(filter: VehicleLocationProviderContract.Filter): List<VehicleLocation>? {
+        val targetUUIDs = filter.rds?.getTargetUUIDs(this)
+            ?: filter.routeDirection?.getTargetUUIDs(this)
+            ?: filter.route?.getTargetUUIDs(this)
+        return targetUUIDs?.let { targetUUIDs ->
+            getCached(targetUUIDs, tripIds = null) // NO GTFS trip.id information available
+        }
+    }
 
     private fun RouteDirectionStop.getTargetUUIDs(provider: NextBusProvider) = buildMap {
         if (!provider.isAppendHeadSignValueToRouteTag) {

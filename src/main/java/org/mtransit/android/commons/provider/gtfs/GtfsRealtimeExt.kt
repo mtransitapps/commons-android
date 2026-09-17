@@ -151,10 +151,8 @@ object GtfsRealtimeExt {
 
     private fun makeAlertComparator(nowMs: Long) = compareBy<GAlert> { gAlert ->
         val periods = gAlert.periodList
-        (
-            periods?.firstOrNull { it.isActive(nowMs) && it.hasStart() }?.optStartMs
-                ?: periods?.firstOrNull { it.hasStart() }?.optStartMs
-            )
+        periods?.firstOrNull { it.isActive(nowMs) && it.hasStart() }?.optStartMs
+            ?: periods?.firstOrNull { it.hasStart() }?.optStartMs
             ?: Long.MAX_VALUE // no active period == displayed as long as in the feed (probably less important?)
     }
 

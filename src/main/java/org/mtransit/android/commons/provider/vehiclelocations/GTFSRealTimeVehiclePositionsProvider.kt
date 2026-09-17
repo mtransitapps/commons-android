@@ -337,7 +337,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
         }
         @Suppress("DEPRECATION")
         when (gTripDescriptor.scheduleRelationship) {
-            GTDScheduleRelationship.SCHEDULED -> { } // handled
+            GTDScheduleRelationship.SCHEDULED -> {} // handled
 
             GTDScheduleRelationship.ADDED,
             GTDScheduleRelationship.UNSCHEDULED,

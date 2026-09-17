@@ -66,30 +66,10 @@ class GTFSRealTimeTripUpdatesProviderTests {
         assertTrue { stopTimeUpdate { stopSequence = 7 }.isSameStop(makeRDS(stopId = 1234), 7, parseStopId = { it }) }
         assertFalse { stopTimeUpdate { stopSequence = 1 }.isSameStop(makeRDS(stopId = 1234), 7, parseStopId = { it }) }
         // STU - stop ID & stop SEQ
-        assertTrue {
-            stopTimeUpdate {
-                stopId = "1234"
-                stopSequence = 7
-            }.isSameStop(makeRDS(stopId = 1234), 7, parseStopId = { it })
-        }
-        assertFalse {
-            stopTimeUpdate {
-                stopId = "1234"
-                stopSequence = 7
-            }.isSameStop(makeRDS(stopId = 1234), 1, parseStopId = { it })
-        }
-        assertFalse {
-            stopTimeUpdate {
-                stopId = "1234"
-                stopSequence = 7
-            }.isSameStop(makeRDS(stopId = 5678), 7, parseStopId = { it })
-        }
-        assertFalse {
-            stopTimeUpdate {
-                stopId = "1234"
-                stopSequence = 7
-            }.isSameStop(makeRDS(stopId = 5678), 1, parseStopId = { it })
-        }
+        assertTrue { stopTimeUpdate { stopId = "1234"; stopSequence = 7 }.isSameStop(makeRDS(stopId = 1234), 7, parseStopId = { it }) }
+        assertFalse { stopTimeUpdate { stopId = "1234"; stopSequence = 7 }.isSameStop(makeRDS(stopId = 1234), 1, parseStopId = { it }) }
+        assertFalse { stopTimeUpdate { stopId = "1234"; stopSequence = 7 }.isSameStop(makeRDS(stopId = 5678), 7, parseStopId = { it }) }
+        assertFalse { stopTimeUpdate { stopId = "1234"; stopSequence = 7 }.isSameStop(makeRDS(stopId = 5678), 1, parseStopId = { it }) }
     }
 
     // endregion
@@ -697,11 +677,11 @@ class GTFSRealTimeTripUpdatesProviderTests {
             rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt, stopSeq = ++stopSeq)))) }
             rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes, stopSeq = ++stopSeq)))) }
             rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 20.minutes, stopSeq = ++stopSeq)))) }
-            rdsList[3].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 30.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[3].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 30.minutes, stopSeq = ++stopSeq)))) } // repeated
             rdsList[4].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 43.minutes, stopSeq = ++stopSeq, arrival = startsAt + 37.minutes)))) }
             rdsList[5].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 50.minutes, stopSeq = ++stopSeq)))) }
             rdsList[6].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 60.minutes, stopSeq = ++stopSeq)))) }
-            get(rdsList[3].uuid)?.apply {
+            get(rdsList[3].uuid)?.apply { // repeated
                 addTimestampWithoutSort(mkTime(startsAt + 70.minutes, stopSeq = ++stopSeq))
                 sortTimestamps()
             }
@@ -1167,8 +1147,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
             rdsList[4].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 43.minutes, stopSeq = ++stopSeq, arrival = startsAt + 37.minutes)))) }
             rdsList[5].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 50.minutes, stopSeq = ++stopSeq)))) }
             rdsList[6].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 60.minutes, stopSeq = ++stopSeq)))) }
-            get(rdsList[3].uuid)?.apply {
-                // repeated
+            get(rdsList[3].uuid)?.apply { // repeated
                 addTimestampWithoutSort(mkTime(startsAt + 70.minutes, stopSeq = ++stopSeq))
                 sortTimestamps()
             }

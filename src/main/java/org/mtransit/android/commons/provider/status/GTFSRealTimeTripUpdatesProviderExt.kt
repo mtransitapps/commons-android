@@ -96,15 +96,14 @@ internal fun makeTargetUuidAndSequenceList(
     tripSortedRDS: List<RouteDirectionStop>,
 ): List<Pair<String, Int>> {
     if (tripSchedules.any { schedule -> schedule.timestamps.any { it.tripId == tripId && it.stopSequenceOrNull == null } }) {
-        // should not happen if FF is turned ON [org.mtransit.commons.FeatureFlags.F_EXPORT_STOP_SEQUENCE]
+        /** should not happen if FF is turned ON [org.mtransit.commons.FeatureFlags.F_EXPORT_STOP_SEQUENCE] */
         return tripSortedRDS
             .mapIndexed { index, rds ->
                 rds.uuid to index + 1 // generated stop sequence
             }
             .sortedBy { (_, stopSequence) -> stopSequence }
     }
-    return buildSet {
-        // unicity of uuid+sequence
+    return buildSet { // unicity of uuid+sequence
         tripSchedules.forEach { schedule ->
             schedule.getTripTimestamps(tripId).forEach { timestamp ->
                 timestamp.stopSequenceOrNull?.let { stopSequence ->

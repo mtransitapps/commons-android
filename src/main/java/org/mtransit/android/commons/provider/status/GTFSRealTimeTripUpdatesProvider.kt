@@ -140,15 +140,13 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         val startDateTimeOrFirstTimeMs: Long? = if (hasVehicleInfo) {
             null
         } else {
-            (
-                optTrip.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
-                    ?: optTrip.optModifiedTrip?.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
-                    ?: optStopTimeUpdateList // not sorting because GTFS spec requires it to be already sorted & it's a fallback
-                        ?.firstOrNull { it.optDeparture?.hasTimeOrScheduledTime() == true || it.optArrival?.hasTimeOrScheduledTime() == true }
-                        ?.let {
-                            it.optDeparture?.optTimeOrScheduledTimeMs ?: it.optArrival?.optTimeOrScheduledTimeMs
-                        }
-                )
+            optTrip.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
+                ?: optTrip.optModifiedTrip?.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
+                ?: optStopTimeUpdateList // not sorting because GTFS spec requires it to be already sorted & it's a fallback
+                    ?.firstOrNull { it.optDeparture?.hasTimeOrScheduledTime() == true || it.optArrival?.hasTimeOrScheduledTime() == true }
+                    ?.let {
+                        it.optDeparture?.optTimeOrScheduledTimeMs ?: it.optArrival?.optTimeOrScheduledTimeMs
+                    }
         }
         startDateTimeOrFirstTimeMs?.let { timeMs ->
             if (nowMs + FUTURE_TRIP_UPDATE_MAX_DIFF_MS < timeMs) {
