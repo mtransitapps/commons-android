@@ -37,13 +37,19 @@ class TwitterDateAdapter :
         // ISO 8601 notation
         @SuppressLint("ObsoleteSdkInt")
         private val DATE_TIME_FORMAT_MILLISECOND: String =
-            if (CommonsApp.isAndroid == false || Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) "yyyy-MM-dd'T'HH:mm:ss.SSSX" else
+            if (CommonsApp.isAndroid == false || Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                "yyyy-MM-dd'T'HH:mm:ss.SSSX"
+            } else {
                 "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ" // 'X' only supported API Level 24+ #ISO_8601
+            }
 
         @SuppressLint("ObsoleteSdkInt")
         private val DATE_TIME_FORMAT: String =
-            if (CommonsApp.isAndroid == false || Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) "yyyy-MM-dd'T'HH:mm:ssXXX" else
+            if (CommonsApp.isAndroid == false || Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                "yyyy-MM-dd'T'HH:mm:ssXXX"
+            } else {
                 "yyyy-MM-dd'T'HH:mm:ssZZZZZ" // 'X' only supported API Level 24+ #ISO_8601
+            }
 
         private val DATE_TIME_FORMATTERS = listOf(
             DATE_TIME_FORMAT_MILLISECOND,

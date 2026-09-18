@@ -121,7 +121,8 @@ data class GBFSVehicleTypesApiModel( // (added in v2.1)
             }
 
             @Suppress("unused")
-            enum class GBFSReturnConstraintApiModel { // (added in v2.3)
+            enum class GBFSReturnConstraintApiModel {
+                // (added in v2.3)
                 @SerializedName("free_floating")
                 FREE_FLOATING,
 

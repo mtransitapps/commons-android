@@ -6,7 +6,7 @@ import java.util.Locale
 
 object NewsTextFormatter {
 
-    private const val TITLE_USE_H= true
+    private const val TITLE_USE_H = true
 
     @JvmStatic
     fun formatHTMLTitle(title: String): String {

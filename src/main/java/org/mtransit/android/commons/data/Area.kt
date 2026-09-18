@@ -128,7 +128,9 @@ data class Area(
         fun isInside(lat: Double, lng: Double, area: Area?): Boolean {
             return if (area == null) {
                 false
-            } else isInside(lat, lng, area.minLat, area.maxLat, area.minLng, area.maxLng)
+            } else {
+                isInside(lat, lng, area.minLat, area.maxLat, area.minLng, area.maxLng)
+            }
         }
 
         fun isInside(lat: Double, lng: Double, minLat: Double, maxLat: Double, minLng: Double, maxLng: Double): Boolean {
@@ -198,21 +200,23 @@ data class Area(
         fun fromCursor(cursor: Cursor?): Area? {
             return if (cursor == null) {
                 null
-            } else try {
-                fromCursorNN(cursor)
-            } catch (e: Exception) {
-                MTLog.w(LOG_TAG, e, "Error while reading cursor!")
-                null
+            } else {
+                try {
+                    fromCursorNN(cursor)
+                } catch (e: Exception) {
+                    MTLog.w(LOG_TAG, e, "Error while reading cursor!")
+                    null
+                }
             }
         }
 
         @JvmStatic
         @Throws(IllegalArgumentException::class)
         fun fromCursorNN(cursor: Cursor) = Area(
-            minLat = cursor.getDouble(AgencyProviderContract.AREA_MIN_LAT),
-            maxLat = cursor.getDouble(AgencyProviderContract.AREA_MAX_LAT),
-            minLng = cursor.getDouble(AgencyProviderContract.AREA_MIN_LNG),
-            maxLng = cursor.getDouble(AgencyProviderContract.AREA_MAX_LNG),
+            minLat = cursor.getDouble(columnName = AgencyProviderContract.AREA_MIN_LAT),
+            maxLat = cursor.getDouble(columnName = AgencyProviderContract.AREA_MAX_LAT),
+            minLng = cursor.getDouble(columnName = AgencyProviderContract.AREA_MIN_LNG),
+            maxLng = cursor.getDouble(columnName = AgencyProviderContract.AREA_MAX_LNG),
         )
     }
 }

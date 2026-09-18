@@ -28,13 +28,13 @@ object MtLogExt {
         timeInMs?.let {
             dateTimeFormatter.formatThreadSafe(it)
         }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         "e:$timeInMs!"
     }
 
     fun formatDuration(durationInMs: Long?) = try {
         durationInMs?.let { TimeUtils.formatSimpleDuration(it) }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         "e:$durationInMs!"
     }
 }

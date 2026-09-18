@@ -48,12 +48,13 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
 
     @JvmStatic
     fun StmInfoApiProvider.getCached(filter: ServiceUpdateProviderContract.Filter): ServiceUpdates? {
-        return ((filter.poi as? RouteDirectionStop)?.getTargetUUIDs(includeStopTags = true)
-            ?: filter.routeDirection?.getTargetUUIDs()
-            ?: filter.route?.getTargetUUIDs())
-            ?.let { targetUUIDs ->
-                getCached(targetUUIDs)
-            }
+        val targetUUIDs =
+            (filter.poi as? RouteDirectionStop)?.getTargetUUIDs(includeStopTags = true)
+                ?: filter.routeDirection?.getTargetUUIDs()
+                ?: filter.route?.getTargetUUIDs()
+        return targetUUIDs?.let { targetUUIDs ->
+            getCached(targetUUIDs)
+        }
     }
 
     fun StmInfoApiProvider.getCached(targetUUIDs: Map<String, String>) = buildServiceUpdates {
@@ -90,7 +91,7 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
     @Synchronized
     private fun StmInfoApiProvider.updateAgencyDataIfRequiredSync(lastUpdate: Instant, inFocus: Boolean) {
         val context = requireContextCompat()
-        if (getStorage(context).getServiceUpdateLastUpdate(default = TimeUtilsK.EPOCH_TIME_0) > lastUpdate) return  // too late, another thread already updated
+        if (getStorage(context).getServiceUpdateLastUpdate(default = TimeUtilsK.EPOCH_TIME_0) > lastUpdate) return // too late, another thread already updated
         val now = TimeUtilsK.currentInstant()
         var deleteAllRequired = false
         if (lastUpdate + serviceUpdateMaxValidity < now) {
@@ -205,7 +206,6 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
                     }
                 }
             }
-
         } catch (sslhe: SSLHandshakeException) {
             MTLog.w(this, sslhe, "SSL error!")
             SecurityUtils.logCertPathValidatorException(sslhe)
@@ -261,17 +261,15 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
             val targetUUIDs: Set<String> = buildSet {
                 routeShortNames.forEach { routeShortName ->
                     if (stopIds.isEmpty()) {
-                        (getAgencyRouteDirectionTagTargetUUID(routeShortName, directionId)
-                            ?: getAgencyRouteTagTargetUUID(routeShortName)).let {
-                            add(it)
-                        }
-                    } else {
-                        stopIds.forEach { stopId ->
-                            (getAgencyRouteDirectionStopTagTargetUUID(routeShortName, directionId, stopId)
-                                ?: getAgencyRouteStopTagTargetUUID(routeShortName, stopId)).let {
-                                add(it)
-                            }
-                        }
+                        val uuid = getAgencyRouteDirectionTagTargetUUID(routeShortName, directionId)
+                            ?: getAgencyRouteTagTargetUUID(routeShortName)
+                        add(uuid)
+                        return@forEach
+                    }
+                    stopIds.forEach { stopId ->
+                        val uuid = getAgencyRouteDirectionStopTagTargetUUID(routeShortName, directionId, stopId)
+                            ?: getAgencyRouteStopTagTargetUUID(routeShortName, stopId)
+                        add(uuid)
                     }
                 }
             }
@@ -387,17 +385,14 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
     private fun RouteDirection.getRouteTag() = this.route.shortName
     private fun RouteDirection.getDirectionTag() = this.direction.headsignValue
 
-    private fun RouteDirection.getTargetUUIDs(
-    ): Map<String, String> = buildMap {
+    private fun RouteDirection.getTargetUUIDs(): Map<String, String> = buildMap {
         put(getAgencyRouteTagTargetUUID(getRouteTag()), route.uuid)
         getAgencyRouteDirectionTagTargetUUID(getRouteTag(), getDirectionTag())?.let { put(it, uuid) }
     }
 
     private fun Route.getRouteTag() = this.shortName
 
-    private fun Route.getTargetUUIDs(
-    ): Map<String, String> = buildMap {
+    private fun Route.getTargetUUIDs(): Map<String, String> = buildMap {
         put(getAgencyRouteTagTargetUUID(getRouteTag()), uuid)
     }
 }
-

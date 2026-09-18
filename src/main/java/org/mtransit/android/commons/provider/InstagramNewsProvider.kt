@@ -158,7 +158,7 @@ class InstagramNewsProvider : NewsProvider() {
 
     private fun getDBHelper(context: Context): InstagramNewsDbHelper {
         when (val currentDbHelper: InstagramNewsDbHelper? = _dbHelper) {
-            null -> {  // initialize
+            null -> { // initialize
                 val newDbHelper = getNewDbHelper(context)
                 _dbHelper = newDbHelper
                 _currentDbVersion = currentDbVersion
@@ -265,7 +265,7 @@ class InstagramNewsProvider : NewsProvider() {
         if (lastUpdateInMs > lastLastUpdateInMs // IF new more recent last update DO
             && LocaleUtils.getDefaultLanguage() == lastUpdateLang
         ) {
-            return  // too late, another thread already updated
+            return // too late, another thread already updated
         }
         val nowInMs = TimeUtils.currentTimeMillis()
         var deleteAllRequired = false
@@ -306,7 +306,6 @@ class InstagramNewsProvider : NewsProvider() {
 
     private fun getInstagramApi(context: Context) =
         _instagramApi ?: createInstagramApi(context).also { _instagramApi = it }
-
 
     private fun loadAgencyNewsDataFromWWW(context: Context): ArrayList<News>? {
         try {

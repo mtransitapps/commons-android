@@ -32,7 +32,7 @@ object GTFSDateTimeUtils : MTLog.Loggable {
             val minutesCount = parts.getOrNull(1)?.toIntOrNull()?.takeIf { it in 0..59 } ?: return null
             val secondsCount = parts.getOrNull(2)?.toIntOrNull()?.takeIf { it in 0..59 } ?: return null
             val durationFromStartOfDay = hoursCount.hours + // compat with 24+ hours
-                    minutesCount.minutes + secondsCount.seconds
+                minutesCount.minutes + secondsCount.seconds
 
             val year = cleanedDate.substring(0, 4).toIntOrNull() ?: return null
             val month = cleanedDate.substring(4, 6).toIntOrNull() ?: return null

@@ -26,11 +26,13 @@ interface StatusProviderContract : ProviderContract {
 
         @JvmStatic
         val DEFAULT_STATUS_VALIDITY_IN_MS = 60.seconds.inWholeMilliseconds
+
         @JvmStatic
         val DEFAULT_STATUS_VALIDITY_IN_FOCUS_IN_MS = 30.seconds.inWholeMilliseconds
 
         @JvmStatic
         val DEFAULT_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 30.seconds.inWholeMilliseconds
+
         @JvmStatic
         val DEFAULT_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 15.seconds.inWholeMilliseconds
 
@@ -181,10 +183,10 @@ interface StatusProviderContract : ProviderContract {
 
         override fun toString(): String {
             return Filter::class.java.getSimpleName() + "{" +
-                    "targetUUID='" + targetUUID + '\'' +
-                    ", type=" + type +
-                    ", " + super.toStringParts() +
-                    '}'
+                "targetUUID='" + targetUUID + '\'' +
+                ", type=" + type +
+                ", " + super.toStringParts() +
+                '}'
         }
     }
 }

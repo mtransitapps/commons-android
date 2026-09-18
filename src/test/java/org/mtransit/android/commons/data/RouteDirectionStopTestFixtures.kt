@@ -71,17 +71,20 @@ fun RouteDirection.getGTFSRTTargetUUID(): String =
     )
 
 fun RouteDirectionStop.getGTFSRTTargetUUID(includeStopTags: Boolean): String =
-    if (!includeStopTags) this.toRouteDirection().getGTFSRTTargetUUID()
-    else GTFSRealTimeProvider.getAgencyRouteDirectionStopTagTargetUUID(
-        authority,
-        route.originalIdHash.toString(),
-        direction.originalDirectionIdOrNull,
-        stop.originalIdHashString
-    ) ?: GTFSRealTimeProvider.getAgencyRouteStopTagTargetUUID(
-        authority,
-        route.originalIdHash.toString(),
-        stop.originalIdHashString
-    ) ?: GTFSRealTimeProvider.getAgencyRouteTagTargetUUID(
-        authority,
-        route.originalIdHash.toString()
-    )
+    if (!includeStopTags) {
+        this.toRouteDirection().getGTFSRTTargetUUID()
+    } else {
+        GTFSRealTimeProvider.getAgencyRouteDirectionStopTagTargetUUID(
+            authority,
+            route.originalIdHash.toString(),
+            direction.originalDirectionIdOrNull,
+            stop.originalIdHashString
+        ) ?: GTFSRealTimeProvider.getAgencyRouteStopTagTargetUUID(
+            authority,
+            route.originalIdHash.toString(),
+            stop.originalIdHashString
+        ) ?: GTFSRealTimeProvider.getAgencyRouteTagTargetUUID(
+            authority,
+            route.originalIdHash.toString()
+        )
+    }

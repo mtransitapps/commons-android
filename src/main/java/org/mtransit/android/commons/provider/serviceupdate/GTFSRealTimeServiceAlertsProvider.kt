@@ -69,10 +69,13 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
         val tripIdsOutOfSync = tripIdsOutOfSync == true
         return filter.getTargetUUIDs(this, includeAgencyTag = true, includeRouteType = true, includeStopTags = true)
             ?.let { targetUUIDs ->
-                val tripIds = if (tripIdsOutOfSync) null
-                else filter.targetAuthority?.let { targetAuthority ->
-                    filter.targetRouteId?.let { targetRouteId ->
-                        getTripIds(targetAuthority, targetRouteId, filter.targetDirectionId)
+                val tripIds = if (tripIdsOutOfSync) {
+                    null
+                } else {
+                    filter.targetAuthority?.let { targetAuthority ->
+                        filter.targetRouteId?.let { targetRouteId ->
+                            getTripIds(targetAuthority, targetRouteId, filter.targetDirectionId)
+                        }
                     }
                 }
                 targetUUIDs to tripIds?.takeIf { it.isNotEmpty() } // trip IDs not required for GTFS Alerts

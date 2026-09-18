@@ -14,7 +14,8 @@ import org.mtransit.android.commons.provider.common.ContentProviderConstants
 import org.mtransit.android.commons.provider.common.MTContentProvider
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 
-abstract class VehicleLocationProvider : MTContentProvider(),
+abstract class VehicleLocationProvider :
+    MTContentProvider(),
     VehicleLocationProviderContract {
 
     companion object {
@@ -144,7 +145,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
             }
         )
 
-        //@formatter:off
+        // @formatter:off
         @Suppress("MaxLineLength")
         @JvmStatic
         private val VEHICLE_LOCATION_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
@@ -153,7 +154,6 @@ abstract class VehicleLocationProvider : MTContentProvider(),
             .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_TARGET_TRIP_ID, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_TRIP_ID)
             .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_LAST_UPDATE, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LAST_UPDATE)
             .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_MAX_VALIDITY_IN_MS, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_MAX_VALIDITY_IN_MS)
-
             .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_VEHICLE_ID, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_ID)
             .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_VEHICLE_LABEL, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_LABEL)
             .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP)
@@ -162,7 +162,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
             .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_BEARING, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_BEARING)
             .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_SPEED, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_SPEED)
             .build()
-        //@formatter:on
+        // @formatter:on
 
         private fun <P : VehicleLocationProviderContract> P.getCachedVehicleLocationsS(
             @Suppress("unused") uri: Uri?,

@@ -33,8 +33,11 @@ class YouTubeDateAdapter : JsonDeserializer<Date?>, MTLog.Loggable {
         // ISO 8601 notation
         @SuppressLint("ObsoleteSdkInt")
         private val DATE_TIME_FORMAT: String =
-            if (CommonsApp.isAndroid == false || Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) "yyyy-MM-dd'T'HH:mm:ssXXX" else
+            if (CommonsApp.isAndroid == false || Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                "yyyy-MM-dd'T'HH:mm:ssXXX"
+            } else {
                 "yyyy-MM-dd'T'HH:mm:ssZZZZZ" // 'X' only supported API Level 24+ #ISO_8601
+            }
 
         private val DATE_TIME_FORMATTER = ThreadSafeDateFormatter(
             SimpleDateFormat(DATE_TIME_FORMAT, Locale.ENGLISH).apply {

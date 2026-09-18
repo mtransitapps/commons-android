@@ -186,8 +186,9 @@ fun GTFSRealTimeProvider.makeRequest(
         return Request.Builder().url(URL(urlCachedString)).build()
     }
     val token = getAGENCY_URL_TOKEN(context) // use local token 1st for new/updated API URL & tokens
-        .takeIf { it.isNotBlank() } ?: this.providedAgencyUrlToken
-    ?: "" // compat w/ API w/o token
+        .takeIf { it.isNotBlank() }
+        ?: this.providedAgencyUrlToken
+        ?: "" // compat w/ API w/o token
     var urlString = getUrlString(token)
     if (isUSE_URL_HASH_SECRET_AND_DATE(context)) {
         getHashSecretAndDate(context)?.let { hash ->

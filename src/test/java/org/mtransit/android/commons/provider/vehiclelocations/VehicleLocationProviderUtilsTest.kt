@@ -22,8 +22,8 @@ class VehicleLocationProviderUtilsTest {
             val destinationLatRad = Math.toRadians(lat2)
 
             val a = sin(dLat / 2).pow(2) +
-                    sin(dLon / 2).pow(2) *
-                    cos(originLatRad) * cos(destinationLatRad)
+                sin(dLon / 2).pow(2) *
+                cos(originLatRad) * cos(destinationLatRad)
 
             val c = 2 * atan2(sqrt(a), sqrt(1 - a))
 

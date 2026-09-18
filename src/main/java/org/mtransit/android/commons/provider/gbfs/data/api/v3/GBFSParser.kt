@@ -11,5 +11,4 @@ object GBFSParser {
             .registerTypeAdapter(Date::class.java, GBFSDateAdapter())
             .create()
     }
-
 }

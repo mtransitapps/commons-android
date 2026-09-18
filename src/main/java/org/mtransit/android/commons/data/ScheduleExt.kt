@@ -212,6 +212,7 @@ fun Schedule.Timestamp.updateArrivalForRealTime(newArrival: Instant) {
 
 @Suppress("unused")
 val Schedule.hasRealTime get() = this.timestamps.any { it.isRealTime }
+
 @Suppress("unused")
 val Schedule.hasRealTimeOrCancelled get() = this.timestamps.any { it.isRealTimeOrCancelled }
 

@@ -38,5 +38,4 @@ class GTFSDateTimeUtilsTest {
             assertNull(result)
         }
     }
-
 }

@@ -9,5 +9,4 @@ object GBFSParser {
         GsonBuilder()
             .create()
     }
-
 }

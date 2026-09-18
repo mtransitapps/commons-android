@@ -3,6 +3,7 @@ package org.mtransit.android.commons
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import com.google.android.play.core.appupdate.AppUpdateInfo
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
@@ -18,7 +19,6 @@ import org.mtransit.android.commons.provider.GTFSProvider
 import org.mtransit.android.commons.receiver.DataChange
 import org.mtransit.commons.StringUtils
 import java.util.concurrent.TimeUnit
-import androidx.core.content.edit
 
 object AppUpdateUtils : MTLog.Loggable {
 
@@ -122,7 +122,7 @@ object AppUpdateUtils : MTLog.Loggable {
         val lastCheckInMs = getLastCheckInMs(context)
         MTLog.d(this, "lastCheckInMs: $lastCheckInMs") // DEBUG
         val shortTimeAgo = TimeUtils.currentTimeMillis() -
-                if (filter?.inFocus == true) MIN_DURATION_BETWEEN_APP_VERSION_CHECK_IN_FOCUS_IN_MS else MIN_DURATION_BETWEEN_APP_VERSION_CHECK_IN_MS
+            if (filter?.inFocus == true) MIN_DURATION_BETWEEN_APP_VERSION_CHECK_IN_FOCUS_IN_MS else MIN_DURATION_BETWEEN_APP_VERSION_CHECK_IN_MS
         MTLog.d(this, "shortTimeAgo: $shortTimeAgo") // DEBUG
         if (filter?.forceRefresh != true // not force refresh
             && lastAvailableVersionCode > 0 // last = valid
@@ -246,7 +246,7 @@ object AppUpdateUtils : MTLog.Loggable {
 
     fun AppUpdateInfo.canInstallAppUpdate(): Boolean {
         return this.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
-                && this.isFlexibleUpdateAllowed
+            && this.isFlexibleUpdateAllowed
     }
 
     fun startAppUpdate(activity: Activity, appUpdateInfo: AppUpdateInfo) {

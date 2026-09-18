@@ -158,13 +158,13 @@ data class ScheduleStatusFilter(
 
     override fun toString(): String {
         return ScheduleStatusFilter::class.java.getSimpleName() + "{" +
-                super.toString() +
-                ", rds=" + routeDirectionStop +
-                ", lookBehindInMs=" + lookBehindInMs +
-                ", minUsefulDurationCoveredInMs=" + minUsefulDurationCoveredInMs +
-                ", minUsefulResults=" + minUsefulResults +
-                ", maxDataRequests=" + maxDataRequests +
-                ", includeCancelledTimestamps=" + includeCancelledTimestamps +
-                '}'
+            super.toString() +
+            ", rds=" + routeDirectionStop +
+            ", lookBehindInMs=" + lookBehindInMs +
+            ", minUsefulDurationCoveredInMs=" + minUsefulDurationCoveredInMs +
+            ", minUsefulResults=" + minUsefulResults +
+            ", maxDataRequests=" + maxDataRequests +
+            ", includeCancelledTimestamps=" + includeCancelledTimestamps +
+            '}'
     }
 }

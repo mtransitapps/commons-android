@@ -22,7 +22,7 @@ interface TwitterV2Api {
         @Query("tweet.fields") tweetFields: String? = null
     ): Call<TwitterUserResponse>
 
-     // https://docs.x.com/x-api/users/get-posts
+    // https://docs.x.com/x-api/users/get-posts
     @GET("2/users/{id}/tweets")
     fun getUsersIdTweets(
         @Header("Authorization") authorization: String? = null,

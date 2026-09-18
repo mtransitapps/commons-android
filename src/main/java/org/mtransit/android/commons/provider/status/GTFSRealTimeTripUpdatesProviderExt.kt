@@ -1,20 +1,19 @@
 package org.mtransit.android.commons.provider.status
 
 import androidx.annotation.VisibleForTesting
-import com.google.transit.realtime.copy
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.TimeUtilsK
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.arrival
-import org.mtransit.android.commons.data.departureArrivalDiff
 import org.mtransit.android.commons.data.departure
+import org.mtransit.android.commons.data.departureArrivalDiff
 import org.mtransit.android.commons.data.getTripTimestamps
 import org.mtransit.android.commons.data.providerPrecision
-import org.mtransit.android.commons.data.setTripCancelled
-import org.mtransit.android.commons.data.setStopTimeCancelled
-import org.mtransit.android.commons.data.setTripDeleted
 import org.mtransit.android.commons.data.setReadFromSourceAtInMsKeepMostRecent
+import org.mtransit.android.commons.data.setStopTimeCancelled
+import org.mtransit.android.commons.data.setTripCancelled
+import org.mtransit.android.commons.data.setTripDeleted
 import org.mtransit.android.commons.data.updateArrivalForRealTime
 import org.mtransit.android.commons.data.updateDepartureForRealTime
 import org.mtransit.android.commons.data.updateForRealTime
@@ -44,6 +43,7 @@ import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUStopTimeEvent
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship as GTUSTUScheduleRelationship
+import com.google.transit.realtime.copy as copyG
 
 fun GTFSRealTimeProvider.processRDTripUpdates(
     rdTripUpdates: List<Pair<GTripDescriptor, GTripUpdate>>,
@@ -203,7 +203,8 @@ internal fun List<GTUStopTimeUpdate>.fixStopSequence(
             val rdsUuid = tripSortedRDS.firstOrNull { it.stop.isSameOriginalId(parsedWrongStopId) }?.uuid ?: return@let
             sortedTargetUuidAndSequence.singleOrNull { it.uuid == rdsUuid } // stop passed only a SINGLE time per trip
                 ?.let { (_, stopSeq) ->
-                    return@mapNotNull stu.copy { // use STU w fixed stop sequence
+                    return@mapNotNull stu.copyG {
+                        // use STU w fixed stop sequence
                         stopSequence = stopSeq
                     }
                         .also {
@@ -223,7 +224,7 @@ private val Pair<String, Int>.stopSequence get() = this.second
 fun Iterable<Schedule.Timestamp>.findClosestTripTimestamp(tripId: String, filterStopSequence: Int? = null) =
     filter { timestamp ->
         timestamp.tripId == tripId
-                && timestamp.stopSequenceMatch(filterStopSequence)
+            && timestamp.stopSequenceMatch(filterStopSequence)
     }.let { rdsTripTimestamps ->
         if (rdsTripTimestamps.size > 1) {
             val now = TimeUtilsK.currentInstant()
@@ -235,8 +236,8 @@ fun Iterable<Schedule.Timestamp>.findClosestTripTimestamp(tripId: String, filter
 
 private fun Schedule.Timestamp.stopSequenceMatch(filterStopSequence: Int? = null): Boolean =
     this.stopSequenceOrNull == null // should never happen -> FF: ON since March 2026
-            || filterStopSequence == null
-            || this.stopSequenceOrNull == filterStopSequence
+        || filterStopSequence == null
+        || this.stopSequenceOrNull == filterStopSequence
 
 internal fun applyDelaySTU(
     tripId: String,

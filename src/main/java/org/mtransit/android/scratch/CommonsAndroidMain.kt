@@ -1,6 +1,6 @@
 package org.mtransit.android.scratch
 
-object AndroidMain {
+object CommonsAndroidMain {
 
     @JvmStatic
     fun main(args: Array<String>) {

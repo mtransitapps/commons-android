@@ -4,15 +4,13 @@ import com.google.transit.realtime.TripUpdateKt.stopTimeEvent
 import com.google.transit.realtime.TripUpdateKt.stopTimeUpdate
 import com.google.transit.realtime.tripDescriptor
 import com.google.transit.realtime.tripUpdate
-import org.mtransit.android.commons.data.Accessibility
 import org.mtransit.android.commons.data.Direction
 import org.mtransit.android.commons.data.Route
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
-import org.mtransit.android.commons.data.Stop
 import org.mtransit.android.commons.data.arrival
-import org.mtransit.android.commons.data.departureArrivalDiff
 import org.mtransit.android.commons.data.departure
+import org.mtransit.android.commons.data.departureArrivalDiff
 import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.makeStop
 import org.mtransit.android.commons.data.toScheduleTimestamp
@@ -44,7 +42,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
     companion object {
         private const val LOCAL_TZ_ID: String = "America/Montreal"
 
-        private val DEPARTURE = 1772722800L.secsToInstant() // 2026-03-06 10:00:
+        private val DEPARTURE = 1772722800L.secsToInstant() // 2026-03-06 10:00
 
         private const val NOW_IN_MS = 1234567890_000L // Friday, February 13, 2009 at 11:31:30 p.m. UTC
 
@@ -679,11 +677,11 @@ class GTFSRealTimeTripUpdatesProviderTests {
             rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt, stopSeq = ++stopSeq)))) }
             rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes, stopSeq = ++stopSeq)))) }
             rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 20.minutes, stopSeq = ++stopSeq)))) }
-            rdsList[3].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 30.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[3].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 30.minutes, stopSeq = ++stopSeq)))) } // repeated
             rdsList[4].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 43.minutes, stopSeq = ++stopSeq, arrival = startsAt + 37.minutes)))) }
             rdsList[5].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 50.minutes, stopSeq = ++stopSeq)))) }
             rdsList[6].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 60.minutes, stopSeq = ++stopSeq)))) }
-            get(rdsList[3].uuid)?.apply {
+            get(rdsList[3].uuid)?.apply { // repeated
                 addTimestampWithoutSort(mkTime(startsAt + 70.minutes, stopSeq = ++stopSeq))
                 sortTimestamps()
             }
@@ -697,7 +695,6 @@ class GTFSRealTimeTripUpdatesProviderTests {
                 }
             }
         }.sortedBy { (_, stopSequence) -> stopSequence }
-
 
         processRDTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripSchedulesByUUID, isSameStop, READ_FROM_MS)
 

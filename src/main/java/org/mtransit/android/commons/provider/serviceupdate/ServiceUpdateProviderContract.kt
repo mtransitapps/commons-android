@@ -98,7 +98,9 @@ interface ServiceUpdateProviderContract : ProviderContract {
         const val T_SERVICE_UPDATE_K_NO_SERVICE = "no_service"
     }
 
-    data class Filter @Discouraged("use static methods instead") constructor(
+    data class Filter
+    @Discouraged("use static methods instead")
+    constructor(
         override val cacheOnly: Boolean? = null,
         override val cacheValidityInMs: Long? = null,
         override val inFocus: Boolean? = null,

@@ -13,8 +13,9 @@ import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 internal fun List<GTripUpdate>.filterDuplicatesTrips() = buildList<GTripUpdate> {
     this@filterDuplicatesTrips.groupBy {
         it.optTrip?.optTripIdNotEmpty to (
-                (it.optTrip?.optStartDate ?: it.optTrip?.optModifiedTrip?.optStartDate) to
-                        (it.optTrip?.optStartTime ?: it.optTrip?.optModifiedTrip?.optStartTime))
+            (it.optTrip?.optStartDate ?: it.optTrip?.optModifiedTrip?.optStartDate) to
+                (it.optTrip?.optStartTime ?: it.optTrip?.optModifiedTrip?.optStartTime)
+            )
     }.forEach { (_, gTripUpdates) ->
         if (gTripUpdates.isEmpty()) return@forEach
         if (gTripUpdates.size == 1) {

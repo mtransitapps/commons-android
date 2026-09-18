@@ -102,7 +102,9 @@ interface VehicleLocationProviderContract : ProviderContract {
         }
     }
 
-    data class Filter @Discouraged("use secondary constructor() instead") constructor(
+    data class Filter
+    @Discouraged("use secondary constructor() instead")
+    constructor(
         override val cacheOnly: Boolean? = null,
         override val cacheValidityInMs: Long? = null,
         override val inFocus: Boolean? = null,

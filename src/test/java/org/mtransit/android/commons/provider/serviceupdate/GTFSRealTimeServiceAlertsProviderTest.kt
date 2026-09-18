@@ -81,7 +81,7 @@ class GTFSRealTimeServiceAlertsProviderTest {
         val getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: Set<String>?) -> ServiceUpdates? = { targetUUIDs, tripIds ->
             cachedServiceUpdates.filter { serviceUpdate ->
                 targetUUIDs.contains(serviceUpdate.targetUUID)
-                        && serviceUpdate.targetTripId?.let { tripIds?.contains(it) } != false // ignore if target tripID or local trip ID null
+                    && serviceUpdate.targetTripId?.let { tripIds?.contains(it) } != false // ignore if target tripID or local trip ID null
             }.map { it.clone() }
         }
         gtfsRealTimeProvider.getCached(
