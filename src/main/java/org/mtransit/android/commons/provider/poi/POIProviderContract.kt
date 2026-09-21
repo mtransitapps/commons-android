@@ -296,8 +296,7 @@ interface POIProviderContract : ProviderContract {
                         lat = json.getDouble(JSON_LAT)
                         lng = json.getDouble(JSON_LNG)
                         aroundDiff = json.getDouble(JSON_AROUND_DIFF)
-                    } catch (jsone: JSONException) {
-                        MTLog.d(LOG_TAG, jsone, "Error while parsing lat/lng/around from JSON object '$json'")
+                    } catch (_: JSONException) { // expected
                         lat = null
                         lng = null
                         aroundDiff = null
@@ -311,8 +310,7 @@ interface POIProviderContract : ProviderContract {
                         optLoadedMaxLat = json.optDouble(JSON_OPT_LOADED_MAX_LAT, null)
                         optLoadedMinLng = json.optDouble(JSON_OPT_LOADED_MIN_LNG, null)
                         optLoadedMaxLng = json.optDouble(JSON_OPT_LOADED_MAX_LNG, null)
-                    } catch (jsone: JSONException) {
-                        MTLog.d(LOG_TAG, jsone, "Error while parsing min/max lat/lng from JSON object '$json'")
+                    } catch (_: JSONException) { // expected
                         minLat = null
                         maxLat = null
                         minLng = null

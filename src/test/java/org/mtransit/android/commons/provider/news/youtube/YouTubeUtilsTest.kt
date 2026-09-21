@@ -40,6 +40,28 @@ class YouTubeUtilsTest {
     }
 
     @Test
+    fun test_pickChannelIdFromAuthorUrl_with_custom_url2_1() {
+        val authorUrl = "https://www.youtube.com/@STTR-officiel"
+
+        val (username, customUrl, channelId) = YouTubeUtils.pickChannelIdFromAuthorUrl(authorUrl)
+
+        assertNull(username)
+        assertEquals("STTR-officiel", customUrl)
+        assertNull(channelId)
+    }
+
+    @Test
+    fun test_pickChannelIdFromAuthorUrl_with_custom_url2_2() {
+        val authorUrl = "https://www.youtube.com/@STTR-officiel/not?x=1"
+
+        val (username, customUrl, channelId) = YouTubeUtils.pickChannelIdFromAuthorUrl(authorUrl)
+
+        assertNull(username)
+        assertEquals("STTR-officiel", customUrl)
+        assertNull(channelId)
+    }
+
+    @Test
     fun test_pickChannelIdFromAuthorUrl_with_channel_id() {
         val authorUrl = "https://www.youtube.com/channel/UCkMvg3gUin_OWDx1ag6V3sw"
 
