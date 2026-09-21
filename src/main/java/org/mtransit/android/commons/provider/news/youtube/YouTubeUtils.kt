@@ -2,9 +2,9 @@ package org.mtransit.android.commons.provider.news.youtube
 
 object YouTubeUtils {
 
-    private val YOUTUBE_VIDEO_PROFILE_URL_WITH_USERNAME = Regex("^https?://(?:www\\.)?youtube\\.com/user/([A-Za-z0-9._-]+)(?:/.*)?")
-    private val YOUTUBE_VIDEO_PROFILE_URL_WITH_CUSTOM_URL = Regex("^https?://(?:www\\.)?youtube\\.com/(?:c/|@)([A-Za-z0-9._-]+)(?:/.*)?")
-    private val YOUTUBE_VIDEO_PROFILE_URL_WITH_CHANNEL_ID = Regex("^https?://(?:www\\.)?youtube\\.com/channel/([A-Za-z0-9._-]+)(?:/.*)?")
+    private val YOUTUBE_VIDEO_PROFILE_URL_WITH_USERNAME = Regex("^https?://(?:www\\.)?youtube\\.com/user/([A-Za-z0-9._-]+)(?:[/?].*)?$")
+    private val YOUTUBE_VIDEO_PROFILE_URL_WITH_CUSTOM_URL = Regex("^https?://(?:www\\.)?youtube\\.com/(?:c/|@)([A-Za-z0-9._-]+)(?:[/?].*)?$")
+    private val YOUTUBE_VIDEO_PROFILE_URL_WITH_CHANNEL_ID = Regex("^https?://(?:www\\.)?youtube\\.com/channel/([A-Za-z0-9._-]+)(?:[/?].*)?$")
 
     fun pickChannelIdFromAuthorUrl(authorUrl: String?): Triple<String?, String?, String?> {
         if (!authorUrl.isNullOrBlank()) {
