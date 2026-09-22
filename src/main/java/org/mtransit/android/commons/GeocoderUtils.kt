@@ -9,13 +9,13 @@ import kotlinx.coroutines.withContext
 
 object GeocoderUtils {
 
-    private var _geocoder: Geocoder? = null
+    private var geocoder: Geocoder? = null
 
     private fun getGeocoder(context: Context): Geocoder? {
-        if (_geocoder == null && Geocoder.isPresent()) {
-            _geocoder = Geocoder(context)
+        if (geocoder == null && Geocoder.isPresent()) {
+            geocoder = Geocoder(context)
         }
-        return _geocoder
+        return geocoder
     }
 
     suspend fun getLocationAddress(context: Context, location: Location): Address? = withContext(Dispatchers.IO) {
