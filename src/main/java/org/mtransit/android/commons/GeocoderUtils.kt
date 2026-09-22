@@ -7,6 +7,7 @@ import android.location.Location
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+@Suppress("InjectDispatcher")
 object GeocoderUtils {
 
     private var geocoder: Geocoder? = null
