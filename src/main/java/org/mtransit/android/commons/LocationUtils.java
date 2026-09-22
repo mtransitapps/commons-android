@@ -1,13 +1,9 @@
 package org.mtransit.android.commons;
 
-import android.content.Context;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.WorkerThread;
 import androidx.collection.ArrayMap;
 
 import org.mtransit.android.commons.data.Area;
@@ -16,7 +12,6 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -203,29 +198,6 @@ public class LocationUtils implements MTLog.Loggable {
 			return loc2.getProvider() == null;
 		}
 		return loc1.getProvider().equals(loc2.getProvider());
-	}
-
-	@WorkerThread
-	@Nullable
-	public static Address getLocationAddress(@NonNull Context context, @NonNull Location location) {
-		try {
-			if (Geocoder.isPresent()) {
-				final Geocoder geocoder = new Geocoder(context);
-				int maxResults = 1;
-				java.util.List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), maxResults);
-				if (addresses == null || addresses.isEmpty()) {
-					return null; // no address found
-				}
-				return addresses.get(0);
-			}
-		} catch (IOException ioe) {
-			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
-				MTLog.w(LOG_TAG, ioe, "getLocationAddress() > Can't find the address of the current location!");
-			} else {
-				MTLog.w(LOG_TAG, "getLocationAddress() > Can't find the address of the current location!");
-			}
-		}
-		return null;
 	}
 
 	public static double truncAround(@NonNull String loc) {
