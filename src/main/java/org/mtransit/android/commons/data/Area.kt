@@ -126,11 +126,8 @@ data class Area(
         }
 
         fun isInside(lat: Double, lng: Double, area: Area?): Boolean {
-            return if (area == null) {
-                false
-            } else {
-                isInside(lat, lng, area.minLat, area.maxLat, area.minLng, area.maxLng)
-            }
+            area ?: return false
+            return isInside(lat, lng, area.minLat, area.maxLat, area.minLng, area.maxLng)
         }
 
         fun isInside(lat: Double, lng: Double, minLat: Double, maxLat: Double, minLng: Double, maxLng: Double): Boolean {
@@ -138,9 +135,8 @@ data class Area(
         }
 
         fun areOverlapping(area1: Area?, area2: Area?): Boolean {
-            if (area1 == null || area2 == null) {
-                return false // no data to compare
-            }
+            area1 ?: return false // no data to compare
+            area2 ?: return false // no data to compare
             // AREA1 (at least partially) INSIDE AREA2
             if (isInside(area1.minLat, area1.minLng, area2)) {
                 return true // min lat, min lng
@@ -198,15 +194,12 @@ data class Area(
 
         @JvmStatic
         fun fromCursor(cursor: Cursor?): Area? {
-            return if (cursor == null) {
+            cursor ?: return null
+            return try {
+                fromCursorNN(cursor)
+            } catch (e: Exception) {
+                MTLog.w(LOG_TAG, e, "Error while reading cursor!")
                 null
-            } else {
-                try {
-                    fromCursorNN(cursor)
-                } catch (e: Exception) {
-                    MTLog.w(LOG_TAG, e, "Error while reading cursor!")
-                    null
-                }
             }
         }
 

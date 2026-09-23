@@ -63,9 +63,9 @@ public class LocationUtils implements MTLog.Loggable {
 	public static final int MAX_POI_NEARBY_POIS_LIST = 30;
 	// public static final int MAX_POI_NEARBY_POIS_LIST = 0; // DEBUG
 
-	public static final int MIN_NEARBY_LIST_COVERAGE_IN_METERS = 100;
+	public static final float MIN_NEARBY_LIST_COVERAGE_IN_METERS = 100f;
 
-	public static final int MIN_POI_NEARBY_POIS_LIST_COVERAGE_IN_METERS = 100;
+	public static final float MIN_POI_NEARBY_POIS_LIST_COVERAGE_IN_METERS = 100f;
 
 	public static final double EARTH_RADIUS = 6371009;
 
