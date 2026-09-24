@@ -46,26 +46,11 @@ public class LocationUtils implements MTLog.Loggable {
 	public static final int LOCATION_CHANGED_NOTIFY_USER_IN_METERS = 100;
 	// public static final int LOCATION_CHANGED_NOTIFY_USER_IN_METERS = 0; // DEBUG
 
-	public static final double MIN_AROUND_DIFF = 0.01;
-
-	public static final double INC_AROUND_DIFF = 0.01;
-
 	public static final float FEET_PER_M = 3.2808399f;
 
 	public static final float FEET_PER_MILE = 5280;
 
 	public static final float METER_PER_KM = 1000f;
-
-	public static final int MIN_NEARBY_LIST = 10;
-
-	public static final int MAX_NEARBY_LIST = 20;
-
-	public static final int MAX_POI_NEARBY_POIS_LIST = 30;
-	// public static final int MAX_POI_NEARBY_POIS_LIST = 0; // DEBUG
-
-	public static final float MIN_NEARBY_LIST_COVERAGE_IN_METERS = 100f;
-
-	public static final float MIN_POI_NEARBY_POIS_LIST_COVERAGE_IN_METERS = 100f;
 
 	public static final double EARTH_RADIUS = 6371009;
 
@@ -81,11 +66,6 @@ public class LocationUtils implements MTLog.Loggable {
 	public static final double HEADING_EAST = 90.0d;
 	@SuppressWarnings("unused")
 	public static final double HEADING_WEST = -90.0d;
-
-	@NonNull
-	public static AroundDiff getNewDefaultAroundDiff() {
-		return new AroundDiff(LocationUtils.MIN_AROUND_DIFF, LocationUtils.INC_AROUND_DIFF);
-	}
 
 	public LocationUtils() {
 	}
@@ -378,13 +358,6 @@ public class LocationUtils implements MTLog.Loggable {
 		return true; // planet search completed!
 	}
 
-	@NonNull
-	public static AroundDiff incAroundDiff(@NonNull AroundDiff ad) {
-		ad.aroundDiff += ad.incAroundDiff;
-		ad.incAroundDiff *= 2; // warning, might return a huge chunk of data if far away (all POIs or none)
-		return ad;
-	}
-
 	@SuppressWarnings("unused")
 	public static boolean isInside(double lat, double lng, @Nullable Area area) {
 		if (area == null) return false;
@@ -445,45 +418,6 @@ public class LocationUtils implements MTLog.Loggable {
 				sinDistance * cosFromLat * Math.sin(heading),
 				cosDistance - sinFromLat * sinLat);
 		return new double[]{Math.toDegrees(Math.asin(sinLat)), Math.toDegrees(fromLng + dLng)};
-	}
-
-	public static class AroundDiff {
-
-		public double aroundDiff;
-		public double incAroundDiff;
-
-		public AroundDiff(double aroundDiff, double incAroundDiff) {
-			this.aroundDiff = aroundDiff;
-			this.incAroundDiff = incAroundDiff;
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) return true;
-			if (o == null || getClass() != o.getClass()) return false;
-
-			AroundDiff that = (AroundDiff) o;
-
-			if (Double.compare(that.aroundDiff, aroundDiff) != 0) return false;
-			return Double.compare(that.incAroundDiff, incAroundDiff) == 0;
-		}
-
-		@Override
-		public int hashCode() {
-			int result = 0;
-			result = 31 * result + Double.hashCode(aroundDiff);
-			result = 31 * result + Double.hashCode(incAroundDiff);
-			return result;
-		}
-
-		@NonNull
-		@Override
-		public String toString() {
-			return AroundDiff.class.getSimpleName() + '[' +
-					this.aroundDiff + ',' +
-					this.incAroundDiff +
-					']';
-		}
 	}
 
 	public static final POIDistanceComparator POI_DISTANCE_COMPARATOR = new POIDistanceComparator();

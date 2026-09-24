@@ -17,6 +17,9 @@ fun Location.toStringSimple() = buildString {
     append("]")
 }
 
+fun Location.component1(): Double = this.latitude
+fun Location.component2(): Double = this.longitude
+
 fun <POI : LocationPOI> List<POI>.filterTooFar(maxDistanceInMeters: Float): List<POI> {
     return toMutableList().removeTooFar(maxDistanceInMeters)
 }
@@ -32,9 +35,8 @@ fun <POI : LocationPOI> List<POI>.filterTooMuchWhenNotInCoverage(minCoverageInMe
 
 fun <POI : LocationPOI> MutableList<POI>.removeTooMuchWhenNotInCoverage(minCoverageInMeters: Float, maxSize: Int): MutableList<POI> {
     return try {
-        this
-            .sortWithAnd(LocationUtils.POI_DISTANCE_COMPARATOR)
-            .keepFirst(maxSize) { it.distance > minCoverageInMeters }
+        sortWithAnd(LocationUtils.POI_DISTANCE_COMPARATOR)
+        keepFirst(maxSize) { it.distance > minCoverageInMeters }
     } catch (iae: IllegalArgumentException) { // FIXME POI list not immutable (distance can be updated from another thread)
         MTLog.w(this, iae, "Error while looking for closest POIs")
         this
