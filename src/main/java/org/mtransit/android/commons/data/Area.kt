@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.data
 
 import android.database.Cursor
+import androidx.annotation.FloatRange
 import androidx.room.Ignore
 import org.mtransit.android.commons.LocationUtils
 import org.mtransit.android.commons.MTLog
@@ -17,32 +18,38 @@ import kotlin.math.sign
  */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 data class Area(
-    val minLat: Double,
-    val maxLat: Double,
-    val minLng: Double,
-    val maxLng: Double,
+    @FloatRange(from = MIN_LAT, to = MAX_LAT) val minLat: Double,
+    @FloatRange(from = MIN_LAT, to = MAX_LAT) val maxLat: Double,
+    @FloatRange(from = MIN_LNG, to = MAX_LNG) val minLng: Double,
+    @FloatRange(from = MIN_LNG, to = MAX_LNG) val maxLng: Double,
 ) : MTLog.Loggable {
 
     override fun getLogTag() = LOG_TAG
 
     @Ignore
+    @FloatRange(from = MIN_LAT, to = MAX_LAT)
     val northLat = this.maxLat
 
     @Ignore
+    @FloatRange(from = MIN_LAT, to = MAX_LAT)
     val southLat = this.minLat
 
     // FIXME not always: -180...0...+180 (In Pacific Ocean, E of NZ...)
     @Ignore
+    @FloatRange(from = MIN_LNG, to = MAX_LNG)
     val eastLng = this.maxLng
 
     // FIXME not always: -180...0...+180 (In Pacific Ocean, E of NZ...)
     @Ignore
+    @FloatRange(from = MIN_LNG, to = MAX_LNG)
     val westLng = this.minLng
 
     @Ignore
+    @FloatRange(from = MIN_LAT, to = MAX_LAT)
     val centerLat = this.minLat + abs(this.minLat - this.maxLat) / 2.0
 
     @Ignore
+    @FloatRange(from = MIN_LNG, to = MAX_LNG)
     val centerLng = this.minLng + abs(this.minLng - this.maxLng) / 2.0
 
     @Ignore
@@ -91,10 +98,10 @@ data class Area(
 
         private val LOG_TAG: String = Area::class.java.simpleName
 
-        const val MAX_LAT: Double = 90.0
-        const val MIN_LAT: Double = -90.0
-        const val MAX_LNG: Double = 180.0
-        const val MIN_LNG: Double = -180.0
+        const val MAX_LAT = 90.0
+        const val MIN_LAT = -90.0
+        const val MAX_LNG = 180.0
+        const val MIN_LNG = -180.0
 
         @JvmStatic
         val THE_WORLD = Area(MIN_LAT, MAX_LAT, MIN_LNG, MAX_LNG)
