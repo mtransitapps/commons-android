@@ -79,6 +79,8 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		}
 	}
 
+	private static final boolean LOG_NO_CACHE_OR_DATA_FROM_PROVIDER = false;
+
 	private static Cursor getServiceUpdates(ServiceUpdateProviderContract provider, String selection) {
 		final ServiceUpdateProviderContract.Filter serviceUpdateFilter = ServiceUpdateProviderContract.Filter.fromJSONString(selection);
 		if (serviceUpdateFilter == null) {
@@ -143,7 +145,9 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			}
 		}
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			MTLog.d(provider, "getServiceUpdates() > no cache & no data from provider for %s.", serviceUpdateFilter.getTargetUUID());
+			if (LOG_NO_CACHE_OR_DATA_FROM_PROVIDER) {
+				MTLog.d(provider, "getServiceUpdates() > no cache & no data from provider for %s.", serviceUpdateFilter.getTargetUUID());
+			}
 		}
 		return getServiceUpdateCursor(cachedServiceUpdates);
 	}
