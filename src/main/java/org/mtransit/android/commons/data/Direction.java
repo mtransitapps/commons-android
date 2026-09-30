@@ -4,7 +4,6 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.text.TextUtils;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
@@ -17,6 +16,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
+import org.mtransit.commons.TextUtils;
 
 import java.lang.annotation.Retention;
 import java.util.Comparator;
@@ -56,7 +56,8 @@ public class Direction implements Targetable {
 			long id,
 			@HeadSignType int headsignType,
 			@NonNull String headsignValue,
-			long routeId) {
+			long routeId
+	) {
 		this.authority = authority;
 		this.id = id;
 		this.headsignType = headsignType;

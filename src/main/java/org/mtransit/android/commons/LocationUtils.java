@@ -201,7 +201,7 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
-	private static final float MAX_DISTANCE_ON_EARTH_IN_METERS = 40075017f / 2f;
+	protected static final float MAX_DISTANCE_ON_EARTH_IN_METERS = 40075017f / 2f;
 
 	public static float getAroundCoveredDistanceInMeters(double lat, double lng, double aroundDiff) {
 		final Area area = getArea(lat, lng, aroundDiff);
@@ -215,7 +215,7 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	@NonNull
-	private static Area getArea(double lat, double lng, double aroundDiff) {
+	protected static Area getArea(double lat, double lng, double aroundDiff) {
 		double latTrunc = Math.abs(lat);
 		double latBefore = Math.signum(lat) * Double.parseDouble(truncAround(latTrunc - aroundDiff));
 		double latAfter = Math.signum(lat) * Double.parseDouble(truncAround(latTrunc + aroundDiff));
@@ -271,7 +271,7 @@ public class LocationUtils implements MTLog.Loggable {
 
 	@NonNull
 	public static List<SimpleLocationPOI> toSimplePOIListClone(@NonNull Iterable<? extends LocationPOI> locationPOIList) {
-		List<SimpleLocationPOI> result = new ArrayList<>();
+		final List<SimpleLocationPOI> result = new ArrayList<>();
 		for (LocationPOI locationPOI : locationPOIList) {
 			result.add(
 					new SimpleLocationPOI(locationPOI.getPOI())
@@ -333,7 +333,7 @@ public class LocationUtils implements MTLog.Loggable {
 	@SuppressWarnings("unused")
 	public static void removeTooFar(@Nullable List<? extends LocationPOI> pois, float maxDistanceInMeters) {
 		if (pois == null) return;
-		pois.removeIf(poi -> poi.getDistance() > maxDistanceInMeters);
+		pois.removeIf(poi -> maxDistanceInMeters < poi.getDistance());
 	}
 
 	public static boolean searchComplete(double lat, double lng, double aroundDiff) {
@@ -441,9 +441,18 @@ public class LocationUtils implements MTLog.Loggable {
 					}
 				}
 			}
+			final Float ld = LocationUtilsExtKt.getDistanceOrNull(lhs);
+			final Float rd = LocationUtilsExtKt.getDistanceOrNull(rhs);
+			if (ld == null && rd == null) {
+				return ComparatorUtils.SAME;
+			} else if (ld == null) {
+				return ComparatorUtils.AFTER;
+			} else if (rd == null) {
+				return ComparatorUtils.BEFORE;
+			}
 			// FIXME IllegalArgumentException: Comparison method violates its general contract!
 			// FIXME => distance can be updated from another thread
-			return Float.compare(lhs.getDistance(), rhs.getDistance());
+			return Float.compare(ld, rhs.getDistance());
 		}
 	}
 

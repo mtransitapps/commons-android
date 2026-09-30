@@ -19,18 +19,18 @@ public class DefaultPOITests {
 		DefaultPOI thisPOI;
 		DefaultPOI anotherPOI;
 		//
-		thisPOI = new DefaultPOI("authority", -1, -1, -1, -1, -1);
+		thisPOI = new DefaultPOI("authority", -1, -1, -1, -1, -1, 0.0, 0.0);
 		thisPOI.setName("thisPOI");
 		anotherPOI = null;
 		//noinspection ConstantConditions
-		assertTrue(ComparatorUtils.isAfter(thisPOI.compareToAlpha(null, anotherPOI)));
-		anotherPOI = new DefaultPOI("authority", -1, -1, -1, -1, -1);
+		assertTrue(ComparatorUtils.isAfter(thisPOI.compareToAlpha(anotherPOI)));
+		anotherPOI = new DefaultPOI("authority", -1, -1, -1, -1, -1, 0.0, 0.0);
 		anotherPOI.setName("");
-		assertTrue(ComparatorUtils.isAfter(thisPOI.compareToAlpha(null, anotherPOI)));
+		assertTrue(ComparatorUtils.isAfter(thisPOI.compareToAlpha(anotherPOI)));
 		anotherPOI.setName("zzzz");
-		assertTrue(ComparatorUtils.isBefore(thisPOI.compareToAlpha(null, anotherPOI)));
+		assertTrue(ComparatorUtils.isBefore(thisPOI.compareToAlpha(anotherPOI)));
 		thisPOI.setName("aaaa");
 		anotherPOI.setName("ZZZZ");
-		assertTrue(ComparatorUtils.isBefore(thisPOI.compareToAlpha(null, anotherPOI)));
+		assertTrue(ComparatorUtils.isBefore(thisPOI.compareToAlpha(anotherPOI)));
 	}
 }
