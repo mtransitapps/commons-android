@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.UriMatcher
 import android.net.Uri
-import android.text.TextUtils
 import androidx.annotation.IntegerRes
 import androidx.annotation.StringRes
 import androidx.core.content.ContentProviderCompat
@@ -613,7 +612,7 @@ class TwitterNewsProvider : NewsProvider() {
         }
         val textHTML = buildString {
             getHTMLText(tweet, includedExpansions, NewsProviderContract.REMOVE_IMAGE_FROM_TEXT)?.let { append(it) }
-            if (!TextUtils.isEmpty(link)) {
+            if (link.isNotEmpty()) {
                 if (isNotEmpty()) {
                     append(HtmlUtils.BR).append(HtmlUtils.BR)
                 }
@@ -722,7 +721,7 @@ class TwitterNewsProvider : NewsProvider() {
                 lang = Locale.ENGLISH.language
             }
         }
-        if (TextUtils.isEmpty(lang)) {
+        if (lang.isEmpty()) {
             lang = LocaleUtils.UNKNOWN
         }
         return lang
