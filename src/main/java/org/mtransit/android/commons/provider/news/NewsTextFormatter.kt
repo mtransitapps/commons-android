@@ -1,7 +1,7 @@
 package org.mtransit.android.commons.provider.news
 
 import org.mtransit.android.commons.HtmlUtils
-import org.mtransit.commons.StringUtils.Companion.EMPTY
+import org.mtransit.commons.StringUtils.EMPTY
 import java.util.Locale
 
 object NewsTextFormatter {
