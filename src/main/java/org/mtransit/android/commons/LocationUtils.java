@@ -46,9 +46,9 @@ public class LocationUtils implements MTLog.Loggable {
 	public static final int LOCATION_CHANGED_NOTIFY_USER_IN_METERS = 100;
 	// public static final int LOCATION_CHANGED_NOTIFY_USER_IN_METERS = 0; // DEBUG
 
-	public static final float FEET_PER_M = 3.2808399f;
+	public static final float FEET_PER_METER = 3.2808399f;
 
-	public static final float FEET_PER_MILE = 5280;
+	public static final float FEET_PER_MILE = 5280f;
 
 	public static final float METER_PER_KM = 1000f;
 

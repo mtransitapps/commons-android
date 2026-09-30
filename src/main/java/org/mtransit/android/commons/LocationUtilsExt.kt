@@ -77,3 +77,7 @@ fun <POI : LocationPOI> Iterable<POI>.findClosestPOISIdxUuid(): MutableList<Pair
 }
 
 val LocationPOI.distanceOrNull: Float? get() = this.distance.takeIf { it >= 0f }
+
+val Float.milesToFeet: Float get() = this * LocationUtils.FEET_PER_MILE
+val Float.metersToFeet: Float get() = this * LocationUtils.FEET_PER_METER
+val Float.kilometersToMeter: Float get() = this * LocationUtils.METER_PER_KM
