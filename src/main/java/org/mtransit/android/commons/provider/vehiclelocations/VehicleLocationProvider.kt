@@ -40,6 +40,8 @@ abstract class VehicleLocationProvider :
             }
         }
 
+        private const val LOG_NO_CACHE_OR_DATA_FROM_PROVIDER = false
+
         private fun <P : VehicleLocationProviderContract> P.getVehicleLocations(selection: String?): Cursor {
             val filter = VehicleLocationProviderContract.Filter.fromJSONString(selection) ?: run {
                 MTLog.w(this, "Error while parsing vehicle location filter! (%s)", selection)
@@ -99,7 +101,9 @@ abstract class VehicleLocationProvider :
                 }
             }
             if (cachedVehicleLocations.isNullOrEmpty()) {
-                MTLog.d(this, "getVehicleLocations() > no cache & no data from provider for %s.", filter.targetUuid)
+                if (LOG_NO_CACHE_OR_DATA_FROM_PROVIDER) {
+                    MTLog.d(this, "getVehicleLocations() > no cache & no data from provider for %s.", filter.targetUuid)
+                }
             }
             return getVehicleLocationCursor(cachedVehicleLocations)
         }
