@@ -452,7 +452,7 @@ public class LocationUtils implements MTLog.Loggable {
 			}
 			// FIXME IllegalArgumentException: Comparison method violates its general contract!
 			// FIXME => distance can be updated from another thread
-			return return Float.compare(ld, rd);
+			return Float.compare(ld, rd);
 		}
 	}
 
