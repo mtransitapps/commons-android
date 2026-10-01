@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("WeakerAccess")
@@ -428,7 +429,10 @@ public class LocationUtils implements MTLog.Loggable {
 			if (lhs.getPOI() instanceof RouteDirectionStop && rhs.getPOI() instanceof RouteDirectionStop) {
 				final RouteDirectionStop lRDS = (RouteDirectionStop) lhs.getPOI();
 				final RouteDirectionStop rRDS = (RouteDirectionStop) rhs.getPOI();
-				if (lRDS.getStop().getId() == rRDS.getStop().getId()) { // SAME STOP = SAME LOCATION
+				final String lAuthority = lRDS.getAuthority();
+				final String rAuthority = rRDS.getAuthority();
+				if (Objects.equals(lAuthority, rAuthority)
+						&& lRDS.getStop().getId() == rRDS.getStop().getId()) { // SAME STOP = SAME LOCATION
 					if (Route.SHORT_NAME_COMPARATOR.areDifferent(lRDS.getRoute(), rRDS.getRoute())) {
 						if (Route.SHORT_NAME_COMPARATOR.areComparable(lRDS.getRoute(), rRDS.getRoute())) {
 							return Route.SHORT_NAME_COMPARATOR.compare(lRDS.getRoute(), rRDS.getRoute());
@@ -462,7 +466,7 @@ public class LocationUtils implements MTLog.Loggable {
 		private final POI poi;
 		@Nullable
 		private CharSequence distanceString = null;
-		private float distance = -1;
+		private float distance = -1f;
 
 		public SimpleLocationPOI(@NonNull POI poi) {
 			this.poi = poi;

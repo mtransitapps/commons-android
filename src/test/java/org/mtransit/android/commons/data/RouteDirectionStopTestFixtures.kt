@@ -11,7 +11,11 @@ fun makeRDS(
     directionId: Long = originalDirectionId?.let { routeId * 100L + it } ?: (routeId * 100L + 9L),
     stopId: Int = 1,
     stopOriginalIdHash: Int? = stopId.toString().hashCode(), // stopId, // "$stopId".hashCode()
+    stopLat: Double = 1.0,
+    stopLng: Double = 2.0,
     stopTimeZoneId: String? = "UTC",
+    isNoPickup: Boolean = false,
+    alwaysLastTripStop: Boolean = false,
 ) = RouteDirectionStop(
     1,
     Route(
@@ -32,24 +36,31 @@ fun makeRDS(
     ),
     makeStop(
         stopId = stopId,
+        stopLat = stopLat,
+        stopLng = stopLng,
         stopOriginalIdHash = stopOriginalIdHash,
         stopTimeZoneId = stopTimeZoneId,
     ),
-    false,
-    false,
+    isNoPickup,
+    alwaysLastTripStop,
 )
 
 fun makeStop(
     stopId: Int = 1,
+    stopCode: String = "#$stopId",
+    stopName: String = "Stop #$stopId",
+    stopLat: Double = 1.0,
+    stopLng: Double = 2.0,
+    stopAccessibility: Int = Accessibility.DEFAULT,
     stopOriginalIdHash: Int? = stopId.toString().hashCode(), // stopId, // "$stopId".hashCode()
     stopTimeZoneId: String? = "UTC",
 ) = Stop(
     stopId,
-    "#$stopId",
-    "Stop #$stopId",
-    1.0,
-    2.0,
-    Accessibility.DEFAULT,
+    stopCode,
+    stopName,
+    stopLat,
+    stopLng,
+    stopAccessibility,
     stopOriginalIdHash,
     stopTimeZoneId,
 )

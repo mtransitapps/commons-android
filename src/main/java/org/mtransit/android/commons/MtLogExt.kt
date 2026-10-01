@@ -56,7 +56,7 @@ fun Job.logCancellation(logTag: String, jobTag: String?) {
     if (!MTLog.isLoggable(android.util.Log.DEBUG)) return
     invokeOnCompletion {
         if (it is CancellationException) {
-            MTLog.d(logTag, "loadPOIMarkers($jobTag) -- CANCELLED")
+            MTLog.d(logTag, "logCancellation() `$jobTag` job CANCELLED")
         }
     }
 }
