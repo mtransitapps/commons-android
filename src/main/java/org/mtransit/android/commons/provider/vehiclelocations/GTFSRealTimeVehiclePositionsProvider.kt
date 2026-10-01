@@ -41,8 +41,8 @@ import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationPro
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProviderUtils.vehicleNearbyAgencyLocation
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 import org.mtransit.android.commons.secsToInstant
-import org.mtransit.android.toDateTimeLog
-import org.mtransit.android.toDurationLog
+import org.mtransit.android.commons.toDateTimeLog
+import org.mtransit.android.commons.toDurationLog
 import java.io.IOException
 import java.io.InterruptedIOException
 import java.net.HttpURLConnection
