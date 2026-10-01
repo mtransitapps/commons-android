@@ -17,7 +17,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("WeakerAccess")
@@ -426,13 +425,19 @@ public class LocationUtils implements MTLog.Loggable {
 	public static class POIDistanceComparator implements Comparator<LocationPOI> {
 		@Override
 		public int compare(@NonNull LocationPOI lhs, @NonNull LocationPOI rhs) {
+			final Float ld = LocationUtilsExtKt.getDistanceOrNull(lhs);
+			final Float rd = LocationUtilsExtKt.getDistanceOrNull(rhs);
+			if (ld == null && rd == null) {
+				return ComparatorUtils.SAME;
+			} else if (ld == null) {
+				return ComparatorUtils.AFTER;
+			} else if (rd == null) {
+				return ComparatorUtils.BEFORE;
+			}
 			if (lhs.getPOI() instanceof RouteDirectionStop && rhs.getPOI() instanceof RouteDirectionStop) {
-				final RouteDirectionStop lRDS = (RouteDirectionStop) lhs.getPOI();
-				final RouteDirectionStop rRDS = (RouteDirectionStop) rhs.getPOI();
-				final String lAuthority = lRDS.getAuthority();
-				final String rAuthority = rRDS.getAuthority();
-				if (Objects.equals(lAuthority, rAuthority)
-						&& lRDS.getStop().getId() == rRDS.getStop().getId()) { // SAME STOP = SAME LOCATION
+				if (ld.equals(rd)) { // SAME DISTANCE (compare route short name -> direction head-sign
+					final RouteDirectionStop lRDS = (RouteDirectionStop) lhs.getPOI();
+					final RouteDirectionStop rRDS = (RouteDirectionStop) rhs.getPOI();
 					if (Route.SHORT_NAME_COMPARATOR.areDifferent(lRDS.getRoute(), rRDS.getRoute())) {
 						if (Route.SHORT_NAME_COMPARATOR.areComparable(lRDS.getRoute(), rRDS.getRoute())) {
 							return Route.SHORT_NAME_COMPARATOR.compare(lRDS.getRoute(), rRDS.getRoute());
@@ -444,15 +449,6 @@ public class LocationUtils implements MTLog.Loggable {
 						}
 					}
 				}
-			}
-			final Float ld = LocationUtilsExtKt.getDistanceOrNull(lhs);
-			final Float rd = LocationUtilsExtKt.getDistanceOrNull(rhs);
-			if (ld == null && rd == null) {
-				return ComparatorUtils.SAME;
-			} else if (ld == null) {
-				return ComparatorUtils.AFTER;
-			} else if (rd == null) {
-				return ComparatorUtils.BEFORE;
 			}
 			// FIXME IllegalArgumentException: Comparison method violates its general contract!
 			// FIXME => distance can be updated from another thread
