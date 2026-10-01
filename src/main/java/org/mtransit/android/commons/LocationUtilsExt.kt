@@ -61,15 +61,17 @@ fun <POI : LocationPOI> Iterable<POI>.findClosestPOISUuid(): List<String> {
 fun <POI : LocationPOI> Iterable<POI>.findClosestPOISIdxUuid(): MutableList<Pair<Int, String>> {
     val closestPoiUuids = mutableListOf<Pair<Int, String>>()
     try {
-        val simplePOIList = this.toSimplePOIListClone() // need to create a new list to NOT sort the original list
-        simplePOIList.sortWith(LocationUtils.POI_DISTANCE_COMPARATOR) // do NOT sort original list
-        simplePOIList.firstOrNull { it.distanceOrNull != null }?.distanceOrNull?.let { theClosestDistance ->
-            for ((index, poim) in this.withIndex()) { // need to go through the entire original list to get the right indexes
-                if (poim.distance <= theClosestDistance) {
-                    closestPoiUuids.add(index to poim.poi.uuid)
+        this.toSimplePOIListClone() // need to create a new list to NOT sort the original list
+            .sortWithAnd(LocationUtils.POI_DISTANCE_COMPARATOR) // do NOT sort original list
+            .firstOrNull { it.distanceOrNull != null }?.distanceOrNull?.let { theClosestDistance ->
+                for ((index, poim) in this.withIndex()) { // need to go through the entire original list to get the right indexes
+                    poim.distanceOrNull?.let { distance ->
+                        if (distance <= theClosestDistance) {
+                            closestPoiUuids.add(index to poim.poi.uuid)
+                        }
+                    }
                 }
             }
-        }
     } catch (iae: IllegalArgumentException) { // FIXME POI list not immutable (distance can be updated from another thread)
         MTLog.w(this, iae, "Error while looking for closest POIs")
     }
