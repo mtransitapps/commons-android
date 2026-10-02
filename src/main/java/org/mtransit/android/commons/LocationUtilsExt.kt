@@ -8,21 +8,12 @@ import org.mtransit.android.commons.LocationUtils.SimpleLocationPOI
 import org.mtransit.commons.keepFirst
 import org.mtransit.commons.sortWithAnd
 
-fun Location.toStringSimple() = buildString {
-    append("Location[")
-    provider?.let { append("provider: ").append(it).append(", ") }
-    append("lat: ").append(latitude).append(", ")
-    append("lng: ").append(longitude).append(", ")
-    append("acc: ").append(accuracy).append(", ")
-    append("]")
-}
-
 fun <POI : LocationPOI> List<POI>.filterTooFar(maxDistanceInMeters: Float): List<POI> {
     return toMutableList().removeTooFar(maxDistanceInMeters)
 }
 
 fun <POI : LocationPOI> MutableList<POI>.removeTooFar(maxDistanceInMeters: Float): MutableList<POI> {
-    removeAll { it.distance > maxDistanceInMeters }
+    removeAll { maxDistanceInMeters < it.distance }
     return this
 }
 
@@ -32,9 +23,8 @@ fun <POI : LocationPOI> List<POI>.filterTooMuchWhenNotInCoverage(minCoverageInMe
 
 fun <POI : LocationPOI> MutableList<POI>.removeTooMuchWhenNotInCoverage(minCoverageInMeters: Float, maxSize: Int): MutableList<POI> {
     return try {
-        this
-            .sortWithAnd(LocationUtils.POI_DISTANCE_COMPARATOR)
-            .keepFirst(maxSize) { it.distance > minCoverageInMeters }
+        sortWithAnd(LocationUtils.POI_DISTANCE_COMPARATOR)
+        keepFirst(maxSize) { minCoverageInMeters < it.distance }
     } catch (iae: IllegalArgumentException) { // FIXME POI list not immutable (distance can be updated from another thread)
         MTLog.w(this, iae, "Error while looking for closest POIs")
         this
@@ -64,25 +54,28 @@ fun <POI : LocationPOI> Iterable<POI>.toSimplePOIListClone(): MutableList<Simple
     return LocationUtils.toSimplePOIListClone(this)
 }
 
-fun <POI : LocationPOI> Iterable<POI>.findClosestPOISUuid(): List<String> {
-    return this.findClosestPOISIdxUuid().map { it.second }
-}
+fun <POI : LocationPOI> Iterable<POI>.findClosestPOIUuids() = findClosestPOIIdxUuids().map { (_, uuid) -> uuid }
 
-fun <POI : LocationPOI> Iterable<POI>.findClosestPOISIdxUuid(): MutableList<Pair<Int, String>> {
-    val closestPoiUuids = mutableListOf<Pair<Int, String>>()
+fun <POI : LocationPOI> Iterable<POI>.findClosestPOIIdxUuids() = buildList<Pair<Int, String>> {
     try {
-        val simplePOIList = this.toSimplePOIListClone() // need to create a new list to NOT sort the original list
-        simplePOIList.sortWith(LocationUtils.POI_DISTANCE_COMPARATOR) // do NOT sort original list
-        val theClosestDistance = simplePOIList[0].distance
-        if (theClosestDistance > 0) {
-            for ((index, poim) in this.withIndex()) { // need to go through the entire original list to get the right indexes
-                if (poim.distance <= theClosestDistance) {
-                    closestPoiUuids.add(index to poim.poi.uuid)
+        this@findClosestPOIIdxUuids.toSimplePOIListClone() // need to create a new list to NOT sort the original list
+            .sortWithAnd(LocationUtils.POI_DISTANCE_COMPARATOR) // do NOT sort original list
+            .firstOrNull { it.distanceOrNull != null }?.distanceOrNull?.let { theClosestDistance ->
+                for ((index, poim) in this@findClosestPOIIdxUuids.withIndex()) { // need to go through the entire original list to get the right indexes
+                    poim.distanceOrNull?.let { distance ->
+                        if (distance <= theClosestDistance) {
+                            add(index to poim.poi.uuid)
+                        }
+                    }
                 }
             }
-        }
     } catch (iae: IllegalArgumentException) { // FIXME POI list not immutable (distance can be updated from another thread)
         MTLog.w(this, iae, "Error while looking for closest POIs")
     }
-    return closestPoiUuids
 }
+
+val LocationPOI.distanceOrNull: Float? get() = this.distance.takeIf { it >= 0f }
+
+val Float.milesToFeet: Float get() = this * LocationUtils.FEET_PER_MILE
+val Float.metersToFeet: Float get() = this * LocationUtils.FEET_PER_METER
+val Float.kilometersToMeter: Float get() = this * LocationUtils.METER_PER_KM

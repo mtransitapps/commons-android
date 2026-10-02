@@ -1,7 +1,6 @@
 package org.mtransit.android.commons.data;
 
 import android.database.Cursor;
-import android.text.TextUtils;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
@@ -18,6 +17,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 import org.mtransit.commons.GTFSCommons;
+import org.mtransit.commons.TextUtils;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -54,11 +54,12 @@ public class Route implements Targetable, MTLog.Loggable {
 	private final Integer type;
 
 	@VisibleForTesting
-	public Route(@NonNull String authority,
-				 long id,
-				 @NonNull String shortName,
-				 @NonNull String longName,
-				 @NonNull String color
+	public Route(
+			@NonNull String authority,
+			long id,
+			@NonNull String shortName,
+			@NonNull String longName,
+			@NonNull String color
 	) {
 		this(authority, id, shortName, longName, color, GTFSCommons.DEFAULT_ID_HASH, GTFSCommons.DEFAULT_ROUTE_TYPE);
 	}

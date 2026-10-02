@@ -46,9 +46,9 @@ import org.mtransit.android.commons.provider.gtfs.makeRequest
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.gtfs.storage
+import org.mtransit.android.commons.toDateTimeLog
+import org.mtransit.android.commons.toDurationLog
 import org.mtransit.android.commons.toMillis
-import org.mtransit.android.toDateTimeLog
-import org.mtransit.android.toDurationLog
 import org.mtransit.commons.SourceUtils
 import java.io.File
 import java.io.IOException

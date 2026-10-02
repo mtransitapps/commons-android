@@ -4,7 +4,6 @@ import static org.mtransit.android.commons.data.DataSourceTypeId.DataSourceType;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.text.TextUtils;
 
@@ -63,11 +62,7 @@ public interface POI extends Targetable, MTLog.Loggable {
 
 	double getLat();
 
-	void setLat(double lat);
-
 	double getLng();
-
-	void setLng(double lng);
 
 	boolean hasLocation();
 
@@ -108,7 +103,7 @@ public interface POI extends Targetable, MTLog.Loggable {
 	@NonNull
 	POI fromCursor(@NonNull Cursor cursor, @NonNull String authority);
 
-	int compareToAlpha(@Nullable Context contextOrNull, @Nullable POI another);
+	int compareToAlpha(@Nullable POI another);
 
 	class POIUtils implements MTLog.Loggable {
 
