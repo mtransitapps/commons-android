@@ -11,10 +11,6 @@ import kotlin.test.assertEquals
 
 class POIDistanceComparatorTests {
 
-    // @NonNull
-    // 	private LocationPOI makeLocationPOI(int intTag, float distance,
-    // 										@Nullable Long rdsRouteTag, @Nullable Long rdsDirectionTag, @Nullable Integer rdsStopTag) {
-
     @org.junit.Test
     fun testPOIDistanceComparator() {
         val poiList = buildList<LocationPOI> {
