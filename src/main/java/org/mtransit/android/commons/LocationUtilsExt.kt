@@ -54,20 +54,17 @@ fun <POI : LocationPOI> Iterable<POI>.toSimplePOIListClone(): MutableList<Simple
     return LocationUtils.toSimplePOIListClone(this)
 }
 
-fun <POI : LocationPOI> Iterable<POI>.findClosestPOISUuid(): List<String> {
-    return this.findClosestPOISIdxUuid().map { it.second }
-}
+fun <POI : LocationPOI> Iterable<POI>.findClosestPOIUuids() = findClosestPOIIdxUuids().map { (_, uuid) -> uuid }
 
-fun <POI : LocationPOI> Iterable<POI>.findClosestPOISIdxUuid(): MutableList<Pair<Int, String>> {
-    val closestPoiUuids = mutableListOf<Pair<Int, String>>()
+fun <POI : LocationPOI> Iterable<POI>.findClosestPOIIdxUuids() = buildList<Pair<Int, String>> {
     try {
-        this.toSimplePOIListClone() // need to create a new list to NOT sort the original list
+        this@findClosestPOIIdxUuids.toSimplePOIListClone() // need to create a new list to NOT sort the original list
             .sortWithAnd(LocationUtils.POI_DISTANCE_COMPARATOR) // do NOT sort original list
             .firstOrNull { it.distanceOrNull != null }?.distanceOrNull?.let { theClosestDistance ->
-                for ((index, poim) in this.withIndex()) { // need to go through the entire original list to get the right indexes
+                for ((index, poim) in this@findClosestPOIIdxUuids.withIndex()) { // need to go through the entire original list to get the right indexes
                     poim.distanceOrNull?.let { distance ->
                         if (distance <= theClosestDistance) {
-                            closestPoiUuids.add(index to poim.poi.uuid)
+                            add(index to poim.poi.uuid)
                         }
                     }
                 }
@@ -75,7 +72,6 @@ fun <POI : LocationPOI> Iterable<POI>.findClosestPOISIdxUuid(): MutableList<Pair
     } catch (iae: IllegalArgumentException) { // FIXME POI list not immutable (distance can be updated from another thread)
         MTLog.w(this, iae, "Error while looking for closest POIs")
     }
-    return closestPoiUuids
 }
 
 val LocationPOI.distanceOrNull: Float? get() = this.distance.takeIf { it >= 0f }
