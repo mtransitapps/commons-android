@@ -172,7 +172,7 @@
     <ID>ReturnCount:YouTubeDateAdapter.kt:YouTubeDateAdapter$override fun deserialize: Date?</ID>
     <ID>ReturnCount:YouTubeNewsProvider.kt:YouTubeNewsProvider$private fun loadAgencyNewsDataFromWWW: ArrayList&lt;News&gt;?</ID>
     <ID>ReturnCount:YouTubeNewsProvider.kt:YouTubeNewsProvider$private fun loadUserUploadsPlaylist</ID>
-    <ID>ReturnCount:YouTubeUtils.kt:YouTubeUtils$fun pickChannelIdFromAuthorUrl: Triple&lt;String?, String?, String?&gt;</ID>
+    <ID>ReturnCount:YouTubeUtils.kt:YouTubeUtils$fun pickChannelIdFromAuthorUrl: Quadruple&lt;String?, String?, String?, String?&gt;</ID>
     <ID>TooGenericExceptionCaught:AgencyProviderDeployWorker.kt:AgencyProviderDeployWorker$e: Exception</ID>
     <ID>TooGenericExceptionCaught:AppUpdateUtils.kt:AppUpdateUtils.AppUpdateFilter.Companion$e: Exception</ID>
     <ID>TooGenericExceptionCaught:Area.kt:Area.Companion$e: Exception</ID>
