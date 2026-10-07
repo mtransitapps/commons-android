@@ -277,12 +277,12 @@ echo "> Resetting file... DONE"
 echo "> Setting file strings..."
 
 if [[ "$#" -eq 3 ]]; then
-  sed -i "s/MTAgency/$AGENCY_NAME_1/g" $SOURCE;
+  sed -i "s/MTAgency/${AGENCY_NAME_1//\//\\/}/g" $SOURCE;
   checkResult $?
 else
-  sed -i "s/MTAgency1/$AGENCY_NAME_1/g" $SOURCE;
+  sed -i "s/MTAgency1/${AGENCY_NAME_1//\//\\/}/g" $SOURCE;
   checkResult $?
-  sed -i "s/MTAgency2/$AGENCY_NAME_2/g" $SOURCE;
+  sed -i "s/MTAgency2/${AGENCY_NAME_2//\//\\/}/g" $SOURCE;
   checkResult $?
 fi
 sed -i "s/MTCity/$CITY/g" $SOURCE;
