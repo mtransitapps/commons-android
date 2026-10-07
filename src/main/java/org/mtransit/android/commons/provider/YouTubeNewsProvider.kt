@@ -401,7 +401,8 @@ class YouTubeNewsProvider : NewsProvider() {
         i: Int,
         authorUrl: String,
     ) {
-        val (usernameFromAuthorUrl, userHandleFromAuthorUrl, customUrlFromAuthorUrl, channelIdFromAuthorUrl) = YouTubeUtils.pickChannelIdFromAuthorUrl(authorUrl)
+        val (usernameFromAuthorUrl, userHandleFromAuthorUrl, customUrlFromAuthorUrl, channelIdFromAuthorUrl) =
+            YouTubeUtils.pickChannelIdFromAuthorUrl(authorUrl)
         val userLog = usernameFromAuthorUrl ?: userHandleFromAuthorUrl ?: customUrlFromAuthorUrl ?: channelIdFromAuthorUrl ?: authorUrl
         val userLang = _userNamesLang.getOrNull(i) ?: LocaleUtils.UNKNOWN
         if (LocaleUtils.MULTIPLE != userLang
