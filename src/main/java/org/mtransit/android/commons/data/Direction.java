@@ -322,21 +322,21 @@ public class Direction implements Targetable {
 
 		@Override
 		public int compare(@Nullable Direction lhs, @Nullable Direction rhs) {
-			String lHeadsign = lhs == null ? null : lhs.getHeading();
-			String rHeadsign = rhs == null ? null : rhs.getHeading();
+			final String lHeadsign = lhs == null ? null : lhs.getHeading();
+			final String rHeadsign = rhs == null ? null : rhs.getHeading();
 			try {
-				if (lHeadsign == null || rHeadsign == null) {
-					String lHeadsignValue = lhs == null ? StringUtils.EMPTY : lhs.getHeadsignValue();
-					String rHeadsignValue = rhs == null ? StringUtils.EMPTY : rhs.getHeadsignValue();
+				if (lHeadsign == null || rHeadsign == null) { // IF some heading null DO use head-sign value
+					final String lHeadsignValue = lhs == null ? StringUtils.EMPTY : lhs.getHeadsignValue();
+					final String rHeadsignValue = rhs == null ? StringUtils.EMPTY : rhs.getHeadsignValue();
 					return lHeadsignValue.compareTo(rHeadsignValue);
 				}
 				return lHeadsign.compareTo(rHeadsign);
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while sorting directions!");
 			}
-			lHeadsign = lHeadsign == null ? StringUtils.EMPTY : lHeadsign;
-			rHeadsign = rHeadsign == null ? StringUtils.EMPTY : rHeadsign;
-			return lHeadsign.compareTo(rHeadsign);
+			final String lHeadsignNN = lHeadsign == null ? StringUtils.EMPTY : lHeadsign;
+			final String rHeadsignNN = rHeadsign == null ? StringUtils.EMPTY : rHeadsign;
+			return lHeadsignNN.compareTo(rHeadsignNN);
 		}
 	}
 }

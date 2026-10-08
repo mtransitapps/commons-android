@@ -87,7 +87,8 @@ public class RouteDirectionStop extends DefaultPOI {
 				POI.ITEM_STATUS_TYPE_SCHEDULE,
 				POI.ITEM_ACTION_TYPE_ROUTE_DIRECTION_STOP,
 				stop.getLat(),
-				stop.getLng()
+				stop.getLng(),
+				stop.getName()
 		);
 		this.route = route;
 		this.direction = direction;
@@ -205,14 +206,14 @@ public class RouteDirectionStop extends DefaultPOI {
 	@SuppressWarnings("unused")
 	@NonNull
 	public String toStringSimple() {
-		StringBuilder sb = new StringBuilder(); //
+		final StringBuilder sb = new StringBuilder();
 		if (isNoPickup()) {
 			sb.append("noPickup-");
 		}
-		sb.append(getRoute().getShortName()).append('-') //
-				.append(getDirection().getHeadsignValue()).append('>') //
-				.append(getStop().getName()).append(',') //
-				.append('(').append(getAuthority()).append(')'); //
+		sb.append(getRoute().getShortName()).append('-')
+				.append(getDirection().getHeadsignValue()).append('>')
+				.append(getStop().getName()).append(',')
+				.append('(').append(getAuthority()).append(')');
 		return sb.toString();
 	}
 

@@ -58,8 +58,6 @@ public interface POI extends Targetable, MTLog.Loggable {
 	@NonNull
 	String getName();
 
-	void setName(@NonNull String name);
-
 	double getLat();
 
 	double getLng();

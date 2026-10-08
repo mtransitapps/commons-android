@@ -6,7 +6,8 @@ fun makeRDS(
     authority: String = "authority",
     routeId: Long = 1L,
     routeOriginalIdHash: Int? = routeId.toString().hashCode(),
-    routeType: Int = 3,
+    @DataSourceTypeId.DataSourceType type: Int = 3,
+    routeType: Int? = null, // custom route type != agency type
     originalDirectionId: Int? = 1,
     directionId: Long = originalDirectionId?.let { routeId * 100L + it } ?: (routeId * 100L + 9L),
     stopId: Int = 1,
@@ -17,7 +18,7 @@ fun makeRDS(
     isNoPickup: Boolean = false,
     alwaysLastTripStop: Boolean = false,
 ) = RouteDirectionStop(
-    1,
+    type,
     Route(
         authority,
         routeId,

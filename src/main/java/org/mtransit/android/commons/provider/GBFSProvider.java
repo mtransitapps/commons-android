@@ -226,12 +226,10 @@ public class GBFSProvider extends BikeStationProvider {
 					|| jStation.getLon() == null || jStation.getLon() == 0.0d) {
 				return null;
 			}
-			String idString = jStation.getStationId();
-			int bikeStationId = idString == null ? -1 : Integer.parseInt(idString);
-			if (bikeStationId < 0) {
-				return null;
-			}
-			final DefaultPOI newBikeStation = new DefaultPOI(
+			final String idString = jStation.getStationId();
+			final int bikeStationId = idString == null ? -1 : Integer.parseInt(idString);
+			if (bikeStationId < 0) return null;
+			return new DefaultPOI(
 					authority,
 					bikeStationId,
 					dataSourceTypeId,
@@ -239,10 +237,9 @@ public class GBFSProvider extends BikeStationProvider {
 					POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT,
 					POI.ITEM_ACTION_TYPE_FAVORITABLE,
 					jStation.getLat(),
-					jStation.getLon()
+					jStation.getLon(),
+					cleanBikeStationName(jStation.getName())
 			);
-			newBikeStation.setName(cleanBikeStationName(jStation.getName()));
-			return newBikeStation;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing station JSON '%s'!", jStation);
 			return null;
