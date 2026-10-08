@@ -194,8 +194,10 @@ public class GBFSProvider extends BikeStationProvider {
 	}
 
 	@NonNull
-	private HashSet<DefaultPOI> parseAgencyJSONStations(@NonNull Context context,
-														@NonNull List<JStationInformation.JData.JStation> jStations) {
+	private HashSet<DefaultPOI> parseAgencyJSONStations(
+			@NonNull Context context,
+			@NonNull List<JStationInformation.JData.JStation> jStations
+	) {
 		HashSet<DefaultPOI> newBikeStations = new HashSet<>();
 		try {
 			String authority = getAUTHORITY(context);
@@ -224,22 +226,20 @@ public class GBFSProvider extends BikeStationProvider {
 					|| jStation.getLon() == null || jStation.getLon() == 0.0d) {
 				return null;
 			}
-			String idString = jStation.getStationId();
-			int bikeStationId = idString == null ? -1 : Integer.parseInt(idString);
-			if (bikeStationId < 0) {
-				return null;
-			}
-			DefaultPOI newBikeStation = new DefaultPOI(authority,
+			final String idString = jStation.getStationId();
+			final int bikeStationId = idString == null ? -1 : Integer.parseInt(idString);
+			if (bikeStationId < 0) return null;
+			return new DefaultPOI(
+					authority,
 					bikeStationId,
 					dataSourceTypeId,
 					POI.ITEM_VIEW_TYPE_BASIC_POI,
 					POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT,
-					POI.ITEM_ACTION_TYPE_FAVORITABLE
+					POI.ITEM_ACTION_TYPE_FAVORITABLE,
+					jStation.getLat(),
+					jStation.getLon(),
+					cleanBikeStationName(jStation.getName())
 			);
-			newBikeStation.setName(cleanBikeStationName(jStation.getName()));
-			newBikeStation.setLat(jStation.getLat());
-			newBikeStation.setLng(jStation.getLon());
-			return newBikeStation;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing station JSON '%s'!", jStation);
 			return null;

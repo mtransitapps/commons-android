@@ -4,6 +4,7 @@ import com.google.transit.realtime.TripUpdateKt.stopTimeEvent
 import com.google.transit.realtime.TripUpdateKt.stopTimeUpdate
 import com.google.transit.realtime.tripDescriptor
 import com.google.transit.realtime.tripUpdate
+import org.mtransit.android.commons.data.DataSourceTypeId
 import org.mtransit.android.commons.data.Direction
 import org.mtransit.android.commons.data.Route
 import org.mtransit.android.commons.data.RouteDirectionStop
@@ -1273,7 +1274,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
     }
 
     private fun makeRDS(stopId: Int = 1) = RouteDirectionStop(
-        1,
+        DataSourceTypeId.BUS,
         Route(
             "authority",
             1,

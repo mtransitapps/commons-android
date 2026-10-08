@@ -1,9 +1,6 @@
 package org.mtransit.android.commons.data;
 
-import static org.mtransit.commons.Constants.EMPTY;
-
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 
 import androidx.annotation.NonNull;
@@ -37,9 +34,9 @@ public class DefaultPOI implements POI {
 	private final String authority;
 	private final int id;
 	@NonNull
-	private String name = EMPTY;
-	private double lat = 0.0d;
-	private double lng = 0.0d;
+	private final String name;
+	private final double lat;
+	private final double lng;
 	private int accessible = Accessibility.DEFAULT;
 	@ItemViewType
 	private final int type;
@@ -55,13 +52,26 @@ public class DefaultPOI implements POI {
 	/**
 	 * @param id useful to store in DB
 	 */
-	public DefaultPOI(@NonNull String authority, int id, @DataSourceType int dataSourceTypeId, @ItemViewType int type, @ItemStatusType int statusType, @ItemActionType int actionsType) {
+	public DefaultPOI(
+			@NonNull String authority,
+			int id,
+			@DataSourceType int dataSourceTypeId,
+			@ItemViewType int type,
+			@ItemStatusType int statusType,
+			@ItemActionType int actionsType,
+			double lat,
+			double lng,
+			@NonNull String name
+	) {
 		this.authority = authority;
 		this.id = id;
 		this.dataSourceTypeId = dataSourceTypeId;
 		this.type = type;
 		this.statusType = statusType;
 		this.actionsType = actionsType;
+		this.lat = lat;
+		this.lng = lng;
+		this.name = name;
 		resetUUID();
 	}
 
@@ -153,12 +163,10 @@ public class DefaultPOI implements POI {
 	}
 
 	@Override
-	public int compareToAlpha(@Nullable Context contextOrNull, @Nullable POI another) {
-		if (another == null) {
-			return ComparatorUtils.AFTER;
-		}
-		String thisName = Normalizer.normalize(this.getName(), Normalizer.Form.NFD).toLowerCase(Locale.getDefault());
-		String anotherName = Normalizer.normalize(another.getName(), Normalizer.Form.NFD).toLowerCase(Locale.getDefault());
+	public int compareToAlpha(@Nullable POI another) {
+		if (another == null) return ComparatorUtils.AFTER;
+		final String thisName = Normalizer.normalize(this.getName(), Normalizer.Form.NFD).toLowerCase(Locale.getDefault());
+		final String anotherName = Normalizer.normalize(another.getName(), Normalizer.Form.NFD).toLowerCase(Locale.getDefault());
 		return thisName.compareTo(anotherName);
 	}
 
@@ -171,21 +179,6 @@ public class DefaultPOI implements POI {
 	@Override
 	public int getId() {
 		return id;
-	}
-
-	@Override
-	public void setName(@NonNull String name) {
-		this.name = name;
-	}
-
-	@Override
-	public void setLat(double lat) {
-		this.lat = lat;
-	}
-
-	@Override
-	public void setLng(double lng) {
-		this.lng = lng;
 	}
 
 	@NonNull
@@ -283,22 +276,35 @@ public class DefaultPOI implements POI {
 				getDataSourceTypeIdFromCursor(c),
 				c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_TYPE)),
 				c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_STATUS_TYPE)),
-				CursorExtKt.optIntNN(c, POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE, POI.ITEM_ACTION_TYPE_NONE)
+				CursorExtKt.optIntNN(c, POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE, POI.ITEM_ACTION_TYPE_NONE),
+				getLatFromCursor(c),
+				getLngFromCursor(c),
+				getNameFromCursor(c)
 		);
 		fromCursor(c, defaultPOI);
 		return defaultPOI;
 	}
 
 	public static void fromCursor(@NonNull Cursor c, @NonNull DefaultPOI defaultPOI) {
-		defaultPOI.setName(c.getString(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_NAME)));
-		defaultPOI.setLat(c.getDouble(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_LAT)));
-		defaultPOI.setLng(c.getDouble(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_LNG)));
 		defaultPOI.setAccessible(CursorExtKt.optIntNN(c, POIProviderContract.Columns.T_POI_K_ACCESSIBLE, Accessibility.DEFAULT));
 		defaultPOI.setScore(CursorExtKt.optInt(c, POIProviderContract.Columns.T_POI_K_SCORE_META_OPT, null));
 	}
 
 	public static int getIdFromCursor(@NonNull Cursor c) {
 		return c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_ID));
+	}
+
+	public static double getLatFromCursor(@NonNull Cursor c) {
+		return c.getDouble(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_LAT));
+	}
+
+	public static double getLngFromCursor(@NonNull Cursor c) {
+		return c.getDouble(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_LNG));
+	}
+
+	@NonNull
+	public static String getNameFromCursor(@NonNull Cursor c) {
+		return c.getString(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_NAME));
 	}
 
 	@DataSourceType
@@ -348,15 +354,18 @@ public class DefaultPOI implements POI {
 	}
 
 	@Nullable
-	private static POI fromBasicJSONStatic(@NonNull JSONObject json, int type) {
+	private static POI fromBasicJSONStatic(@NonNull JSONObject json, @ItemViewType int type) {
 		try {
 			final DefaultPOI defaultPOI = new DefaultPOI(
-					getAuthorityFromJSON(json), //
-					getIdFromJSON(json), //
-					getDSTypeIdFromJSON(json), //
-					type, //
+					getAuthorityFromJSON(json),
+					getIdFromJSON(json),
+					getDSTypeIdFromJSON(json),
+					type,
 					json.getInt(JSON_STATUS_TYPE),
-					json.optInt(JSON_ACTION_TYPE, -1)
+					json.optInt(JSON_ACTION_TYPE, -1),
+					getLatFromJSON(json),
+					getLngFromJSON(json),
+					getNameFromJSON(json)
 			);
 			fromJSON(json, defaultPOI);
 			return defaultPOI;
@@ -376,7 +385,10 @@ public class DefaultPOI implements POI {
 					getDataSourceTypeId(),
 					json.getInt(JSON_TYPE),
 					json.getInt(JSON_STATUS_TYPE),
-					json.optInt(JSON_ACTION_TYPE, -1)
+					json.optInt(JSON_ACTION_TYPE, -1),
+					getLatFromJSON(json),
+					getLngFromJSON(json),
+					getNameFromJSON(json)
 			);
 			fromJSON(json, defaultPOI);
 			return defaultPOI;
@@ -388,9 +400,9 @@ public class DefaultPOI implements POI {
 
 	private static final String JSON_AUTHORITY = "authority";
 	private static final String JSON_ID = "id";
-	protected static final String JSON_NAME = "name";
-	protected static final String JSON_LAT = "lat";
-	protected static final String JSON_LNG = "lng";
+	private static final String JSON_NAME = "name";
+	private static final String JSON_LAT = "lat";
+	private static final String JSON_LNG = "lng";
 	private static final String JSON_DATA_SOURCE_TYPE_ID = "dst";
 	private static final String JSON_TYPE = "type";
 	private static final String JSON_STATUS_TYPE = "statusType";
@@ -398,9 +410,6 @@ public class DefaultPOI implements POI {
 	private static final String JSON_SCORE_OPT = "scoreOpt";
 
 	public static void fromJSON(@NonNull JSONObject json, @NonNull POI defaultPOI) throws JSONException {
-		defaultPOI.setName(json.getString(JSON_NAME));
-		defaultPOI.setLat(json.getDouble(JSON_LAT));
-		defaultPOI.setLng(json.getDouble(JSON_LNG));
 		if (json.has(JSON_SCORE_OPT)) {
 			defaultPOI.setScore(json.getInt(JSON_SCORE_OPT));
 		}
@@ -420,11 +429,24 @@ public class DefaultPOI implements POI {
 		return json.getInt(JSON_DATA_SOURCE_TYPE_ID);
 	}
 
+	public static double getLatFromJSON(@NonNull JSONObject json) throws JSONException {
+		return json.getDouble(JSON_LAT);
+	}
+
+	public static double getLngFromJSON(@NonNull JSONObject json) throws JSONException {
+		return json.getDouble(JSON_LNG);
+	}
+
+	@NonNull
+	public static String getNameFromJSON(@NonNull JSONObject json) throws JSONException {
+		return json.getString(JSON_NAME);
+	}
+
 	@Nullable
 	@Override
 	public JSONObject toJSON() {
 		try {
-			JSONObject json = new JSONObject();
+			final JSONObject json = new JSONObject();
 			toJSON(this, json);
 			return json;
 		} catch (JSONException jsone) {
