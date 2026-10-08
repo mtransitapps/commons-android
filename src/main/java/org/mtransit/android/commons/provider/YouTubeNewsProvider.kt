@@ -401,8 +401,9 @@ class YouTubeNewsProvider : NewsProvider() {
         i: Int,
         authorUrl: String,
     ) {
-        val (usernameFromAuthorUrl, userHandleFromAuthorUrl, channelIdFromAuthorUrl) = YouTubeUtils.pickChannelIdFromAuthorUrl(authorUrl)
-        val userLog = usernameFromAuthorUrl ?: userHandleFromAuthorUrl ?: channelIdFromAuthorUrl ?: authorUrl
+        val (usernameFromAuthorUrl, userHandleFromAuthorUrl, customUrlFromAuthorUrl, channelIdFromAuthorUrl) =
+            YouTubeUtils.pickChannelIdFromAuthorUrl(authorUrl)
+        val userLog = usernameFromAuthorUrl ?: userHandleFromAuthorUrl ?: customUrlFromAuthorUrl ?: channelIdFromAuthorUrl ?: authorUrl
         val userLang = _userNamesLang.getOrNull(i) ?: LocaleUtils.UNKNOWN
         if (LocaleUtils.MULTIPLE != userLang
             && LocaleUtils.UNKNOWN != userLang
@@ -412,19 +413,27 @@ class YouTubeNewsProvider : NewsProvider() {
             return
         }
         // 1 - load user channel uploads
-        val (id, forUsername, forHandle) = when {
+        val (id, username, handle) = when {
             usernameFromAuthorUrl?.isNotBlank() == true -> Triple(null, usernameFromAuthorUrl, null)
             userHandleFromAuthorUrl?.isNotBlank() == true -> Triple(null, null, userHandleFromAuthorUrl)
             channelIdFromAuthorUrl?.isNotBlank() == true -> Triple(channelIdFromAuthorUrl, null, null)
             _userNames.getOrNull(i)?.isNotBlank() == true -> Triple(null, _userNames[i], null)
             _userNamesHandles.getOrNull(i)?.isNotBlank() == true -> Triple(null, null, _userNamesHandles[i])
             _userNamesChannelsId.getOrNull(i)?.isNotBlank() == true -> Triple(_userNamesChannelsId[i], null, null)
+            customUrlFromAuthorUrl?.isNotBlank() == true -> {
+                MTLog.w(this, "SKIP loading '$userLog': custom URL '$authorUrl' not supported!")
+                return
+            }
             else -> Triple(null, null, null)
+        }
+        if (id == null && username == null && handle == null) {
+            MTLog.w(this, "SKIP loading '$userLog': no channel ID/username/handle found for '$authorUrl'.")
+            return
         }
         val channelListResp = youTubeApi.getChannels(
             part = CHANNEL_PARTS.joinToString(separator = ","),
-            forUsername = forUsername,
-            forHandle = forHandle,
+            forUsername = username,
+            forHandle = handle,
             id = id,
             hl = when {
                 LocaleUtils.isFR() -> Locale.FRENCH.language
