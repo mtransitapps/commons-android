@@ -2,11 +2,11 @@
 
 package org.mtransit.android.commons
 
-import android.location.Location
 import org.mtransit.android.commons.LocationUtils.LocationPOI
 import org.mtransit.android.commons.LocationUtils.SimpleLocationPOI
 import org.mtransit.commons.keepFirst
 import org.mtransit.commons.sortWithAnd
+import android.location.Location as AndroidLocation
 
 fun <POI : LocationPOI> List<POI>.filterTooFar(maxDistanceInMeters: Float): List<POI> {
     return toMutableList().removeTooFar(maxDistanceInMeters)
@@ -45,7 +45,7 @@ fun <POI : LocationPOI> List<POI>.updateDistance(lat: Double, lng: Double): List
     return this
 }
 
-fun <POI : LocationPOI> List<POI>.updateDistance(location: Location?): List<POI> {
+fun <POI : LocationPOI> List<POI>.updateDistance(location: AndroidLocation?): List<POI> {
     LocationUtils.updateDistance(this, location)
     return this
 }

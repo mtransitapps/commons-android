@@ -423,6 +423,11 @@ public class LocationUtils implements MTLog.Loggable {
 	public static final POIDistanceComparator POI_DISTANCE_COMPARATOR = new POIDistanceComparator();
 
 	public static class POIDistanceComparator implements Comparator<LocationPOI> {
+
+		private POIDistanceComparator() {
+			// use POI_DISTANCE_COMPARATOR
+		}
+
 		@Override
 		public int compare(@NonNull LocationPOI lhs, @NonNull LocationPOI rhs) {
 			final Float ld = LocationUtilsExtKt.getDistanceOrNull(lhs);
@@ -434,8 +439,8 @@ public class LocationUtils implements MTLog.Loggable {
 			} else if (rd == null) {
 				return ComparatorUtils.BEFORE;
 			}
-			if (lhs.getPOI() instanceof RouteDirectionStop && rhs.getPOI() instanceof RouteDirectionStop) {
-				if (ld.equals(rd)) { // SAME DISTANCE (compare route short name -> direction head-sign
+			if (ld.equals(rd)) { // SAME DISTANCE: compare route short name -> direction head-sign -> name
+				if (lhs.getPOI() instanceof RouteDirectionStop && rhs.getPOI() instanceof RouteDirectionStop) {
 					final RouteDirectionStop lRDS = (RouteDirectionStop) lhs.getPOI();
 					final RouteDirectionStop rRDS = (RouteDirectionStop) rhs.getPOI();
 					if (Route.SHORT_NAME_COMPARATOR.areDifferent(lRDS.getRoute(), rRDS.getRoute())) {
@@ -449,6 +454,7 @@ public class LocationUtils implements MTLog.Loggable {
 						}
 					}
 				}
+				return lhs.getPOI().compareToAlpha(rhs.getPOI()); // compare name A-Z
 			}
 			// FIXME IllegalArgumentException: Comparison method violates its general contract!
 			// FIXME => distance can be updated from another thread
