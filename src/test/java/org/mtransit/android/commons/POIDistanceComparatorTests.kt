@@ -94,11 +94,11 @@ class POIDistanceComparatorTests {
     @Test
     fun test_POIDistanceComparator_same_distance_RDS_and_Bike() {
         val poiList = buildList<LocationPOI> {
-            add(SimpleLocationPOI(makeBikeStation("authorityFarAway", id = 1, name= "Bike Station A")).apply { distance = 1_000f }) // farthest
+            add(SimpleLocationPOI(makeBikeStation("authorityFarAway", id = 1, name = "Bike Station A")).apply { distance = 1_000f }) // farthest
             add(SimpleLocationPOI(makeRDS(routeId = 10L, stopId = 100, stopName = "Bus Stop 100")).apply { distance = 100f })
-            add(SimpleLocationPOI(makeBikeStation("authority1", id = 2, name= "Bike Station B")).apply { distance = 100f })
+            add(SimpleLocationPOI(makeBikeStation("authority1", id = 2, name = "Bike Station B")).apply { distance = 100f })
             add(SimpleLocationPOI(makeRDS(routeId = 20L, stopId = 200, stopName = "Bus Stop 200")).apply { distance = 100f })
-            add(SimpleLocationPOI(makeBikeStation("authority2", id = 3, name= "Bike Station C")).apply { distance = 100f })
+            add(SimpleLocationPOI(makeBikeStation("authority2", id = 3, name = "Bike Station C")).apply { distance = 100f })
             add(SimpleLocationPOI(makeRDS(routeId = 99L, stopId = 999, stopName = "Bus Stop 999")).apply { distance = 1f }) // closest
         }.shuffled()
 
