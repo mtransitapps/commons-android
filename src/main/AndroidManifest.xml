@@ -42,8 +42,9 @@
         tools:targetApi="${target_sdk_version}">
 
         <!-- SPLASH SCREEN -->
+        <!-- using FQDN to remove build warning "was tagged at AndroidManifest.xml to remove other declarations but no other declaration present" -->
         <activity
-            android:name=".ui.ModuleRedirectActivity"
+            android:name="org.mtransit.android.commons.ui.ModuleRedirectActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:enabled="true"
             android:exported="true"
