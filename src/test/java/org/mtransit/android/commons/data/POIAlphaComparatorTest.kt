@@ -34,16 +34,16 @@ class POIAlphaComparatorTest {
     fun test_compare_mixed_POIs() {
         // route 1 at stop “Zebra” precedes route 2 at “Apple” by route number, “Apple” precedes bike station “Museum” by name
         val poiList = buildList {
-            add(makeRDS("authority1", routeId = 1, stopName = "Zebra"))
             add(makeRDS("authority2", routeId = 2, stopName = "Apple"))
+            add(makeRDS("authority1", routeId = 1, stopName = "Zebra"))
             add(makeBikeStation("authority3", name = "Museum"))
-        }.shuffled()
+        } // no shuffled, keep order
 
         val result = poiList.sortedWith(subject)
 
         assertEquals(3, result.size)
-        assertEquals("authority1", result[0].authority)
-        assertEquals("authority2", result[1].authority)
-        assertEquals("authority3", result[2].authority)
+        assertEquals("authority3", result[0].authority)
+        assertEquals("authority1", result[1].authority)
+        assertEquals("authority2", result[2].authority)
     }
 }
