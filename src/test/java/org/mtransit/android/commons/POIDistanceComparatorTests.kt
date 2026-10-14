@@ -68,7 +68,6 @@ class POIDistanceComparatorTests {
 
         val result = poiList.sortedWith(subject)
 
-
         assertEquals(4, result.size)
         assertEquals("authority4", result[0].poi.authority)
         assertEquals("authority3", result[1].poi.authority)

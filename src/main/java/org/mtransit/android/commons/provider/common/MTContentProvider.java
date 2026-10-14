@@ -22,13 +22,17 @@ import java.util.Arrays;
  */
 public abstract class MTContentProvider extends ContentProvider implements MTLog.Loggable {
 
+	public MTContentProvider() {
+		super();
+		CommonsApp.setup(true); // isAndroidPlatform
+	}
+
 	@MainThread
 	@Override
 	public boolean onCreate() {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "onCreate()");
 		}
-		CommonsApp.setup(true); // isAndroidPlatform
 		return onCreateMT();
 	}
 
