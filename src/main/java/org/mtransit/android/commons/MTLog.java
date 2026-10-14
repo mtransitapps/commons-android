@@ -124,7 +124,7 @@ public final class MTLog {
 	public static void v(@NonNull String tag, @Nullable Throwable t, @NonNull String msg, @NonNull Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.DEBUG)) {
 			doLog(fMsg -> Log.v(MAIN_TAG, fMsg), tag, msg, args);
-			Log.v(MAIN_TAG, EMPTY, t);
+			doLogThrowable(throwable -> Log.v(MAIN_TAG, EMPTY, throwable), t);
 		}
 	}
 
@@ -181,7 +181,7 @@ public final class MTLog {
 	public static void d(@NonNull String tag, @Nullable Throwable t, @NonNull String msg, @NonNull Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.DEBUG)) {
 			doLog(fMsg -> Log.d(MAIN_TAG, fMsg), tag, msg, args);
-			Log.d(MAIN_TAG, EMPTY, t);
+			doLogThrowable(throwable -> Log.d(MAIN_TAG, EMPTY, throwable), t);
 		}
 	}
 
@@ -238,7 +238,7 @@ public final class MTLog {
 	public static void i(@NonNull String tag, @Nullable Throwable t, @NonNull String msg, @NonNull Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.DEBUG)) {
 			doLog(fMsg -> Log.i(MAIN_TAG, fMsg), tag, msg, args);
-			Log.i(MAIN_TAG, EMPTY, t);
+			doLogThrowable(throwable -> Log.i(MAIN_TAG, EMPTY, throwable), t);
 		}
 	}
 
@@ -295,7 +295,7 @@ public final class MTLog {
 	public static void w(@NonNull String tag, @Nullable Throwable t, @NonNull String msg, @NonNull Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.WARN)) {
 			doLog(fMsg -> Log.w(MAIN_TAG, fMsg), tag, msg, args);
-			Log.w(MAIN_TAG, EMPTY, t);
+			doLogThrowable(throwable -> Log.w(MAIN_TAG, EMPTY, throwable), t);
 		}
 	}
 
@@ -352,7 +352,7 @@ public final class MTLog {
 	public static void e(@NonNull String tag, @Nullable Throwable t, @NonNull String msg, @NonNull Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.ERROR)) {
 			doLog(fMsg -> Log.e(MAIN_TAG, fMsg), tag, msg, args);
-			Log.e(MAIN_TAG, EMPTY, t);
+			doLogThrowable(throwable -> Log.e(MAIN_TAG, EMPTY, throwable), t);
 		}
 	}
 
@@ -364,10 +364,8 @@ public final class MTLog {
 		doLog(logMethod, getLogMsg(tag, String.format(msg, args)));
 	}
 
-	private static final boolean IS_NOT_ANDROID = Boolean.FALSE.equals(CommonsApp.isAndroid);
-
 	private static void doLog(@NonNull LogMethod logMethod, @NonNull String logMsg) {
-		if (IS_NOT_ANDROID) { // for unit tests
+		if (Boolean.FALSE.equals(CommonsApp.isAndroid)) { // for unit tests
 			System.out.println(logMsg);
 			return;
 		}
@@ -378,6 +376,17 @@ public final class MTLog {
 		logMethod.callLog(
 				StringUtils.ellipsizeNN(logMsg, MAX_LOG_LENGTH)
 		);
+	}
+
+	private static void doLogThrowable(@NonNull LogThrowableMethod logMethod, @Nullable Throwable t) {
+		if (Boolean.FALSE.equals(CommonsApp.isAndroid)) { // for unit tests
+			if (t != null) {
+				//noinspection CallToPrintStackTrace
+				t.printStackTrace();
+			}
+			return;
+		}
+		logMethod.callLogThrowable(t);
 	}
 
 	private static final ThreadSafeDateFormatter LOG_TIME_FORMAT = new ThreadSafeDateFormatter("yyyy-MM-dd_HH-mm-ss.SSS", Locale.ENGLISH);
@@ -429,5 +438,9 @@ public final class MTLog {
 
 	private interface LogMethod {
 		void callLog(@NonNull String msg);
+	}
+
+	private interface LogThrowableMethod {
+		void callLogThrowable(@Nullable Throwable t);
 	}
 }
