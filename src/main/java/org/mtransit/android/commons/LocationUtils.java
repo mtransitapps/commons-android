@@ -8,9 +8,10 @@ import androidx.collection.ArrayMap;
 
 import org.mtransit.android.commons.data.Area;
 import org.mtransit.android.commons.data.Direction;
-import org.mtransit.android.commons.data.POI;
+import org.mtransit.android.commons.data.LocationPOI;
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirectionStop;
+import org.mtransit.android.commons.data.SimpleLocationPOI;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -274,9 +275,7 @@ public class LocationUtils implements MTLog.Loggable {
 		final List<SimpleLocationPOI> result = new ArrayList<>();
 		for (LocationPOI locationPOI : locationPOIList) {
 			result.add(
-					new SimpleLocationPOI(locationPOI.getPOI())
-							.setDistance(locationPOI.getDistance())
-							.setDistanceString(locationPOI.getDistanceString())
+					new SimpleLocationPOI(locationPOI.getPoi(), locationPOI.getDistance(), locationPOI.getDistanceString())
 			);
 		}
 		return result;
@@ -291,7 +290,7 @@ public class LocationUtils implements MTLog.Loggable {
 	public static void updateDistance(@Nullable ArrayMap<?, ? extends LocationPOI> pois, double lat, double lng) {
 		if (pois == null) return;
 		for (LocationPOI poi : pois.values()) {
-			if (!poi.hasLocation()) continue;
+			if (!poi.getHasLocation()) continue;
 			poi.setDistance(distanceToInMeters(lat, lng, poi.getLat(), poi.getLng()));
 		}
 	}
@@ -304,7 +303,7 @@ public class LocationUtils implements MTLog.Loggable {
 	public static void updateDistance(@Nullable List<? extends LocationPOI> pois, double lat, double lng) {
 		if (pois == null) return;
 		for (LocationPOI poi : pois) {
-			if (!poi.hasLocation()) continue;
+			if (!poi.getHasLocation()) continue;
 			poi.setDistance(distanceToInMeters(lat, lng, poi.getLat(), poi.getLng()));
 		}
 	}
@@ -440,9 +439,9 @@ public class LocationUtils implements MTLog.Loggable {
 				return ComparatorUtils.BEFORE;
 			}
 			if (ld.equals(rd)) { // SAME DISTANCE: compare route short name -> direction head-sign -> name
-				if (lhs.getPOI() instanceof RouteDirectionStop && rhs.getPOI() instanceof RouteDirectionStop) {
-					final RouteDirectionStop lRDS = (RouteDirectionStop) lhs.getPOI();
-					final RouteDirectionStop rRDS = (RouteDirectionStop) rhs.getPOI();
+				if (lhs.getPoi() instanceof RouteDirectionStop && rhs.getPoi() instanceof RouteDirectionStop) {
+					final RouteDirectionStop lRDS = (RouteDirectionStop) lhs.getPoi();
+					final RouteDirectionStop rRDS = (RouteDirectionStop) rhs.getPoi();
 					if (Route.SHORT_NAME_COMPARATOR.areDifferent(lRDS.getRoute(), rRDS.getRoute())) {
 						if (Route.SHORT_NAME_COMPARATOR.areComparable(lRDS.getRoute(), rRDS.getRoute())) {
 							return Route.SHORT_NAME_COMPARATOR.compare(lRDS.getRoute(), rRDS.getRoute());
@@ -454,93 +453,11 @@ public class LocationUtils implements MTLog.Loggable {
 						}
 					}
 				}
-				return lhs.getPOI().compareToAlpha(rhs.getPOI()); // compare name A-Z
+				return lhs.getPoi().compareToAlpha(rhs.getPoi()); // compare name A-Z
 			}
 			// FIXME IllegalArgumentException: Comparison method violates its general contract!
 			// FIXME => distance can be updated from another thread
 			return Float.compare(ld, rd);
 		}
-	}
-
-	public static class SimpleLocationPOI implements LocationPOI {
-
-		@NonNull
-		private final POI poi;
-		@Nullable
-		private CharSequence distanceString = null;
-		private float distance = -1f;
-
-		public SimpleLocationPOI(@NonNull POI poi) {
-			this.poi = poi;
-		}
-
-		@NonNull
-		@Override
-		public POI getPOI() {
-			return this.poi;
-		}
-
-		@Override
-		public double getLat() {
-			return this.poi.getLat();
-		}
-
-		@Override
-		public double getLng() {
-			return this.poi.getLng();
-		}
-
-		@Override
-		public boolean hasLocation() {
-			return this.poi.hasLocation();
-		}
-
-		@NonNull
-		@Override
-		public SimpleLocationPOI setDistanceString(@Nullable CharSequence distanceString) {
-			this.distanceString = distanceString;
-			return this;
-		}
-
-		@Nullable
-		@Override
-		public CharSequence getDistanceString() {
-			return this.distanceString;
-		}
-
-		@NonNull
-		@Override
-		public SimpleLocationPOI setDistance(float distance) {
-			this.distance = distance;
-			return this;
-		}
-
-		@Override
-		public float getDistance() {
-			return this.distance;
-		}
-	}
-
-	public interface LocationPOI {
-
-		@NonNull
-		POI getPOI();
-
-		double getLat();
-
-		double getLng();
-
-		boolean hasLocation();
-
-		@NonNull
-		LocationPOI setDistanceString(@Nullable CharSequence distanceString);
-
-		@Nullable
-		CharSequence getDistanceString();
-
-		@NonNull
-		LocationPOI setDistance(float distance);
-
-		float getDistance();
 	}
 }

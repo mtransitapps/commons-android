@@ -7,6 +7,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.mtransit.commons.CommonsApp;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -362,7 +364,13 @@ public final class MTLog {
 		doLog(logMethod, getLogMsg(tag, String.format(msg, args)));
 	}
 
+	private static final boolean IS_NOT_ANDROID = Boolean.FALSE.equals(CommonsApp.isAndroid);
+
 	private static void doLog(@NonNull LogMethod logMethod, @NonNull String logMsg) {
+		if (IS_NOT_ANDROID) { // for unit tests
+			System.out.println(logMsg);
+			return;
+		}
 		if (FORCE_LOG_ENTIRE_MESSAGE) {
 			logEntireMessage(logMethod, logMsg);
 			return;

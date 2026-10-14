@@ -44,9 +44,9 @@ fun makeBikeStation(
 
 fun makeRDS(
     authority: String = "authority",
+    @DataSourceTypeId.DataSourceType dataSourceTypeId: Int = DataSourceTypeId.INVALID,
     routeId: Long = 1L,
     routeOriginalIdHash: Int? = routeId.toString().hashCode(),
-    @DataSourceTypeId.DataSourceType dataSourceTypeId: Int = DataSourceTypeId.INVALID,
     routeType: Int? = null, // custom route type != agency type
     originalDirectionId: Int? = 1,
     directionId: Long = originalDirectionId?.let { routeId * 100L + it } ?: (routeId * 100L + 9L),
@@ -60,21 +60,17 @@ fun makeRDS(
     alwaysLastTripStop: Boolean = false,
 ) = RouteDirectionStop(
     dataSourceTypeId,
-    Route(
-        authority,
-        routeId,
-        "#$routeId",
-        "route $routeId",
-        "color",
-        routeOriginalIdHash,
-        routeType,
+    makeRoute(
+        authority = authority,
+        id = routeId,
+        originalIdHash = routeOriginalIdHash,
+        type = routeType,
     ),
-    Direction(
-        authority,
-        directionId,
-        Direction.HEADSIGN_TYPE_STRING,
-        "Head-Sign $originalDirectionId",
-        routeId,
+    makeDirection(
+        authority = authority,
+        originalId = originalDirectionId,
+        id = directionId,
+        routeId = routeId,
     ),
     makeStop(
         stopId = stopId,
@@ -86,6 +82,39 @@ fun makeRDS(
     ),
     isNoPickup,
     alwaysLastTripStop,
+)
+
+fun makeRoute(
+    authority: String = "authority",
+    id: Long = 1L,
+    shortName: String = "#$id",
+    longName: String = "route $id",
+    color: String = "color",
+    originalIdHash: Int? = id.toString().hashCode(),
+    type: Int? = null, // custom route type != agency type
+) = Route(
+    authority,
+    id,
+    shortName,
+    longName,
+    color,
+    originalIdHash,
+    type,
+)
+
+fun makeDirection(
+    authority: String = "authority",
+    routeId: Long = 1L,
+    originalId: Int? = 1,
+    id: Long = originalId?.let { routeId * 100L + it } ?: (routeId * 100L + 9L),
+    headsign: String = "Head-Sign $originalId",
+    headsignType: Int = Direction.HEADSIGN_TYPE_STRING,
+) = Direction(
+    authority,
+    id,
+    headsignType,
+    headsign,
+    routeId,
 )
 
 fun makeStop(

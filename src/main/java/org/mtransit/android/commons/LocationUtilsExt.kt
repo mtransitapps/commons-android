@@ -2,8 +2,8 @@
 
 package org.mtransit.android.commons
 
-import org.mtransit.android.commons.LocationUtils.LocationPOI
-import org.mtransit.android.commons.LocationUtils.SimpleLocationPOI
+import org.mtransit.android.commons.data.LocationPOI
+import org.mtransit.android.commons.data.SimpleLocationPOI
 import org.mtransit.commons.keepFirst
 import org.mtransit.commons.sortWithAnd
 import android.location.Location as AndroidLocation
@@ -33,7 +33,7 @@ fun <POI : LocationPOI> MutableList<POI>.removeTooMuchWhenNotInCoverage(minCover
 
 fun <POI : LocationPOI> MutableList<POI>.updateDistanceM(lat: Double, lng: Double): MutableList<POI> {
     this.forEach { poi ->
-        if (poi.hasLocation()) {
+        if (poi.hasLocation) {
             poi.distance = LocationUtils.distanceToInMeters(lat, lng, poi.lat, poi.lng)
         }
     }

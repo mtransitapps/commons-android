@@ -2,9 +2,9 @@ package org.mtransit.android.commons
 
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import org.mtransit.android.commons.LocationUtils.LocationPOI
-import org.mtransit.android.commons.LocationUtils.POI_DISTANCE_COMPARATOR
-import org.mtransit.android.commons.LocationUtils.SimpleLocationPOI
+import org.mtransit.android.commons.LocationUtils.POIDistanceComparator
+import org.mtransit.android.commons.data.LocationPOI
+import org.mtransit.android.commons.data.SimpleLocationPOI
 import org.mtransit.android.commons.data.makeBikeStation
 import org.mtransit.android.commons.data.makeRDS
 import org.mtransit.commons.CommonsApp
@@ -13,6 +13,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class POIDistanceComparatorTests {
+
+    private val subject: POIDistanceComparator = LocationUtils.POI_DISTANCE_COMPARATOR
 
     @BeforeTest
     fun setUp() {
@@ -28,7 +30,7 @@ class POIDistanceComparatorTests {
             add(SimpleLocationPOI(mock { on { authority } doReturn "authority4" }).apply { distance = .5f })
         }
 
-        val result = poiList.sortedWith(POI_DISTANCE_COMPARATOR)
+        val result = poiList.sortedWith(subject)
 
         assertEquals(4, result.size)
         assertEquals("authority4", result[0].poi.authority)
@@ -46,7 +48,7 @@ class POIDistanceComparatorTests {
             add(SimpleLocationPOI(mock { on { authority } doReturn "authority4" }).apply { distance = .5f })
         }
 
-        val result = poiList.sortedWith(POI_DISTANCE_COMPARATOR)
+        val result = poiList.sortedWith(subject)
 
         assertEquals(4, result.size)
         assertEquals("authority4", result[0].poi.authority)
@@ -58,13 +60,14 @@ class POIDistanceComparatorTests {
     @Test
     fun test_POIDistanceComparatorRDS_SameStop_DistinctTrip() {
         val poiList = buildList<LocationPOI> {
-            add(SimpleLocationPOI(mock { on { authority } doReturn "authority1" }).apply { distance = 3f })
+            add(SimpleLocationPOI(makeBikeStation("authority1", id = 100)).apply { distance = 3f })
             add(SimpleLocationPOI(makeRDS("authority2", routeId = 1L, originalDirectionId = 1, stopId = 100)).apply { distance = 1f })
             add(SimpleLocationPOI(makeRDS("authority3", routeId = 1L, originalDirectionId = 0, stopId = 100)).apply { distance = 1f })
-            add(SimpleLocationPOI(mock { on { authority } doReturn "authority4" }).apply { distance = .5f })
+            add(SimpleLocationPOI(makeBikeStation("authority4", id = 400)).apply { distance = .5f })
         }
 
-        val result = poiList.sortedWith(POI_DISTANCE_COMPARATOR)
+        val result = poiList.sortedWith(subject)
+
 
         assertEquals(4, result.size)
         assertEquals("authority4", result[0].poi.authority)
@@ -82,7 +85,7 @@ class POIDistanceComparatorTests {
             add(SimpleLocationPOI(makeRDS(authority = "0LocAuthority", routeId = 99L, stopId = 999)).apply { distance = -1f }) // no distance
         }.shuffled()
 
-        val result = poiList.sortedWith(POI_DISTANCE_COMPARATOR)
+        val result = poiList.sortedWith(subject)
 
         assertEquals(4, poiList.size)
         assertEquals("authority-10-1001-100", result[0].poi.uuid)
@@ -102,7 +105,7 @@ class POIDistanceComparatorTests {
             add(SimpleLocationPOI(makeRDS(routeId = 99L, stopId = 999, stopName = "Bus Stop 999")).apply { distance = 1f }) // closest
         }.shuffled()
 
-        val result = poiList.sortedWith(POI_DISTANCE_COMPARATOR)
+        val result = poiList.sortedWith(subject)
 
         assertEquals(6, poiList.size)
         assertEquals("authority-99-9901-999", result[0].poi.uuid) // closest
