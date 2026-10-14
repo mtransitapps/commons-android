@@ -23,7 +23,7 @@ fun <POI : LocationPOI> List<POI>.filterTooMuchWhenNotInCoverage(minCoverageInMe
 
 fun <POI : LocationPOI> MutableList<POI>.removeTooMuchWhenNotInCoverage(minCoverageInMeters: Float, maxSize: Int): MutableList<POI> {
     return try {
-        sortWithAnd(LocationUtils.POI_DISTANCE_COMPARATOR)
+        sortWithAnd(LocationPOI.DISTANCE_COMPARATOR)
         keepFirst(maxSize) { minCoverageInMeters < it.distance }
     } catch (iae: IllegalArgumentException) { // FIXME POI list not immutable (distance can be updated from another thread)
         MTLog.w(this, iae, "Error while looking for closest POIs")
@@ -59,7 +59,7 @@ fun <POI : LocationPOI> Iterable<POI>.findClosestPOIUuids() = findClosestPOIIdxU
 fun <POI : LocationPOI> Iterable<POI>.findClosestPOIIdxUuids() = buildList<Pair<Int, String>> {
     try {
         this@findClosestPOIIdxUuids.toSimplePOIListClone() // need to create a new list to NOT sort the original list
-            .sortWithAnd(LocationUtils.POI_DISTANCE_COMPARATOR) // do NOT sort original list
+            .sortWithAnd(LocationPOI.DISTANCE_COMPARATOR) // do NOT sort original list
             .firstOrNull { it.distanceOrNull != null }?.distanceOrNull?.let { theClosestDistance ->
                 for ((index, poim) in this@findClosestPOIIdxUuids.withIndex()) { // need to go through the entire original list to get the right indexes
                     poim.distanceOrNull?.let { distance ->

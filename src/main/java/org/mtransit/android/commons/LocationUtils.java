@@ -7,15 +7,11 @@ import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 
 import org.mtransit.android.commons.data.Area;
-import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.LocationPOI;
-import org.mtransit.android.commons.data.Route;
-import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.SimpleLocationPOI;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -417,47 +413,5 @@ public class LocationUtils implements MTLog.Loggable {
 				sinDistance * cosFromLat * Math.sin(heading),
 				cosDistance - sinFromLat * sinLat);
 		return new double[]{Math.toDegrees(Math.asin(sinLat)), Math.toDegrees(fromLng + dLng)};
-	}
-
-	public static final POIDistanceComparator POI_DISTANCE_COMPARATOR = new POIDistanceComparator();
-
-	public static class POIDistanceComparator implements Comparator<LocationPOI> {
-
-		private POIDistanceComparator() {
-			// use POI_DISTANCE_COMPARATOR
-		}
-
-		@Override
-		public int compare(@NonNull LocationPOI lhs, @NonNull LocationPOI rhs) {
-			final Float ld = LocationUtilsExtKt.getDistanceOrNull(lhs);
-			final Float rd = LocationUtilsExtKt.getDistanceOrNull(rhs);
-			if (ld == null && rd == null) {
-				return ComparatorUtils.SAME;
-			} else if (ld == null) {
-				return ComparatorUtils.AFTER;
-			} else if (rd == null) {
-				return ComparatorUtils.BEFORE;
-			}
-			if (ld.equals(rd)) { // SAME DISTANCE: compare route short name -> direction head-sign -> name
-				if (lhs.getPoi() instanceof RouteDirectionStop && rhs.getPoi() instanceof RouteDirectionStop) {
-					final RouteDirectionStop lRDS = (RouteDirectionStop) lhs.getPoi();
-					final RouteDirectionStop rRDS = (RouteDirectionStop) rhs.getPoi();
-					if (Route.SHORT_NAME_COMPARATOR.areDifferent(lRDS.getRoute(), rRDS.getRoute())) {
-						if (Route.SHORT_NAME_COMPARATOR.areComparable(lRDS.getRoute(), rRDS.getRoute())) {
-							return Route.SHORT_NAME_COMPARATOR.compare(lRDS.getRoute(), rRDS.getRoute());
-						}
-					}
-					if (Direction.HEAD_SIGN_COMPARATOR.areDifferent(lRDS.getDirection(), rRDS.getDirection())) {
-						if (Direction.HEAD_SIGN_COMPARATOR.areComparable(lRDS.getDirection(), rRDS.getDirection())) {
-							return Direction.HEAD_SIGN_COMPARATOR.compare(lRDS.getDirection(), rRDS.getDirection());
-						}
-					}
-				}
-				return lhs.getPoi().compareToAlpha(rhs.getPoi()); // compare name A-Z
-			}
-			// FIXME IllegalArgumentException: Comparison method violates its general contract!
-			// FIXME => distance can be updated from another thread
-			return Float.compare(ld, rd);
-		}
 	}
 }
