@@ -62,12 +62,21 @@ class DirectionHeadSignComparatorTest {
             assertTrue(result)
         }
         subject.areComparable(makeDirection(headsign = ""), makeDirection(headsign = "South")).let { result ->
-            assertFalse(result)
+            assertTrue(result)
         }
         subject.areComparable(makeDirection(headsign = "North"), makeDirection(headsign = "")).let { result ->
-            assertFalse(result)
+            assertTrue(result)
         }
         subject.areComparable(makeDirection(headsign = ""), makeDirection(headsign = "")).let { result ->
+            assertTrue(result)
+        }
+        subject.areComparable(makeDirection(headsignType = Direction.HEADSIGN_TYPE_NONE), makeDirection(headsignType = Direction.HEADSIGN_TYPE_NONE)).let { result ->
+            assertFalse(result)
+        }
+        subject.areComparable(makeDirection(), makeDirection(headsignType = Direction.HEADSIGN_TYPE_NONE)).let { result ->
+            assertFalse(result)
+        }
+        subject.areComparable(makeDirection(headsignType = Direction.HEADSIGN_TYPE_NONE), makeDirection()).let { result ->
             assertFalse(result)
         }
     }

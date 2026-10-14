@@ -18,7 +18,10 @@ class DirectionHeadSignComparator : Comparator<Direction>, MTLog.Loggable {
         return headsign1.compareTo(headsign2)
     }
 
-    fun areDifferent(o1: Direction, o2: Direction) = o1.headsignValue != o2.headsignValue
+    fun areDifferent(o1: Direction, o2: Direction) =
+        o1.headsignType != o2.headsignType
+            || o1.headsignValue != o2.headsignValue
 
-    fun areComparable(o1: Direction, o2: Direction) = o1.headsignValue.isNotEmpty() && o2.headsignValue.isNotEmpty()
+    fun areComparable(o1: Direction, o2: Direction) =
+        o1.headsignType != Direction.HEADSIGN_TYPE_NONE && o2.headsignType != Direction.HEADSIGN_TYPE_NONE
 }

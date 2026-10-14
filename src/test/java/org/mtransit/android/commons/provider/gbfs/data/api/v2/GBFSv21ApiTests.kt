@@ -16,7 +16,7 @@ class GBFSv21ApiTests {
 
     @Before
     fun setUp() {
-        CommonsApp.setup(false)
+        CommonsApp.setup(isAndroidPlatform = false)
     }
 
     @Test

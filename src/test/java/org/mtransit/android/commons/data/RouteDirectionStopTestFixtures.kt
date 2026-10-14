@@ -48,31 +48,27 @@ fun makeRDS(
     routeId: Long = 1L,
     routeOriginalIdHash: Int? = routeId.toString().hashCode(),
     routeType: Int? = null, // custom route type != agency type
+    route: Route = makeRoute(
+        authority = authority,
+        id = routeId,
+        originalIdHash = routeOriginalIdHash,
+        type = routeType,
+    ),
     originalDirectionId: Int? = 1,
     directionId: Long = originalDirectionId?.let { routeId * 100L + it } ?: (routeId * 100L + 9L),
+    direction: Direction = makeDirection(
+        authority = authority,
+        originalId = originalDirectionId,
+        id = directionId,
+        routeId = routeId,
+    ),
     stopId: Int = 1,
     stopOriginalIdHash: Int? = stopId.toString().hashCode(), // stopId, // "$stopId".hashCode()
     stopName: String = "Stop #$stopId",
     stopLat: Double = 1.0,
     stopLng: Double = 2.0,
     stopTimeZoneId: String? = "UTC",
-    isNoPickup: Boolean = false,
-    alwaysLastTripStop: Boolean = false,
-) = RouteDirectionStop(
-    dataSourceTypeId,
-    makeRoute(
-        authority = authority,
-        id = routeId,
-        originalIdHash = routeOriginalIdHash,
-        type = routeType,
-    ),
-    makeDirection(
-        authority = authority,
-        originalId = originalDirectionId,
-        id = directionId,
-        routeId = routeId,
-    ),
-    makeStop(
+    stop: Stop = makeStop(
         stopId = stopId,
         stopName = stopName,
         stopLat = stopLat,
@@ -80,6 +76,13 @@ fun makeRDS(
         stopOriginalIdHash = stopOriginalIdHash,
         stopTimeZoneId = stopTimeZoneId,
     ),
+    isNoPickup: Boolean = false,
+    alwaysLastTripStop: Boolean = false,
+) = RouteDirectionStop(
+    dataSourceTypeId,
+    route,
+    direction,
+    stop,
     isNoPickup,
     alwaysLastTripStop,
 )
