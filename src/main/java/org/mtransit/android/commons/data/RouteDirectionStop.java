@@ -13,6 +13,7 @@ import androidx.annotation.VisibleForTesting;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
@@ -35,7 +36,7 @@ public class RouteDirectionStop extends DefaultPOI {
 	@NonNull
 	@Override
 	public String getLogTag() {
-		return LOG_TAG;
+		return LOG_TAG + "-" + this.uuid;
 	}
 
 	@NonNull
@@ -157,6 +158,8 @@ public class RouteDirectionStop extends DefaultPOI {
 					return Direction.HEAD_SIGN_COMPARATOR.compare(getDirection(), anotherRds.getDirection());
 				}
 			}
+		} else {
+			return ComparatorUtils.BEFORE; // RDS before other type always (needed for stable comparator)
 		}
 		return super.compareToAlpha(another);
 	}

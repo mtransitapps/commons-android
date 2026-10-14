@@ -27,7 +27,7 @@ public class DefaultPOI implements POI {
 	@NonNull
 	@Override
 	public String getLogTag() {
-		return LOG_TAG;
+		return LOG_TAG + "-" + this.uuid;
 	}
 
 	@NonNull
@@ -165,6 +165,9 @@ public class DefaultPOI implements POI {
 	@Override
 	public int compareToAlpha(@Nullable POI another) {
 		if (another == null) return ComparatorUtils.AFTER;
+		if (another instanceof RouteDirectionStop) {
+			return ComparatorUtils.AFTER; // RDS before other type always (needed for stable comparator)
+		}
 		final String thisName = Normalizer.normalize(this.getName(), Normalizer.Form.NFD).toLowerCase(Locale.getDefault());
 		final String anotherName = Normalizer.normalize(another.getName(), Normalizer.Form.NFD).toLowerCase(Locale.getDefault());
 		return thisName.compareTo(anotherName);

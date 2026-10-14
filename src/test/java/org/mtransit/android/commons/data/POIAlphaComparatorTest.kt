@@ -31,7 +31,7 @@ class POIAlphaComparatorTest {
     }
 
     @Test
-    fun test_compare_mixed_POIs() {
+    fun test_compare_mixed_POIs_RDS_RDS_Bike() {
         // route 1 at stop “Zebra” precedes route 2 at “Apple” by route number, “Apple” precedes bike station “Museum” by name
         val poiList = buildList {
             add(makeRDS("authority2", routeId = 2, stopName = "Apple"))
@@ -42,8 +42,42 @@ class POIAlphaComparatorTest {
         val result = poiList.sortedWith(subject)
 
         assertEquals(3, result.size)
-        assertEquals("authority3", result[0].authority)
-        assertEquals("authority1", result[1].authority)
-        assertEquals("authority2", result[2].authority)
+        assertEquals("authority1", result[0].authority)
+        assertEquals("authority2", result[1].authority)
+        assertEquals("authority3", result[2].authority)
+    }
+
+    @Test
+    fun test_compare_mixed_POIs_RDS_Bike_RDS() {
+        // route 1 at stop “Zebra” precedes route 2 at “Apple” by route number, “Apple” precedes bike station “Museum” by name
+        val poiList = buildList {
+            add(makeRDS("authority2", routeId = 2, stopName = "Apple"))
+            add(makeBikeStation("authority3", name = "Museum"))
+            add(makeRDS("authority1", routeId = 1, stopName = "Zebra"))
+        } // no shuffled, keep order
+
+        val result = poiList.sortedWith(subject)
+
+        assertEquals(3, result.size)
+        assertEquals("authority1", result[0].authority)
+        assertEquals("authority2", result[1].authority)
+        assertEquals("authority3", result[2].authority)
+    }
+
+    @Test
+    fun test_compare_mixed_POIs_Bike_RDS_RDS() {
+        // route 1 at stop “Zebra” precedes route 2 at “Apple” by route number, “Apple” precedes bike station “Museum” by name
+        val poiList = buildList {
+            add(makeBikeStation("authority3", name = "Museum"))
+            add(makeRDS("authority2", routeId = 2, stopName = "Apple"))
+            add(makeRDS("authority1", routeId = 1, stopName = "Zebra"))
+        } // no shuffled, keep order
+
+        val result = poiList.sortedWith(subject)
+
+        assertEquals(3, result.size)
+        assertEquals("authority1", result[0].authority)
+        assertEquals("authority2", result[1].authority)
+        assertEquals("authority3", result[2].authority)
     }
 }
