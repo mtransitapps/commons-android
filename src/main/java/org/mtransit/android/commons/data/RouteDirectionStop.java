@@ -36,7 +36,7 @@ public class RouteDirectionStop extends DefaultPOI {
 	@NonNull
 	@Override
 	public String getLogTag() {
-		return LOG_TAG + "-" + this.uuid;
+		return LOG_TAG + "-" + getRoute().getId() + "-" + getDirection().getId() + "-" + getStop().getId();
 	}
 
 	@NonNull

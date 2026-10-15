@@ -100,11 +100,13 @@ class LocationPOIDistanceComparatorTests {
         val result = poiList.sortedWith(subject.then(LocationPOI.ALPHA_COMPARATOR))
 
         assertEquals(6, result.size)
-        assertEquals("authority-99-9901-999", result[0].poi.uuid) // closest
-        assertEquals("authority2-3", result[2].poi.uuid)
-        assertEquals("authority1-2", result[1].poi.uuid)
-        assertEquals("authority-10-1001-100", result[3].poi.uuid)
-        assertEquals("authority-20-2001-200", result[4].poi.uuid)
-        assertEquals("authorityFarAway-1", result[5].poi.uuid) // farthest
+        var index = -1
+        assertEquals("authority-99-9901-999", result[++index].poi.uuid) // R99 #999 Bus Stop 999 // closest
+        assertEquals("authority-10-1001-100", result[++index].poi.uuid) // R10 #100 Bus Stop 100
+        assertEquals("authority-20-2001-200", result[++index].poi.uuid) // R20 #200 Bus Stop 200
+        assertEquals("authority1-2", result[++index].poi.uuid) // Bike Station B
+        assertEquals("authority2-3", result[++index].poi.uuid) // Bike Station C
+        assertEquals("authorityFarAway-1", result[++index].poi.uuid) // Bike Station A // farthest
+        assertEquals(result.size, ++index)
     }
 }

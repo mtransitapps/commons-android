@@ -1,5 +1,7 @@
 package org.mtransit.android.commons;
 
+import androidx.annotation.NonNull;
+
 public final class ComparatorUtils {
 
 	public static final int SAME = 0;
@@ -18,5 +20,13 @@ public final class ComparatorUtils {
 
 	public static boolean isAfter(int another) {
 		return AFTER <= another;
+	}
+
+	@SuppressWarnings("unused")
+	@NonNull
+	public static String toString(int compareTo) {
+		if (compareTo > 0) return "AFTER";
+		if (compareTo < 0) return "BEFORE";
+		return "SAME";
 	}
 }

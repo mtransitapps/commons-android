@@ -11,9 +11,9 @@ class DirectionHeadSignComparator : Comparator<Direction>, MTLog.Loggable {
     override fun getLogTag() = LOG_TAG
 
     override fun compare(o1: Direction, o2: Direction): Int {
-        val headsign1 = o1.getHeading()
+        val headsign1 = o1.heading
             ?: return o1.headsignValue.compareTo(o2.headsignValue) // IF some heading null DO fallback to head-sign value directly
-        val headsign2 = o2.getHeading()
+        val headsign2 = o2.heading
             ?: return o1.headsignValue.compareTo(o2.headsignValue) // IF some heading null DO fallback to head-sign value directly
         return headsign1.compareTo(headsign2)
     }
