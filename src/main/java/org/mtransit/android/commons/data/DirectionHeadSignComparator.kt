@@ -22,6 +22,6 @@ class DirectionHeadSignComparator : Comparator<Direction>, MTLog.Loggable {
         o1.headsignType != o2.headsignType
             || o1.headsignValue != o2.headsignValue
 
-    fun areComparable(o1: Direction, o2: Direction) =
-        o1.headsignType != Direction.HEADSIGN_TYPE_NONE && o2.headsignType != Direction.HEADSIGN_TYPE_NONE
+    fun areComparable(@Suppress("unused") o1: Direction, @Suppress("unused") o2: Direction) =
+        true // always comparable
 }
