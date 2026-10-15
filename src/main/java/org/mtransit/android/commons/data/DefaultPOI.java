@@ -164,7 +164,7 @@ public class DefaultPOI implements POI {
 
 	@Override
 	public int compareToAlpha(@Nullable POI another) {
-		if (another == null) return ComparatorUtils.AFTER;
+		if (another == null) return ComparatorUtils.BEFORE;
 		if (!(this instanceof RouteDirectionStop) && another instanceof RouteDirectionStop) {
 			return ComparatorUtils.AFTER; // RDS before other type always (needed for stable comparator)
 		}
