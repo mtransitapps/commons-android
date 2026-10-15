@@ -22,6 +22,7 @@ class DirectionHeadSignComparator : Comparator<Direction>, MTLog.Loggable {
         o1.headsignType != o2.headsignType
             || o1.headsignValue != o2.headsignValue
 
+    @Suppress("FunctionOnlyReturningConstant")
     fun areComparable(@Suppress("unused") o1: Direction, @Suppress("unused") o2: Direction) =
         true // always comparable
 }
