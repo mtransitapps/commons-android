@@ -16,7 +16,8 @@ interface LocationPOI {
             val distance1 = o1.distanceOrNull
                 ?: o2.distanceOrNull?.let { // distance1 == null && distance2 != null
                     return@Comparator ComparatorUtils.AFTER
-                } ?: run { // distance1 == null && distance2 == null
+                }
+                ?: run { // distance1 == null && distance2 == null
                     return@Comparator ComparatorUtils.SAME
                 }
             val distance2 = o2.distanceOrNull
