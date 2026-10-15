@@ -14,16 +14,16 @@ interface LocationPOI {
         @JvmStatic
         val DISTANCE_COMPARATOR = Comparator<LocationPOI> { o1: LocationPOI, o2: LocationPOI ->
             val distance1 = o1.distanceOrNull
+                ?: o2.distanceOrNull?.let { // distance1 == null && distance2 != null
+                    return@Comparator ComparatorUtils.AFTER
+                } ?: run { // distance1 == null && distance2 == null
+                    return@Comparator ComparatorUtils.SAME
+                }
             val distance2 = o2.distanceOrNull
-            if (distance1 == null && distance2 != null) {
-                ComparatorUtils.AFTER
-            } else if (distance1 != null && distance2 == null) {
-                ComparatorUtils.BEFORE
-            } else if (distance1 == null && distance2 == null) {
-                ComparatorUtils.SAME
-            } else {
-                o1.distance.compareTo(o2.distance)
-            }
+                ?: run { // distance1 != null & distance2 == null
+                    return@Comparator ComparatorUtils.BEFORE
+                }
+            distance1.compareTo(distance2)
         }
     }
 

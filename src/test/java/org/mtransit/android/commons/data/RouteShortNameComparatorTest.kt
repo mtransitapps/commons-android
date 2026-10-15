@@ -125,13 +125,13 @@ class RouteShortNameComparatorTest {
             assertTrue(result)
         }
         subject.areComparable(makeRoute(shortName = ""), makeRoute(shortName = "456")).let { result ->
-            assertFalse(result)
+            assertTrue(result)
         }
         subject.areComparable(makeRoute(shortName = "123"), makeRoute(shortName = "")).let { result ->
-            assertFalse(result)
+            assertTrue(result)
         }
         subject.areComparable(makeRoute(shortName = ""), makeRoute(shortName = "")).let { result ->
-            assertFalse(result)
+            assertTrue(result)
         }
     }
 }

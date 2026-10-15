@@ -31,6 +31,47 @@ class POIAlphaComparatorTest {
     }
 
     @Test
+    fun test_compare_empty_route_short_name_transitive_no_cycle() {
+        val sharedDirection = makeDirection(headsign = "North")
+        val rdsA = makeRDS(
+            authority = "authorityA",
+            route = makeRoute("authorityA", id = 1L, shortName = "1"),
+            direction = sharedDirection,
+            stopName = "Zulu",
+        )
+        val rdsB = makeRDS(
+            authority = "authorityB",
+            route = makeRoute("authorityB", id = 1L, shortName = "2"),
+            direction = sharedDirection,
+            stopName = "Apple",
+        )
+        val rdsC = makeRDS(
+            authority = "authorityC",
+            route = makeRoute("authorityC", id = 1L, shortName = ""),
+            direction = sharedDirection,
+            stopName = "Museum",
+        )
+
+        // Empty route short name sorts before non-empty short names consistently:
+        // C < A < B
+        val cCompareA = subject.compare(rdsC, rdsA)
+        val aCompareB = subject.compare(rdsA, rdsB)
+        val cCompareB = subject.compare(rdsC, rdsB)
+
+        assertEquals(-1, cCompareA.coerceIn(-1, 1))
+        assertEquals(-1, aCompareB.coerceIn(-1, 1))
+        assertEquals(-1, cCompareB.coerceIn(-1, 1))
+
+        val poiList = listOf(rdsA, rdsB, rdsC).shuffled()
+        val result = poiList.sortedWith(subject)
+
+        assertEquals(3, result.size)
+        assertEquals("authorityC", result[0].authority)
+        assertEquals("authorityA", result[1].authority)
+        assertEquals("authorityB", result[2].authority)
+    }
+
+    @Test
     fun test_compare_mixed_POIs_RDS_RDS_Bike() {
         // route 1 at stop “Zebra” precedes route 2 at “Apple” by route number, “Apple” precedes bike station “Museum” by name
         val poiList = buildList {
