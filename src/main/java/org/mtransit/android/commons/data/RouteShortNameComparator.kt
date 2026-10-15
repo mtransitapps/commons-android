@@ -19,7 +19,9 @@ class RouteShortNameComparator : Comparator<Route>, MTLog.Loggable {
     override fun compare(o1: Route, o2: Route): Int {
         val shortName1 = o1.shortName
         val shortName2 = o2.shortName
-        if (shortName1 == shortName2) return ComparatorUtils.SAME
+        if (shortName1 == shortName2) {
+            return ComparatorUtils.SAME
+        }
         try {
             if (shortName1.isNotEmpty() && shortName2.isNotEmpty()) {
                 val noDigits1 = shortName1.none { it.isDigit() }

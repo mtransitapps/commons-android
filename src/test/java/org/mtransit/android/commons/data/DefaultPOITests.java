@@ -22,7 +22,7 @@ public class DefaultPOITests {
 		thisPOI = new DefaultPOI("authority", -1, -1, -1, -1, -1, 0.0, 0.0, "thisPOI");
 		anotherPOI = null;
 		//noinspection ConstantConditions
-		assertTrue(ComparatorUtils.isAfter(thisPOI.compareToAlpha(anotherPOI)));
+		assertTrue(ComparatorUtils.isBefore(thisPOI.compareToAlpha(anotherPOI)));
 		anotherPOI = new DefaultPOI("authority", -1, -1, -1, -1, -1, 0.0, 0.0, "");
 		assertTrue(ComparatorUtils.isAfter(thisPOI.compareToAlpha(anotherPOI)));
 		anotherPOI = new DefaultPOI("authority", -1, -1, -1, -1, -1, 0.0, 0.0, "zzzz");

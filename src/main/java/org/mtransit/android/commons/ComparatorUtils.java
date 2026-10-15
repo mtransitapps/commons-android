@@ -25,8 +25,8 @@ public final class ComparatorUtils {
 	@SuppressWarnings("unused")
 	@NonNull
 	public static String toString(int compareTo) {
-		if (compareTo > 0) return "AFTER";
-		if (compareTo < 0) return "BEFORE";
+		if (isAfter(compareTo)) return "AFTER";
+		if (isBefore(compareTo)) return "BEFORE";
 		return "SAME";
 	}
 }
