@@ -11,7 +11,7 @@ class RouteShortNameComparator : Comparator<Route>, MTLog.Loggable {
 
         private val DIGITS = "\\d+".toRegex()
 
-        private val STARTS_WITH_LETTERS = "^[A-Za-z]+".toRegex(option = RegexOption.IGNORE_CASE)
+        private val STARTS_WITH_LETTERS = "^\\p{L}+".toRegex()
     }
 
     override fun getLogTag() = LOG_TAG
@@ -61,10 +61,10 @@ class RouteShortNameComparator : Comparator<Route>, MTLog.Loggable {
                         }
                     }
                 }
+                if (startsWithLetters1 != startsWithLetters2) {
+                    return startsWithLetters1.compareTo(startsWithLetters2)
+                }
                 if (digitsCompare != ComparatorUtils.SAME) {
-                    if (startsWithLetters1 != startsWithLetters2) {
-                        return startsWithLetters1.compareTo(startsWithLetters2)
-                    }
                     return digitsCompare
                 }
             }
