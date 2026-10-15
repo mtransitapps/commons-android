@@ -35,23 +35,37 @@ class RouteShortNameComparator : Comparator<Route>, MTLog.Loggable {
                         shortName1.compareTo(shortName2)
                     }
                 }
-                val digits1 = shortName1.toIntOrNull()
-                    ?: DIGITS.find(shortName1)?.value?.toIntOrNull()
-                    ?: -1
+                val digits1 = shortName1.takeIf { it.isDigitsOnly() }
+                    ?: DIGITS.find(shortName1)?.value
                 val startsWithLetters1 = shortName1.takeUnless { it.isDigitsOnly() }?.let {
                     STARTS_WITH_LETTERS.find(it)?.value
                 }.orEmpty()
-                val digits2 = shortName2.toIntOrNull()
-                    ?: DIGITS.find(shortName2)?.value?.toIntOrNull()
-                    ?: -1
+                val digits2 = shortName2.takeIf { it.isDigitsOnly() }
+                    ?: DIGITS.find(shortName2)?.value
                 val startsWithLetters2 = shortName2.takeUnless { it.isDigitsOnly() }?.let {
                     STARTS_WITH_LETTERS.find(it)?.value
                 }.orEmpty()
-                if (digits1 != digits2) {
+                val digitsCompare = when {
+                    digits1 == null && digits2 == null -> ComparatorUtils.SAME
+                    digits1 == null -> ComparatorUtils.BEFORE
+                    digits2 == null -> ComparatorUtils.AFTER
+                    else -> {
+                        val d1 = digits1.trimStart('0')
+                        val d2 = digits2.trimStart('0')
+                        if (d1.length != d2.length) {
+                            d1.length.compareTo(d2.length)
+                        } else if (d1 != d2) {
+                            d1.compareTo(d2)
+                        } else {
+                            digits1.length.compareTo(digits2.length)
+                        }
+                    }
+                }
+                if (digitsCompare != ComparatorUtils.SAME) {
                     if (startsWithLetters1 != startsWithLetters2) {
                         return startsWithLetters1.compareTo(startsWithLetters2)
                     }
-                    return digits1.compareTo(digits2)
+                    return digitsCompare
                 }
             }
         } catch (e: Exception) {

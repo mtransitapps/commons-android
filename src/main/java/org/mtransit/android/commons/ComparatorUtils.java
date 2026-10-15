@@ -8,8 +8,9 @@ public final class ComparatorUtils {
 
 	public static final int BEFORE = -1;
 
-	public static final int AFTER = +1;
+	public static final int AFTER = 1;
 
+	@SuppressWarnings("unused")
 	public static boolean isSame(int another) {
 		return another == SAME;
 	}

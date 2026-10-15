@@ -19,6 +19,8 @@ interface LocationPOI {
                 ComparatorUtils.AFTER
             } else if (distance1 != null && distance2 == null) {
                 ComparatorUtils.BEFORE
+            } else if (distance1 == null && distance2 == null) {
+                ComparatorUtils.SAME
             } else {
                 o1.distance.compareTo(o2.distance)
             }
