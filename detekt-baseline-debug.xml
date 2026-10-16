@@ -88,6 +88,7 @@
     <ID>CyclomaticComplexMethod:POIProviderContract.kt:POIProviderContract.Filter$fun getSqlSelection: String?</ID>
     <ID>CyclomaticComplexMethod:POIProviderContract.kt:POIProviderContract.Filter.Companion$@JvmStatic fun toJSON: JSONObject?</ID>
     <ID>CyclomaticComplexMethod:POIProviderContract.kt:POIProviderContract.Filter.Companion$private fun fromJSON: Filter?</ID>
+    <ID>CyclomaticComplexMethod:RouteShortNameComparator.kt:RouteShortNameComparator$override fun compare: Int</ID>
     <ID>CyclomaticComplexMethod:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$@VisibleForTesting internal fun EtatServiceResponse?.toServiceUpdates: ServiceUpdates</ID>
     <ID>CyclomaticComplexMethod:TwitterNewsProvider.kt:TwitterNewsProvider$private fun loadUserTimeline</ID>
     <ID>CyclomaticComplexMethod:VehicleLocationProvider.kt:VehicleLocationProvider.Companion$private fun &lt;P : VehicleLocationProviderContract&gt; P.getVehicleLocations: Cursor</ID>
@@ -162,6 +163,7 @@
     <ID>ReturnCount:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun NextBusProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
     <ID>ReturnCount:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun NextBusProvider.processVehiclePositions: Set&lt;VehicleLocation&gt;?</ID>
     <ID>ReturnCount:POIProviderContract.kt:POIProviderContract.Filter$fun getSqlSelection: String?</ID>
+    <ID>ReturnCount:RouteShortNameComparator.kt:RouteShortNameComparator$override fun compare: Int</ID>
     <ID>ReturnCount:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun StmInfoApiProvider.loadAgencyDataFromWWW: ServiceUpdates?</ID>
     <ID>ReturnCount:TwitterDateAdapter.kt:TwitterDateAdapter$override fun deserialize: Date?</ID>
     <ID>ReturnCount:TwitterDateAdapter.kt:TwitterDateAdapter$override fun serialize: JsonElement?</ID>
@@ -190,6 +192,7 @@
     <ID>TooGenericExceptionCaught:ModuleReceiver.kt:ModuleReceiver$e: Exception</ID>
     <ID>TooGenericExceptionCaught:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$e: Exception</ID>
     <ID>TooGenericExceptionCaught:PackageManagerExt.kt:e: Exception</ID>
+    <ID>TooGenericExceptionCaught:RouteShortNameComparator.kt:RouteShortNameComparator$e: Exception</ID>
     <ID>TooGenericExceptionCaught:RssNewProviderUtils.kt:RssNewProviderUtils$e: Exception</ID>
     <ID>TooGenericExceptionCaught:SecureStringUtils.kt:SecureStringUtils$e: Exception</ID>
     <ID>TooGenericExceptionCaught:ServiceUpdateProviderExt.kt:e: Exception</ID>

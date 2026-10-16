@@ -209,12 +209,8 @@ class InstagramNewsProvider : NewsProvider() {
                 AGENCY_SOURCE_ID
             )
             affectedRows = this.getDBHelper().writableDatabase.delete(newsDbTableName, selection, null)
-        } catch (e: java.lang.Exception) {
-            MTLog.w(
-                this,
-                e,
-                "Error while deleting all agency news data!"
-            )
+        } catch (e: Exception) {
+            MTLog.w(this, e, "Error while deleting all agency news data!")
         }
         return affectedRows
     }

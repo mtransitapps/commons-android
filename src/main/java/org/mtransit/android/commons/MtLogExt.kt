@@ -1,14 +1,12 @@
 @file:Suppress("unused")
 
-package org.mtransit.android
+package org.mtransit.android.commons
 
-import org.mtransit.android.commons.Constants
-import org.mtransit.android.commons.ThreadSafeDateFormatter
-import org.mtransit.android.commons.TimeUtils
-import org.mtransit.android.commons.toMillis
+import kotlinx.coroutines.Job
 import java.text.DateFormat
 import java.util.Calendar
 import java.util.Date
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 import kotlin.time.Instant
 
@@ -49,3 +47,18 @@ fun Calendar?.toDateTimeLog(): String? = this?.time.toDateTimeLog()
 fun Instant?.toDateTimeLog(): String? = this?.toMillis().toDateTimeLog()
 
 // endregion
+
+// region Coroutines
+
+fun Job.logCancellation(loggable: MTLog.Loggable, jobTag: String?) = logCancellation(loggable.logTag, jobTag)
+
+fun Job.logCancellation(logTag: String, jobTag: String?) {
+    if (!MTLog.isLoggable(android.util.Log.DEBUG)) return
+    invokeOnCompletion {
+        if (it is CancellationException) {
+            MTLog.d(logTag, "logCancellation() `$jobTag` job CANCELLED")
+        }
+    }
+}
+
+// end region

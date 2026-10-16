@@ -4,7 +4,6 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.text.TextUtils;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
@@ -17,9 +16,9 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
+import org.mtransit.commons.TextUtils;
 
 import java.lang.annotation.Retention;
-import java.util.Comparator;
 import java.util.Objects;
 
 @SuppressWarnings("WeakerAccess")
@@ -27,7 +26,7 @@ public class Direction implements Targetable {
 
 	private static final String LOG_TAG = Direction.class.getSimpleName();
 
-	public static final HeadSignComparator HEAD_SIGN_COMPARATOR = new HeadSignComparator();
+	public static final DirectionHeadSignComparator HEAD_SIGN_COMPARATOR = new DirectionHeadSignComparator();
 
 	@Retention(SOURCE)
 	@IntDef({HEADSIGN_TYPE_NONE, HEADSIGN_TYPE_STRING, HEADSIGN_TYPE_DIRECTION, HEADSIGN_TYPE_INBOUND, HEADSIGN_TYPE_STOP_ID, HEADSIGN_TYPE_NO_PICKUP})
@@ -56,7 +55,8 @@ public class Direction implements Targetable {
 			long id,
 			@HeadSignType int headsignType,
 			@NonNull String headsignValue,
-			long routeId) {
+			long routeId
+	) {
 		this.authority = authority;
 		this.id = id;
 		this.headsignType = headsignType;
@@ -296,46 +296,5 @@ public class Direction implements Targetable {
 				headsignValue,
 				routeId
 		);
-	}
-
-	public static class HeadSignComparator implements Comparator<Direction>, MTLog.Loggable {
-
-		private static final String LOG_TAG = Direction.class.getSimpleName() + ">" + HeadSignComparator.class.getSimpleName();
-
-		@NonNull
-		@Override
-		public String getLogTag() {
-			return LOG_TAG;
-		}
-
-		public boolean areDifferent(@Nullable Direction lhs, @Nullable Direction rhs) {
-			long lId = lhs == null ? 0L : lhs.getId();
-			long rId = rhs == null ? 0L : rhs.getId();
-			return lId != rId;
-		}
-
-		public boolean areComparable(@Nullable Direction lhs, @Nullable Direction rhs) {
-			return lhs != null  //
-					&& rhs != null;
-		}
-
-		@Override
-		public int compare(@Nullable Direction lhs, @Nullable Direction rhs) {
-			String lHeadsign = lhs == null ? null : lhs.getHeading();
-			String rHeadsign = rhs == null ? null : rhs.getHeading();
-			try {
-				if (lHeadsign == null || rHeadsign == null) {
-					String lHeadsignValue = lhs == null ? StringUtils.EMPTY : lhs.getHeadsignValue();
-					String rHeadsignValue = rhs == null ? StringUtils.EMPTY : rhs.getHeadsignValue();
-					return lHeadsignValue.compareTo(rHeadsignValue);
-				}
-				return lHeadsign.compareTo(rHeadsign);
-			} catch (Exception e) {
-				MTLog.w(this, e, "Error while sorting directions!");
-			}
-			lHeadsign = lHeadsign == null ? StringUtils.EMPTY : lHeadsign;
-			rHeadsign = rHeadsign == null ? StringUtils.EMPTY : rHeadsign;
-			return lHeadsign.compareTo(rHeadsign);
-		}
 	}
 }

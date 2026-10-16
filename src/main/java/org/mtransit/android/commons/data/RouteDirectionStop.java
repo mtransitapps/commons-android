@@ -1,7 +1,6 @@
 package org.mtransit.android.commons.data;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
@@ -14,6 +13,7 @@ import androidx.annotation.VisibleForTesting;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
@@ -36,7 +36,7 @@ public class RouteDirectionStop extends DefaultPOI {
 	@NonNull
 	@Override
 	public String getLogTag() {
-		return LOG_TAG;
+		return LOG_TAG + "-" + getRoute().getId() + "-" + getDirection().getId() + "-" + getStop().getId();
 	}
 
 	@NonNull
@@ -56,7 +56,8 @@ public class RouteDirectionStop extends DefaultPOI {
 			@NonNull Route route,
 			@NonNull Direction direction,
 			@NonNull Stop stop,
-			boolean noPickup) {
+			boolean noPickup
+	) {
 		this(dataSourceTypeId, route, direction, stop, noPickup);
 	}
 
@@ -79,7 +80,17 @@ public class RouteDirectionStop extends DefaultPOI {
 			boolean noPickup,
 			@Nullable Boolean alwaysLastTripStop
 	) {
-		super(route.getAuthority(), -1, dataSourceTypeId, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE, POI.ITEM_ACTION_TYPE_ROUTE_DIRECTION_STOP);
+		super(
+				route.getAuthority(),
+				-1,
+				dataSourceTypeId,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
+				POI.ITEM_STATUS_TYPE_SCHEDULE,
+				POI.ITEM_ACTION_TYPE_ROUTE_DIRECTION_STOP,
+				stop.getLat(),
+				stop.getLng(),
+				stop.getName()
+		);
 		this.route = route;
 		this.direction = direction;
 		this.stop = stop;
@@ -133,10 +144,10 @@ public class RouteDirectionStop extends DefaultPOI {
 	}
 
 	@Override
-	public int compareToAlpha(@Nullable Context contextOrNull, @Nullable POI another) {
+	public int compareToAlpha(@Nullable POI another) {
 		if (another instanceof RouteDirectionStop) {
 			// RDS = Route Short Name > Direction Heading > Stop Name
-			RouteDirectionStop anotherRds = (RouteDirectionStop) another;
+			final RouteDirectionStop anotherRds = (RouteDirectionStop) another;
 			if (Route.SHORT_NAME_COMPARATOR.areDifferent(getRoute(), anotherRds.getRoute())) {
 				if (Route.SHORT_NAME_COMPARATOR.areComparable(getRoute(), anotherRds.getRoute())) {
 					return Route.SHORT_NAME_COMPARATOR.compare(getRoute(), anotherRds.getRoute());
@@ -147,8 +158,10 @@ public class RouteDirectionStop extends DefaultPOI {
 					return Direction.HEAD_SIGN_COMPARATOR.compare(getDirection(), anotherRds.getDirection());
 				}
 			}
+		} else {
+			return ComparatorUtils.BEFORE; // RDS before other type always (needed for stable comparator)
 		}
-		return super.compareToAlpha(contextOrNull, another);
+		return super.compareToAlpha(another);
 	}
 
 	public boolean equals(int routeId, int directionIdId, int stopId) {
@@ -196,14 +209,14 @@ public class RouteDirectionStop extends DefaultPOI {
 	@SuppressWarnings("unused")
 	@NonNull
 	public String toStringSimple() {
-		StringBuilder sb = new StringBuilder(); //
+		final StringBuilder sb = new StringBuilder();
 		if (isNoPickup()) {
 			sb.append("noPickup-");
 		}
-		sb.append(getRoute().getShortName()).append('-') //
-				.append(getDirection().getHeadsignValue()).append('>') //
-				.append(getStop().getName()).append(',') //
-				.append('(').append(getAuthority()).append(')'); //
+		sb.append(getRoute().getShortName()).append('-')
+				.append(getDirection().getHeadsignValue()).append('>')
+				.append(getStop().getName()).append(',')
+				.append('(').append(getAuthority()).append(')');
 		return sb.toString();
 	}
 

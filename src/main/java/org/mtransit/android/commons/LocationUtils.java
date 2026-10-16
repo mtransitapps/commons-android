@@ -1,25 +1,17 @@
 package org.mtransit.android.commons;
 
-import android.content.Context;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.WorkerThread;
 import androidx.collection.ArrayMap;
 
 import org.mtransit.android.commons.data.Area;
-import org.mtransit.android.commons.data.Direction;
-import org.mtransit.android.commons.data.POI;
-import org.mtransit.android.commons.data.Route;
-import org.mtransit.android.commons.data.RouteDirectionStop;
+import org.mtransit.android.commons.data.LocationPOI;
+import org.mtransit.android.commons.data.SimpleLocationPOI;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -51,26 +43,11 @@ public class LocationUtils implements MTLog.Loggable {
 	public static final int LOCATION_CHANGED_NOTIFY_USER_IN_METERS = 100;
 	// public static final int LOCATION_CHANGED_NOTIFY_USER_IN_METERS = 0; // DEBUG
 
-	public static final double MIN_AROUND_DIFF = 0.01;
+	public static final float FEET_PER_METER = 3.2808399f;
 
-	public static final double INC_AROUND_DIFF = 0.01;
-
-	public static final float FEET_PER_M = 3.2808399f;
-
-	public static final float FEET_PER_MILE = 5280;
+	public static final float FEET_PER_MILE = 5280f;
 
 	public static final float METER_PER_KM = 1000f;
-
-	public static final int MIN_NEARBY_LIST = 10;
-
-	public static final int MAX_NEARBY_LIST = 20;
-
-	public static final int MAX_POI_NEARBY_POIS_LIST = 30;
-	// public static final int MAX_POI_NEARBY_POIS_LIST = 0; // DEBUG
-
-	public static final int MIN_NEARBY_LIST_COVERAGE_IN_METERS = 100;
-
-	public static final int MIN_POI_NEARBY_POIS_LIST_COVERAGE_IN_METERS = 100;
 
 	public static final double EARTH_RADIUS = 6371009;
 
@@ -86,11 +63,6 @@ public class LocationUtils implements MTLog.Loggable {
 	public static final double HEADING_EAST = 90.0d;
 	@SuppressWarnings("unused")
 	public static final double HEADING_WEST = -90.0d;
-
-	@NonNull
-	public static AroundDiff getNewDefaultAroundDiff() {
-		return new AroundDiff(LocationUtils.MIN_AROUND_DIFF, LocationUtils.INC_AROUND_DIFF);
-	}
 
 	public LocationUtils() {
 	}
@@ -205,29 +177,6 @@ public class LocationUtils implements MTLog.Loggable {
 		return loc1.getProvider().equals(loc2.getProvider());
 	}
 
-	@WorkerThread
-	@Nullable
-	public static Address getLocationAddress(@NonNull Context context, @NonNull Location location) {
-		try {
-			if (Geocoder.isPresent()) {
-				final Geocoder geocoder = new Geocoder(context);
-				int maxResults = 1;
-				java.util.List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), maxResults);
-				if (addresses == null || addresses.isEmpty()) {
-					return null; // no address found
-				}
-				return addresses.get(0);
-			}
-		} catch (IOException ioe) {
-			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
-				MTLog.w(LOG_TAG, ioe, "getLocationAddress() > Can't find the address of the current location!");
-			} else {
-				MTLog.w(LOG_TAG, "getLocationAddress() > Can't find the address of the current location!");
-			}
-		}
-		return null;
-	}
-
 	public static double truncAround(@NonNull String loc) {
 		return Double.parseDouble(truncAround(Double.parseDouble(loc)));
 	}
@@ -249,7 +198,7 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
-	private static final float MAX_DISTANCE_ON_EARTH_IN_METERS = 40075017f / 2f;
+	protected static final float MAX_DISTANCE_ON_EARTH_IN_METERS = 40075017f / 2f;
 
 	public static float getAroundCoveredDistanceInMeters(double lat, double lng, double aroundDiff) {
 		final Area area = getArea(lat, lng, aroundDiff);
@@ -263,7 +212,7 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	@NonNull
-	private static Area getArea(double lat, double lng, double aroundDiff) {
+	protected static Area getArea(double lat, double lng, double aroundDiff) {
 		double latTrunc = Math.abs(lat);
 		double latBefore = Math.signum(lat) * Double.parseDouble(truncAround(latTrunc - aroundDiff));
 		double latAfter = Math.signum(lat) * Double.parseDouble(truncAround(latTrunc + aroundDiff));
@@ -319,12 +268,10 @@ public class LocationUtils implements MTLog.Loggable {
 
 	@NonNull
 	public static List<SimpleLocationPOI> toSimplePOIListClone(@NonNull Iterable<? extends LocationPOI> locationPOIList) {
-		List<SimpleLocationPOI> result = new ArrayList<>();
+		final List<SimpleLocationPOI> result = new ArrayList<>();
 		for (LocationPOI locationPOI : locationPOIList) {
 			result.add(
-					new SimpleLocationPOI(locationPOI.getPOI())
-							.setDistance(locationPOI.getDistance())
-							.setDistanceString(locationPOI.getDistanceString())
+					new SimpleLocationPOI(locationPOI.getPoi(), locationPOI.getDistance(), locationPOI.getDistanceString())
 			);
 		}
 		return result;
@@ -339,7 +286,7 @@ public class LocationUtils implements MTLog.Loggable {
 	public static void updateDistance(@Nullable ArrayMap<?, ? extends LocationPOI> pois, double lat, double lng) {
 		if (pois == null) return;
 		for (LocationPOI poi : pois.values()) {
-			if (!poi.hasLocation()) continue;
+			if (!poi.getHasLocation()) continue;
 			poi.setDistance(distanceToInMeters(lat, lng, poi.getLat(), poi.getLng()));
 		}
 	}
@@ -352,7 +299,7 @@ public class LocationUtils implements MTLog.Loggable {
 	public static void updateDistance(@Nullable List<? extends LocationPOI> pois, double lat, double lng) {
 		if (pois == null) return;
 		for (LocationPOI poi : pois) {
-			if (!poi.hasLocation()) continue;
+			if (!poi.getHasLocation()) continue;
 			poi.setDistance(distanceToInMeters(lat, lng, poi.getLat(), poi.getLng()));
 		}
 	}
@@ -381,7 +328,7 @@ public class LocationUtils implements MTLog.Loggable {
 	@SuppressWarnings("unused")
 	public static void removeTooFar(@Nullable List<? extends LocationPOI> pois, float maxDistanceInMeters) {
 		if (pois == null) return;
-		pois.removeIf(poi -> poi.getDistance() > maxDistanceInMeters);
+		pois.removeIf(poi -> maxDistanceInMeters < poi.getDistance());
 	}
 
 	public static boolean searchComplete(double lat, double lng, double aroundDiff) {
@@ -404,13 +351,6 @@ public class LocationUtils implements MTLog.Loggable {
 			return false; // more places to explore to the east
 		}
 		return true; // planet search completed!
-	}
-
-	@NonNull
-	public static AroundDiff incAroundDiff(@NonNull AroundDiff ad) {
-		ad.aroundDiff += ad.incAroundDiff;
-		ad.incAroundDiff *= 2; // warning, might return a huge chunk of data if far away (all POIs or none)
-		return ad;
 	}
 
 	@SuppressWarnings("unused")
@@ -473,153 +413,5 @@ public class LocationUtils implements MTLog.Loggable {
 				sinDistance * cosFromLat * Math.sin(heading),
 				cosDistance - sinFromLat * sinLat);
 		return new double[]{Math.toDegrees(Math.asin(sinLat)), Math.toDegrees(fromLng + dLng)};
-	}
-
-	public static class AroundDiff {
-
-		public double aroundDiff;
-		public double incAroundDiff;
-
-		public AroundDiff(double aroundDiff, double incAroundDiff) {
-			this.aroundDiff = aroundDiff;
-			this.incAroundDiff = incAroundDiff;
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) return true;
-			if (o == null || getClass() != o.getClass()) return false;
-
-			AroundDiff that = (AroundDiff) o;
-
-			if (Double.compare(that.aroundDiff, aroundDiff) != 0) return false;
-			return Double.compare(that.incAroundDiff, incAroundDiff) == 0;
-		}
-
-		@Override
-		public int hashCode() {
-			int result = 0;
-			result = 31 * result + Double.hashCode(aroundDiff);
-			result = 31 * result + Double.hashCode(incAroundDiff);
-			return result;
-		}
-
-		@NonNull
-		@Override
-		public String toString() {
-			return AroundDiff.class.getSimpleName() + '[' +
-					this.aroundDiff + ',' +
-					this.incAroundDiff +
-					']';
-		}
-	}
-
-	public static final POIDistanceComparator POI_DISTANCE_COMPARATOR = new POIDistanceComparator();
-
-	public static class POIDistanceComparator implements Comparator<LocationPOI> {
-		@Override
-		public int compare(@NonNull LocationPOI lhs, @NonNull LocationPOI rhs) {
-			if (lhs.getPOI() instanceof RouteDirectionStop && rhs.getPOI() instanceof RouteDirectionStop) {
-				final RouteDirectionStop lRDS = (RouteDirectionStop) lhs.getPOI();
-				final RouteDirectionStop rRDS = (RouteDirectionStop) rhs.getPOI();
-				if (lRDS.getStop().getId() == rRDS.getStop().getId()) { // SAME STOP = SAME LOCATION
-					if (Route.SHORT_NAME_COMPARATOR.areDifferent(lRDS.getRoute(), rRDS.getRoute())) {
-						if (Route.SHORT_NAME_COMPARATOR.areComparable(lRDS.getRoute(), rRDS.getRoute())) {
-							return Route.SHORT_NAME_COMPARATOR.compare(lRDS.getRoute(), rRDS.getRoute());
-						}
-					}
-					if (Direction.HEAD_SIGN_COMPARATOR.areDifferent(lRDS.getDirection(), rRDS.getDirection())) {
-						if (Direction.HEAD_SIGN_COMPARATOR.areComparable(lRDS.getDirection(), rRDS.getDirection())) {
-							return Direction.HEAD_SIGN_COMPARATOR.compare(lRDS.getDirection(), rRDS.getDirection());
-						}
-					}
-				}
-			}
-			// FIXME IllegalArgumentException: Comparison method violates its general contract!
-			// FIXME => distance can be updated from another thread
-			return Float.compare(lhs.getDistance(), rhs.getDistance());
-		}
-	}
-
-	public static class SimpleLocationPOI implements LocationPOI {
-
-		@NonNull
-		private final POI poi;
-		@Nullable
-		private CharSequence distanceString = null;
-		private float distance = -1;
-
-		public SimpleLocationPOI(@NonNull POI poi) {
-			this.poi = poi;
-		}
-
-		@NonNull
-		@Override
-		public POI getPOI() {
-			return this.poi;
-		}
-
-		@Override
-		public double getLat() {
-			return this.poi.getLat();
-		}
-
-		@Override
-		public double getLng() {
-			return this.poi.getLng();
-		}
-
-		@Override
-		public boolean hasLocation() {
-			return this.poi.hasLocation();
-		}
-
-		@NonNull
-		@Override
-		public SimpleLocationPOI setDistanceString(@Nullable CharSequence distanceString) {
-			this.distanceString = distanceString;
-			return this;
-		}
-
-		@Nullable
-		@Override
-		public CharSequence getDistanceString() {
-			return this.distanceString;
-		}
-
-		@NonNull
-		@Override
-		public SimpleLocationPOI setDistance(float distance) {
-			this.distance = distance;
-			return this;
-		}
-
-		@Override
-		public float getDistance() {
-			return this.distance;
-		}
-	}
-
-	public interface LocationPOI {
-
-		@NonNull
-		POI getPOI();
-
-		double getLat();
-
-		double getLng();
-
-		boolean hasLocation();
-
-		@NonNull
-		LocationPOI setDistanceString(@Nullable CharSequence distanceString);
-
-		@Nullable
-		CharSequence getDistanceString();
-
-		@NonNull
-		LocationPOI setDistance(float distance);
-
-		float getDistance();
 	}
 }

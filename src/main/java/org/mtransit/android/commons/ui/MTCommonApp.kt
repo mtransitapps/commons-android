@@ -14,10 +14,13 @@ open class MTCommonApp : Application(), MTLog.Loggable {
 
     override fun getLogTag() = LOG_TAG
 
+    init {
+        CommonsApp.setup(isAndroidPlatform = true)
+    }
+
     @CallSuper
     override fun onCreate() {
         super.onCreate()
-        CommonsApp.setup(isAndroidPlatform = true)
         TimeProvider.init(this)
     }
 }

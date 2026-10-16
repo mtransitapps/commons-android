@@ -10,8 +10,8 @@ import com.google.transit.realtime.vehicleOrNull
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.secsToInstant
-import org.mtransit.android.toDateTimeLog
-import org.mtransit.android.toDurationLog
+import org.mtransit.android.commons.toDateTimeLog
+import org.mtransit.android.commons.toDurationLog
 import org.mtransit.commons.GTFSCommons
 import org.mtransit.commons.secToMs
 import java.util.regex.Pattern

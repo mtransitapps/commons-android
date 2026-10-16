@@ -115,12 +115,12 @@ public class Stop {
 	@Nullable
 	public static JSONObject toJSON(@NonNull Stop stop) {
 		try {
-			final JSONObject jStop = new JSONObject() //
-					.put(JSON_ID, stop.getId()) //
-					.put(JSON_CODE, stop.getCode()) //
-					.put(JSON_NAME, stop.getName()) //
-					.put(JSON_LAT, stop.getLat()) //
-					.put(JSON_LNG, stop.getLng()) //
+			final JSONObject jStop = new JSONObject()
+					.put(JSON_ID, stop.getId())
+					.put(JSON_CODE, stop.getCode())
+					.put(JSON_NAME, stop.getName())
+					.put(JSON_LAT, stop.getLat())
+					.put(JSON_LNG, stop.getLng())
 					;
 			jStop.put(JSON_ACCESSIBLE, stop.getAccessible());
 			jStop.put(JSON_ORIGINAL_ID_HASH, stop.getOriginalIdHash());

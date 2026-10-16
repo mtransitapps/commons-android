@@ -298,12 +298,8 @@ class TwitterNewsProvider : NewsProvider() {
                 AGENCY_SOURCE_ID
             )
             affectedRows = this.getDBHelper().writableDatabase.delete(newsDbTableName, selection, null)
-        } catch (e: java.lang.Exception) {
-            MTLog.w(
-                this,
-                e,
-                "Error while deleting all agency news data!"
-            )
+        } catch (e: Exception) {
+            MTLog.w(this, e, "Error while deleting all agency news data!")
         }
         return affectedRows
     }
@@ -706,7 +702,7 @@ class TwitterNewsProvider : NewsProvider() {
             textHTML += appendVideoAndGIF(includedExpansions, status.attachments?.mediaKeys)
             textHTML = HtmlUtils.toHTML(textHTML)
             return textHTML
-        } catch (e: java.lang.Exception) {
+        } catch (e: Exception) {
             MTLog.w(this, e, "Error while generating HTML text for status '%s'!", status)
             return status.text
         }

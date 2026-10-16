@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.data
 
 import android.database.Cursor
+import androidx.annotation.FloatRange
 import androidx.room.Ignore
 import org.mtransit.android.commons.LocationUtils
 import org.mtransit.android.commons.MTLog
@@ -17,32 +18,38 @@ import kotlin.math.sign
  */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 data class Area(
-    val minLat: Double,
-    val maxLat: Double,
-    val minLng: Double,
-    val maxLng: Double,
+    @FloatRange(from = MIN_LAT, to = MAX_LAT) val minLat: Double,
+    @FloatRange(from = MIN_LAT, to = MAX_LAT) val maxLat: Double,
+    @FloatRange(from = MIN_LNG, to = MAX_LNG) val minLng: Double,
+    @FloatRange(from = MIN_LNG, to = MAX_LNG) val maxLng: Double,
 ) : MTLog.Loggable {
 
     override fun getLogTag() = LOG_TAG
 
     @Ignore
+    @FloatRange(from = MIN_LAT, to = MAX_LAT)
     val northLat = this.maxLat
 
     @Ignore
+    @FloatRange(from = MIN_LAT, to = MAX_LAT)
     val southLat = this.minLat
 
     // FIXME not always: -180...0...+180 (In Pacific Ocean, E of NZ...)
     @Ignore
+    @FloatRange(from = MIN_LNG, to = MAX_LNG)
     val eastLng = this.maxLng
 
     // FIXME not always: -180...0...+180 (In Pacific Ocean, E of NZ...)
     @Ignore
+    @FloatRange(from = MIN_LNG, to = MAX_LNG)
     val westLng = this.minLng
 
     @Ignore
+    @FloatRange(from = MIN_LAT, to = MAX_LAT)
     val centerLat = this.minLat + abs(this.minLat - this.maxLat) / 2.0
 
     @Ignore
+    @FloatRange(from = MIN_LNG, to = MAX_LNG)
     val centerLng = this.minLng + abs(this.minLng - this.maxLng) / 2.0
 
     @Ignore
@@ -91,10 +98,10 @@ data class Area(
 
         private val LOG_TAG: String = Area::class.java.simpleName
 
-        const val MAX_LAT: Double = 90.0
-        const val MIN_LAT: Double = -90.0
-        const val MAX_LNG: Double = 180.0
-        const val MIN_LNG: Double = -180.0
+        const val MAX_LAT = 90.0
+        const val MIN_LAT = -90.0
+        const val MAX_LNG = 180.0
+        const val MIN_LNG = -180.0
 
         @JvmStatic
         val THE_WORLD = Area(MIN_LAT, MAX_LAT, MIN_LNG, MAX_LNG)
@@ -126,11 +133,8 @@ data class Area(
         }
 
         fun isInside(lat: Double, lng: Double, area: Area?): Boolean {
-            return if (area == null) {
-                false
-            } else {
-                isInside(lat, lng, area.minLat, area.maxLat, area.minLng, area.maxLng)
-            }
+            area ?: return false
+            return isInside(lat, lng, area.minLat, area.maxLat, area.minLng, area.maxLng)
         }
 
         fun isInside(lat: Double, lng: Double, minLat: Double, maxLat: Double, minLng: Double, maxLng: Double): Boolean {
@@ -138,9 +142,8 @@ data class Area(
         }
 
         fun areOverlapping(area1: Area?, area2: Area?): Boolean {
-            if (area1 == null || area2 == null) {
-                return false // no data to compare
-            }
+            area1 ?: return false // no data to compare
+            area2 ?: return false // no data to compare
             // AREA1 (at least partially) INSIDE AREA2
             if (isInside(area1.minLat, area1.minLng, area2)) {
                 return true // min lat, min lng
@@ -198,15 +201,12 @@ data class Area(
 
         @JvmStatic
         fun fromCursor(cursor: Cursor?): Area? {
-            return if (cursor == null) {
+            cursor ?: return null
+            return try {
+                fromCursorNN(cursor)
+            } catch (e: Exception) {
+                MTLog.w(LOG_TAG, e, "Error while reading cursor!")
                 null
-            } else {
-                try {
-                    fromCursorNN(cursor)
-                } catch (e: Exception) {
-                    MTLog.w(LOG_TAG, e, "Error while reading cursor!")
-                    null
-                }
             }
         }
 
