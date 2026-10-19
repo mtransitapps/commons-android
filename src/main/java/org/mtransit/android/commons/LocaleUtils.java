@@ -3,7 +3,6 @@ package org.mtransit.android.commons;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
-import android.webkit.WebView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,7 +14,7 @@ import java.util.Locale;
 @SuppressWarnings("WeakerAccess")
 public final class LocaleUtils implements MTLog.Loggable {
 
-	private static final String LOG_TAG = LocaleUtils.class.getSimpleName();
+	static final String LOG_TAG = LocaleUtils.class.getSimpleName();
 
 	@NonNull
 	@Override
@@ -39,15 +38,6 @@ public final class LocaleUtils implements MTLog.Loggable {
 			defaultLocale = Locale.getDefault();
 		}
 		return defaultLocale;
-	}
-
-	public static void fixWebViewLocale(@NonNull Context context) {
-		try {
-			final WebView webView = new WebView(context);
-			webView.post(webView::destroy);
-		} catch (Exception e) {
-			MTLog.w(LOG_TAG, e, "Crash while loading & destroying web view!");
-		}
 	}
 
 	@NonNull
