@@ -6,11 +6,11 @@ import android.content.MutableContextWrapper
 import android.os.Handler
 import android.os.Looper
 import android.webkit.WebView
-import org.mtransit.android.commons.LocaleUtils.LOG_TAG
 
 /**
  * Preload webview with the right Locale as early as possible w/o blocking main thread
  */
+@Suppress("TooGenericExceptionCaught")
 @SuppressLint("SetJavaScriptEnabled")
 fun fixWebViewLocale(context: Context) {
     try {
@@ -21,11 +21,11 @@ fun fixWebViewLocale(context: Context) {
                 try {
                     webView.destroy()
                 } catch (e: Exception) {
-                    MTLog.w(LOG_TAG, e, "Crash while destroying web view!")
+                    MTLog.w(LocaleUtils.LOG_TAG, e, "Crash while destroying web view!")
                 }
             }
         }
     } catch (e: Exception) {
-        MTLog.w(LOG_TAG, e, "Crash while loading & destroying web view!")
+        MTLog.w(LocaleUtils.LOG_TAG, e, "Crash while loading & destroying web view!")
     }
 }
