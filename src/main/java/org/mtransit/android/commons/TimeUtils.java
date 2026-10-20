@@ -126,6 +126,7 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	public static long systemCurrentTimeMillis() { // USEFUL FOR DEBUG
+		if (overrideCurrentTimeMillis != null) return overrideCurrentTimeMillis; // USEFUL FOR DEBUG
 		return TimeProvider.currentSystemTimeMillis();
 	}
 
