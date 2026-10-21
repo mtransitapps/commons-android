@@ -7,7 +7,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="1.1.2 (1:1.1+202202050950+0a00cf5339)"
-   sodipodi:docname="module-featured-graphic-2.svg"
+   sodipodi:docname="module-feature-graphic-2.svg"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -31,7 +31,7 @@
      inkscape:cx="305.06607"
      inkscape:cy="330.82496"
      inkscape:document-units="px"
-     inkscape:current-layer="agencynamelayer"
+     inkscape:current-layer="trainlayer"
      showgrid="false"
      inkscape:window-width="1920"
      inkscape:window-height="1016"
@@ -68,7 +68,7 @@
      inkscape:groupmode="layer"
      id="buslayer"
      inkscape:label="Bus"
-     style="display:inline">
+     style="display:none">
     <path
        style="display:inline;fill:#ffffff;fill-opacity:1"
        id="path3856"
@@ -141,7 +141,7 @@
        width="84" />
   </g>
   <g
-     style="display:none"
+     style="display:inline"
      inkscape:label="Train"
      id="trainlayer"
      inkscape:groupmode="layer">
