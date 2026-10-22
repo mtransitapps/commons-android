@@ -1,7 +1,9 @@
 #!/bin/bash
 SCRIPT_DIR="$(dirname "$0")";
 ROOT_DIR="$SCRIPT_DIR/../.."
+
 source "${ROOT_DIR}/commons/sh/commons.sh"
+
 echo ">> Capturing Main App Screenshot '$*'..."
 
 # WIP: just opens the app and waits fox X seconds to take screenshot in demo mode.
@@ -83,8 +85,7 @@ if [[ "${TYPE}" != "phone" ]]; then
   exit 1 #error
 fi
 
-PROJECT_DIR="$SCRIPT_DIR/../.."; # pub -> commons-android
-APP_ANDROID_DIR="$PROJECT_DIR/app-android"
+APP_ANDROID_DIR="$ROOT_DIR/app-android"
 DEST_DIR="$APP_ANDROID_DIR/src/main/play/listings/$LANG/graphics/$TYPE-screenshots"
 
 if [ ! -d "$DEST_DIR" ]; then
@@ -104,7 +105,7 @@ if [[ ! -d "$DEBUG_DIR" ]]; then
   DEBUG_DIR="$MAIN_DIR"
 fi
 RES_DIR=$MAIN_DIR/res
-CONFIG_DIR=$PROJECT_DIR/config
+CONFIG_DIR=$ROOT_DIR/config
 
 
 # requireCommand "xmllint" "libxml2-utils";
