@@ -10,14 +10,8 @@ setGradleArgs;
 echo "GRADLE_ARGS: $GRADLE_ARGS";
 
 DIRECTORY=$(basename ${PWD});
-CUSTOM_SETTINGS_GRADLE_FILE="$ROOT_DIR/settings.gradle.all";
-if [[ -f ${CUSTOM_SETTINGS_GRADLE_FILE} ]]; then
-	$ROOT_DIR/gradlew -c ${CUSTOM_SETTINGS_GRADLE_FILE} :${DIRECTORY}:clean :${DIRECTORY}:assemble ${GRADLE_ARGS};
-	RESULT=$?;
-else
-	$ROOT_DIR/gradlew :${DIRECTORY}:clean :${DIRECTORY}:assemble ${GRADLE_ARGS};
-	RESULT=$?;
-fi
+$ROOT_DIR/gradlew :${DIRECTORY}:clean :${DIRECTORY}:assemble ${GRADLE_ARGS};
+RESULT=$?;
 
 echo ">> Building... DONE";
 exit ${RESULT};
