@@ -1,15 +1,17 @@
 #!/bin/bash
 SCRIPT_DIR="$(dirname "$0")"
 ROOT_DIR="$SCRIPT_DIR/../.."
-source "${ROOT_DIR}/commons/commons.sh"
-echo ">> Converting Module Featured Graphic SVG to PNG '$*'..."
+
+source "${ROOT_DIR}/commons/sh/commons.sh"
+
+echo ">> Converting Module Feature Graphic SVG to PNG '$*'..."
 
 ROOT_DIR="${SCRIPT_DIR}/../..";
 
 if [[ "$#" -lt 3 || "$#" -gt 4 ]]; then
   echo "> Wrong $# parameters '$*'!"
-  echo "> Ex: 'app-android: ../commons-android/pub/module-featured-graphic.sh \"STM\" \"Montréal\" \"QC, Canada\";'"
-  echo "> Ex: 'app-android: ../commons-android/pub/module-featured-graphic.sh \"Société de Transport\" \"de Montréal\" \"Montréal\" \"QC, Canada\";'"
+  echo "> Ex: 'app-android: ../commons-android/pub/module-feature-graphic.sh \"STM\" \"Montréal\" \"QC, Canada\";'"
+  echo "> Ex: 'app-android: ../commons-android/pub/module-feature-graphic.sh \"Société de Transport\" \"de Montréal\" \"Montréal\" \"QC, Canada\";'"
   exit 1 # error
 fi
 
@@ -110,37 +112,37 @@ fi
 
 # https://github.com/mtransitapps/mtransit-for-android/blob/master/app-android/src/main/java/org/mtransit/android/data/DataSourceType.java
 
-SOURCE_GIT_PATH="pub/module-featured-graphic*.svg"
-SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic.svg" # BASE (ALL TYPE LAYERS HIDEEN)
+SOURCE_GIT_PATH="pub/module-feature-graphic*.svg"
+SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic.svg" # BASE (ALL TYPE LAYERS HIDEEN)
 if [ "$TYPE" -eq 0 ]; then # LIGHT_RAIL
-  SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-light-rail.svg"
+  SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-light-rail.svg"
   if [[ "$#" -eq 4 ]]; then
-    SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-light-rail-2.svg"
+    SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-light-rail-2.svg"
   fi
 elif [ "$TYPE" -eq 1 ]; then # SUBWAY
-  SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-subway.svg"
+  SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-subway.svg"
   if [[ "$#" -eq 4 ]]; then
-    SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-subway-2.svg"
+    SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-subway-2.svg"
   fi
 elif [ "$TYPE" -eq 2 ]; then # TRAIN
-  SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-train.svg"
+  SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-train.svg"
   if [[ "$#" -eq 4 ]]; then
-    SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-train-2.svg"
+    SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-train-2.svg"
   fi
 elif [ "$TYPE" -eq 3 ]; then # BUS
-  SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-bus.svg"
+  SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-bus.svg"
   if [[ "$#" -eq 4 ]]; then
-    SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-bus-2.svg"
+    SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-bus-2.svg"
   fi
 elif [ "$TYPE" -eq 4 ]; then # FERRY
-  SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-ferry.svg"
+  SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-ferry.svg"
   if [[ "$#" -eq 4 ]]; then
-    SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-ferry-2.svg"
+    SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-ferry-2.svg"
   fi
 elif [ "$TYPE" -eq 100 ]; then # BIKE
-  SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-bike.svg"
+  SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-bike.svg"
   if [[ "$#" -eq 4 ]]; then
-    SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-bike-2.svg"
+    SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-bike-2.svg"
   fi
 else
   echo "Unexpected agency type '$TYPE'!"
@@ -316,4 +318,4 @@ echo "> Resetting file..."
 git -C $ROOT_DIR/commons-android checkout "$SOURCE_GIT_PATH" #start fresh
 echo "> Resetting file... DONE"
 
-echo ">> Converting Module Featured Graphic SVG to PNG '$*'... DONE"
+echo ">> Converting Module Feature Graphic SVG to PNG '$*'... DONE"

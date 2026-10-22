@@ -1,7 +1,9 @@
 #!/bin/bash
 SCRIPT_DIR="$(dirname "$0")";
 ROOT_DIR="$SCRIPT_DIR/../.."
-source "${ROOT_DIR}/commons/commons.sh"
+
+source "${ROOT_DIR}/commons/sh/commons.sh"
+
 echo ">> Capturing Module App Screenshot '$*'..."
 
 if [[ "$#" -ne 3 ]]; then
@@ -49,8 +51,7 @@ if [[ "${TYPE}" != "phone" ]]; then
   exit 1 #error
 fi
 
-PROJECT_DIR="$SCRIPT_DIR/../.."; # pub -> commons-android
-APP_ANDROID_DIR="$PROJECT_DIR/app-android"
+APP_ANDROID_DIR="$ROOT_DIR/app-android"
 GRAPHICS_DIR="$APP_ANDROID_DIR/src/main/play/listings/$LANG/graphics"
 mkdir -p "$GRAPHICS_DIR";
 DEST_DIR="$GRAPHICS_DIR/$TYPE-screenshots"
@@ -73,7 +74,7 @@ if [[ ! -d "$DEBUG_DIR" ]]; then
   DEBUG_DIR="$MAIN_DIR"
 fi
 RES_DIR=$MAIN_DIR/res
-CONFIG_DIR=$PROJECT_DIR/config
+CONFIG_DIR=$ROOT_DIR/config
 
 CONFIG_PKG_FILE=$CONFIG_DIR/pkg
 MODULE_PKG=""
