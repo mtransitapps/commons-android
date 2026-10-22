@@ -248,7 +248,7 @@ if [[ "${#MISSING_PACKAGES[@]}" -gt 0 || "${#EXTRA_PACKAGES[@]}" -gt 0 ]]; then
       fi
 
       echo " - downloading latest APK for '$PKG' from '$MODULE_REPO_URL'..."
-      if ! "$ROOT_DIR/download_latest_apk.sh" "$MODULE_REPO_URL"; then
+      if ! "$ROOT_DIR/app-android/sh/download_latest_apk.sh" "$MODULE_REPO_URL"; then
         echo " - failed to download latest APK for '$PKG'."
         continue
       fi
