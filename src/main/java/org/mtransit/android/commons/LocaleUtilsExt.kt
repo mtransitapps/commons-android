@@ -22,16 +22,20 @@ fun fixWebViewLocale(context: Context) {
         }
         val contextWrapper = MutableContextWrapper(context.applicationContext)
         Handler(Looper.getMainLooper()).post {
-            val webView = WebView(contextWrapper)
-            webView.post {
-                try {
-                    webView.destroy()
-                } catch (e: Exception) {
-                    MTLog.w(LocaleUtils.LOG_TAG, e, "Crash while destroying web view!")
+            try {
+                val webView = WebView(contextWrapper)
+                webView.post {
+                    try {
+                        webView.destroy()
+                    } catch (e: Exception) {
+                        MTLog.w(LocaleUtils.LOG_TAG, e, "Crash while destroying web view!")
+                    }
                 }
+            } catch (e: Exception) {
+                MTLog.w(LocaleUtils.LOG_TAG, e, "Crash while loading & destroying web view!")
             }
         }
     } catch (e: Exception) {
-        MTLog.w(LocaleUtils.LOG_TAG, e, "Crash while loading & destroying web view!")
+        MTLog.w(LocaleUtils.LOG_TAG, e, "Crash while fixing web view locale!")
     }
 }
