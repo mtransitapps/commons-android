@@ -1,7 +1,9 @@
 #!/bin/bash
 SCRIPT_DIR="$(dirname "$0")"
 ROOT_DIR="$SCRIPT_DIR/../.."
+
 source "${ROOT_DIR}/commons/sh/commons.sh"
+
 echo ">> Converting Module Feature Graphic SVG to PNG '$*'..."
 
 ROOT_DIR="${SCRIPT_DIR}/../..";
