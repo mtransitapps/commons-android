@@ -45,8 +45,8 @@ data class VehicleLocation(
     val reportTimestampCountdown: Duration? get() = reportTimestamp?.let { (TimeUtilsK.currentInstant() - it) }
 
     val uuid: String = run {
-        val suffix = this.vehicleId?.let { "id:$it" }
-            ?: this.vehicleLabel?.let { "lbl:$it" }
+        val suffix = this.vehicleId?.takeIf { it.isNotBlank() }?.let { "id:$it" }
+            ?: this.vehicleLabel?.takeIf { it.isNotBlank() }?.let { "lbl:$it" }
             // ?: this.targetTripId?.let { "t:$it" } // should be 1 vehicle / trip ID (except frequency-based trips)
             ?: "gps:$latitude-$longitude" // will only work as long as the vehicle has not moved, better than nothing
         "${this.authority}-$suffix"
