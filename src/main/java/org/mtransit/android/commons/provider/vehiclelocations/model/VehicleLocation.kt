@@ -44,10 +44,10 @@ data class VehicleLocation(
 
     val reportTimestampCountdown: Duration? get() = reportTimestamp?.let { (TimeUtilsK.currentInstant() - it) }
 
-    private val _uid: String
+    private val _uuid: String
         get() = this.vehicleId ?: this.vehicleLabel ?: "$latitude-$longitude"
 
-    val uuid by lazy { "${this.authority}-$_uid" }
+    val uuid by lazy { "${this.authority}-$_uuid" }
 
     companion object {
         @JvmStatic

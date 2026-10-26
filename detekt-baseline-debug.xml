@@ -55,7 +55,6 @@
     <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$private val _userNamesTarget: List&lt;String&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.twitter_screen_names_target ).toList() }</ID>
     <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$private var _dbHelper: TwitterNewsDbHelper? = null</ID>
     <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$private var _twitterApi: TwitterV2Api? = null</ID>
-    <ID>BackingPropertyNaming:VehicleLocation.kt:VehicleLocation$private val _uid: String? = this.vehicleId ?: this.vehicleLabel</ID>
     <ID>BackingPropertyNaming:VehicleLocationProviderContract.kt:VehicleLocationProviderContract.Filter$private val _direction: Direction? get() = rds?.direction ?: routeDirection?.direction</ID>
     <ID>BackingPropertyNaming:VehicleLocationProviderContract.kt:VehicleLocationProviderContract.Filter$private val _route: Route? get() = rds?.route ?: route ?: routeDirection?.route</ID>
     <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$@Volatile private var _storage: YouTubeStorage? = null</ID>
