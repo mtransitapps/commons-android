@@ -44,8 +44,11 @@ data class VehicleLocation(
 
     val reportTimestampCountdown: Duration? get() = reportTimestamp?.let { (TimeUtilsK.currentInstant() - it) }
 
-    private val _uuid: String
-        get() = this.vehicleId ?: this.vehicleLabel ?: "$latitude-$longitude"
+    private val _uuid: String =
+        this.vehicleId
+            ?: this.vehicleLabel
+            ?: this.targetTripId // should be 1 vehicle / trip ID
+            ?: "$latitude-$longitude" // will only work as long as the vehicle has not moved, better than nothing
 
     val uuid by lazy { "${this.authority}-$_uuid" }
 
