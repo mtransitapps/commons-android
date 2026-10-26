@@ -44,9 +44,10 @@ data class VehicleLocation(
 
     val reportTimestampCountdown: Duration? get() = reportTimestamp?.let { (TimeUtilsK.currentInstant() - it) }
 
-    private val _uid: String? = this.vehicleId ?: this.vehicleLabel
+    private val _uid: String
+        get() = this.vehicleId ?: this.vehicleLabel ?: "$latitude-$longitude"
 
-    val uuid: String? = _uid?.let { "${this.authority}-$it" }
+    val uuid by lazy { "${this.authority}-$_uid" }
 
     companion object {
         @JvmStatic
@@ -87,21 +88,22 @@ data class VehicleLocation(
     /**
      * see [VehicleLocationProviderContract.PROJECTION_VEHICLE_LOCATION]
      */
-    val cursorRow: Array<Any?> get() = arrayOf(
-        id,
-        targetUUID,
-        targetTripId,
-        lastUpdateInMs,
-        maxValidityInMs,
-        //
-        vehicleId,
-        vehicleLabel,
-        reportTimestampSec,
-        latitude,
-        longitude,
-        bearingDegrees,
-        speedMetersPerSecond,
-    )
+    val cursorRow: Array<Any?>
+        get() = arrayOf(
+            id,
+            targetUUID,
+            targetTripId,
+            lastUpdateInMs,
+            maxValidityInMs,
+            //
+            vehicleId,
+            vehicleLabel,
+            reportTimestampSec,
+            latitude,
+            longitude,
+            bearingDegrees,
+            speedMetersPerSecond,
+        )
 
     val useful: Boolean get() = this.lastUpdateInMs + this.maxValidityInMs >= TimeUtils.currentTimeMillis()
 
