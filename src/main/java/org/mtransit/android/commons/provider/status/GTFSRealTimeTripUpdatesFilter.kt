@@ -49,37 +49,35 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
     parseRouteId: (GTripDescriptor) -> String?,
     parseTripId: (GTripDescriptor) -> String?,
 ): Map<String, GTripUpdate>? {
-    val staticTripIdToFirstStartDateTime by lazy {
+    val startDateTimeToStaticTripId by lazy {
         staticRDSchedules.flatMap { it.timestamps }.groupBy { it.tripId.orEmpty() }
             .mapNotNull { (staticTripId, tripTimestamps) ->
-                tripTimestamps.minByOrNull { it.stopSequenceOrNull ?: Int.MIN_VALUE }?.let {
+                tripTimestamps.minByOrNull { it.departure }?.let {
                     val departure = it.departure
-                    staticTripId to (departure.formatGtfsDateStr(agencyTimeZone) to departure.formatGtfsTimeStr(agencyTimeZone))
+                    (departure.formatGtfsDateStr(agencyTimeZone) to departure.formatGtfsTimeStr(agencyTimeZone)) to staticTripId
                 }
             }.toMap()
     }
     return this
-        .filter { gTripUpdate ->
+        .mapNotNull { gTripUpdate ->
             gTripUpdate.optTrip?.match(
                 nowMs = nowMs,
                 targetRouteIdHash = targetRouteIdHash,
                 targetDirectionOriginalId = targetDirectionOriginalId,
                 agencyTimeZone = agencyTimeZone,
-                staticTripIdToFirstStartDateTime = staticTripIdToFirstStartDateTime,
+                startDateTimeToStaticTripId = startDateTimeToStaticTripId,
                 staticRDTripIds = staticRDTripIds,
                 ignoreDirection = ignoreDirection,
                 parseRouteId = parseRouteId,
                 parseTripId = parseTripId,
-            ) != null
+            )?.let { staticTripId ->
+                staticTripId to gTripUpdate
+            }
         }
-        .filter { it.isUseful(nowMs, agencyTimeZone) }
+        .filter { (_, gTripUpdate) -> gTripUpdate.isUseful(nowMs, agencyTimeZone) }
         .filterDuplicatesTrips()
         .takeIf { it.isNotEmpty() }
-        ?.mapNotNull { gTripUpdate ->
-            gTripUpdate.optTrip?.let { parseTripId(it) }?.let {
-                it to gTripUpdate
-            }
-        }?.toMap()
+        ?.toMap()
 }
 
 // Montréal-based competitor: 4.5 hours (?)
@@ -146,7 +144,7 @@ internal fun GTripDescriptor.match(
     targetRouteIdHash: String,
     targetDirectionOriginalId: Int?,
     agencyTimeZone: KtTimeZone,
-    staticTripIdToFirstStartDateTime: Map<String, Pair<String, String>>,
+    startDateTimeToStaticTripId: Map<Pair<String, String>, String>,
     staticRDTripIds: Set<String>,
     ignoreDirection: Boolean,
     parseRouteId: (GTripDescriptor) -> String?,
@@ -181,9 +179,7 @@ internal fun GTripDescriptor.match(
         val startDate = optStartDate ?: run {
             nowMs.millisToInstant().formatGtfsDateStr(agencyTimeZone)
         }
-        staticTripIdToFirstStartDateTime.entries.find { (_, startDateTime) ->
-            startDateTime.first == startDate && startDateTime.second == optStartTime
-        }?.let { (staticTripId, _) ->
+        startDateTimeToStaticTripId[startDate to optStartTime]?.let { staticTripId ->
             // if (DEBUG_STATIC_RT_MATCH) {
             MTLog.d(LOG_TAG, "match() > FOUND: out-of-sync trip ID '$staticTripId' for ${toStringExt(short = true)}")
             // }
@@ -196,56 +192,67 @@ internal fun GTripDescriptor.match(
     return null // NOT A MATCH
 }
 
-internal fun List<GTripUpdate>.filterDuplicatesTrips() = buildList<GTripUpdate> {
-    this@filterDuplicatesTrips.groupBy {
-        it.optTrip?.optTripIdNotEmpty to (
-            (it.optTrip?.optStartDate ?: it.optTrip?.optModifiedTrip?.optStartDate) to
-                (it.optTrip?.optStartTime ?: it.optTrip?.optModifiedTrip?.optStartTime)
+internal fun List<Pair<String, GTripUpdate>>.filterDuplicatesTrips() = buildList<Pair<String, GTripUpdate>> {
+    this@filterDuplicatesTrips.groupBy { (_, tu) ->
+        val td = tu.optTrip
+        td?.optTripIdNotEmpty to (
+            (td?.optStartDate ?: td?.optModifiedTrip?.optStartDate) to
+                (td?.optStartTime ?: td?.optModifiedTrip?.optStartTime)
             )
-    }.forEach { (_, gTripUpdates) ->
-        if (gTripUpdates.isEmpty()) return@forEach
-        if (gTripUpdates.size == 1) {
-            val gTripUpdate1 = gTripUpdates.firstOrNull() ?: return@forEach
+    }.forEach { (_, tripIdAndTripUpdates) ->
+        if (tripIdAndTripUpdates.isEmpty()) return@forEach
+        if (tripIdAndTripUpdates.size == 1) {
+            val gTripUpdate1 = tripIdAndTripUpdates.firstOrNull() ?: return@forEach
             add(gTripUpdate1)
             return@forEach
         }
         // PICK ONE
         // 1 - pick one w/o ModifiedTrip AND w/ Vehicle descriptor
-        gTripUpdates
-            .filter { it.optTrip?.hasModifiedTrip() == false && it.hasVehicle() }
+        tripIdAndTripUpdates
+            .filter { (_, tu) -> tu.optTrip?.hasModifiedTrip() == false && tu.hasVehicle() }
             .takeIf { it.isNotEmpty() }
             ?.let { woModifiedTripAndWVehicle ->
                 val picked = woModifiedTripAndWVehicle.first()
                 MTLog.d(
                     LOG_TAG,
-                    "filterDuplicatesTrips() > pick 1st out of ${woModifiedTripAndWVehicle.size} w/o ModifiedTrip and w/ Vehicle: ${picked.toStringExt()}"
+                    "filterDuplicatesTrips() > pick 1st out of ${woModifiedTripAndWVehicle.size} w/o ModifiedTrip and w/ Vehicle: " +
+                        "[${picked.first}] ${picked.second.toStringExt()}"
                 )
                 add(picked)
                 return@forEach
             }
         // 2 - pick one w/o ModifiedTrip
-        gTripUpdates
-            .filter { it.optTrip?.hasModifiedTrip() == false }
+        tripIdAndTripUpdates
+            .filter { (_, tu) -> tu.optTrip?.hasModifiedTrip() == false }
             .takeIf { it.isNotEmpty() }
             ?.let { woModifiedTrip ->
                 val picked = woModifiedTrip.first()
-                MTLog.d(LOG_TAG, "filterDuplicatesTrips() > pick 1st out of ${woModifiedTrip.size} w/o ModifiedTrip: ${picked.toStringExt()}")
+                MTLog.d(
+                    LOG_TAG, "filterDuplicatesTrips() > pick 1st out of ${woModifiedTrip.size} w/o ModifiedTrip: " +
+                        "[${picked.first}] ${picked.second.toStringExt()}"
+                )
                 add(picked)
                 return@forEach
             }
         // 3 - pick one w/ Vehicle descriptor (even if it has ModifiedTrip)
-        gTripUpdates
-            .filter { it.hasVehicle() }
+        tripIdAndTripUpdates
+            .filter { (_, tu) -> tu.hasVehicle() }
             .takeIf { it.isNotEmpty() }
             ?.let { wVehicle ->
                 val picked = wVehicle.first()
-                MTLog.d(LOG_TAG, "filterDuplicatesTrips() > pick 1st out of ${wVehicle.size} w/ Vehicle: ${picked.toStringExt()}")
+                MTLog.d(
+                    LOG_TAG, "filterDuplicatesTrips() > pick 1st out of ${wVehicle.size} w/ Vehicle: " +
+                        "[${picked.first}] ${picked.second.toStringExt()}"
+                )
                 add(picked)
                 return@forEach
             }
         // ELSE -> pick 1st one in the list
-        val gTripUpdate1 = gTripUpdates.firstOrNull() ?: return@forEach
-        MTLog.d(LOG_TAG, "filterDuplicatesTrips() > use 1st one out of ${gTripUpdates.size}: ${gTripUpdate1.toStringExt()}")
+        val gTripUpdate1 = tripIdAndTripUpdates.firstOrNull() ?: return@forEach
+        MTLog.d(
+            LOG_TAG, "filterDuplicatesTrips() > use 1st one out of ${tripIdAndTripUpdates.size}: " +
+                "[${gTripUpdate1.first}] ${gTripUpdate1.second.toStringExt()}"
+        )
         add(gTripUpdate1)
     }
 }

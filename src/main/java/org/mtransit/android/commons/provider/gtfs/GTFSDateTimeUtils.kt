@@ -5,7 +5,6 @@ import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
 import org.mtransit.android.commons.MTLog
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -55,15 +54,14 @@ object GTFSDateTimeUtils : MTLog.Loggable {
         }
     }
 
+    private val DATE_FORMATTER by lazy { DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN) }
+    private val TIME_FORMATTER by lazy { DateTimeFormatter.ofPattern(TIME_FORMAT_PATTERN) }
+
     fun Instant.formatGtfsDateStr(agencyTimeZone: KtTimeZone): String {
-        return toLocalDateTime(agencyTimeZone).let {
-            DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN).withZone(ZoneId.of(agencyTimeZone.id)).format(it.toJavaLocalDateTime())
-        }
+        return DATE_FORMATTER.format(toLocalDateTime(agencyTimeZone).toJavaLocalDateTime())
     }
 
     fun Instant.formatGtfsTimeStr(agencyTimeZone: KtTimeZone): String {
-        return toLocalDateTime(agencyTimeZone).let {
-            DateTimeFormatter.ofPattern(TIME_FORMAT_PATTERN).withZone(ZoneId.of(agencyTimeZone.id)).format(it.toJavaLocalDateTime())
-        }
+        return TIME_FORMATTER.format(toLocalDateTime(agencyTimeZone).toJavaLocalDateTime())
     }
 }

@@ -8,7 +8,9 @@ import com.google.transit.realtime.tripUpdate
 import com.google.transit.realtime.vehicleDescriptor
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
 import org.mtransit.commons.CommonsApp
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -45,7 +47,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            staticTripIdToFirstStartDateTime = emptyMap(),
+            startDateTimeToStaticTripId = emptyMap(),
             staticRDTripIds = setOf(TRIP_ID),
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
@@ -68,7 +70,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            staticTripIdToFirstStartDateTime = emptyMap(),
+            startDateTimeToStaticTripId = emptyMap(),
             staticRDTripIds = setOf("different_trip_id"),
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
@@ -88,7 +90,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            staticTripIdToFirstStartDateTime = emptyMap(),
+            startDateTimeToStaticTripId = emptyMap(),
             staticRDTripIds = setOf("different_trip_id"),
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
@@ -110,8 +112,8 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            staticTripIdToFirstStartDateTime = mapOf(
-                TRIP_ID to ("20261026" to "19:37:00")
+            startDateTimeToStaticTripId = mapOf(
+                ("20261026" to "19:37:00") to TRIP_ID
             ),
             staticRDTripIds = setOf(TRIP_ID),
             ignoreDirection = false,
@@ -133,10 +135,10 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            staticTripIdToFirstStartDateTime = mapOf(
-                "previous_trip_id" to ("20261025" to "19:37:00"),
-                TRIP_ID to ("20261026" to "19:37:00"),
-                "next_trip_id" to ("20261027" to "19:37:00"),
+            startDateTimeToStaticTripId = mapOf(
+                ("20261025" to "19:37:00") to "previous_trip_id",
+                ("20261026" to "19:37:00") to TRIP_ID,
+                ("20261027" to "19:37:00") to "next_trip_id",
             ),
             staticRDTripIds = setOf(TRIP_ID),
             ignoreDirection = false,
@@ -158,8 +160,8 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            staticTripIdToFirstStartDateTime = mapOf(
-                TRIP_ID to ("20261026" to "19:37:00")
+            startDateTimeToStaticTripId = mapOf(
+                ("20261026" to "19:37:00") to TRIP_ID,
             ),
             staticRDTripIds = setOf(TRIP_ID),
             ignoreDirection = false,
@@ -218,14 +220,20 @@ class GTFSRealTimeTripUpdatesFilterTests {
                     label = "hello"
                 }
             },
-        ).filterDuplicatesTrips().let { result ->
-            assertEquals(1, result.size)
-            assertNotNull(result.getOrNull(0)) {
-                assertEquals(TRIP_ID, it.trip.tripId)
-                assertFalse(it.trip.hasModifiedTrip())
-                assertTrue(it.hasVehicle())
+        )
+            .mapNotNull { tu -> tu.optTrip?.optTripIdNotEmpty?.let { it to tu } }
+            .filterDuplicatesTrips()
+            .let { result ->
+                assertEquals(1, result.size)
+                assertNotNull(result.getOrNull(0)) { (tripId, tu) ->
+                    assertEquals(TRIP_ID, tripId)
+                    assertNotNull(tu.optTrip) { td ->
+                        assertEquals(TRIP_ID, td.optTripId)
+                        assertFalse(td.hasModifiedTrip())
+                    }
+                    assertTrue(tu.hasVehicle())
+                }
             }
-        }
     }
 
     @Test
@@ -249,14 +257,19 @@ class GTFSRealTimeTripUpdatesFilterTests {
                     label = "hello"
                 }
             },
-        ).filterDuplicatesTrips().let { result ->
-            assertEquals(1, result.size)
-            assertNotNull(result.getOrNull(0)) {
-                assertEquals(TRIP_ID, it.trip.tripId)
-                assertFalse(it.trip.hasModifiedTrip())
-                assertTrue(it.hasVehicle())
+        )
+            .mapNotNull { tu -> tu.optTrip?.optTripIdNotEmpty?.let { it to tu } }
+            .filterDuplicatesTrips()
+            .let { result ->
+                assertEquals(1, result.size)
+                assertNotNull(result.getOrNull(0)) { (tripId, tu) ->
+                    assertEquals(TRIP_ID, tripId)
+                    assertEquals(TRIP_ID, tu.trip.tripId)
+                    assertFalse(tu.trip.hasModifiedTrip())
+                    assertTrue(tu.hasVehicle())
+                    assertTrue(tu.hasVehicle())
+                }
             }
-        }
     }
 
     @Test
@@ -304,20 +317,26 @@ class GTFSRealTimeTripUpdatesFilterTests {
                 }
                 // etc. (stop time update unrelated to this trip ID (static data) (either trip modification is massive or just vehicle next trip)
             },
-        ).filterDuplicatesTrips().let { result ->
-            assertEquals(1, result.size)
-            assertNotNull(result.getOrNull(0)) { gTripUpdate ->
-                assertEquals(TRIP_ID, gTripUpdate.trip.tripId)
-                assertTrue(gTripUpdate.trip.hasModifiedTrip())
-                assertTrue(gTripUpdate.hasVehicle())
-                assertEquals(1, gTripUpdate.stopTimeUpdateCount)
-                assertNotNull(gTripUpdate.optStopTimeUpdateList?.getOrNull(0)) { stu ->
-                    assertEquals(25, stu.stopSequence)
-                    assertEquals("1096", stu.stopId)
-                    assertEquals(39, stu.departure.delay)
+        )
+            .mapNotNull { tu -> tu.optTrip?.optTripIdNotEmpty?.let { it to tu } }
+            .filterDuplicatesTrips()
+            .let { result ->
+                assertEquals(1, result.size)
+                assertNotNull(result.getOrNull(0)) { (tripId, gTripUpdate) ->
+                    assertEquals(TRIP_ID, tripId)
+                    assertNotNull(gTripUpdate.optTrip) { gTripDescriptor ->
+                        assertEquals(TRIP_ID, gTripDescriptor.tripId)
+                        assertTrue(gTripDescriptor.hasModifiedTrip())
+                    }
+                    assertTrue(gTripUpdate.hasVehicle())
+                    assertEquals(1, gTripUpdate.stopTimeUpdateCount)
+                    assertNotNull(gTripUpdate.optStopTimeUpdateList?.getOrNull(0)) { stu ->
+                        assertEquals(25, stu.stopSequence)
+                        assertEquals("1096", stu.stopId)
+                        assertEquals(39, stu.departure.delay)
+                    }
                 }
             }
-        }
     }
 
     // endregion
