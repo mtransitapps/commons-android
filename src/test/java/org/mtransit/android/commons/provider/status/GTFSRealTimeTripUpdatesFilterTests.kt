@@ -18,6 +18,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone as KtTimeZone
 
 class GTFSRealTimeTripUpdatesFilterTests {
@@ -25,6 +26,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
     companion object {
         private const val LOCAL_TZ_ID: String = "America/Montreal"
         private val LOCAL_TZ = KtTimeZone.of(LOCAL_TZ_ID)
+        private const val LOCAL_TZ_UTC_OFFSET = "04:00"
 
         private const val TRIP_ID = "123456789"
 
@@ -47,7 +49,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            startDateTimeToStaticTripId = emptyMap(),
+            startDepartureToStaticTripId = emptyMap(),
             staticRDTripIds = setOf(TRIP_ID),
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
@@ -70,7 +72,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            startDateTimeToStaticTripId = emptyMap(),
+            startDepartureToStaticTripId = emptyMap(),
             staticRDTripIds = setOf("different_trip_id"),
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
@@ -90,7 +92,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            startDateTimeToStaticTripId = emptyMap(),
+            startDepartureToStaticTripId = emptyMap(),
             staticRDTripIds = setOf("different_trip_id"),
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
@@ -112,8 +114,8 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            startDateTimeToStaticTripId = mapOf(
-                ("20261026" to "19:37:00") to TRIP_ID
+            startDepartureToStaticTripId = mapOf(
+                toInstant("20261026", "19:37:00") to TRIP_ID
             ),
             staticRDTripIds = setOf(TRIP_ID),
             ignoreDirection = false,
@@ -135,10 +137,10 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            startDateTimeToStaticTripId = mapOf(
-                ("20261025" to "19:37:00") to "previous_trip_id",
-                ("20261026" to "19:37:00") to TRIP_ID,
-                ("20261027" to "19:37:00") to "next_trip_id",
+            startDepartureToStaticTripId = mapOf(
+                toInstant("20261025", "19:37:00") to "previous_trip_id",
+                toInstant("20261026", "19:37:00") to TRIP_ID,
+                toInstant("20261027", "19:37:00") to "next_trip_id",
             ),
             staticRDTripIds = setOf(TRIP_ID),
             ignoreDirection = false,
@@ -160,8 +162,8 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            startDateTimeToStaticTripId = mapOf(
-                ("20261026" to "19:37:00") to TRIP_ID,
+            startDepartureToStaticTripId = mapOf(
+                toInstant("20261026", "19:37:00") to TRIP_ID,
             ),
             staticRDTripIds = setOf(TRIP_ID),
             ignoreDirection = false,
@@ -170,6 +172,14 @@ class GTFSRealTimeTripUpdatesFilterTests {
         ).let { result ->
             assertEquals(null, result)
         }
+    }
+
+    @Suppress("SameParameterValue")
+    private fun toInstant(startDate: String, startTime: String, agencyTimezoneOffset: String = LOCAL_TZ_UTC_OFFSET): Instant {
+        val year = startDate.substring(0, 4)
+        val month = startDate.substring(4, 6)
+        val day = startDate.substring(6, 8)
+        return Instant.parse(year + "-" + month + "-" + day + "T" + startTime + "-" + agencyTimezoneOffset)
     }
 
     // endregion

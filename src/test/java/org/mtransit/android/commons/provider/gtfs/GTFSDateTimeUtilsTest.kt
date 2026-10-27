@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.provider.gtfs
 
 import org.mtransit.android.commons.millisToInstant
+import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.append24Hours
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -36,6 +37,19 @@ class GTFSDateTimeUtilsTest {
             GTFSDateTimeUtils.parseToDateTime(date, time, timeZone)
         }.let { result ->
             assertNull(result)
+        }
+    }
+
+    @Test
+    fun test_append24Hours() {
+        "01:02:03".append24Hours().let { result ->
+            assertEquals("25:02:03", result)
+        }
+        "1:02:03".append24Hours().let { result ->
+            assertEquals("25:02:03", result)
+        }
+        "25:02:03".append24Hours().let { result ->
+            assertEquals("25:02:03", result)
         }
     }
 }

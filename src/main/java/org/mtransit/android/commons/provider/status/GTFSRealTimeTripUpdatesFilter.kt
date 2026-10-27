@@ -4,11 +4,8 @@ import androidx.annotation.VisibleForTesting
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.departure
-import org.mtransit.android.commons.millisToInstant
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID
-import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.formatGtfsDateStr
-import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.formatGtfsTimeStr
-import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.parseToDateTime
+import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.hasStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.hasTimeOrScheduledTime
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optArrival
@@ -30,9 +27,8 @@ import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvi
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.TRIP_UPDATE_MAX_AGE_MS
 import org.mtransit.android.commons.toDurationLog
 import org.mtransit.android.commons.toMillis
-import kotlin.collections.filter
-import kotlin.getValue
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor as GTripDescriptor
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
@@ -49,12 +45,11 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
     parseRouteId: (GTripDescriptor) -> String?,
     parseTripId: (GTripDescriptor) -> String?,
 ): Map<String, GTripUpdate>? {
-    val startDateTimeToStaticTripId by lazy {
+    val startDepartureToStaticTripId by lazy {
         staticRDSchedules.flatMap { it.timestamps }.groupBy { it.tripId.orEmpty() }
             .mapNotNull { (staticTripId, tripTimestamps) ->
                 tripTimestamps.minByOrNull { it.departure }?.let {
-                    val departure = it.departure
-                    (departure.formatGtfsDateStr(agencyTimeZone) to departure.formatGtfsTimeStr(agencyTimeZone)) to staticTripId
+                    it.departure to staticTripId
                 }
             }.toMap()
     }
@@ -65,7 +60,7 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
                 targetRouteIdHash = targetRouteIdHash,
                 targetDirectionOriginalId = targetDirectionOriginalId,
                 agencyTimeZone = agencyTimeZone,
-                startDateTimeToStaticTripId = startDateTimeToStaticTripId,
+                startDepartureToStaticTripId = startDepartureToStaticTripId,
                 staticRDTripIds = staticRDTripIds,
                 ignoreDirection = ignoreDirection,
                 parseRouteId = parseRouteId,
@@ -102,8 +97,8 @@ private fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone): Boole
     val startDateTimeOrFirstTimeMs: Long? = if (hasVehicleInfo) {
         null
     } else {
-        td.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
-            ?: td.optModifiedTrip?.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
+        td.let { GTFSDateTimeUtils.parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
+            ?: td.optModifiedTrip?.let { GTFSDateTimeUtils.parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
             ?: optStopTimeUpdateList // not sorting because GTFS spec requires it to be already sorted & it's a fallback
                 ?.firstOrNull { it.optDeparture?.hasTimeOrScheduledTime() == true || it.optArrival?.hasTimeOrScheduledTime() == true }
                 ?.let {
@@ -144,7 +139,7 @@ internal fun GTripDescriptor.match(
     targetRouteIdHash: String,
     targetDirectionOriginalId: Int?,
     agencyTimeZone: KtTimeZone,
-    startDateTimeToStaticTripId: Map<Pair<String, String>, String>,
+    startDepartureToStaticTripId: Map<Instant, String>,
     staticRDTripIds: Set<String>,
     ignoreDirection: Boolean,
     parseRouteId: (GTripDescriptor) -> String?,
@@ -175,11 +170,13 @@ internal fun GTripDescriptor.match(
             }
         }
     }
-    if (optStartTime != null) { // start time required when trip ID do not match
-        val startDate = optStartDate ?: run {
-            nowMs.millisToInstant().formatGtfsDateStr(agencyTimeZone)
+    optStartTime?.let { startTime -> // start time required when trip ID do not match
+        val tuDeparture = optStartDate?.let { startDate ->
+            GTFSDateTimeUtils.parseToDateTime(startDate, startTime, agencyTimeZone)
+        } ?: run {
+            GTFSDateTimeUtils.parseToTime(nowMs, startTime, agencyTimeZone)
         }
-        startDateTimeToStaticTripId[startDate to optStartTime]?.let { staticTripId ->
+        startDepartureToStaticTripId[tuDeparture]?.let { staticTripId ->
             // if (DEBUG_STATIC_RT_MATCH) {
             MTLog.d(LOG_TAG, "match() > FOUND: out-of-sync trip ID '$staticTripId' for ${toStringExt(short = true)}")
             // }
