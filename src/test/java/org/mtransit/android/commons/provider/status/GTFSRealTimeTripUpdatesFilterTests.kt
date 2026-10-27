@@ -6,18 +6,173 @@ import com.google.transit.realtime.TripUpdateKt.stopTimeUpdate
 import com.google.transit.realtime.tripDescriptor
 import com.google.transit.realtime.tripUpdate
 import com.google.transit.realtime.vehicleDescriptor
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
+import org.mtransit.commons.CommonsApp
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlinx.datetime.TimeZone as KtTimeZone
 
 class GTFSRealTimeTripUpdatesFilterTests {
 
     companion object {
+        private const val LOCAL_TZ_ID: String = "America/Montreal"
+        private val LOCAL_TZ = KtTimeZone.of(LOCAL_TZ_ID)
+
         private const val TRIP_ID = "123456789"
+
+        private const val NOW_IN_MS = 1793056759_000L // Monday, October 26, 2026, at 7:19:19 p.m. UTC-04:00 DST
     }
+
+    @BeforeTest
+    fun setUp() {
+        CommonsApp.setup(isAndroidPlatform = false)
+    }
+
+    // region TripDescriptor match
+
+    @Test
+    fun test_match_trip_id_only_matches() {
+        tripDescriptor {
+            tripId = TRIP_ID
+        }.match(
+            nowMs = NOW_IN_MS,
+            targetRouteIdHash = "1",
+            targetDirectionOriginalId = 1,
+            agencyTimeZone = LOCAL_TZ,
+            staticTripIdToFirstStartDateTime = emptyMap(),
+            staticRDTripIds = setOf(TRIP_ID),
+            ignoreDirection = false,
+            parseRouteId = { it.optRouteId },
+            parseTripId = { it.optTripId },
+        ).let { result ->
+            if (IGNORE_TRIP_ID) {
+                assertEquals(null, result)
+            } else {
+                assertEquals(TRIP_ID, result)
+            }
+        }
+    }
+
+    @Test
+    fun test_match_trip_id_only_does_not_match() {
+        tripDescriptor {
+            tripId = TRIP_ID
+        }.match(
+            nowMs = NOW_IN_MS,
+            targetRouteIdHash = "1",
+            targetDirectionOriginalId = 1,
+            agencyTimeZone = LOCAL_TZ,
+            staticTripIdToFirstStartDateTime = emptyMap(),
+            staticRDTripIds = setOf("different_trip_id"),
+            ignoreDirection = false,
+            parseRouteId = { it.optRouteId },
+            parseTripId = { it.optTripId },
+        ).let { result ->
+            assertEquals(null, result)
+        }
+    }
+
+    @Test
+    fun test_match_trip_id_does_not_match_and_route_matches() {
+        tripDescriptor {
+            routeId = "1"
+            tripId = TRIP_ID
+        }.match(
+            nowMs = NOW_IN_MS,
+            targetRouteIdHash = "1",
+            targetDirectionOriginalId = 1,
+            agencyTimeZone = LOCAL_TZ,
+            staticTripIdToFirstStartDateTime = emptyMap(),
+            staticRDTripIds = setOf("different_trip_id"),
+            ignoreDirection = false,
+            parseRouteId = { it.optRouteId },
+            parseTripId = { it.optTripId },
+        ).let { result ->
+            assertEquals(null, result)
+        }
+    }
+
+    @Test
+    fun test_match_outdated_trip_id_matches_static_route_id_start_date_time() {
+        tripDescriptor {
+            routeId = "1"
+            tripId = "outdated"
+            startDate = "20261026"
+            startTime = "19:37:00"
+        }.match(
+            nowMs = NOW_IN_MS,
+            targetRouteIdHash = "1",
+            targetDirectionOriginalId = 1,
+            agencyTimeZone = LOCAL_TZ,
+            staticTripIdToFirstStartDateTime = mapOf(
+                TRIP_ID to ("20261026" to "19:37:00")
+            ),
+            staticRDTripIds = setOf(TRIP_ID),
+            ignoreDirection = false,
+            parseRouteId = { it.optRouteId },
+            parseTripId = { it.optTripId },
+        ).let { result ->
+            assertEquals(TRIP_ID, result)
+        }
+    }
+
+    @Test
+    fun test_match_outdated_trip_id_matches_static_route_id_start_date() { // not frequency-based
+        tripDescriptor {
+            routeId = "1"
+            tripId = "outdated"
+            startTime = "19:37:00"
+        }.match(
+            nowMs = NOW_IN_MS,
+            targetRouteIdHash = "1",
+            targetDirectionOriginalId = 1,
+            agencyTimeZone = LOCAL_TZ,
+            staticTripIdToFirstStartDateTime = mapOf(
+                "previous_trip_id" to ("20261025" to "19:37:00"),
+                TRIP_ID to ("20261026" to "19:37:00"),
+                "next_trip_id" to ("20261027" to "19:37:00"),
+            ),
+            staticRDTripIds = setOf(TRIP_ID),
+            ignoreDirection = false,
+            parseRouteId = { it.optRouteId },
+            parseTripId = { it.optTripId },
+        ).let { result ->
+            assertEquals(TRIP_ID, result)
+        }
+    }
+
+    @Test
+    fun test_match_outdated_trip_id_matches_static_route_id_start_time() { // not frequency-based
+        tripDescriptor {
+            routeId = "1"
+            tripId = "outdated"
+            startDate = "20261026"
+        }.match(
+            nowMs = NOW_IN_MS,
+            targetRouteIdHash = "1",
+            targetDirectionOriginalId = 1,
+            agencyTimeZone = LOCAL_TZ,
+            staticTripIdToFirstStartDateTime = mapOf(
+                TRIP_ID to ("20261026" to "19:37:00")
+            ),
+            staticRDTripIds = setOf(TRIP_ID),
+            ignoreDirection = false,
+            parseRouteId = { it.optRouteId },
+            parseTripId = { it.optTripId },
+        ).let { result ->
+            assertEquals(null, result)
+        }
+    }
+
+    // endregion
+
+    // region filterDuplicatesTrips
 
     @Test
     fun test_filterDuplicatesTrips_1Regular_2ModifiedTrips() {
@@ -164,4 +319,6 @@ class GTFSRealTimeTripUpdatesFilterTests {
             }
         }
     }
+
+    // endregion
 }

@@ -2,7 +2,11 @@ package org.mtransit.android.commons.provider.gtfs
 
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toLocalDateTime
 import org.mtransit.android.commons.MTLog
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -12,6 +16,11 @@ import kotlinx.datetime.TimeZone as KtTimeZone
 object GTFSDateTimeUtils : MTLog.Loggable {
 
     private val LOG_TAG: String = GTFSDateTimeUtils::class.java.simpleName
+
+    private const val DATE_FORMAT_PATTERN = "yyyyMMdd"
+
+    @Suppress("SpellCheckingInspection")
+    private const val TIME_FORMAT_PATTERN = "HH:mm:ss"
 
     override fun getLogTag() = LOG_TAG
 
@@ -43,6 +52,18 @@ object GTFSDateTimeUtils : MTLog.Loggable {
         } catch (e: Exception) {
             MTLog.w(this, e, "Error while parsing GTFS date '$gtfsDateStr' & time '$gtfsTimeStr'!")
             return null
+        }
+    }
+
+    fun Instant.formatGtfsDateStr(agencyTimeZone: KtTimeZone): String {
+        return toLocalDateTime(agencyTimeZone).let {
+            DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN).withZone(ZoneId.of(agencyTimeZone.id)).format(it.toJavaLocalDateTime())
+        }
+    }
+
+    fun Instant.formatGtfsTimeStr(agencyTimeZone: KtTimeZone): String {
+        return toLocalDateTime(agencyTimeZone).let {
+            DateTimeFormatter.ofPattern(TIME_FORMAT_PATTERN).withZone(ZoneId.of(agencyTimeZone.id)).format(it.toJavaLocalDateTime())
         }
     }
 }

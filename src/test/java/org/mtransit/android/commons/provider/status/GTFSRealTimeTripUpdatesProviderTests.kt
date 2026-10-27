@@ -17,10 +17,7 @@ import org.mtransit.android.commons.data.makeStop
 import org.mtransit.android.commons.data.toScheduleTimestamp
 import org.mtransit.android.commons.provider.gtfs.GTFSStatusProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.delayDuration
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
-import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.match
 import org.mtransit.android.commons.secsToInstant
 import org.mtransit.android.commons.toSecs
 import kotlin.test.Test
@@ -45,7 +42,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
         private val DEPARTURE = 1772722800L.secsToInstant() // 2026-03-06 10:00
 
-        private const val NOW_IN_MS = 1234567890_000L // Friday, February 13, 2009 at 11:31:30 p.m. UTC
+        private const val NOW_IN_MS = 1234567890_000L // Friday, February 13, 2009, at 11:31:30 p.m. UTC
 
         private const val READ_FROM_MS = NOW_IN_MS
 
@@ -1192,59 +1189,6 @@ class GTFSRealTimeTripUpdatesProviderTests {
         assertNotNull(result[4]) { stu ->
             assertEquals(9, stu.stopSequence)
             assertEquals("9000", stu.stopId)
-        }
-    }
-
-    // endregion
-
-    // region TripDescriptor match
-
-    @Test
-    fun test_match_trip_id_only_matches() {
-        tripDescriptor {
-            tripId = TRIP_ID
-        }.match(
-            targetRouteIdHash = "1",
-            targetDirectionOriginalId = 1,
-            staticRDTripIds = setOf(TRIP_ID),
-            ignoreDirection = false,
-            parseRouteId = { it.optRouteId },
-            parseTripId = { it.optTripId },
-        ).let { result ->
-            assertTrue(result)
-        }
-    }
-
-    @Test
-    fun test_match_trip_id_only_does_not_match() {
-        tripDescriptor {
-            tripId = TRIP_ID
-        }.match(
-            targetRouteIdHash = "1",
-            targetDirectionOriginalId = 1,
-            staticRDTripIds = setOf("different_trip_id"),
-            ignoreDirection = false,
-            parseRouteId = { it.optRouteId },
-            parseTripId = { it.optTripId },
-        ).let { result ->
-            assertFalse(result)
-        }
-    }
-
-    @Test
-    fun test_match_trip_id_does_not_match_and_route_matches() {
-        tripDescriptor {
-            routeId = "1"
-            tripId = TRIP_ID
-        }.match(
-            targetRouteIdHash = "1",
-            targetDirectionOriginalId = 1,
-            staticRDTripIds = setOf("different_trip_id"),
-            ignoreDirection = false,
-            parseRouteId = { it.optRouteId },
-            parseTripId = { it.optTripId },
-        ).let { result ->
-            assertFalse(result)
         }
     }
 
