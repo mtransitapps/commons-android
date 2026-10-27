@@ -176,11 +176,13 @@ internal fun GTripDescriptor.match(
         } ?: run {
             GTFSDateTimeUtils.parseToTime(nowMs, startTime, agencyTimeZone)
         }
-        getStartDepartureToStaticTripId()[tuDeparture]?.let { staticTripId ->
-            // if (DEBUG_STATIC_RT_MATCH) {
-            MTLog.d(LOG_TAG, "match() > FOUND: out-of-sync trip ID '$staticTripId' for ${toStringExt(short = true)}")
-            // }
-            return staticTripId
+        tuDeparture?.let { tuDeparture ->
+            getStartDepartureToStaticTripId()[tuDeparture]?.let { staticTripId ->
+                // if (DEBUG_STATIC_RT_MATCH) {
+                MTLog.d(LOG_TAG, "match() > FOUND: out-of-sync trip ID '$staticTripId' for ${toStringExt(short = true)}")
+                // }
+                return staticTripId
+            }
         }
     }
     // if (DEBUG_STATIC_RT_MATCH) { // too much log
