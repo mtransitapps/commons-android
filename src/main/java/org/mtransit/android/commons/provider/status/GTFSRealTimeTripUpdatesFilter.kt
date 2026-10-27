@@ -39,14 +39,14 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
     targetRouteIdHash: String,
     targetDirectionOriginalId: Int?,
     agencyTimeZone: KtTimeZone,
-    staticRDSchedules: Collection<Schedule>,
+    getStaticRDSchedules: () -> Collection<Schedule>,
     staticRDTripIds: Set<String>,
     ignoreDirection: Boolean,
     parseRouteId: (GTripDescriptor) -> String?,
     parseTripId: (GTripDescriptor) -> String?,
 ): Map<String, GTripUpdate>? {
     val startDepartureToStaticTripId by lazy {
-        staticRDSchedules.flatMap { it.timestamps }.groupBy { it.tripId.orEmpty() }
+        getStaticRDSchedules().asSequence().flatMap { it.timestamps }.groupBy { it.tripId.orEmpty() }
             .mapNotNull { (staticTripId, tripTimestamps) ->
                 tripTimestamps.minByOrNull { it.departure }?.let {
                     it.departure to staticTripId
@@ -60,7 +60,7 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
                 targetRouteIdHash = targetRouteIdHash,
                 targetDirectionOriginalId = targetDirectionOriginalId,
                 agencyTimeZone = agencyTimeZone,
-                startDepartureToStaticTripId = startDepartureToStaticTripId,
+                getStartDepartureToStaticTripId = { startDepartureToStaticTripId },
                 staticRDTripIds = staticRDTripIds,
                 ignoreDirection = ignoreDirection,
                 parseRouteId = parseRouteId,
@@ -139,7 +139,7 @@ internal fun GTripDescriptor.match(
     targetRouteIdHash: String,
     targetDirectionOriginalId: Int?,
     agencyTimeZone: KtTimeZone,
-    startDepartureToStaticTripId: Map<Instant, String>,
+    getStartDepartureToStaticTripId: () -> Map<Instant, String>,
     staticRDTripIds: Set<String>,
     ignoreDirection: Boolean,
     parseRouteId: (GTripDescriptor) -> String?,
@@ -176,7 +176,7 @@ internal fun GTripDescriptor.match(
         } ?: run {
             GTFSDateTimeUtils.parseToTime(nowMs, startTime, agencyTimeZone)
         }
-        startDepartureToStaticTripId[tuDeparture]?.let { staticTripId ->
+        getStartDepartureToStaticTripId()[tuDeparture]?.let { staticTripId ->
             // if (DEBUG_STATIC_RT_MATCH) {
             MTLog.d(LOG_TAG, "match() > FOUND: out-of-sync trip ID '$staticTripId' for ${toStringExt(short = true)}")
             // }
@@ -225,7 +225,8 @@ internal fun List<Pair<String, GTripUpdate>>.filterDuplicatesTrips() = buildList
             ?.let { woModifiedTrip ->
                 val picked = woModifiedTrip.first()
                 MTLog.d(
-                    LOG_TAG, "filterDuplicatesTrips() > pick 1st out of ${woModifiedTrip.size} w/o ModifiedTrip: " +
+                    LOG_TAG,
+                    "filterDuplicatesTrips() > pick 1st out of ${woModifiedTrip.size} w/o ModifiedTrip: " +
                         "[${picked.first}] ${picked.second.toStringExt()}"
                 )
                 add(picked)
@@ -238,7 +239,8 @@ internal fun List<Pair<String, GTripUpdate>>.filterDuplicatesTrips() = buildList
             ?.let { wVehicle ->
                 val picked = wVehicle.first()
                 MTLog.d(
-                    LOG_TAG, "filterDuplicatesTrips() > pick 1st out of ${wVehicle.size} w/ Vehicle: " +
+                    LOG_TAG,
+                    "filterDuplicatesTrips() > pick 1st out of ${wVehicle.size} w/ Vehicle: " +
                         "[${picked.first}] ${picked.second.toStringExt()}"
                 )
                 add(picked)
@@ -247,7 +249,8 @@ internal fun List<Pair<String, GTripUpdate>>.filterDuplicatesTrips() = buildList
         // ELSE -> pick 1st one in the list
         val gTripUpdate1 = tripIdAndTripUpdates.firstOrNull() ?: return@forEach
         MTLog.d(
-            LOG_TAG, "filterDuplicatesTrips() > use 1st one out of ${tripIdAndTripUpdates.size}: " +
+            LOG_TAG,
+            "filterDuplicatesTrips() > use 1st one out of ${tripIdAndTripUpdates.size}: " +
                 "[${gTripUpdate1.first}] ${gTripUpdate1.second.toStringExt()}"
         )
         add(gTripUpdate1)

@@ -42,6 +42,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
 
     @Test
     fun test_match_trip_id_only_matches() {
+        var getStartDepartureToStaticTripIdCalled = 0
         tripDescriptor {
             tripId = TRIP_ID
         }.match(
@@ -49,12 +50,16 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            startDepartureToStaticTripId = emptyMap(),
+            getStartDepartureToStaticTripId = {
+                getStartDepartureToStaticTripIdCalled++
+                emptyMap()
+            },
             staticRDTripIds = setOf(TRIP_ID),
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
         ).let { result ->
+            assertEquals(0, getStartDepartureToStaticTripIdCalled)
             if (IGNORE_TRIP_ID) {
                 assertEquals(null, result)
             } else {
@@ -65,6 +70,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
 
     @Test
     fun test_match_trip_id_only_does_not_match() {
+        var getStartDepartureToStaticTripIdCalled = 0
         tripDescriptor {
             tripId = TRIP_ID
         }.match(
@@ -72,18 +78,23 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            startDepartureToStaticTripId = emptyMap(),
+            getStartDepartureToStaticTripId = {
+                getStartDepartureToStaticTripIdCalled++
+                emptyMap()
+            },
             staticRDTripIds = setOf("different_trip_id"),
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
         ).let { result ->
+            assertEquals(0, getStartDepartureToStaticTripIdCalled)
             assertEquals(null, result)
         }
     }
 
     @Test
     fun test_match_trip_id_does_not_match_and_route_matches() {
+        var getStartDepartureToStaticTripIdCalled = 0
         tripDescriptor {
             routeId = "1"
             tripId = TRIP_ID
@@ -92,12 +103,16 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            startDepartureToStaticTripId = emptyMap(),
+            getStartDepartureToStaticTripId = {
+                getStartDepartureToStaticTripIdCalled++
+                emptyMap()
+            },
             staticRDTripIds = setOf("different_trip_id"),
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
         ).let { result ->
+            assertEquals(0, getStartDepartureToStaticTripIdCalled)
             assertEquals(null, result)
         }
     }
@@ -114,9 +129,11 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            startDepartureToStaticTripId = mapOf(
-                toInstant("20261026", "19:37:00") to TRIP_ID
-            ),
+            getStartDepartureToStaticTripId = {
+                mapOf(
+                    toInstant("20261026", "19:37:00") to TRIP_ID
+                )
+            },
             staticRDTripIds = setOf(TRIP_ID),
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
@@ -137,11 +154,13 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            startDepartureToStaticTripId = mapOf(
-                toInstant("20261025", "19:37:00") to "previous_trip_id",
-                toInstant("20261026", "19:37:00") to TRIP_ID,
-                toInstant("20261027", "19:37:00") to "next_trip_id",
-            ),
+            getStartDepartureToStaticTripId = {
+                mapOf(
+                    toInstant("20261025", "19:37:00") to "previous_trip_id",
+                    toInstant("20261026", "19:37:00") to TRIP_ID,
+                    toInstant("20261027", "19:37:00") to "next_trip_id",
+                )
+            },
             staticRDTripIds = setOf(TRIP_ID),
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
@@ -162,9 +181,11 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            startDepartureToStaticTripId = mapOf(
-                toInstant("20261026", "19:37:00") to TRIP_ID,
-            ),
+            getStartDepartureToStaticTripId = {
+                mapOf(
+                    toInstant("20261026", "19:37:00") to TRIP_ID,
+                )
+            },
             staticRDTripIds = setOf(TRIP_ID),
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },

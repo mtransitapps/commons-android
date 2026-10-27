@@ -138,14 +138,12 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > - ${it.joinToString(",")}")
                 }
             }
-            val sortedRDS by lazy {
+            val sortedRDS by lazy { // delay/avoid DB read
                 context.getRDS(targetAuthority, targetRoute.id, targetDirection.id).orEmpty()
             }
-            if (sortedRDS.isEmpty()) return null
-            val rdSchedules: Collection<Schedule> by lazy {
+            val rdSchedules: Collection<Schedule> by lazy { // delay/avoid DB read
                 context.getRDSSchedule(targetAuthority, sortedRDS, filter.isIncludeCancelledTimestampsOrDefault)
             }
-            if (rdSchedules.isEmpty()) return null
             val agencyTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context)
             val agencyTimeZone = runCatching { KtTimeZone.of(agencyTimeZoneId) }.getOrElse { e ->
                 MTLog.w(LOG_TAG, e, "makeCachedStatusFromAgencyData() > error getting timezone from '$agencyTimeZoneId'!")
@@ -156,7 +154,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 targetRouteIdHash = targetRouteIdHash,
                 targetDirectionOriginalId = targetDirectionOriginalId,
                 agencyTimeZone = agencyTimeZone,
-                staticRDSchedules = rdSchedules,
+                getStaticRDSchedules = { rdSchedules },
                 staticRDTripIds = staticRDTripIds,
                 ignoreDirection = ignoreDirection,
                 parseRouteId = ::parseRouteId,
@@ -198,6 +196,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     }
                 }
             }
+            if (sortedRDS.isEmpty()) return null
+            if (rdSchedules.isEmpty()) return null
             processRDTripUpdates(
                 rdTripIdsToTripUpdates = rdTripIdsToTripUpdates,
                 rdSchedules = rdSchedules,

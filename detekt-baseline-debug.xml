@@ -120,8 +120,6 @@
     <ID>LongParameterList:VehicleLocationProviderUtils.kt:VehicleLocationProviderUtils$@VisibleForTesting internal fun vehicleNearbyAgencyLocation: Boolean?</ID>
     <ID>LongParameterList:YouTubeNewsProvider.kt:YouTubeNewsProvider$private fun loadUserUploadsPlaylist</ID>
     <ID>LoopWithTooManyJumpStatements:GTFSRealTimeTripUpdatesProviderExt.kt:while</ID>
-    <ID>MagicNumber:GTFSDateTimeUtils.kt:GTFSDateTimeUtils$3</ID>
-    <ID>MagicNumber:GTFSDateTimeUtils.kt:GTFSDateTimeUtils$8</ID>
     <ID>MagicNumber:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$567</ID>
     <ID>MagicNumber:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$9</ID>
     <ID>MagicNumber:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$567</ID>
@@ -225,7 +223,7 @@
     <ID>UnreachableCode:GTFSRealTimeProviderExt.kt:parseAgencyId(it)</ID>
     <ID>UnreachableCode:GTFSRealTimeProviderExt.kt:parseTripId(it)</ID>
     <ID>UnreachableCode:GTFSRealTimeServiceAlertsProvider.kt:GTFSRealTimeServiceAlertsProvider$return getAgencyRouteTypeTagTargetUUID(agencyTag, routeType)</ID>
-    <ID>UnreachableCode:GTFSRealTimeTripUpdatesFilter.kt:td.optModifiedTrip?.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()</ID>
+    <ID>UnreachableCode:GTFSRealTimeTripUpdatesFilter.kt:td.optModifiedTrip?.let { GTFSDateTimeUtils.parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:it == stopSequence</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:processRDTripUpdate( tripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, rdSchedulesByUUID, isSameStop = this::isSameStop, feedReadFromSourceMs = feedReadFromSourceMs, fixStopSequence = { it?.fixStopSequence( tripId = tripId, tripSortedRDS = tripSortedRDS, sortedTargetUuidAndSequence = sortedTargetUuidAndSequence, isSameStop = this::isSameStop, parseStopId = this::parseStopId, ) }, includeCancelledTimestamps = includeCancelledTimestamps, )</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:val gTripId = td.optTripIdNotEmpty ?: return@forEach</ID>
