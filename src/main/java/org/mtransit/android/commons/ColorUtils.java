@@ -121,13 +121,13 @@ public final class ColorUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static Bitmap colorizeBitmapResource(@Nullable Context context,
-												@ColorInt int markerColor,
-												@DrawableRes int bitmapResId,
-												boolean replaceColor) {
-		if (context == null) {
-			return null;
-		}
+	public static Bitmap colorizeBitmapResource(
+			@Nullable Context context,
+			@ColorInt int markerColor,
+			@DrawableRes int bitmapResId,
+			boolean replaceColor
+	) {
+		if (context == null) return null;
 		if (replaceColor) {
 			BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
 			bitmapOptions.inScaled = false; // do not create new colors by scaling image
@@ -232,12 +232,12 @@ public final class ColorUtils implements MTLog.Loggable {
 
 	@ColorInt
 	public static int getDarkerColor(@ColorInt int color1, @ColorInt int color2) {
-		return color1 < color2 ? color1 : color2;
+		return Math.min(color1, color2);
 	}
 
 	@ColorInt
 	public static int getLighterColor(@ColorInt int color1, @ColorInt int color2) {
-		return color1 > color2 ? color1 : color2;
+		return Math.max(color1, color2);
 	}
 
 	@ColorInt
@@ -251,9 +251,7 @@ public final class ColorUtils implements MTLog.Loggable {
 
 	@ColorInt
 	public static int adaptColorToTheme(@Nullable Context context, @ColorInt int color) {
-		if (context == null) {
-			return color;
-		}
+		if (context == null) return color;
 		if (isDarkTheme(context)) {
 			if (isTooDark(color)) {
 				color = lightenColor(color);
