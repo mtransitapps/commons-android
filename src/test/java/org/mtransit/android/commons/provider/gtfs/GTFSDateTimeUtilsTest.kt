@@ -39,17 +39,35 @@ class GTFSDateTimeUtilsTest {
         }.let {
             assertEquals(1793111040_000L.millisToInstant(), it) // Tuesday, October 27, 2026 at 10:24:00 UTC-04:00 DST
         }
-        // closer to midnight / day change
-        val nowInMsAfterMidnight = 1793160620_000L // Wednesday, October 28, 2026 at 00:10:20 UTC-04:00 DST
+    }
+
+    @Test
+    fun test_parseToTime_closeToMidnight_DayChange() {
+        val nowInMs = 1793160620_000L // Wednesday, October 28, 2026 at 00:10:20 UTC-04:00 DST
         "23:59:00".let { // started 30 minutes ago yesterday
-            GTFSDateTimeUtils.parseToTime(nowInMsAfterMidnight, it, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
         }.let {
             assertEquals(1793159940_000L.millisToInstant(), it) // Tuesday, October 27, 2026 at 23:59:00 UTC-04:00 DST
         }
         "00:20:30".let { // soon
-            GTFSDateTimeUtils.parseToTime(nowInMsAfterMidnight, it, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
         }.let {
             assertEquals(1793161230_000L.millisToInstant(), it) // Wednesday, October 28, 2026 at 00:20:30 UTC-04:00 DST
+        }
+    }
+
+    @Test
+    fun test_parseToTime_latePM() {
+        val nowInMs = 1793056759_000L // Monday, October 26, 2026, at 7:19:19 p.m. UTC-04:00 DST
+        "19:37:00".let {
+            GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
+        }.let {
+            assertEquals(1793057820_000L.millisToInstant(), it) // Monday, October 26, 2026 at 19:37:00 UTC-04:00 DST
+        }
+        "24:24:24".let {
+            GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
+        }.let {
+            assertEquals(1793075064_000L.millisToInstant(), it) // Tuesday, October 27, 2026 at 00:24:24 UTC-04:00 DST
         }
     }
 
