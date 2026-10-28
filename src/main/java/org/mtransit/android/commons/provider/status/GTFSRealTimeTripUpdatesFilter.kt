@@ -48,6 +48,7 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
     val startDepartureToStaticTripId by lazy {
         getStaticRDSchedules().asSequence().flatMap { it.timestamps }.groupBy { it.tripId.orEmpty() }
             .mapNotNull { (staticTripId, tripTimestamps) ->
+                staticTripId.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
                 tripTimestamps.minByOrNull { it.departure }?.let {
                     it.departure to staticTripId
                 }
@@ -97,7 +98,7 @@ private fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone): Boole
     val startDateTimeOrFirstTimeMs: Long? = if (hasVehicleInfo) {
         null
     } else {
-        td.let { GTFSDateTimeUtils.parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
+        GTFSDateTimeUtils.parseToDateTime(td.optStartDate, td.optStartTime, agencyTimeZone)?.toMillis()
             ?: td.optModifiedTrip?.let { GTFSDateTimeUtils.parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
             ?: optStopTimeUpdateList // not sorting because GTFS spec requires it to be already sorted & it's a fallback
                 ?.firstOrNull { it.optDeparture?.hasTimeOrScheduledTime() == true || it.optArrival?.hasTimeOrScheduledTime() == true }

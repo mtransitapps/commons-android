@@ -44,10 +44,15 @@ object GTFSDateTimeUtils : MTLog.Loggable {
             val durationFromStartOfDay = hoursCount.hours + // compat with 24+ hours
                 minutesCount.minutes + secondsCount.seconds
 
-            val startOfDay = nowMs.millisToInstant()
+            val nowInstant = nowMs.millisToInstant()
+            val startOfDay = nowInstant
                 .toLocalDateTime(agencyTimeZone).date
                 .atStartOfDayIn(agencyTimeZone)
 
+            val cutoffInstant = startOfDay + 1.days - durationFromStartOfDay
+            if (durationFromStartOfDay < 1.days && nowInstant > cutoffInstant) {
+                return startOfDay.minus(1.days) + durationFromStartOfDay
+            }
             return startOfDay + durationFromStartOfDay
         } catch (e: Exception) {
             MTLog.w(this, e, "Error while parsing GTFS time '$gtfsTimeStr'!")

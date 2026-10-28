@@ -24,7 +24,7 @@ import kotlinx.datetime.TimeZone as KtTimeZone
 class GTFSRealTimeTripUpdatesFilterTests {
 
     companion object {
-        private const val LOCAL_TZ_ID: String = "America/Montreal"
+        private const val LOCAL_TZ_ID = "America/Montreal"
         private val LOCAL_TZ = KtTimeZone.of(LOCAL_TZ_ID)
         private const val LOCAL_TZ_UTC_OFFSET = "04:00"
 
@@ -297,7 +297,6 @@ class GTFSRealTimeTripUpdatesFilterTests {
                     assertEquals(TRIP_ID, tripId)
                     assertEquals(TRIP_ID, tu.trip.tripId)
                     assertFalse(tu.trip.hasModifiedTrip())
-                    assertTrue(tu.hasVehicle())
                     assertTrue(tu.hasVehicle())
                 }
             }
