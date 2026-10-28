@@ -148,6 +148,7 @@
     <ID>ReturnCount:BatteryUtils.kt:BatteryUtils$@JvmStatic fun shouldUseBatteryForOptionalWork: Boolean</ID>
     <ID>ReturnCount:GBFSStorage.kt:GBFSStorage$@WorkerThread fun getArea: Area?</ID>
     <ID>ReturnCount:GTFSDateTimeUtils.kt:GTFSDateTimeUtils$fun parseToDateTime: Instant?</ID>
+    <ID>ReturnCount:GTFSDateTimeUtils.kt:GTFSDateTimeUtils$fun parseToTime: Instant?</ID>
     <ID>ReturnCount:GTFSRTAlertsManager.kt:GTFSRTAlertsManager$@JvmStatic fun parseSeverity: Int</ID>
     <ID>ReturnCount:GTFSRealTimeServiceAlertsProvider.kt:GTFSRealTimeServiceAlertsProvider$@JvmStatic fun GTFSRealTimeProvider.parseProviderTargetUUID: String?</ID>
     <ID>ReturnCount:GTFSRealTimeTripUpdatesFilter.kt:@VisibleForTesting internal fun GTripDescriptor.match: String?</ID>
