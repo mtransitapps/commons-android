@@ -44,9 +44,13 @@ data class VehicleLocation(
 
     val reportTimestampCountdown: Duration? get() = reportTimestamp?.let { (TimeUtilsK.currentInstant() - it) }
 
-    private val _uid: String? = this.vehicleId ?: this.vehicleLabel
-
-    val uuid: String? = _uid?.let { "${this.authority}-$it" }
+    val uuid: String = run {
+        val suffix = this.vehicleId?.takeIf { it.isNotBlank() }?.let { "id:$it" }
+            ?: this.vehicleLabel?.takeIf { it.isNotBlank() }?.let { "lbl:$it" }
+            // ?: this.targetTripId?.let { "t:$it" } // should be 1 vehicle / trip ID (except frequency-based trips)
+            ?: "gps:$latitude-$longitude" // will only work as long as the vehicle has not moved, better than nothing
+        "${this.authority}-$suffix"
+    }
 
     companion object {
         @JvmStatic
@@ -87,21 +91,22 @@ data class VehicleLocation(
     /**
      * see [VehicleLocationProviderContract.PROJECTION_VEHICLE_LOCATION]
      */
-    val cursorRow: Array<Any?> get() = arrayOf(
-        id,
-        targetUUID,
-        targetTripId,
-        lastUpdateInMs,
-        maxValidityInMs,
-        //
-        vehicleId,
-        vehicleLabel,
-        reportTimestampSec,
-        latitude,
-        longitude,
-        bearingDegrees,
-        speedMetersPerSecond,
-    )
+    val cursorRow: Array<Any?>
+        get() = arrayOf(
+            id,
+            targetUUID,
+            targetTripId,
+            lastUpdateInMs,
+            maxValidityInMs,
+            //
+            vehicleId,
+            vehicleLabel,
+            reportTimestampSec,
+            latitude,
+            longitude,
+            bearingDegrees,
+            speedMetersPerSecond,
+        )
 
     val useful: Boolean get() = this.lastUpdateInMs + this.maxValidityInMs >= TimeUtils.currentTimeMillis()
 
