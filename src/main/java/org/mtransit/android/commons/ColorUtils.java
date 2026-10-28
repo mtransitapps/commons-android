@@ -220,10 +220,8 @@ public final class ColorUtils implements MTLog.Loggable {
 	@SuppressWarnings("unused")
 	@NonNull
 	public static int[] getColorScheme(@NonNull Context context, @Nullable int... attrIds) {
-		if (attrIds == null || attrIds.length == 0) {
-			return new int[0];
-		}
-		int[] colorScheme = new int[attrIds.length];
+		if (attrIds == null || attrIds.length == 0) return new int[0];
+		final int[] colorScheme = new int[attrIds.length];
 		for (int i = 0; i < attrIds.length; i++) {
 			colorScheme[i] = ThemeUtils.resolveColorAttribute(context, attrIds[i]);
 		}
@@ -232,12 +230,12 @@ public final class ColorUtils implements MTLog.Loggable {
 
 	@ColorInt
 	public static int getDarkerColor(@ColorInt int color1, @ColorInt int color2) {
-		return Math.min(color1, color2);
+		return calculateLuminance(color1) < calculateLuminance(color2) ? color1 : color2;
 	}
 
 	@ColorInt
 	public static int getLighterColor(@ColorInt int color1, @ColorInt int color2) {
-		return Math.max(color1, color2);
+		return calculateLuminance(color1) > calculateLuminance(color2) ? color1 : color2;
 	}
 
 	@ColorInt
