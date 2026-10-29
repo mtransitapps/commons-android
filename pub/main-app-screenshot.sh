@@ -248,17 +248,18 @@ if [[ "${#MISSING_PACKAGES[@]}" -gt 0 || "${#EXTRA_PACKAGES[@]}" -gt 0 ]]; then
       fi
 
       echo " - downloading latest APK for '$PKG' from '$MODULE_REPO_URL'..."
-      if ! "$ROOT_DIR/app-android/sh/download_latest_apk.sh" "$MODULE_REPO_URL"; then
+      # if ! "$ROOT_DIR/app-android/sh/download_latest_apk.sh" "$MODULE_REPO_URL"; then
+      if ! source "$ROOT_DIR/app-android/sh/download_latest_apk.sh" "$MODULE_REPO_URL"; then # export APK_FILE env var
         echo " - failed to download latest APK for '$PKG'."
         continue
       fi
 
-      if ! APK_FILE_LIST=$(gh release view -R "$MODULE_REPO_URL" --json assets --jq '.assets[] | select(.name | endswith(".apk")) | .name'); then
-        echo " - failed to fetch release APK list for '$PKG'."
-        continue
-      fi
-
-      read -r MODULE_APK_FILE <<< "$APK_FILE_LIST"
+      # if ! APK_FILE_LIST=$(gh release view -R "$MODULE_REPO_URL" --json assets --jq '.assets[] | select(.name | endswith(".apk")) | .name'); then
+      #   echo " - failed to fetch release APK list for '$PKG'."
+      #   continue
+      # fi
+      # read -r MODULE_APK_FILE <<< "$APK_FILE_LIST"
+      MODULE_APK_FILE="$APK_FILE"
       if [[ -z "$MODULE_APK_FILE" || ! -s "$MODULE_APK_FILE" ]]; then
         echo " - downloaded APK file missing or empty for '$PKG' ('$MODULE_APK_FILE')."
         continue
