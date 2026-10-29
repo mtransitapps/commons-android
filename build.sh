@@ -9,8 +9,7 @@ echo ">> Building...";
 setGradleArgs;
 echo "GRADLE_ARGS: $GRADLE_ARGS";
 
-DIRECTORY=$(basename ${PWD});
-"${ROOT_DIR}/gradlew" :${DIRECTORY}:clean :${DIRECTORY}:assemble ${GRADLE_ARGS};
+"${ROOT_DIR}/gradlew" :commons-android:clean :commons-android:assemble ${GRADLE_ARGS};
 RESULT=$?;
 
 echo ">> Building... DONE";
