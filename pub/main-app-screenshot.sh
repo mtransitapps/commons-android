@@ -248,8 +248,7 @@ if [[ "${#MISSING_PACKAGES[@]}" -gt 0 || "${#EXTRA_PACKAGES[@]}" -gt 0 ]]; then
       fi
 
       echo " - downloading latest APK for '$PKG' from '$MODULE_REPO_URL'..."
-      # if ! "$ROOT_DIR/app-android/sh/download_latest_apk.sh" "$MODULE_REPO_URL"; then
-      if ! source "$ROOT_DIR/app-android/sh/download_latest_apk.sh" "$MODULE_REPO_URL"; then # export APK_FILE env var
+      if ! MODULE_APK_FILE=$("$ROOT_DIR/app-android/sh/download_latest_apk.sh" "$MODULE_REPO_URL"); then
         echo " - failed to download latest APK for '$PKG'."
         continue
       fi
@@ -259,7 +258,6 @@ if [[ "${#MISSING_PACKAGES[@]}" -gt 0 || "${#EXTRA_PACKAGES[@]}" -gt 0 ]]; then
       #   continue
       # fi
       # read -r MODULE_APK_FILE <<< "$APK_FILE_LIST"
-      MODULE_APK_FILE="$APK_FILE"
       if [[ -z "$MODULE_APK_FILE" || ! -s "$MODULE_APK_FILE" ]]; then
         echo " - downloaded APK file missing or empty for '$PKG' ('$MODULE_APK_FILE')."
         continue
