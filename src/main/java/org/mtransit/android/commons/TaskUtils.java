@@ -1,6 +1,6 @@
 package org.mtransit.android.commons;
 
-import androidx.annotation.AnyThread;
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -23,7 +23,7 @@ public final class TaskUtils implements MTLog.Loggable {
 	public static final Executor THREAD_POOL_EXECUTOR = MTAsyncTask.THREAD_POOL_EXECUTOR;
 
 	@SuppressWarnings("unchecked")
-	@AnyThread
+	@MainThread
 	public static <Params, Progress, Result> void execute(@Nullable MTAsyncTask<Params, Progress, Result> asyncTask, Params... params) {
 		if (asyncTask == null) return;
 		asyncTask.executeOnExecutor(THREAD_POOL_EXECUTOR, params);
