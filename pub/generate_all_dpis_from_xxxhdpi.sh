@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail # -x
 SCRIPT_DIR="$(dirname "$0")"
-ROOT_DIR="${SCRIPT_DIR}/../.."; ROOT_DIR=$(realpath --relative-to="$ROOT_DIR" "$ROOT_DIR");
+ROOT_DIR="${SCRIPT_DIR}/../.."; ROOT_DIR=$(realpath --relative-to="$PWD" "$ROOT_DIR");
 
 source "${ROOT_DIR}/commons/sh/commons.sh";
 
