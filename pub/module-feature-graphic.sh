@@ -111,7 +111,7 @@ fi
 # https://github.com/mtransitapps/mtransit-for-android/blob/master/app-android/src/main/java/org/mtransit/android/data/DataSourceType.java
 
 SOURCE_GIT_PATH="pub/module-feature-graphic*.svg"
-SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic.svg" # BASE (ALL TYPE LAYERS HIDEEN)
+SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic.svg" # BASE (ALL TYPE LAYERS HIDDEN)
 if [ "$TYPE" -eq 0 ]; then # LIGHT_RAIL
   SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-light-rail.svg"
   if [[ "$#" -eq 4 ]]; then
