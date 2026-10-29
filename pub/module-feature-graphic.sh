@@ -1,12 +1,10 @@
 #!/bin/bash
 SCRIPT_DIR="$(dirname "$0")"
-ROOT_DIR="$SCRIPT_DIR/../.."
+ROOT_DIR="${SCRIPT_DIR}/../.."; ROOT_DIR=$(realpath --relative-to="$ROOT_DIR" "$ROOT_DIR");
 
-source "${ROOT_DIR}/commons/sh/commons.sh"
+source "${ROOT_DIR}/commons/sh/commons.sh";
 
 echo ">> Converting Module Feature Graphic SVG to PNG '$*'..."
-
-ROOT_DIR="${SCRIPT_DIR}/../..";
 
 if [[ "$#" -lt 3 || "$#" -gt 4 ]]; then
   echo "> Wrong $# parameters '$*'!"

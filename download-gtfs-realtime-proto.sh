@@ -2,7 +2,7 @@
 SCRIPT_DIR="$(dirname "$0")";
 ROOT_DIR="${SCRIPT_DIR}/..";
     
-source "${ROOT_DIR}/commons/sh/commons.sh"
+source "${ROOT_DIR}/commons/sh/commons.sh";
 
 # Keep in sync with ".github/workflows/mt-download-gtfs-rt-proto.yml"
 echo ">> Downloading GTFS Real-Time proto..."

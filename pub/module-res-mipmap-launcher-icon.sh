@@ -1,8 +1,8 @@
 #!/bin/bash
 SCRIPT_DIR="$(dirname "$0")"
-ROOT_DIR="$SCRIPT_DIR/../.."
+ROOT_DIR="${SCRIPT_DIR}/../.."; ROOT_DIR=$(realpath --relative-to="$ROOT_DIR" "$ROOT_DIR");
 
-source "${ROOT_DIR}/commons/sh/commons.sh"
+source "${ROOT_DIR}/commons/sh/commons.sh";
 
 echo ">> Converting Module App Icon to Launcher Icon...";
 
@@ -18,7 +18,6 @@ function echoDebug() {
 	fi
 }
 
-ROOT_DIR="${SCRIPT_DIR}/../..";
 APP_ANDROID_DIR="$ROOT_DIR/app-android";
 
 SOURCE="$APP_ANDROID_DIR/src/main/play/listings/en-US/graphics/icon/1.png";
