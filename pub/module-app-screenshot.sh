@@ -74,7 +74,7 @@ if [[ ! -d "$DEBUG_DIR" ]]; then
   DEBUG_DIR="$MAIN_DIR"
 fi
 RES_DIR=$MAIN_DIR/res
-CONFIG_DIR=$ROOT_DIR/config
+CONFIG_DIR="${ROOT_DIR}/config";
 
 CONFIG_PKG_FILE=$CONFIG_DIR/pkg
 MODULE_PKG=""

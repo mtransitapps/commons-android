@@ -105,7 +105,7 @@ if [[ ! -d "$DEBUG_DIR" ]]; then
   DEBUG_DIR="$MAIN_DIR"
 fi
 RES_DIR=$MAIN_DIR/res
-CONFIG_DIR=$ROOT_DIR/config
+CONFIG_DIR="${ROOT_DIR}/config";
 
 
 # requireCommand "xmllint" "libxml2-utils";
