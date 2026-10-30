@@ -29,15 +29,12 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpd
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeInstant
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestampMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.parseStopId
-import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.LOG_TAG
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.PROVIDER_PRECISION
 import kotlin.time.Duration
 import kotlin.time.Instant
-import com.google.transit.realtime.GtfsRealtime.TripDescriptor as GTripDescriptor
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUStopTimeEvent
@@ -46,7 +43,7 @@ import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.Schedu
 import com.google.transit.realtime.copy as copyG
 
 fun GTFSRealTimeProvider.processRDTripUpdates(
-    rdTripUpdates: List<Pair<GTripDescriptor, GTripUpdate>>,
+    rdTripIdsToTripUpdates: Map<String, GTripUpdate>,
     rdSchedules: Collection<Schedule>,
     sortedRDS: List<RouteDirectionStop>,
     feedReadFromSourceMs: Long,
@@ -57,28 +54,26 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
         .flatMap { schedule ->
             schedule.timestamps
                 .mapNotNull { it.tripId }
-                .map { tripId -> tripId to schedule.targetUUID }
+                .map { staticTripId -> staticTripId to schedule.targetUUID }
         }
         .groupBy({ it.first }, { it.second })
         .mapValues { (_, uuids) -> uuids.toSet() }
-    rdTripUpdates.forEach { (td, gTripUpdate) ->
-        val gTripId = td.optTripIdNotEmpty ?: return@forEach
-        val tripId = parseTripId(gTripId)
-        val tripRdsUUIDs = rdsUUIDsByTripId[tripId]
+    rdTripIdsToTripUpdates.forEach { (staticTripId, gTripUpdate) ->
+        val tripRdsUUIDs = rdsUUIDsByTripId[staticTripId]
             ?: return@forEach // trip ID not in static data
         val tripSchedules = tripRdsUUIDs.mapNotNull { rdSchedulesByUUID[it] }
         val tripSortedRDS = sortedRDS
             .filter { rds -> rds.uuid in tripRdsUUIDs }
             .takeIf { it.isNotEmpty() }
             ?: return@forEach
-        val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(tripId, tripSchedules, tripSortedRDS)
+        val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(staticTripId, tripSchedules, tripSortedRDS)
         processRDTripUpdate(
-            tripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, rdSchedulesByUUID,
+            staticTripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, rdSchedulesByUUID,
             isSameStop = this::isSameStop,
             feedReadFromSourceMs = feedReadFromSourceMs,
             fixStopSequence = {
                 it?.fixStopSequence(
-                    tripId = tripId,
+                    tripId = staticTripId,
                     tripSortedRDS = tripSortedRDS,
                     sortedTargetUuidAndSequence = sortedTargetUuidAndSequence,
                     isSameStop = this::isSameStop,

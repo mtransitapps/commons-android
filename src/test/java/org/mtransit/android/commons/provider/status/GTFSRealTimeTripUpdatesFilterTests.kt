@@ -6,18 +6,206 @@ import com.google.transit.realtime.TripUpdateKt.stopTimeUpdate
 import com.google.transit.realtime.tripDescriptor
 import com.google.transit.realtime.tripUpdate
 import com.google.transit.realtime.vehicleDescriptor
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
+import org.mtransit.commons.CommonsApp
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.time.Instant
+import kotlinx.datetime.TimeZone as KtTimeZone
 
 class GTFSRealTimeTripUpdatesFilterTests {
 
     companion object {
+        private const val LOCAL_TZ_ID = "America/Montreal"
+        private val LOCAL_TZ = KtTimeZone.of(LOCAL_TZ_ID)
+        private const val LOCAL_TZ_UTC_OFFSET = "04:00"
+
         private const val TRIP_ID = "123456789"
+
+        private const val NOW_IN_MS = 1793056759_000L // Monday, October 26, 2026, at 7:19:19 p.m. UTC-04:00 DST
     }
+
+    @BeforeTest
+    fun setUp() {
+        CommonsApp.setup(isAndroidPlatform = false)
+    }
+
+    // region TripDescriptor match
+
+    @Test
+    fun test_match_trip_id_only_matches() {
+        var getStartDepartureToStaticTripIdCalled = 0
+        tripDescriptor {
+            tripId = TRIP_ID
+        }.match(
+            nowMs = NOW_IN_MS,
+            targetRouteIdHash = "1",
+            targetDirectionOriginalId = 1,
+            agencyTimeZone = LOCAL_TZ,
+            getStartDepartureToStaticTripId = {
+                getStartDepartureToStaticTripIdCalled++
+                emptyMap()
+            },
+            staticRDTripIds = setOf(TRIP_ID),
+            ignoreDirection = false,
+            parseRouteId = { it.optRouteId },
+            parseTripId = { it.optTripId },
+        ).let { result ->
+            assertEquals(0, getStartDepartureToStaticTripIdCalled)
+            if (IGNORE_TRIP_ID) {
+                assertEquals(null, result)
+            } else {
+                assertEquals(TRIP_ID, result)
+            }
+        }
+    }
+
+    @Test
+    fun test_match_trip_id_only_does_not_match() {
+        var getStartDepartureToStaticTripIdCalled = 0
+        tripDescriptor {
+            tripId = TRIP_ID
+        }.match(
+            nowMs = NOW_IN_MS,
+            targetRouteIdHash = "1",
+            targetDirectionOriginalId = 1,
+            agencyTimeZone = LOCAL_TZ,
+            getStartDepartureToStaticTripId = {
+                getStartDepartureToStaticTripIdCalled++
+                emptyMap()
+            },
+            staticRDTripIds = setOf("different_trip_id"),
+            ignoreDirection = false,
+            parseRouteId = { it.optRouteId },
+            parseTripId = { it.optTripId },
+        ).let { result ->
+            assertEquals(0, getStartDepartureToStaticTripIdCalled)
+            assertEquals(null, result)
+        }
+    }
+
+    @Test
+    fun test_match_trip_id_does_not_match_and_route_matches() {
+        var getStartDepartureToStaticTripIdCalled = 0
+        tripDescriptor {
+            routeId = "1"
+            tripId = TRIP_ID
+        }.match(
+            nowMs = NOW_IN_MS,
+            targetRouteIdHash = "1",
+            targetDirectionOriginalId = 1,
+            agencyTimeZone = LOCAL_TZ,
+            getStartDepartureToStaticTripId = {
+                getStartDepartureToStaticTripIdCalled++
+                emptyMap()
+            },
+            staticRDTripIds = setOf("different_trip_id"),
+            ignoreDirection = false,
+            parseRouteId = { it.optRouteId },
+            parseTripId = { it.optTripId },
+        ).let { result ->
+            assertEquals(0, getStartDepartureToStaticTripIdCalled)
+            assertEquals(null, result)
+        }
+    }
+
+    @Test
+    fun test_match_outdated_trip_id_matches_static_route_id_start_date_time() {
+        tripDescriptor {
+            routeId = "1"
+            tripId = "outdated"
+            startDate = "20261026"
+            startTime = "19:37:00"
+        }.match(
+            nowMs = NOW_IN_MS,
+            targetRouteIdHash = "1",
+            targetDirectionOriginalId = 1,
+            agencyTimeZone = LOCAL_TZ,
+            getStartDepartureToStaticTripId = {
+                mapOf(
+                    toInstant("20261026", "19:37:00") to TRIP_ID
+                )
+            },
+            staticRDTripIds = setOf(TRIP_ID),
+            ignoreDirection = false,
+            parseRouteId = { it.optRouteId },
+            parseTripId = { it.optTripId },
+        ).let { result ->
+            assertEquals(TRIP_ID, result)
+        }
+    }
+
+    @Test
+    fun test_match_outdated_trip_id_matches_static_route_id_start_date() { // not frequency-based
+        tripDescriptor {
+            routeId = "1"
+            tripId = "outdated"
+            startTime = "19:37:00"
+        }.match(
+            nowMs = NOW_IN_MS,
+            targetRouteIdHash = "1",
+            targetDirectionOriginalId = 1,
+            agencyTimeZone = LOCAL_TZ,
+            getStartDepartureToStaticTripId = {
+                mapOf(
+                    toInstant("20261025", "19:37:00") to "previous_trip_id",
+                    toInstant("20261026", "19:37:00") to TRIP_ID,
+                    toInstant("20261027", "19:37:00") to "next_trip_id",
+                )
+            },
+            staticRDTripIds = setOf(TRIP_ID),
+            ignoreDirection = false,
+            parseRouteId = { it.optRouteId },
+            parseTripId = { it.optTripId },
+        ).let { result ->
+            assertEquals(TRIP_ID, result)
+        }
+    }
+
+    @Test
+    fun test_match_outdated_trip_id_matches_static_route_id_start_time() { // not frequency-based
+        tripDescriptor {
+            routeId = "1"
+            tripId = "outdated"
+            startDate = "20261026"
+        }.match(
+            nowMs = NOW_IN_MS,
+            targetRouteIdHash = "1",
+            targetDirectionOriginalId = 1,
+            agencyTimeZone = LOCAL_TZ,
+            getStartDepartureToStaticTripId = {
+                mapOf(
+                    toInstant("20261026", "19:37:00") to TRIP_ID,
+                )
+            },
+            staticRDTripIds = setOf(TRIP_ID),
+            ignoreDirection = false,
+            parseRouteId = { it.optRouteId },
+            parseTripId = { it.optTripId },
+        ).let { result ->
+            assertEquals(null, result)
+        }
+    }
+
+    @Suppress("SameParameterValue")
+    private fun toInstant(startDate: String, startTime: String, agencyTimezoneOffset: String = LOCAL_TZ_UTC_OFFSET): Instant {
+        val year = startDate.substring(0, 4)
+        val month = startDate.substring(4, 6)
+        val day = startDate.substring(6, 8)
+        return Instant.parse(year + "-" + month + "-" + day + "T" + startTime + "-" + agencyTimezoneOffset)
+    }
+
+    // endregion
+
+    // region filterDuplicatesTrips
 
     @Test
     fun test_filterDuplicatesTrips_1Regular_2ModifiedTrips() {
@@ -63,14 +251,20 @@ class GTFSRealTimeTripUpdatesFilterTests {
                     label = "hello"
                 }
             },
-        ).filterDuplicatesTrips().let { result ->
-            assertEquals(1, result.size)
-            assertNotNull(result.getOrNull(0)) {
-                assertEquals(TRIP_ID, it.trip.tripId)
-                assertFalse(it.trip.hasModifiedTrip())
-                assertTrue(it.hasVehicle())
+        )
+            .mapNotNull { tu -> tu.optTrip?.optTripIdNotEmpty?.let { it to tu } }
+            .filterDuplicatesTrips()
+            .let { result ->
+                assertEquals(1, result.size)
+                assertNotNull(result.getOrNull(0)) { (tripId, tu) ->
+                    assertEquals(TRIP_ID, tripId)
+                    assertNotNull(tu.optTrip) { td ->
+                        assertEquals(TRIP_ID, td.optTripId)
+                        assertFalse(td.hasModifiedTrip())
+                    }
+                    assertTrue(tu.hasVehicle())
+                }
             }
-        }
     }
 
     @Test
@@ -94,14 +288,18 @@ class GTFSRealTimeTripUpdatesFilterTests {
                     label = "hello"
                 }
             },
-        ).filterDuplicatesTrips().let { result ->
-            assertEquals(1, result.size)
-            assertNotNull(result.getOrNull(0)) {
-                assertEquals(TRIP_ID, it.trip.tripId)
-                assertFalse(it.trip.hasModifiedTrip())
-                assertTrue(it.hasVehicle())
+        )
+            .mapNotNull { tu -> tu.optTrip?.optTripIdNotEmpty?.let { it to tu } }
+            .filterDuplicatesTrips()
+            .let { result ->
+                assertEquals(1, result.size)
+                assertNotNull(result.getOrNull(0)) { (tripId, tu) ->
+                    assertEquals(TRIP_ID, tripId)
+                    assertEquals(TRIP_ID, tu.trip.tripId)
+                    assertFalse(tu.trip.hasModifiedTrip())
+                    assertTrue(tu.hasVehicle())
+                }
             }
-        }
     }
 
     @Test
@@ -149,19 +347,27 @@ class GTFSRealTimeTripUpdatesFilterTests {
                 }
                 // etc. (stop time update unrelated to this trip ID (static data) (either trip modification is massive or just vehicle next trip)
             },
-        ).filterDuplicatesTrips().let { result ->
-            assertEquals(1, result.size)
-            assertNotNull(result.getOrNull(0)) { gTripUpdate ->
-                assertEquals(TRIP_ID, gTripUpdate.trip.tripId)
-                assertTrue(gTripUpdate.trip.hasModifiedTrip())
-                assertTrue(gTripUpdate.hasVehicle())
-                assertEquals(1, gTripUpdate.stopTimeUpdateCount)
-                assertNotNull(gTripUpdate.optStopTimeUpdateList?.getOrNull(0)) { stu ->
-                    assertEquals(25, stu.stopSequence)
-                    assertEquals("1096", stu.stopId)
-                    assertEquals(39, stu.departure.delay)
+        )
+            .mapNotNull { tu -> tu.optTrip?.optTripIdNotEmpty?.let { it to tu } }
+            .filterDuplicatesTrips()
+            .let { result ->
+                assertEquals(1, result.size)
+                assertNotNull(result.getOrNull(0)) { (tripId, gTripUpdate) ->
+                    assertEquals(TRIP_ID, tripId)
+                    assertNotNull(gTripUpdate.optTrip) { gTripDescriptor ->
+                        assertEquals(TRIP_ID, gTripDescriptor.tripId)
+                        assertTrue(gTripDescriptor.hasModifiedTrip())
+                    }
+                    assertTrue(gTripUpdate.hasVehicle())
+                    assertEquals(1, gTripUpdate.stopTimeUpdateCount)
+                    assertNotNull(gTripUpdate.optStopTimeUpdateList?.getOrNull(0)) { stu ->
+                        assertEquals(25, stu.stopSequence)
+                        assertEquals("1096", stu.stopId)
+                        assertEquals(39, stu.departure.delay)
+                    }
                 }
             }
-        }
     }
+
+    // endregion
 }
