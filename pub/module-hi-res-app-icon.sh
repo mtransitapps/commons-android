@@ -1,10 +1,10 @@
 #!/bin/bash
 SCRIPT_DIR="$(dirname "$0")"
-ROOT_DIR="$SCRIPT_DIR/../.."
-source "${ROOT_DIR}/commons/commons.sh"
-echo ">> Converting Module App Icon SVG to PNG..."
+ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd);
 
-ROOT_DIR="${SCRIPT_DIR}/../..";
+source "${ROOT_DIR}/commons/sh/commons.sh";
+
+echo ">> Converting Module App Icon SVG to PNG..."
 
 # Creating Long Cast Shadow in Inkscape
 # - https://designbundles.net/design-school/how-to-make-a-long-shadow-in-inkscape
