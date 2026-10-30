@@ -1,7 +1,9 @@
 #!/bin/bash
 SCRIPT_DIR="$(dirname "$0")"
-ROOT_DIR="$SCRIPT_DIR/../.."
-source "${ROOT_DIR}/commons/commons.sh"
+ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd);
+
+source "${ROOT_DIR}/commons/sh/commons.sh";
+
 echo ">> Creating Module Adaptive Launcher Icon...";
 
 setIsCI;
