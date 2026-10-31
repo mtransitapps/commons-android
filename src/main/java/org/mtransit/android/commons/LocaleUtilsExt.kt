@@ -35,24 +35,22 @@ fun fixWebViewLocale(context: Context) {
             ).build(),
             object : WebViewOutcomeReceiver<WebViewStartUpResult, WebViewStartupException> {
                 override fun onResult(result: WebViewStartUpResult) {
-                    restoreLocalesIfNeeded(savedLocales)
-                    backgroundExecutor.shutdown()
+                    try {
+                        if (!savedLocales.isEmpty) {
+                            AppCompatDelegate.setApplicationLocales(savedLocales)
+                        }
+                    } finally {
+                        backgroundExecutor.shutdown()
+                    }
                 }
 
                 override fun onError(error: WebViewStartupException) {
-                    restoreLocalesIfNeeded(savedLocales)
                     backgroundExecutor.shutdown()
                 }
             }
         )
     } catch (e: Exception) {
         MTLog.w(LocaleUtils.LOG_TAG, e, "Crash while fixing web view locale!")
-    }
-}
-
-private fun restoreLocalesIfNeeded(savedLocales: LocaleListCompat) {
-    if (!savedLocales.isEmpty) {
-        AppCompatDelegate.setApplicationLocales(savedLocales)
     }
 }
 
