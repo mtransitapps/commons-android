@@ -68,14 +68,14 @@ public final class LocaleUtils implements MTLog.Loggable {
 	@NonNull
 	public static Configuration fixDefaultLocale(@NonNull Configuration configuration) {
 		// fix default locale after Chrome's WebView mess with it
-		Locale defaultLocale = getDefaultLocale();
+		final Locale defaultLocale = getDefaultLocale();
 		configuration.setLocale(defaultLocale);
 		Locale.setDefault(defaultLocale);
 		return configuration;
 	}
 
 	@NonNull
-	private static LocaleListCompat getLocales(@NonNull Context context) {
+	public static LocaleListCompat getLocales(@NonNull Context context) {
 		return ConfigurationCompat.getLocales(context.getResources().getConfiguration());
 	}
 
@@ -110,9 +110,7 @@ public final class LocaleUtils implements MTLog.Loggable {
 		final LocaleListCompat defaultLocales = getLocales(context);
 		for (int l = 0; l < defaultLocales.size(); l++) {
 			final Locale defaultLocale = defaultLocales.get(l);
-			if (defaultLocale == null) {
-				continue;
-			}
+			if (defaultLocale == null) continue;
 			final String language = defaultLocale.getLanguage();
 			if (isFR(language) || isEN(language)) {
 				return defaultLocale;
@@ -124,7 +122,7 @@ public final class LocaleUtils implements MTLog.Loggable {
 	@Deprecated
 	@NonNull
 	public static Locale getSupportedDefaultLocale() {
-		Locale defaultLocale = Locale.getDefault();
+		final Locale defaultLocale = Locale.getDefault();
 		if (isFR(defaultLocale.getLanguage())
 				|| isEN(defaultLocale.getLanguage())) {
 			return defaultLocale;

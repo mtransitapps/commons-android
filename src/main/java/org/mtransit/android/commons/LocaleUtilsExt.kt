@@ -6,6 +6,8 @@ import android.content.MutableContextWrapper
 import android.os.Handler
 import android.os.Looper
 import android.webkit.WebView
+import org.mtransit.android.commons.LocaleUtils.isEN
+import org.mtransit.android.commons.LocaleUtils.isFR
 import org.mtransit.android.commons.ProcessUtils.isMainProcess
 
 /**
@@ -20,6 +22,7 @@ fun fixWebViewLocale(context: Context) {
             // Current process org.mtransit.android (pid 1111), lock owner org.mtransit.android (pid 2222) is a zombie
             return
         }
+        if (!isFixLocaleNeeded(context)) return
         val contextWrapper = MutableContextWrapper(context.applicationContext)
         Handler(Looper.getMainLooper()).post {
             try {
@@ -38,4 +41,14 @@ fun fixWebViewLocale(context: Context) {
     } catch (e: Exception) {
         MTLog.w(LocaleUtils.LOG_TAG, e, "Crash while fixing web view locale!")
     }
+}
+
+private fun isFixLocaleNeeded(context: Context): Boolean {
+    LocaleUtils.getLocales(context)
+        .takeIf { !it.isEmpty }?.get(0)?.language.let { language ->
+            if (isFR(language) || isEN(language)) {
+                return false // 1st language is supported
+            }
+        }
+    return true // needs to be fixed
 }
