@@ -2,11 +2,14 @@ package org.mtransit.android.commons
 
 import android.annotation.SuppressLint
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewOutcomeReceiver
 import androidx.webkit.WebViewStartUpConfig
+import androidx.webkit.WebViewStartUpResult
+import androidx.webkit.WebViewStartupException
 import org.mtransit.android.commons.ProcessUtils.isMainProcess
 import java.util.concurrent.Executors
 
@@ -24,14 +27,21 @@ fun fixWebViewLocale(context: Context) {
             return
         }
         val savedLocales = AppCompatDelegate.getApplicationLocales()
+        val backgroundExecutor = Executors.newSingleThreadExecutor()
         WebViewCompat.startUpWebView(
             context,
             WebViewStartUpConfig.Builder(
-                Executors.newSingleThreadExecutor()
+                backgroundExecutor,
             ).build(),
-            WebViewOutcomeReceiver {
-                if (!savedLocales.isEmpty) {
-                    AppCompatDelegate.setApplicationLocales(savedLocales)
+            object : WebViewOutcomeReceiver<WebViewStartUpResult, WebViewStartupException> {
+                override fun onResult(result: WebViewStartUpResult) {
+                    restoreLocalesIfNeeded(savedLocales)
+                    backgroundExecutor.shutdown()
+                }
+
+                override fun onError(error: WebViewStartupException) {
+                    restoreLocalesIfNeeded(savedLocales)
+                    backgroundExecutor.shutdown()
                 }
             }
         )
@@ -40,19 +50,25 @@ fun fixWebViewLocale(context: Context) {
     }
 }
 
+private fun restoreLocalesIfNeeded(savedLocales: LocaleListCompat) {
+    if (!savedLocales.isEmpty) {
+        AppCompatDelegate.setApplicationLocales(savedLocales)
+    }
+}
+
 /**
  * Determines whether the WebView locale bug could affect the current configuration.
  */
-private fun shouldPreloadWebViewForLocaleBug(): Boolean {
+@VisibleForTesting
+internal fun shouldPreloadWebViewForLocaleBug(
+    appLocales: LocaleListCompat = AppCompatDelegate.getApplicationLocales(),
+    appLocalesEmpty: Boolean = appLocales.isEmpty,
+    primaryAppLanguage: String? = appLocales.get(0)?.language,
+    primarySystemLanguage: String? = LocaleListCompat.getDefault().get(0)?.language
+): Boolean {
     // 1. If the user has never picked a custom in-app language, the bug won't trigger.
-    val savedLocales = AppCompatDelegate.getApplicationLocales()
-    if (savedLocales.isEmpty) {
-        return false
-    }
+    if (appLocalesEmpty) return false
     // 2. Even if a custom language exists, if it matches the current OS default language,
     // the Chromium engine asset injection won't alter the app's active strings.
-    val primaryAppLanguage = savedLocales.get(0)?.language
-    val primarySystemLanguage = LocaleListCompat.getDefault().get(0)?.language
-
     return primaryAppLanguage != primarySystemLanguage
 }
