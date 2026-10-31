@@ -95,6 +95,7 @@ dependencies {
     implementation(libs.bundles.kotlin.android)
     implementation(libs.androidx.core)
     implementation(libs.androidx.appCompat)
+    implementation(libs.androix.webkit)
     implementation(libs.androidx.sqlite)
     implementation(libs.androidx.room.common) // annotations only
     implementation(libs.bundles.workManager)
