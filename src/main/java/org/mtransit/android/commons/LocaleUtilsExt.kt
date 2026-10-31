@@ -19,15 +19,15 @@ import java.util.concurrent.Executors
 @Suppress("TooGenericExceptionCaught")
 @SuppressLint("SetJavaScriptEnabled")
 fun fixWebViewLocale(context: Context) {
+    if (!shouldPreloadWebViewForLocaleBug()) return
+    if (!context.isMainProcess()) {
+        // RuntimeException: Using WebView from more than one process at once with the same data directory is not supported. https://crbug.com/558377 :
+        // Current process org.mtransit.android (pid 1111), lock owner org.mtransit.android (pid 2222) is a zombie
+        return
+    }
+    val savedLocales = AppCompatDelegate.getApplicationLocales()
+    val backgroundExecutor = Executors.newSingleThreadExecutor()
     try {
-        if (!shouldPreloadWebViewForLocaleBug()) return
-        if (!context.isMainProcess()) {
-            // RuntimeException: Using WebView from more than one process at once with the same data directory is not supported. https://crbug.com/558377 :
-            // Current process org.mtransit.android (pid 1111), lock owner org.mtransit.android (pid 2222) is a zombie
-            return
-        }
-        val savedLocales = AppCompatDelegate.getApplicationLocales()
-        val backgroundExecutor = Executors.newSingleThreadExecutor()
         WebViewCompat.startUpWebView(
             context,
             WebViewStartUpConfig.Builder(
@@ -51,6 +51,7 @@ fun fixWebViewLocale(context: Context) {
         )
     } catch (e: Exception) {
         MTLog.w(LocaleUtils.LOG_TAG, e, "Crash while fixing web view locale!")
+        backgroundExecutor.shutdown()
     }
 }
 
@@ -61,8 +62,9 @@ fun fixWebViewLocale(context: Context) {
 internal fun shouldPreloadWebViewForLocaleBug(
     appLocales: LocaleListCompat = AppCompatDelegate.getApplicationLocales(),
     appLocalesEmpty: Boolean = appLocales.isEmpty,
-    primaryAppLanguage: String? = appLocales.get(0)?.language,
-    primarySystemLanguage: String? = LocaleListCompat.getDefault().get(0)?.language
+    primaryAppLanguage: String? = appLocales.takeIf { !it.isEmpty }?.get(0)?.language,
+    systemLocales: LocaleListCompat = LocaleListCompat.getDefault(),
+    primarySystemLanguage: String? = systemLocales.takeIf { !it.isEmpty }?.get(0)?.language
 ): Boolean {
     // 1. If the user has never picked a custom in-app language, the bug won't trigger.
     if (appLocalesEmpty) return false
