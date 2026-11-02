@@ -78,9 +78,10 @@ fun fixWebViewLocale(context: Context) {
 @VisibleForTesting
 internal fun shouldPreloadWebViewForLocaleBug(
     systemLocales: LocaleListCompat,
+    appLocale: Locale = LocaleUtils.getDefaultLocale(),
 ): Boolean {
     val primarySystemLanguage = systemLocales.takeIf { !it.isEmpty }?.get(0)?.language
-    return primarySystemLanguage != null && LocaleUtils.getDefaultLocale().language != primarySystemLanguage
+    return primarySystemLanguage != null && appLocale.language != primarySystemLanguage
 }
 
 internal fun getPrimarySupportedDefaultLocale(context: Context) =
