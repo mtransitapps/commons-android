@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.res.Resources
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.content.ContextCompat
 import androidx.core.os.ConfigurationCompat
 import androidx.core.os.LocaleListCompat
 import androidx.webkit.WebViewCompat
@@ -18,19 +17,27 @@ import java.util.Locale
 import java.util.concurrent.Executors
 
 /**
- * Preload webview with the right Locale as early as possible w/o blocking main thread
+ * Preload webview with the right Locale as early as possible (before Ads SDK Webview) w/o blocking main thread
+ *
+ * The main issue appears when the user has this OS language setting:
+ * - an unsupported 1st language (like Spanish)
+ * - a non-default app language (like French)
+ * - then (maybe) the app default language (English)
+ * The app UI/Locale should be in French (not English) in this case.
  */
 @Suppress("TooGenericExceptionCaught")
 @SuppressLint("SetJavaScriptEnabled")
 fun fixWebViewLocale(context: Context) {
+    val savedLocales = AppCompatDelegate.getApplicationLocales()
     val systemResConfig = Resources.getSystem().configuration // not using app context to get OS config
-    if (!shouldPreloadWebViewForLocaleBug(ConfigurationCompat.getLocales(systemResConfig))) return
+    if (!shouldPreloadWebViewForLocaleBug(ConfigurationCompat.getLocales(systemResConfig), savedLocales)) {
+        return
+    }
     if (!context.isMainProcess()) {
         // RuntimeException: Using WebView from more than one process at once with the same data directory is not supported. https://crbug.com/558377 :
         // Current process org.mtransit.android (pid 1111), lock owner org.mtransit.android (pid 2222) is a zombie
         return
     }
-    val savedLocales = AppCompatDelegate.getApplicationLocales()
     val backgroundExecutor = Executors.newSingleThreadExecutor()
     try {
         WebViewCompat.startUpWebView(
@@ -57,11 +64,6 @@ fun fixWebViewLocale(context: Context) {
 
                 private fun restoreLocale() {
                     Locale.setDefault(LocaleUtils.getDefaultLocale())
-                    if (!savedLocales.isEmpty) {
-                        ContextCompat.getMainExecutor(context).execute {
-                            AppCompatDelegate.setApplicationLocales(savedLocales)
-                        }
-                    }
                 }
             }
         )
@@ -77,10 +79,14 @@ fun fixWebViewLocale(context: Context) {
 @VisibleForTesting
 internal fun shouldPreloadWebViewForLocaleBug(
     systemLocales: LocaleListCompat,
-    appLocale: Locale = LocaleUtils.getDefaultLocale(),
+    savedAppLocales: LocaleListCompat
 ): Boolean {
-    val primarySystemLanguage = systemLocales.takeIf { !it.isEmpty }?.get(0)?.language
-    return primarySystemLanguage != null && appLocale.language != primarySystemLanguage
+    val primarySystemLanguage = systemLocales.takeIf { !it.isEmpty }?.get(0)?.language ?: return true
+    if (savedAppLocales.isEmpty) {
+        return false // App follows system, no preload needed.
+    }
+    val primarySavedAppLanguage = savedAppLocales.get(0)?.language
+    return primarySavedAppLanguage != null && primarySavedAppLanguage != primarySystemLanguage
 }
 
 internal fun getPrimarySupportedDefaultLocale(context: Context) =
