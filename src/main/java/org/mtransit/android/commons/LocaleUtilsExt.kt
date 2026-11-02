@@ -60,15 +60,8 @@ fun fixWebViewLocale(context: Context) {
  */
 @VisibleForTesting
 internal fun shouldPreloadWebViewForLocaleBug(
-    appLocales: LocaleListCompat = AppCompatDelegate.getApplicationLocales(),
-    appLocalesEmpty: Boolean = appLocales.isEmpty,
-    primaryAppLanguage: String? = appLocales.takeIf { !it.isEmpty }?.get(0)?.language,
     systemLocales: LocaleListCompat = LocaleListCompat.getDefault(),
     primarySystemLanguage: String? = systemLocales.takeIf { !it.isEmpty }?.get(0)?.language
 ): Boolean {
-    // 1. If the user has never picked a custom in-app language, the bug won't trigger.
-    if (appLocalesEmpty) return false
-    // 2. Even if a custom language exists, if it matches the current OS default language,
-    // the Chromium engine asset injection won't alter the app's active strings.
-    return primaryAppLanguage != primarySystemLanguage
+    return primarySystemLanguage != null && LocaleUtils.getDefaultLocale().language != primarySystemLanguage
 }

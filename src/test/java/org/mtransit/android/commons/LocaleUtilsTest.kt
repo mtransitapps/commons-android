@@ -1,5 +1,6 @@
 package org.mtransit.android.commons
 
+import java.util.Locale
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -7,46 +8,20 @@ import kotlin.test.assertTrue
 class LocaleUtilsTest {
 
     @Test
-    fun test_shouldPreloadWebViewForLocaleBug_userNeverPickedCustomAppLocale() {
-        shouldPreloadWebViewForLocaleBug(
-            appLocalesEmpty = true,
-            primaryAppLanguage = "en",
+    fun test_shouldPreloadWebViewForLocaleBug_sameLanguage() {
+        LocaleUtils.setDefaultLocale(Locale.CANADA)
+        val result = shouldPreloadWebViewForLocaleBug(
             primarySystemLanguage = "en"
-        ).let { result ->
-            assertFalse(result)
-        }
+        )
+        assertFalse(result)
     }
 
     @Test
-    fun test_shouldPreloadWebViewForLocaleBug_usePickedDefaultOSLangForAppLang() {
-        shouldPreloadWebViewForLocaleBug(
-            appLocalesEmpty = false,
-            primaryAppLanguage = "en",
+    fun test_shouldPreloadWebViewForLocaleBug_differentLanguage() {
+        LocaleUtils.setDefaultLocale(Locale.CANADA_FRENCH)
+        val result = shouldPreloadWebViewForLocaleBug(
             primarySystemLanguage = "en"
-        ).let { result ->
-            assertFalse(result)
-        }
-    }
-
-    @Test
-    fun test_shouldPreloadWebViewForLocaleBug_usePickedFRForAppLang() {
-        shouldPreloadWebViewForLocaleBug(
-            appLocalesEmpty = false,
-            primaryAppLanguage = "fr",
-            primarySystemLanguage = "fr"
-        ).let { result ->
-            assertFalse(result)
-        }
-    }
-
-    @Test
-    fun test_shouldPreloadWebViewForLocaleBug_usePickedSecondaryOSLangForAppLang() {
-        shouldPreloadWebViewForLocaleBug(
-            appLocalesEmpty = false,
-            primaryAppLanguage = "en",
-            primarySystemLanguage = "es"
-        ).let { result ->
-            assertTrue(result)
-        }
+        )
+        assertTrue(result)
     }
 }
