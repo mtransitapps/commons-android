@@ -28,6 +28,11 @@ import java.util.concurrent.Executors
 @Suppress("TooGenericExceptionCaught")
 @SuppressLint("SetJavaScriptEnabled")
 fun fixWebViewLocale(context: Context) {
+    if (!context.isMainProcess()) {
+        // RuntimeException: Using WebView from more than one process at once with the same data directory is not supported. https://crbug.com/558377 :
+        // Current process org.mtransit.android (pid 1111), lock owner org.mtransit.android (pid 2222) is a zombie
+        return
+    }
     val osLocales = getSystemLocales()
     if (!shouldPreloadWebViewForLocaleBug(
             systemLocales = osLocales,
@@ -35,11 +40,6 @@ fun fixWebViewLocale(context: Context) {
         )
     ) {
         MTLog.d(LocaleUtils.LOG_TAG, "fixWebViewLocale() > SKIP (OS and app have same primary language)")
-        return
-    }
-    if (!context.isMainProcess()) {
-        // RuntimeException: Using WebView from more than one process at once with the same data directory is not supported. https://crbug.com/558377 :
-        // Current process org.mtransit.android (pid 1111), lock owner org.mtransit.android (pid 2222) is a zombie
         return
     }
     MTLog.d(LocaleUtils.LOG_TAG, "fixWebViewLocale() > OS lang '${osLocales.firstLocale}' != app lang '${getDefaultLocale()}' > launching webview...")
