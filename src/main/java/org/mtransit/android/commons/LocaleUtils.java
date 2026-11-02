@@ -1,13 +1,13 @@
 package org.mtransit.android.commons;
 
+import static org.mtransit.android.commons.LocaleUtilsExtKt.getPrimarySupportedDefaultLocale;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.os.ConfigurationCompat;
-import androidx.core.os.LocaleListCompat;
 
 import java.util.Locale;
 
@@ -99,20 +99,6 @@ public final class LocaleUtils implements MTLog.Loggable {
 	@NonNull
 	public static String getDefaultLanguage() {
 		return Locale.getDefault().getLanguage();
-	}
-
-	@NonNull
-	public static Locale getPrimarySupportedDefaultLocale(@NonNull Context context) {
-		final LocaleListCompat defaultLocales = ConfigurationCompat.getLocales(context.getResources().getConfiguration());
-		for (int l = 0; l < defaultLocales.size(); l++) {
-			final Locale defaultLocale = defaultLocales.get(l);
-			if (defaultLocale == null) continue;
-			final String language = defaultLocale.getLanguage();
-			if (isFR(language) || isEN(language)) {
-				return defaultLocale;
-			}
-		}
-		return Locale.ENGLISH;
 	}
 
 	@Deprecated
