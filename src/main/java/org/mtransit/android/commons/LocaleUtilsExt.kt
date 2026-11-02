@@ -42,7 +42,7 @@ fun fixWebViewLocale(context: Context) {
         // Current process org.mtransit.android (pid 1111), lock owner org.mtransit.android (pid 2222) is a zombie
         return
     }
-    MTLog.d(LocaleUtils.LOG_TAG, "fixWebViewLocale() > OS lang '${osLocales.firstLocale}' != app lang '${getDefaultLocale()}' > launching webview...'")
+    MTLog.d(LocaleUtils.LOG_TAG, "fixWebViewLocale() > OS lang '${osLocales.firstLocale}' != app lang '${getDefaultLocale()}' > launching webview...")
     val backgroundExecutor = Executors.newSingleThreadExecutor()
     try {
         WebViewCompat.startUpWebView(
