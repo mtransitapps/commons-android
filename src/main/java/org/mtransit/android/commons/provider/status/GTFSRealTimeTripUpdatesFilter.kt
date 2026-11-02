@@ -139,6 +139,7 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
         MTLog.d(LOG_TAG, "findTripId() > out-of-sync trip ID NOT found at ${departure.toDateTimeLog()}.")
         return@label null // NO MATCH
     }
+    val tripIdOutOfSync = this.none { gTripUpdate -> gTripUpdate.optTrip?.let { parseTripId(it) }?.let { it in staticRDTripIds } == true }
     return this
         .mapNotNull { gTripUpdate ->
             gTripUpdate.match(
