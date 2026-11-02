@@ -83,10 +83,14 @@ internal fun shouldPreloadWebViewForLocaleBug(
     return primarySystemLanguage != null && LocaleUtils.getDefaultLocale().language != primarySystemLanguage
 }
 
-internal fun getPrimarySupportedDefaultLocale(context: Context): Locale {
-    val defaultLocales = ConfigurationCompat.getLocales(context.resources.configuration)
-    (0..<defaultLocales.size()).forEach { idx ->
-        val defaultLocale = defaultLocales.get(idx) ?: return@forEach
+internal fun getPrimarySupportedDefaultLocale(context: Context) =
+    getPrimarySupportedDefaultLocale(ConfigurationCompat.getLocales(context.resources.configuration))
+
+internal fun getPrimarySupportedDefaultLocale(
+    defaultLocales: LocaleListCompat,
+): Locale {
+    for (idx in 0 until defaultLocales.size()) {
+        val defaultLocale = defaultLocales.get(idx) ?: continue
         val language = defaultLocale.language
         if (LocaleUtils.isFR(language) || LocaleUtils.isEN(language)) {
             return defaultLocale
