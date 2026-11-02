@@ -1,13 +1,13 @@
 package org.mtransit.android.commons;
 
+import static org.mtransit.android.commons.LocaleUtilsExtKt.getPrimarySupportedDefaultLocale;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.os.ConfigurationCompat;
-import androidx.core.os.LocaleListCompat;
 
 import java.util.Locale;
 
@@ -68,15 +68,10 @@ public final class LocaleUtils implements MTLog.Loggable {
 	@NonNull
 	public static Configuration fixDefaultLocale(@NonNull Configuration configuration) {
 		// fix default locale after Chrome's WebView mess with it
-		Locale defaultLocale = getDefaultLocale();
+		final Locale defaultLocale = getDefaultLocale();
 		configuration.setLocale(defaultLocale);
 		Locale.setDefault(defaultLocale);
 		return configuration;
-	}
-
-	@NonNull
-	private static LocaleListCompat getLocales(@NonNull Context context) {
-		return ConfigurationCompat.getLocales(context.getResources().getConfiguration());
 	}
 
 	public static boolean isFR() {
@@ -103,32 +98,5 @@ public final class LocaleUtils implements MTLog.Loggable {
 	@NonNull
 	public static String getDefaultLanguage() {
 		return Locale.getDefault().getLanguage();
-	}
-
-	@NonNull
-	public static Locale getPrimarySupportedDefaultLocale(@NonNull Context context) {
-		final LocaleListCompat defaultLocales = getLocales(context);
-		for (int l = 0; l < defaultLocales.size(); l++) {
-			final Locale defaultLocale = defaultLocales.get(l);
-			if (defaultLocale == null) {
-				continue;
-			}
-			final String language = defaultLocale.getLanguage();
-			if (isFR(language) || isEN(language)) {
-				return defaultLocale;
-			}
-		}
-		return Locale.ENGLISH;
-	}
-
-	@Deprecated
-	@NonNull
-	public static Locale getSupportedDefaultLocale() {
-		Locale defaultLocale = Locale.getDefault();
-		if (isFR(defaultLocale.getLanguage())
-				|| isEN(defaultLocale.getLanguage())) {
-			return defaultLocale;
-		}
-		return Locale.ENGLISH;
 	}
 }
