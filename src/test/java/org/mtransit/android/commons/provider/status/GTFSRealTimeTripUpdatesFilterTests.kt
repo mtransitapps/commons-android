@@ -6,6 +6,9 @@ import com.google.transit.realtime.TripUpdateKt.stopTimeUpdate
 import com.google.transit.realtime.tripDescriptor
 import com.google.transit.realtime.tripUpdate
 import com.google.transit.realtime.vehicleDescriptor
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.atTime
+import kotlinx.datetime.toInstant
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
@@ -26,7 +29,6 @@ class GTFSRealTimeTripUpdatesFilterTests {
     companion object {
         private const val LOCAL_TZ_ID = "America/Montreal"
         private val LOCAL_TZ = KtTimeZone.of(LOCAL_TZ_ID)
-        private const val LOCAL_TZ_UTC_OFFSET = "04:00"
 
         private const val TRIP_ID = "123456789"
 
@@ -206,11 +208,14 @@ class GTFSRealTimeTripUpdatesFilterTests {
     }
 
     @Suppress("SameParameterValue")
-    private fun toInstant(startDate: String, startTime: String, agencyTimezoneOffset: String = LOCAL_TZ_UTC_OFFSET): Instant {
-        val year = startDate.substring(0, 4)
-        val month = startDate.substring(4, 6)
-        val day = startDate.substring(6, 8)
-        return Instant.parse(year + "-" + month + "-" + day + "T" + startTime + "-" + agencyTimezoneOffset)
+    private fun toInstant(startDate: String, startTime: String, agencyTimezone: KtTimeZone = LOCAL_TZ): Instant {
+        val year = startDate.substring(0, 4).toInt()
+        val month = startDate.substring(4, 6).toInt()
+        val day = startDate.substring(6, 8).toInt()
+        val hour = startTime.substring(0, 2).toInt()
+        val minute = startTime.substring(3, 5).toInt()
+        val second = startTime.substring(6, 8).toInt()
+        return LocalDate(year, month, day).atTime(hour, minute, second).toInstant(agencyTimezone)
     }
 
     // endregion
