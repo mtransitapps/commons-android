@@ -156,6 +156,33 @@ class GTFSRealTimeTripUpdatesFilterTests {
     }
 
     @Test
+    fun test_match_outdated_trip_id_matches_static_route_id_start_date_time_UTC() {
+        tripUpdate {
+            trip = tripDescriptor {
+                routeId = "1"
+                tripId = "outdated"
+                startDate = "20261026"
+                startTime = "19:37:00"
+            }
+        }.match(
+            nowMs = NOW_IN_MS,
+            targetRouteIdHash = "1",
+            targetDirectionOriginalId = 1,
+            agencyTimeZone = KtTimeZone.UTC,
+            findTripId = { departure, _ ->
+                TRIP_ID.takeIf { departure == toInstant("20261026", "19:37:00", KtTimeZone.UTC) }
+            },
+            staticRDTripIds = setOf(TRIP_ID),
+            tripIdOutOfSync = false,
+            ignoreDirection = false,
+            parseRouteId = { it.optRouteId },
+            parseTripId = { it.optTripId },
+        ).let { result ->
+            assertEquals(TRIP_ID, result)
+        }
+    }
+
+    @Test
     fun test_match_outdated_trip_id_matches_static_route_id_start_date() { // not frequency-based
         tripUpdate {
             trip = tripDescriptor {
