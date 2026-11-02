@@ -11,7 +11,6 @@ import androidx.webkit.WebViewOutcomeReceiver
 import androidx.webkit.WebViewStartUpConfig
 import androidx.webkit.WebViewStartUpResult
 import androidx.webkit.WebViewStartupException
-import org.mtransit.android.commons.LocaleUtils.LOG_TAG
 import org.mtransit.android.commons.LocaleUtils.getDefaultLocale
 import org.mtransit.android.commons.ProcessUtils.isMainProcess
 import java.util.Locale
@@ -30,13 +29,12 @@ import java.util.concurrent.Executors
 @SuppressLint("SetJavaScriptEnabled")
 fun fixWebViewLocale(context: Context) {
     val osLocales = getSystemLocales()
-    val appLocales = context.getAppLocales()
     if (!shouldPreloadWebViewForLocaleBug(
             systemLocales = osLocales,
             appDefaultLocale = getDefaultLocale(),
         )
     ) {
-        MTLog.d(LOG_TAG, "fixWebViewLocale() > SKIP (OS and app have same primary language")
+        MTLog.d(LocaleUtils.LOG_TAG, "fixWebViewLocale() > SKIP (OS and app have same primary language")
         return
     }
     if (!context.isMainProcess()) {
@@ -44,7 +42,7 @@ fun fixWebViewLocale(context: Context) {
         // Current process org.mtransit.android (pid 1111), lock owner org.mtransit.android (pid 2222) is a zombie
         return
     }
-    MTLog.d(LOG_TAG, "fixWebViewLocale() > OS lang '${osLocales.firstLocale?.language}' != app lang '${getDefaultLocale().language}' > launching webview...'")
+    MTLog.d(LocaleUtils.LOG_TAG, "fixWebViewLocale() > OS lang '${osLocales.firstLocale}' != app lang '${getDefaultLocale()}' > launching webview...'")
     val backgroundExecutor = Executors.newSingleThreadExecutor()
     try {
         WebViewCompat.startUpWebView(
@@ -70,13 +68,13 @@ fun fixWebViewLocale(context: Context) {
                 }
 
                 private fun restoreLocale() {
-                    MTLog.d(LOG_TAG, "restoreLocale() > restoring locale from '${Locale.getDefault().language}' to '${getDefaultLocale().language}'.")
+                    MTLog.d(LocaleUtils.LOG_TAG, "restoreLocale() > restoring locale from '${Locale.getDefault()}' to '${getDefaultLocale()}'.")
                     Locale.setDefault(getDefaultLocale())
                 }
             }
         )
     } catch (e: Exception) {
-        MTLog.w(LOG_TAG, e, "Crash while fixing web view locale!")
+        MTLog.w(LocaleUtils.LOG_TAG, e, "Crash while fixing web view locale!")
         backgroundExecutor.shutdown()
     }
 }
