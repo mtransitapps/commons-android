@@ -13,7 +13,7 @@ class LocaleUtilsTest {
     fun test_shouldPreloadWebViewForLocaleBug_sameLanguage() {
         val result = shouldPreloadWebViewForLocaleBug(
             systemLocales = LocaleListCompat.create(Locale.US, Locale.CANADA_FRENCH),
-            savedAppLocales = LocaleListCompat.create(Locale.CANADA),
+            appDefaultLocale = Locale.CANADA,
         )
         assertFalse(result)
     }
@@ -22,7 +22,7 @@ class LocaleUtilsTest {
     fun test_shouldPreloadWebViewForLocaleBug_differentLanguage() {
         val result = shouldPreloadWebViewForLocaleBug(
             systemLocales = LocaleListCompat.create(Locale.US, Locale.CANADA_FRENCH),
-            savedAppLocales = LocaleListCompat.create(Locale.CANADA_FRENCH),
+            appDefaultLocale = Locale.CANADA_FRENCH,
         )
         assertTrue(result)
     }
@@ -31,7 +31,7 @@ class LocaleUtilsTest {
     fun test_shouldPreloadWebViewForLocaleBug_differentLanguage_OtherFirst() {
         val result = shouldPreloadWebViewForLocaleBug(
             systemLocales = LocaleListCompat.create(Locale.GERMANY, Locale.US, Locale.CANADA_FRENCH),
-            savedAppLocales = LocaleListCompat.create(Locale.ENGLISH),
+            appDefaultLocale = Locale.ENGLISH,
         )
         assertTrue(result)
     }

@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Resources
 import androidx.annotation.VisibleForTesting
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.ConfigurationCompat
 import androidx.core.os.LocaleListCompat
 import androidx.webkit.WebViewCompat
@@ -12,6 +11,8 @@ import androidx.webkit.WebViewOutcomeReceiver
 import androidx.webkit.WebViewStartUpConfig
 import androidx.webkit.WebViewStartUpResult
 import androidx.webkit.WebViewStartupException
+import org.mtransit.android.commons.LocaleUtils.LOG_TAG
+import org.mtransit.android.commons.LocaleUtils.getDefaultLocale
 import org.mtransit.android.commons.ProcessUtils.isMainProcess
 import java.util.Locale
 import java.util.concurrent.Executors
@@ -28,9 +29,14 @@ import java.util.concurrent.Executors
 @Suppress("TooGenericExceptionCaught")
 @SuppressLint("SetJavaScriptEnabled")
 fun fixWebViewLocale(context: Context) {
-    val savedLocales = AppCompatDelegate.getApplicationLocales()
-    val systemResConfig = Resources.getSystem().configuration // not using app context to get OS config
-    if (!shouldPreloadWebViewForLocaleBug(ConfigurationCompat.getLocales(systemResConfig), savedLocales)) {
+    val osLocales = getSystemLocales()
+    val appLocales = context.getAppLocales()
+    if (!shouldPreloadWebViewForLocaleBug(
+            systemLocales = osLocales,
+            appDefaultLocale = getDefaultLocale(),
+        )
+    ) {
+        MTLog.d(LOG_TAG, "fixWebViewLocale() > SKIP (OS and app have same primary language")
         return
     }
     if (!context.isMainProcess()) {
@@ -38,6 +44,7 @@ fun fixWebViewLocale(context: Context) {
         // Current process org.mtransit.android (pid 1111), lock owner org.mtransit.android (pid 2222) is a zombie
         return
     }
+    MTLog.d(LOG_TAG, "fixWebViewLocale() > OS lang '${osLocales.firstLocale?.language}' != app lang '${getDefaultLocale().language}' > launching webview...'")
     val backgroundExecutor = Executors.newSingleThreadExecutor()
     try {
         WebViewCompat.startUpWebView(
@@ -63,12 +70,13 @@ fun fixWebViewLocale(context: Context) {
                 }
 
                 private fun restoreLocale() {
-                    Locale.setDefault(LocaleUtils.getDefaultLocale())
+                    MTLog.d(LOG_TAG, "restoreLocale() > restoring locale from '${Locale.getDefault().language}' to '${getDefaultLocale().language}'.")
+                    Locale.setDefault(getDefaultLocale())
                 }
             }
         )
     } catch (e: Exception) {
-        MTLog.w(LocaleUtils.LOG_TAG, e, "Crash while fixing web view locale!")
+        MTLog.w(LOG_TAG, e, "Crash while fixing web view locale!")
         backgroundExecutor.shutdown()
     }
 }
@@ -79,18 +87,24 @@ fun fixWebViewLocale(context: Context) {
 @VisibleForTesting
 internal fun shouldPreloadWebViewForLocaleBug(
     systemLocales: LocaleListCompat,
-    savedAppLocales: LocaleListCompat
+    appDefaultLocale: Locale = getDefaultLocale(),
 ): Boolean {
-    val primarySystemLanguage = systemLocales.takeIf { !it.isEmpty }?.get(0)?.language ?: return true
-    if (savedAppLocales.isEmpty) {
-        return false // App follows system, no preload needed.
-    }
-    val primarySavedAppLanguage = savedAppLocales.get(0)?.language
-    return primarySavedAppLanguage != null && primarySavedAppLanguage != primarySystemLanguage
+    val primarySystemLanguage = systemLocales.firstLocale?.language ?: return true
+    return appDefaultLocale.language != primarySystemLanguage
 }
 
+private val LocaleListCompat.firstLocale get() = this.takeIf { !it.isEmpty }?.get(0)
+
+private fun getSystemLocales() = ConfigurationCompat.getLocales(
+    Resources.getSystem().configuration // using Resources.getSystem() to get OS config, not app config
+)
+
+private fun Context.getAppLocales() = ConfigurationCompat.getLocales(
+    this.resources.configuration
+)
+
 internal fun getPrimarySupportedDefaultLocale(context: Context) =
-    getPrimarySupportedDefaultLocale(ConfigurationCompat.getLocales(context.resources.configuration))
+    getPrimarySupportedDefaultLocale(context.getAppLocales())
 
 internal fun getPrimarySupportedDefaultLocale(
     defaultLocales: LocaleListCompat,

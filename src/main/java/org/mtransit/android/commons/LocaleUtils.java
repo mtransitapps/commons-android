@@ -74,7 +74,6 @@ public final class LocaleUtils implements MTLog.Loggable {
 		return configuration;
 	}
 
-
 	public static boolean isFR() {
 		return isFR(Locale.getDefault().getLanguage());
 	}
@@ -99,16 +98,5 @@ public final class LocaleUtils implements MTLog.Loggable {
 	@NonNull
 	public static String getDefaultLanguage() {
 		return Locale.getDefault().getLanguage();
-	}
-
-	@Deprecated
-	@NonNull
-	public static Locale getSupportedDefaultLocale() {
-		final Locale defaultLocale = Locale.getDefault();
-		if (isFR(defaultLocale.getLanguage())
-				|| isEN(defaultLocale.getLanguage())) {
-			return defaultLocale;
-		}
-		return Locale.ENGLISH;
 	}
 }
