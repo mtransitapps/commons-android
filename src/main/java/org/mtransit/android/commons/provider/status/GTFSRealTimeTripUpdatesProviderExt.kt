@@ -176,7 +176,6 @@ internal fun processRDTripUpdate(
     }
 }
 
-@VisibleForTesting
 internal fun List<GTUStopTimeUpdate>.fixStopSequence(
     tripId: String,
     tripSortedRDS: List<RouteDirectionStop>,
@@ -329,7 +328,6 @@ internal fun applyDelay(
 private fun GTFSRealTimeProvider.isSameStop(stopTimeUpdate: GTUStopTimeUpdate?, rds: RouteDirectionStop?, stopSequence: Int) =
     stopTimeUpdate?.isSameStop(rds, stopSequence, this::parseStopId) == true
 
-@VisibleForTesting
 internal fun GTUStopTimeUpdate.isSameStop(
     rds: RouteDirectionStop?,
     stopSequence: Int,

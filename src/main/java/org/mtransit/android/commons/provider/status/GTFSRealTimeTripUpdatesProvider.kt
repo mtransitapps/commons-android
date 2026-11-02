@@ -28,6 +28,7 @@ import org.mtransit.android.commons.provider.gtfs.getTripIds
 import org.mtransit.android.commons.provider.gtfs.ignoreDirection
 import org.mtransit.android.commons.provider.gtfs.makeRequest
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
+import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.gtfs.storage
 import org.mtransit.android.commons.toDateTimeLog
@@ -154,11 +155,14 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 targetRouteIdHash = targetRouteIdHash,
                 targetDirectionOriginalId = targetDirectionOriginalId,
                 agencyTimeZone = agencyTimeZone,
+                getStaticRDS = { sortedRDS },
                 getStaticRDSchedules = { rdSchedules },
                 staticRDTripIds = staticRDTripIds,
                 ignoreDirection = ignoreDirection,
                 parseRouteId = ::parseRouteId,
                 parseTripId = ::parseTripId,
+                parseStopId = ::parseStopId,
+                isSameStop = { stu, rds, stopSeq -> stu?.isSameStop(rds, stopSeq, this::parseStopId) == true }
             )
             rdTripIdsToTripUpdates ?: run {
                 sortedRDS.forEach { rds ->

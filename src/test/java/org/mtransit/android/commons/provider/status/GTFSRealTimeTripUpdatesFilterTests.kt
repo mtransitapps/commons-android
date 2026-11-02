@@ -42,24 +42,27 @@ class GTFSRealTimeTripUpdatesFilterTests {
 
     @Test
     fun test_match_trip_id_only_matches() {
-        var getStartDepartureToStaticTripIdCalled = 0
-        tripDescriptor {
-            tripId = TRIP_ID
+        var findTripIdCalled = 0
+        tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+            }
         }.match(
             nowMs = NOW_IN_MS,
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            getStartDepartureToStaticTripId = {
-                getStartDepartureToStaticTripIdCalled++
-                emptyMap()
+            findTripId = { _, _ ->
+                findTripIdCalled++
+                null
             },
             staticRDTripIds = setOf(TRIP_ID),
+            tripIdOutOfSync = false,
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
         ).let { result ->
-            assertEquals(0, getStartDepartureToStaticTripIdCalled)
+            assertEquals(0, findTripIdCalled)
             if (IGNORE_TRIP_ID) {
                 assertEquals(null, result)
             } else {
@@ -70,71 +73,78 @@ class GTFSRealTimeTripUpdatesFilterTests {
 
     @Test
     fun test_match_trip_id_only_does_not_match() {
-        var getStartDepartureToStaticTripIdCalled = 0
-        tripDescriptor {
-            tripId = TRIP_ID
+        var findTripIdCalled = 0
+        tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+            }
         }.match(
             nowMs = NOW_IN_MS,
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            getStartDepartureToStaticTripId = {
-                getStartDepartureToStaticTripIdCalled++
-                emptyMap()
+            findTripId = { _, _ ->
+                findTripIdCalled++
+                null
             },
             staticRDTripIds = setOf("different_trip_id"),
+            tripIdOutOfSync = false,
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
         ).let { result ->
-            assertEquals(0, getStartDepartureToStaticTripIdCalled)
+            assertEquals(0, findTripIdCalled)
             assertEquals(null, result)
         }
     }
 
     @Test
     fun test_match_trip_id_does_not_match_and_route_matches() {
-        var getStartDepartureToStaticTripIdCalled = 0
-        tripDescriptor {
-            routeId = "1"
-            tripId = TRIP_ID
+        var findTripIdCalled = 0
+        tripUpdate {
+            trip = tripDescriptor {
+                routeId = "1"
+                tripId = TRIP_ID
+            }
         }.match(
             nowMs = NOW_IN_MS,
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            getStartDepartureToStaticTripId = {
-                getStartDepartureToStaticTripIdCalled++
-                emptyMap()
+            findTripId = { _, _ ->
+                findTripIdCalled++
+                null
             },
             staticRDTripIds = setOf("different_trip_id"),
+            tripIdOutOfSync = false,
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
         ).let { result ->
-            assertEquals(0, getStartDepartureToStaticTripIdCalled)
+            assertEquals(0, findTripIdCalled)
             assertEquals(null, result)
         }
     }
 
     @Test
     fun test_match_outdated_trip_id_matches_static_route_id_start_date_time() {
-        tripDescriptor {
-            routeId = "1"
-            tripId = "outdated"
-            startDate = "20261026"
-            startTime = "19:37:00"
+        tripUpdate {
+            trip = tripDescriptor {
+                routeId = "1"
+                tripId = "outdated"
+                startDate = "20261026"
+                startTime = "19:37:00"
+            }
         }.match(
             nowMs = NOW_IN_MS,
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            getStartDepartureToStaticTripId = {
-                mapOf(
-                    toInstant("20261026", "19:37:00") to TRIP_ID
-                )
+            findTripId = { departure, _ ->
+                TRIP_ID.takeIf { departure == toInstant("20261026", "19:37:00") }
             },
             staticRDTripIds = setOf(TRIP_ID),
+            tripIdOutOfSync = false,
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
@@ -145,23 +155,22 @@ class GTFSRealTimeTripUpdatesFilterTests {
 
     @Test
     fun test_match_outdated_trip_id_matches_static_route_id_start_date() { // not frequency-based
-        tripDescriptor {
-            routeId = "1"
-            tripId = "outdated"
-            startTime = "19:37:00"
+        tripUpdate {
+            trip = tripDescriptor {
+                routeId = "1"
+                tripId = "outdated"
+                startTime = "19:37:00"
+            }
         }.match(
             nowMs = NOW_IN_MS,
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            getStartDepartureToStaticTripId = {
-                mapOf(
-                    toInstant("20261025", "19:37:00") to "previous_trip_id",
-                    toInstant("20261026", "19:37:00") to TRIP_ID,
-                    toInstant("20261027", "19:37:00") to "next_trip_id",
-                )
+            findTripId = { departure, _ ->
+                TRIP_ID.takeIf { departure == toInstant("20261026", "19:37:00") }
             },
             staticRDTripIds = setOf(TRIP_ID),
+            tripIdOutOfSync = false,
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
@@ -172,21 +181,22 @@ class GTFSRealTimeTripUpdatesFilterTests {
 
     @Test
     fun test_match_outdated_trip_id_matches_static_route_id_start_time() { // not frequency-based
-        tripDescriptor {
-            routeId = "1"
-            tripId = "outdated"
-            startDate = "20261026"
+        tripUpdate {
+            trip = tripDescriptor {
+                routeId = "1"
+                tripId = "outdated"
+                startDate = "20261026"
+            }
         }.match(
             nowMs = NOW_IN_MS,
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            getStartDepartureToStaticTripId = {
-                mapOf(
-                    toInstant("20261026", "19:37:00") to TRIP_ID,
-                )
+            findTripId = { departure, _ ->
+                TRIP_ID.takeIf { departure == toInstant("20261026", "19:37:00") }
             },
             staticRDTripIds = setOf(TRIP_ID),
+            tripIdOutOfSync = false,
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
