@@ -2,11 +2,16 @@ package org.mtransit.android.commons
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Resources
+import androidx.annotation.VisibleForTesting
+import androidx.core.os.ConfigurationCompat
+import androidx.core.os.LocaleListCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewOutcomeReceiver
 import androidx.webkit.WebViewStartUpConfig
 import androidx.webkit.WebViewStartUpResult
 import androidx.webkit.WebViewStartupException
+import org.mtransit.android.commons.LocaleUtils.getDefaultLocale
 import org.mtransit.android.commons.ProcessUtils.isMainProcess
 import java.util.Locale
 import java.util.concurrent.Executors
@@ -28,6 +33,16 @@ fun fixWebViewLocale(context: Context) {
         // Current process org.mtransit.android (pid 1111), lock owner org.mtransit.android (pid 2222) is a zombie
         return
     }
+    val osLocales = getSystemLocales()
+    if (!shouldPreloadWebViewForLocaleBug(
+            systemLocales = osLocales,
+            appDefaultLocale = getDefaultLocale(),
+        )
+    ) {
+        MTLog.d(LocaleUtils.LOG_TAG, "fixWebViewLocale() > SKIP (OS and app have same primary language)")
+        return
+    }
+    MTLog.d(LocaleUtils.LOG_TAG, "fixWebViewLocale() > OS lang '${osLocales.firstLocale}' != app lang '${getDefaultLocale()}' > launching webview...")
     val backgroundExecutor = Executors.newSingleThreadExecutor()
     try {
         WebViewCompat.startUpWebView(
@@ -53,7 +68,8 @@ fun fixWebViewLocale(context: Context) {
                 }
 
                 private fun restoreLocale() {
-                    Locale.setDefault(LocaleUtils.getDefaultLocale())
+                    MTLog.d(LocaleUtils.LOG_TAG, "restoreLocale() > restoring locale from '${Locale.getDefault()}' to '${getDefaultLocale()}'.")
+                    Locale.setDefault(getDefaultLocale())
                 }
             }
         )
@@ -61,4 +77,43 @@ fun fixWebViewLocale(context: Context) {
         MTLog.w(LocaleUtils.LOG_TAG, e, "Crash while fixing web view locale!")
         backgroundExecutor.shutdown()
     }
+}
+
+/**
+ * Determines whether the WebView locale bug could affect the current configuration.
+ */
+@VisibleForTesting
+internal fun shouldPreloadWebViewForLocaleBug(
+    systemLocales: LocaleListCompat,
+    appDefaultLocale: Locale = getDefaultLocale(),
+): Boolean {
+    val primarySystemLanguage = systemLocales.firstLocale?.language ?: return true
+    return appDefaultLocale.language != primarySystemLanguage
+}
+
+private val LocaleListCompat.firstLocale get() = this.takeIf { !it.isEmpty }?.get(0)
+
+private fun getSystemLocales() = ConfigurationCompat.getLocales(
+    Resources.getSystem().configuration // using Resources.getSystem() to get OS config, not app config
+)
+
+private fun Context.getAppLocales() = ConfigurationCompat.getLocales(
+    this.resources.configuration
+)
+
+internal fun getPrimarySupportedDefaultLocale(context: Context) =
+    getPrimarySupportedDefaultLocale(context.getAppLocales())
+
+@VisibleForTesting
+internal fun getPrimarySupportedDefaultLocale(
+    defaultLocales: LocaleListCompat,
+): Locale {
+    for (idx in 0 until defaultLocales.size()) {
+        val defaultLocale = defaultLocales.get(idx) ?: continue
+        val language = defaultLocale.language
+        if (LocaleUtils.isFR(language) || LocaleUtils.isEN(language)) {
+            return defaultLocale
+        }
+    }
+    return Locale.ENGLISH
 }
