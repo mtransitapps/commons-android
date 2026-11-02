@@ -56,9 +56,8 @@ fun fixWebViewLocale(context: Context) {
                 }
 
                 private fun restoreLocale() {
-                    if (savedLocales.isEmpty) {
-                        Locale.setDefault(LocaleUtils.getDefaultLocale())
-                    } else {
+                    Locale.setDefault(LocaleUtils.getDefaultLocale())
+                    if (!savedLocales.isEmpty) {
                         ContextCompat.getMainExecutor(context).execute {
                             AppCompatDelegate.setApplicationLocales(savedLocales)
                         }
