@@ -104,6 +104,7 @@ private fun Context.getAppLocales() = ConfigurationCompat.getLocales(
 internal fun getPrimarySupportedDefaultLocale(context: Context) =
     getPrimarySupportedDefaultLocale(context.getAppLocales())
 
+@VisibleForTesting
 internal fun getPrimarySupportedDefaultLocale(
     defaultLocales: LocaleListCompat,
 ): Locale {
