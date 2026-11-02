@@ -34,7 +34,7 @@ fun fixWebViewLocale(context: Context) {
             appDefaultLocale = getDefaultLocale(),
         )
     ) {
-        MTLog.d(LocaleUtils.LOG_TAG, "fixWebViewLocale() > SKIP (OS and app have same primary language")
+        MTLog.d(LocaleUtils.LOG_TAG, "fixWebViewLocale() > SKIP (OS and app have same primary language)")
         return
     }
     if (!context.isMainProcess()) {
