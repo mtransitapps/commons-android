@@ -57,8 +57,9 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
     val tripIdToTargetUUIDStopSeqTimestamps by lazy {
         getStaticRDSchedules()
             .asSequence()
-            .flatMap { schedule -> schedule.timestamps.map { (schedule.targetUUID to it.stopSequenceOrNull) to it } } // 1 uuid can have multiple timestamp for 1 trip
-            .groupBy { (_, timestamp) -> timestamp.tripId.orEmpty() } // 1 uuid can have multiple timestamp for 1 trip
+            // 1 uuid can have multiple timestamp for 1 trip
+            .flatMap { schedule -> schedule.timestamps.map { (schedule.targetUUID to it.stopSequenceOrNull) to it } }
+            .groupBy { (_, timestamp) -> timestamp.tripId.orEmpty() }
             .filterKeys { it.isNotEmpty() }
     }
     val departureToStaticTripIdList by lazy {
