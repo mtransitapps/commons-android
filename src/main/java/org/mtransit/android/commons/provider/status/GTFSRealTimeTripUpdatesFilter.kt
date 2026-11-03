@@ -54,17 +54,17 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
     parseStopId: (String) -> String,
     isSameStop: (stu: GTUStopTimeUpdate?, rds: RouteDirectionStop, stopSeq: Int) -> Boolean,
 ): Map<String, GTripUpdate>? {
-    val tripIdTimestamps by lazy {
+    val tripIdToTargetUUIDStopSeqTimestamps by lazy {
         getStaticRDSchedules()
             .asSequence()
-            .flatMap { schedule -> schedule.timestamps.map { schedule.targetUUID to it } } // 1 uuid can have multiple timestamp for 1 trip
+            .flatMap { schedule -> schedule.timestamps.map { (schedule.targetUUID to it.stopSequenceOrNull) to it } } // 1 uuid can have multiple timestamp for 1 trip
             .groupBy { (_, timestamp) -> timestamp.tripId.orEmpty() } // 1 uuid can have multiple timestamp for 1 trip
             .filterKeys { it.isNotEmpty() }
     }
     val departureToStaticTripIdList by lazy {
-        tripIdTimestamps
-            .mapNotNull { (staticTripId, tripTimestamps) ->
-                tripTimestamps
+        tripIdToTargetUUIDStopSeqTimestamps
+            .mapNotNull { (staticTripId, targetUUIDStopSeqToTimestamps) ->
+                targetUUIDStopSeqToTimestamps
                     .minByOrNull { (_, timestamp) -> timestamp.departure }
                     ?.let { (_, timestamp) ->
                         timestamp.departure to staticTripId
@@ -94,7 +94,7 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
         }
         MTLog.d(LOG_TAG, "findTripId() > out-of-sync trip ID candidate(s) found: ${staticTripIdsWithSameDepartures.joinToString { it.second }}.")
         staticTripIdsWithSameDepartures.forEach label2@{ (_, staticTripId) ->
-            val tripTargetUUIDToTimestamp = tripIdTimestamps[staticTripId]
+            val tripTargetUUIDStopSeqTimestamps = tripIdToTargetUUIDStopSeqTimestamps[staticTripId]
             val tripRdsUUIDs = rdsUUIDsByTripId[staticTripId]
                 ?: return@label2 // trip ID not in static data
             val tripSchedules = tripRdsUUIDs.mapNotNull { rdSchedulesByUUID[it] }
@@ -110,7 +110,7 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
                             "findTripId() > out-of-sync trip ID NOT found at ${departure.toDateTimeLog()} " +
                                 "(stop ID '${stu.optStopId}' not in this route direction)."
                         )
-                        return@label null // NO MATCH
+                        return@label2 // NO MATCH
                     }
                 }
             }
@@ -122,11 +122,15 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
                 isSameStop = isSameStop,
                 parseStopId = parseStopId,
             ).forEach { stu ->
-                val stuStopID = stu.optStopIdNotEmpty?.let { parseStopId(it) } ?: return@forEach
+                val stuStopIDHash = stu.optStopIdNotEmpty?.let { parseStopId(it) } ?: return@forEach
                 val stuStopSequence = stu.optStopSequence ?: return@forEach
                 val found = getStaticRDS().any { rds ->
-                    val rdsTimestamp = tripTargetUUIDToTimestamp?.find { (targetUUID, _) -> targetUUID == rds.uuid }?.second
-                    rdsTimestamp?.stopSequenceOrNull == stuStopSequence && rds.stop.isSameOriginalId(stuStopID)
+                    val rdsTimestamp = tripTargetUUIDStopSeqTimestamps?.find { (targetUUIDAndStopSeq, _) ->
+                        val targetUUID = targetUUIDAndStopSeq.first
+                        val stopSeq = targetUUIDAndStopSeq.second
+                        targetUUID == rds.uuid && stopSeq == stuStopSequence
+                    }?.second
+                    rdsTimestamp != null && rds.stop.isSameOriginalId(stuStopIDHash)
                 }
                 if (!found) {
                     MTLog.d(LOG_TAG, "findTripId() > ignore wrong out-of-sync trip ID '$staticTripId' at ${departure.toDateTimeLog()}.")

@@ -19,14 +19,15 @@ object GTFSDateTimeUtils : MTLog.Loggable {
     private val LOG_TAG: String = GTFSDateTimeUtils::class.java.simpleName
 
     private const val DATE_FORMAT_PATTERN = "yyyyMMdd"
+    private const val DATE_FORMAT_LENGTH = 8
 
     private const val TIME_FORMAT_HOUR_DIVIDER = ":"
     private const val TIME_FORMAT_GROUPS = 3
 
     @Suppress("SpellCheckingInspection")
     private const val TIME_FORMAT_PATTERN = "HH${TIME_FORMAT_HOUR_DIVIDER}mm${TIME_FORMAT_HOUR_DIVIDER}ss"
-
-    private const val TIME_FORMAT_LENGTH = 8
+    private const val TIME_FORMAT_LENGTH_MAX = 8
+    private const val TIME_FORMAT_LENGTH_MIN = 7 // no leading hour before 10
 
     private const val TIME_FORMAT_MAX_HOUR_TODAY = 23 // 24 means tomorrow (from start of service - night service)
 
@@ -65,11 +66,14 @@ object GTFSDateTimeUtils : MTLog.Loggable {
     fun parseToDateTime(gtfsDateStr: String?, gtfsTimeStr: String?, agencyTimeZone: KtTimeZone): Instant? {
         try {
             val cleanedDate = gtfsDateStr?.trim() ?: return null
-            if (cleanedDate.length != TIME_FORMAT_LENGTH || cleanedDate.any { !it.isDigit() }) {
+            if (cleanedDate.length != DATE_FORMAT_LENGTH || cleanedDate.any { !it.isDigit() }) {
                 MTLog.w(this, "Invalid GTFS date format '$cleanedDate'! Must be YYYYMMDD")
                 return null
             }
-            val parts = gtfsTimeStr?.trim()?.split(TIME_FORMAT_HOUR_DIVIDER)?.takeIf { it.size == TIME_FORMAT_GROUPS } ?: return null
+            val parts = gtfsTimeStr?.trim()
+                ?.takeIf { it.length == TIME_FORMAT_LENGTH_MIN || it.length == TIME_FORMAT_LENGTH_MAX }
+                ?.split(TIME_FORMAT_HOUR_DIVIDER)?.takeIf { it.size == TIME_FORMAT_GROUPS }
+                ?: return null
 
             val hoursCount = parts.getOrNull(0)?.toIntOrNull()?.takeIf { it >= 0 } ?: return null
             val minutesCount = parts.getOrNull(1)?.toIntOrNull()?.takeIf { it in 0..59 } ?: return null
@@ -93,7 +97,7 @@ object GTFSDateTimeUtils : MTLog.Loggable {
      * Makes sure GTFS time has 2 digits for hours: '9:01:02' -> '09:01:02'
      */
     @Suppress("unused")
-    fun String.cleanGtfsTimeStr() = this.padStart(TIME_FORMAT_LENGTH, '0')
+    fun String.cleanGtfsTimeStr() = this.padStart(TIME_FORMAT_LENGTH_MAX, '0')
 
     private val DATE_FORMATTER by lazy { DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN) }
     private val TIME_FORMATTER by lazy { DateTimeFormatter.ofPattern(TIME_FORMAT_PATTERN) }
