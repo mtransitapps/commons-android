@@ -169,7 +169,7 @@ public class RSSNewsProvider extends NewsProvider {
 	@NonNull
 	private static java.util.List<String> getFILE_CLEANING_REGEX(@NonNull Context context) {
 		if (fileCleaningRegex == null) {
-			fileCleaningRegex = Arrays.asList(context.getResources().getStringArray(R.array.rrs_file_cleaning_regex));
+			fileCleaningRegex = Arrays.asList(context.getResources().getStringArray(R.array.rss_file_cleaning_regex));
 		}
 		return fileCleaningRegex;
 	}
@@ -183,7 +183,7 @@ public class RSSNewsProvider extends NewsProvider {
 	@NonNull
 	private static java.util.List<String> getFILE_CLEANING_REPLACEMENT(@NonNull Context context) {
 		if (fileCleaningReplacement == null) {
-			fileCleaningReplacement = Arrays.asList(context.getResources().getStringArray(R.array.rrs_file_cleaning_replacement));
+			fileCleaningReplacement = Arrays.asList(context.getResources().getStringArray(R.array.rss_file_cleaning_replacement));
 		}
 		return fileCleaningReplacement;
 	}
