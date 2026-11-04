@@ -220,10 +220,9 @@ internal fun List<GTUStopTimeUpdate>.fixStopSequence(
                     return@mapNotNull stu.copyG {
                         // use STU w fixed stop sequence
                         stopSequence = stopSeq
+                    }.also {
+                        MTLog.d(LOG_TAG, "fixStopSequence($tripId) > KEEP fixed wrong stop sequence (!$wrongStopSeq): ${it.toStringExt(short = true)}")
                     }
-                        .also {
-                            MTLog.d(LOG_TAG, "fixStopSequence($tripId) > KEEP fixed wrong stop sequence (!$wrongStopSeq): ${it.toStringExt(short = true)}")
-                        }
                 }
         }
         MTLog.w(LOG_TAG, "fixStopSequence($tripId) > IGNORE (no stop ID/sequence match): ${stu.toStringExt()}")
