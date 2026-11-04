@@ -30,8 +30,12 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeInstant
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestampMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
+import org.mtransit.android.commons.provider.gtfs.ignoreDirection
+import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseStopId
+import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.LOG_TAG
+import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.PRE_FILTER_TRIP_UPDATES
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.PROVIDER_PRECISION
 import kotlin.time.Duration
 import kotlin.time.Instant
@@ -41,17 +45,40 @@ import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUS
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship as GTUSTUScheduleRelationship
 import com.google.transit.realtime.copy as copyG
+import kotlinx.datetime.TimeZone as KtTimeZone
 
 fun GTFSRealTimeProvider.processRDTripUpdates(
-    rdTripIdsToTripUpdates: Map<String, GTripUpdate>,
-    rdSchedules: Collection<Schedule>,
-    getRDSchedulesByUUID: () -> Map<String, Schedule> = { rdSchedules.associateBy { it.targetUUID } },
+    gTripUpdates: Map<String, GTripUpdate>,
+    nowMs: Long,
+    targetRouteIdHash: String,
+    targetDirectionOriginalId: Int?,
+    agencyTimeZone: KtTimeZone,
+    staticRDTripIds: Set<String>,
+    tripIdOutOfSync: Boolean,
+    findTripId: (departure: Instant, stuList: List<GTUStopTimeUpdate>?) -> String?,
+    getRDSchedulesByUUID: () -> Map<String, Schedule>,
     getRDSUUIDsByTripId: () -> Map<String, Set<String>>,
     sortedRDS: List<RouteDirectionStop>,
     feedReadFromSourceMs: Long,
     includeCancelledTimestamps: Boolean = false,
 ) {
-    rdTripIdsToTripUpdates.forEach { (staticTripId, gTripUpdate) ->
+    gTripUpdates.forEach { (tripId, gTripUpdate) ->
+        val staticTripId = if (PRE_FILTER_TRIP_UPDATES) {
+            tripId
+        } else {
+            gTripUpdate.match(
+                nowMs = nowMs,
+                targetRouteIdHash = targetRouteIdHash,
+                targetDirectionOriginalId = targetDirectionOriginalId,
+                agencyTimeZone = agencyTimeZone,
+                findTripId = findTripId,
+                staticRDTripIds = staticRDTripIds,
+                tripIdOutOfSync = tripIdOutOfSync,
+                ignoreDirection = ignoreDirection,
+                parseRouteId = ::parseRouteId,
+                parseTripId = ::parseTripId,
+            ) ?: return@forEach // no trip descriptor / ID OR not a match
+        }
         val tripRdsUUIDs = getRDSUUIDsByTripId()[staticTripId]
             ?: return@forEach // trip ID not in static data
         val tripSchedules = tripRdsUUIDs.mapNotNull { getRDSchedulesByUUID()[it] }
@@ -64,8 +91,8 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
             staticTripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, getRDSchedulesByUUID(),
             isSameStop = this::isSameStop,
             feedReadFromSourceMs = feedReadFromSourceMs,
-            fixStopSequence = {
-                it?.fixStopSequence(
+            fixStopSequence = { gSTUList ->
+                gSTUList?.fixStopSequence(
                     tripId = staticTripId,
                     tripSortedRDS = tripSortedRDS,
                     sortedTargetUuidAndSequence = sortedTargetUuidAndSequence,
@@ -333,6 +360,6 @@ internal fun GTUStopTimeUpdate.isSameStop(
     val sameOrUnspecifiedStopId = this.optStopIdNotEmpty?.let {
         rds.stop.isSameOriginalId(parseStopId(it))
     }
-    if (sameOrUnspecifiedStopSequence == null && sameOrUnspecifiedStopId == null) return false
-    return (sameOrUnspecifiedStopSequence ?: true) && (sameOrUnspecifiedStopId ?: true)
+    return !(sameOrUnspecifiedStopSequence == null && sameOrUnspecifiedStopId == null)
+        && (sameOrUnspecifiedStopSequence ?: true) && (sameOrUnspecifiedStopId ?: true)
 }

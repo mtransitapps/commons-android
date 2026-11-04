@@ -112,6 +112,7 @@
     <ID>LongParameterList:GTFSRealTimeTripUpdatesFilter.kt:internal fun GTripUpdate.match: String?</ID>
     <ID>LongParameterList:GTFSRealTimeTripUpdatesFilter.kt:internal fun List&lt;GTripUpdate&gt;.selectRouteDirectionTripUpdates: Map&lt;String, GTripUpdate&gt;?</ID>
     <ID>LongParameterList:GTFSRealTimeTripUpdatesProviderExt.kt:@VisibleForTesting internal fun processRDTripUpdate</ID>
+    <ID>LongParameterList:GTFSRealTimeTripUpdatesProviderExt.kt:fun GTFSRealTimeProvider.processRDTripUpdates</ID>
     <ID>LongParameterList:InstagramNewsProvider.kt:InstagramNewsProvider$private fun loadUserTimeline</ID>
     <ID>LongParameterList:InstagramNewsProvider.kt:InstagramNewsProvider$private fun readNews: News</ID>
     <ID>LongParameterList:POIProviderContract.kt:POIProviderContract.Filter.Companion$@SuppressLint("DiscouragedApi") fun getNewAreaFilter</ID>
@@ -230,6 +231,11 @@
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesFilter.kt:MTLog.d(LOG_TAG, "findTripId() &gt; ignore wrong out-of-sync trip ID '$staticTripId' at ${departure.toDateTimeLog()}.")</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesFilter.kt:return@label2</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesFilter.kt:td.optModifiedTrip?.let { GTFSDateTimeUtils.parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()</ID>
+    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$!found</ID>
+    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$MTLog.d(LOG_TAG, "findTripId() &gt; ignore wrong out-of-sync trip ID '$staticTripId' at ${departure.toDateTimeLog()}.")</ID>
+    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$return@label2</ID>
+    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$val found = sortedRDS.any { rds -&gt; val rdsTimestamp = tripTargetUUIDStopSeqTimestamps?.find { (targetUUIDAndStopSeq, _) -&gt; val targetUUID = targetUUIDAndStopSeq.first val stopSeq = targetUUIDAndStopSeq.second targetUUID == rds.uuid &amp;&amp; stopSeq == gSTUStopSequence }?.second rdsTimestamp != null &amp;&amp; rds.stop.isSameOriginalId(gSTUStopIDHash) }</ID>
+    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$val gSTUStopSequence = gSTU.optStopSequence ?: return@forEach</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesFilter.kt:val found = getStaticRDS().any { rds -&gt; val rdsTimestamp = tripTargetUUIDStopSeqTimestamps?.find { (targetUUIDAndStopSeq, _) -&gt; val targetUUID = targetUUIDAndStopSeq.first val stopSeq = targetUUIDAndStopSeq.second targetUUID == rds.uuid &amp;&amp; stopSeq == stuStopSequence }?.second rdsTimestamp != null &amp;&amp; rds.stop.isSameOriginalId(stuStopIDHash) }</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesFilter.kt:val stuStopSequence = stu.optStopSequence ?: return@forEach</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:it == stopSequence</ID>
