@@ -197,9 +197,9 @@ internal fun GTripUpdate.match(
 }
 
 internal fun List<Pair<String, GTripUpdate>>.filterDuplicatesTrips() = buildList<Pair<String, GTripUpdate>> {
-    this@filterDuplicatesTrips.groupBy { (_, tu) ->
-        val td = tu.optTrip
-        td?.optTripIdNotEmpty to (
+    this@filterDuplicatesTrips.groupBy { (tripId, gTripUpdate) ->
+        val td = gTripUpdate.optTrip
+        tripId to (
             (td?.optStartDate ?: td?.optModifiedTrip?.optStartDate) to
                 (td?.optStartTime ?: td?.optModifiedTrip?.optStartTime)
             )
