@@ -62,6 +62,9 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
     feedReadFromSourceMs: Long,
     includeCancelledTimestamps: Boolean = false,
 ) {
+    if (gTripUpdates.isEmpty()) return
+    val rdsSchedulesByUUID = getRDSchedulesByUUID()
+    val rdsUUIDsByTripId = getRDSUUIDsByTripId()
     gTripUpdates.forEach { (tripId, gTripUpdate) ->
         val staticTripId = if (PRE_FILTER_TRIP_UPDATES) {
             tripId
@@ -79,16 +82,16 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
                 parseTripId = ::parseTripId,
             ) ?: return@forEach // no trip descriptor / ID OR not a match
         }
-        val tripRdsUUIDs = getRDSUUIDsByTripId()[staticTripId]
+        val tripRdsUUIDs = rdsUUIDsByTripId[staticTripId]
             ?: return@forEach // trip ID not in static data
-        val tripSchedules = tripRdsUUIDs.mapNotNull { getRDSchedulesByUUID()[it] }
+        val tripSchedules = tripRdsUUIDs.mapNotNull { rdsSchedulesByUUID[it] }
         val tripSortedRDS = sortedRDS
             .filter { rds -> rds.uuid in tripRdsUUIDs }
             .takeIf { it.isNotEmpty() }
             ?: return@forEach
         val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(staticTripId, tripSchedules, tripSortedRDS)
         processRDTripUpdate(
-            staticTripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, getRDSchedulesByUUID(),
+            staticTripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, rdsSchedulesByUUID,
             isSameStop = this::isSameStop,
             feedReadFromSourceMs = feedReadFromSourceMs,
             fixStopSequence = { gSTUList ->

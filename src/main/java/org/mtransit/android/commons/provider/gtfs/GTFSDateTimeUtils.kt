@@ -49,17 +49,24 @@ object GTFSDateTimeUtils : MTLog.Loggable {
             val startOfDay = nowInstant.toLocalDateTime(agencyTimeZone).date.atStartOfDayIn(agencyTimeZone)
             val todayService = startOfDay + durationFromStartOfDay
             val yesterdayService = startOfDay.minus(1.days) + durationFromStartOfDay
+            val tomorrowService = startOfDay + 1.days + durationFromStartOfDay
             val todayServiceDiff = (todayService - nowInstant).absoluteValue
             val yesterdayServiceDiff = (nowInstant - yesterdayService).absoluteValue
+            val tomorrowServiceDiff = (tomorrowService - nowInstant).absoluteValue
             val useYesterdayService = if (durationFromStartOfDay < 1.days) {
-                yesterdayServiceDiff < todayServiceDiff
+                yesterdayServiceDiff < todayServiceDiff && yesterdayServiceDiff < tomorrowServiceDiff
             } else { // more than 24 hours
                 nowInstant - yesterdayService <= recentPast
             }
-            if (useYesterdayService) {
-                return yesterdayService
+            val useTomorrowService = durationFromStartOfDay < 1.days
+                && yesterdayServiceDiff > tomorrowServiceDiff && tomorrowServiceDiff < todayServiceDiff
+            return if (useYesterdayService) {
+                yesterdayService
+            } else if (useTomorrowService) {
+                tomorrowService
+            } else {
+                todayService
             }
-            return todayService
         } catch (e: Exception) {
             MTLog.w(this, e, "Error while parsing GTFS time '$gtfsTimeStr'!")
             return null

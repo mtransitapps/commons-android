@@ -75,6 +75,22 @@ class GTFSDateTimeUtilsTest {
         }.let {
             assertEquals(1793161440_000L.millisToInstant(), it) // Wednesday, October 28, 2026 at 00:24:00 UTC-04:00 DST
         }
+        val nowInMsCodeRabbitExemple = 1793159400_000L // Tuesday, October 27, 2026 at 23:50:00 UTC-04:00 DST
+        "00:15:00".let { // in the recent past
+            GTFSDateTimeUtils.parseToTime(nowInMsCodeRabbitExemple, it, LOCAL_TZ)
+        }.let {
+            assertEquals(1793160900_000L.millisToInstant(), it) // Wednesday, October 28, 2026 at 00:15:00 UTC-04:00 DST
+        }
+    }
+
+    @Test
+    fun test_parseToTime_earlyMorning_nextDay() {
+        val nowInMs = 1793160620_000L // Wednesday, October 28, 2026 at 00:10:20 UTC-04:00 DST
+        "01:00:00".let {
+            GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
+        }.let {
+            assertEquals(1793163600_000L.millisToInstant(), it) // Wednesday, October 28, 2026 at 01:00:00 UTC-04:00 DST
+        }
     }
 
     @Test
