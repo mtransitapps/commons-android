@@ -7,6 +7,7 @@ import kotlinx.datetime.toLocalDateTime
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.millisToInstant
 import java.time.format.DateTimeFormatter
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -33,9 +34,11 @@ object GTFSDateTimeUtils : MTLog.Loggable {
 
     private const val TWENTY_FOUR_HOURS = 24
 
+    private val RECENT_PATH_DEFAULT = 3.hours
+
     override fun getLogTag() = LOG_TAG
 
-    fun parseToTime(nowMs: Long, gtfsTimeStr: String?, agencyTimeZone: KtTimeZone): Instant? {
+    fun parseToTime(nowMs: Long, gtfsTimeStr: String?, agencyTimeZone: KtTimeZone, recentPast: Duration = RECENT_PATH_DEFAULT): Instant? {
         try {
             val parts = gtfsTimeStr?.trim()?.split(TIME_FORMAT_HOUR_DIVIDER)?.takeIf { it.size == TIME_FORMAT_GROUPS }
             val hoursCount = parts?.getOrNull(0)?.toIntOrNull()?.takeIf { it >= 0 }
@@ -53,8 +56,8 @@ object GTFSDateTimeUtils : MTLog.Loggable {
             val yesterdayServiceDiff = (nowInstant - yesterdayService).absoluteValue
             val useYesterdayService = if (durationFromStartOfDay < 1.days) {
                 yesterdayServiceDiff < todayServiceDiff
-            } else {
-                yesterdayService > nowInstant
+            } else { // more than 24 hours
+                nowInstant - yesterdayService <= recentPast
             }
             if (useYesterdayService) {
                 return yesterdayService

@@ -187,7 +187,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     .groupBy { (_, timestamp) -> timestamp.tripId.orEmpty() }
                     .filterKeys { it.isNotEmpty() }
             }
-            val departureToStaticTripIdList by lazy {
+            val departureToStaticTripIdMap by lazy {
                 tripIdToTargetUUIDStopSeqTimestamps
                     .mapNotNull { (staticTripId, targetUUIDStopSeqToTimestamps) ->
                         targetUUIDStopSeqToTimestamps
@@ -196,19 +196,20 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                                 timestamp.departure to staticTripId
                             }
                     }
+                    .groupBy({ it.first }, { it.second })
             }
             val findTripId: (departure: Instant, stuList: List<GTUStopTimeUpdate>?) -> String? = label@{ departure, gSTUList ->
                 if (gSTUList.isNullOrEmpty()) {
                     MTLog.d(LOG_TAG, "findTripId() > out-of-sync trip ID NOT found at ${departure.toDateTimeLog()} (no stop time updates).")
                     return@label null // NO MATCH
                 }
-                val staticTripIdsWithSameDepartures = departureToStaticTripIdList.filter { (staticDeparture, _) -> staticDeparture == departure }
-                if (staticTripIdsWithSameDepartures.isEmpty()) {
+                val staticTripIdsWithSameDepartures = departureToStaticTripIdMap[departure]
+                if (staticTripIdsWithSameDepartures.isNullOrEmpty()) {
                     MTLog.d(LOG_TAG, "findTripId() > out-of-sync trip ID NOT found at ${departure.toDateTimeLog()} (no candidates).")
                     return@label null // NO MATCH
                 }
-                MTLog.d(LOG_TAG, "findTripId() > out-of-sync trip ID candidate(s) found: ${staticTripIdsWithSameDepartures.joinToString { it.second }}.")
-                staticTripIdsWithSameDepartures.forEach label2@{ (_, staticTripId) ->
+                MTLog.d(LOG_TAG, "findTripId() > out-of-sync trip ID candidate(s) found: ${staticTripIdsWithSameDepartures.joinToString()}.")
+                staticTripIdsWithSameDepartures.forEach label2@{ staticTripId ->
                     val tripTargetUUIDStopSeqTimestamps = tripIdToTargetUUIDStopSeqTimestamps[staticTripId]
                     val tripRdsUUIDs = rdsUUIDsByTripId[staticTripId]
                         ?: return@label2 // trip ID not in static data

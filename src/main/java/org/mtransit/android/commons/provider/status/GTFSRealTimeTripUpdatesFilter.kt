@@ -135,7 +135,6 @@ internal fun GTripUpdate.match(
 ): String? {
     optTrip?.apply {
         parseTripId(this)?.let { tripId ->
-            MTLog.d(LOG_TAG, "match(${toStringExt(short = true)}) > trip ID: '$tripId'.")
             if (tripId in staticRDTripIds) {
                 if (IGNORE_TRIP_ID) {
                     MTLog.d(LOG_TAG, "match() > IGNORE FOUND trip ID '$tripId' for ${toStringExt(short = true)}")

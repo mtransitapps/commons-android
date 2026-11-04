@@ -54,10 +54,26 @@ class GTFSDateTimeUtilsTest {
         }.let {
             assertEquals(1793161440_000L.millisToInstant(), it) // Wednesday, October 28, 2026 at 00:24:00 UTC-04:00 DST
         }
+        "00:05:55".let { // in the recent past
+            GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
+        }.let {
+            assertEquals(1793160355_000L.millisToInstant(), it) // Wednesday, October 28, 2026 at 00:05:55 UTC-04:00 DST
+        }
         "00:20:30".let { // soon
             GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
         }.let {
             assertEquals(1793161230_000L.millisToInstant(), it) // Wednesday, October 28, 2026 at 00:20:30 UTC-04:00 DST
+        }
+        val nowInMsGeminiPRExample = 1793161800_000L // Wednesday, October 28, 2026 at 00:30:00 UTC-04:00 DST
+        "00:24:00".let { // in the recent past
+            GTFSDateTimeUtils.parseToTime(nowInMsGeminiPRExample, it, LOCAL_TZ)
+        }.let {
+            assertEquals(1793161440_000L.millisToInstant(), it) // Wednesday, October 28, 2026 at 00:24:00 UTC-04:00 DST
+        }
+        "24:24:00".let { // in the recent past
+            GTFSDateTimeUtils.parseToTime(nowInMsGeminiPRExample, it, LOCAL_TZ)
+        }.let {
+            assertEquals(1793161440_000L.millisToInstant(), it) // Wednesday, October 28, 2026 at 00:24:00 UTC-04:00 DST
         }
     }
 
