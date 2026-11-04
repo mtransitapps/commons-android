@@ -150,6 +150,17 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 MTLog.w(LOG_TAG, e, "makeCachedStatusFromAgencyData() > error getting timezone from '$agencyTimeZoneId'!")
                 KtTimeZone.currentSystemDefault()
             }
+            val rdSchedulesByUUID by lazy { rdSchedules.associateBy { it.targetUUID } }
+            val rdsUUIDsByTripId by lazy {
+                rdSchedules
+                    .flatMap { schedule ->
+                        schedule.timestamps
+                            .mapNotNull { it.tripId }
+                            .map { staticTripId -> staticTripId to schedule.targetUUID }
+                    }
+                    .groupBy({ it.first }, { it.second })
+                    .mapValues { (_, uuids) -> uuids.toSet() }
+            }
             val rdTripIdsToTripUpdates = gTripUpdates.selectRouteDirectionTripUpdates(
                 nowMs = nowMs,
                 targetRouteIdHash = targetRouteIdHash,
@@ -157,6 +168,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 agencyTimeZone = agencyTimeZone,
                 getStaticRDS = { sortedRDS },
                 getStaticRDSchedules = { rdSchedules },
+                getRDSchedulesByUUID = { rdSchedulesByUUID },
+                getRDSUUIDsByTripId = { rdsUUIDsByTripId },
                 staticRDTripIds = staticRDTripIds,
                 ignoreDirection = ignoreDirection,
                 parseRouteId = ::parseRouteId,
@@ -205,6 +218,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             processRDTripUpdates(
                 rdTripIdsToTripUpdates = rdTripIdsToTripUpdates,
                 rdSchedules = rdSchedules,
+                getRDSchedulesByUUID = { rdSchedulesByUUID },
+                getRDSUUIDsByTripId = { rdsUUIDsByTripId },
                 sortedRDS = sortedRDS,
                 feedReadFromSourceMs = feedReadFromSourceMs,
                 includeCancelledTimestamps = filter.isIncludeCancelledTimestampsOrDefault,

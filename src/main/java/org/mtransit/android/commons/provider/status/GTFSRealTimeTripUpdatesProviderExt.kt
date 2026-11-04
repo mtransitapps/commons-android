@@ -45,30 +45,23 @@ import com.google.transit.realtime.copy as copyG
 fun GTFSRealTimeProvider.processRDTripUpdates(
     rdTripIdsToTripUpdates: Map<String, GTripUpdate>,
     rdSchedules: Collection<Schedule>,
+    getRDSchedulesByUUID: () -> Map<String, Schedule> = { rdSchedules.associateBy { it.targetUUID } },
+    getRDSUUIDsByTripId: () -> Map<String, Set<String>>,
     sortedRDS: List<RouteDirectionStop>,
     feedReadFromSourceMs: Long,
     includeCancelledTimestamps: Boolean = false,
 ) {
-    val rdSchedulesByUUID = rdSchedules.associateBy { it.targetUUID }
-    val rdsUUIDsByTripId = rdSchedules
-        .flatMap { schedule ->
-            schedule.timestamps
-                .mapNotNull { it.tripId }
-                .map { staticTripId -> staticTripId to schedule.targetUUID }
-        }
-        .groupBy({ it.first }, { it.second })
-        .mapValues { (_, uuids) -> uuids.toSet() }
     rdTripIdsToTripUpdates.forEach { (staticTripId, gTripUpdate) ->
-        val tripRdsUUIDs = rdsUUIDsByTripId[staticTripId]
+        val tripRdsUUIDs = getRDSUUIDsByTripId()[staticTripId]
             ?: return@forEach // trip ID not in static data
-        val tripSchedules = tripRdsUUIDs.mapNotNull { rdSchedulesByUUID[it] }
+        val tripSchedules = tripRdsUUIDs.mapNotNull { getRDSchedulesByUUID()[it] }
         val tripSortedRDS = sortedRDS
             .filter { rds -> rds.uuid in tripRdsUUIDs }
             .takeIf { it.isNotEmpty() }
             ?: return@forEach
         val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(staticTripId, tripSchedules, tripSortedRDS)
         processRDTripUpdate(
-            staticTripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, rdSchedulesByUUID,
+            staticTripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, getRDSchedulesByUUID(),
             isSameStop = this::isSameStop,
             feedReadFromSourceMs = feedReadFromSourceMs,
             fixStopSequence = {
