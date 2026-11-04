@@ -49,6 +49,11 @@ class GTFSDateTimeUtilsTest {
         }.let {
             assertEquals(1793159940_000L.millisToInstant(), it) // Tuesday, October 27, 2026 at 23:59:00 UTC-04:00 DST
         }
+        "24:24:00".let { // in the past
+            GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
+        }.let {
+            assertEquals(1793161440_000L.millisToInstant(), it) // Wednesday, October 28, 2026 at 00:24:00 UTC-04:00 DST
+        }
         "00:20:30".let { // soon
             GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
         }.let {

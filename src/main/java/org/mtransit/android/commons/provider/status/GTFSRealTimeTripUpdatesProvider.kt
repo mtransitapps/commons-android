@@ -44,14 +44,12 @@ import java.net.HttpURLConnection
 import java.net.SocketException
 import java.net.UnknownHostException
 import javax.net.ssl.SSLHandshakeException
-import kotlin.collections.find
-import kotlin.collections.mapNotNull
-import kotlin.collections.none
 import kotlin.math.min
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+import kotlin.uuid.Uuid
 import com.google.transit.realtime.GtfsRealtime.FeedMessage as GFeedMessage
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
@@ -342,8 +340,10 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             }
             val gTripUpdatesByTripId by lazy {
                 gTripUpdates
-                    .mapNotNull { gTripUpdate ->
-                        gTripUpdate.optTrip?.let { parseTripId(it) }?.let { it to gTripUpdate }
+                    .map { gTripUpdate ->
+                        val tripId = gTripUpdate.optTrip?.let { parseTripId(it) }
+                            ?: Uuid.random().toString() // keep all trip updates since we can match w/o trip ID
+                        tripId to gTripUpdate
                     }
                     .filter { (_, gTripUpdate) -> gTripUpdate.isUseful(nowMs, agencyTimeZone) }
                     .filterDuplicatesTrips()

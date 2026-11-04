@@ -48,13 +48,16 @@ object GTFSDateTimeUtils : MTLog.Loggable {
             val nowInstant = nowMs.millisToInstant()
             val startOfDay = nowInstant.toLocalDateTime(agencyTimeZone).date.atStartOfDayIn(agencyTimeZone)
             val todayService = startOfDay + durationFromStartOfDay
-            if (durationFromStartOfDay < 1.days) {
-                val yesterdayService = startOfDay.minus(1.days) + durationFromStartOfDay
-                val todayServiceDiff = (todayService - nowInstant).absoluteValue
-                val yesterdayServiceDiff = (nowInstant - yesterdayService).absoluteValue
-                if (yesterdayServiceDiff < todayServiceDiff) {
-                    return yesterdayService
-                }
+            val yesterdayService = startOfDay.minus(1.days) + durationFromStartOfDay
+            val todayServiceDiff = (todayService - nowInstant).absoluteValue
+            val yesterdayServiceDiff = (nowInstant - yesterdayService).absoluteValue
+            val useYesterdayService = if (durationFromStartOfDay < 1.days) {
+                yesterdayServiceDiff < todayServiceDiff
+            } else {
+                yesterdayService > nowInstant
+            }
+            if (useYesterdayService) {
+                return yesterdayService
             }
             return todayService
         } catch (e: Exception) {
