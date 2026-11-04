@@ -341,9 +341,13 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 return null
             }
             val gTripUpdatesByTripId by lazy {
-                gTripUpdates.mapNotNull { gTripUpdate ->
-                    gTripUpdate.optTrip?.let { parseTripId(it) }?.let { it to gTripUpdate }
-                }.toMap()
+                gTripUpdates
+                    .mapNotNull { gTripUpdate ->
+                        gTripUpdate.optTrip?.let { parseTripId(it) }?.let { it to gTripUpdate }
+                    }
+                    .filter { (_, gTripUpdate) -> gTripUpdate.isUseful(nowMs, agencyTimeZone) }
+                    .filterDuplicatesTrips()
+                    .toMap()
             }
             processRDTripUpdates(
                 gTripUpdates = if (PRE_FILTER_TRIP_UPDATES) rdTripIdsToTripUpdates.orEmpty() else gTripUpdatesByTripId,

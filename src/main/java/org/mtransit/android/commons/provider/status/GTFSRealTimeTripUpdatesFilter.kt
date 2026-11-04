@@ -44,36 +44,33 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
     ignoreDirection: Boolean,
     parseRouteId: (GTripDescriptor) -> String?,
     parseTripId: (GTripDescriptor) -> String?,
-): Map<String, GTripUpdate>? {
-    return this
-        .mapNotNull { gTripUpdate ->
-            gTripUpdate
-                .match(
-                    nowMs = nowMs,
-                    targetRouteIdHash = targetRouteIdHash,
-                    targetDirectionOriginalId = targetDirectionOriginalId,
-                    agencyTimeZone = agencyTimeZone,
-                    findTripId = findTripId,
-                    staticRDTripIds = staticRDTripIds,
-                    tripIdOutOfSync = tripIdOutOfSync,
-                    ignoreDirection = ignoreDirection,
-                    parseRouteId = parseRouteId,
-                    parseTripId = parseTripId,
-                )
-                ?.let { staticTripId ->
-                    staticTripId to gTripUpdate
-                }
-        }
-        .filter { (_, gTripUpdate) -> gTripUpdate.isUseful(nowMs, agencyTimeZone) }
-        .filterDuplicatesTrips()
-        .takeIf { it.isNotEmpty() }
-        ?.toMap()
-}
+) = this
+    .mapNotNull { gTripUpdate ->
+        gTripUpdate
+            .match(
+                nowMs = nowMs,
+                targetRouteIdHash = targetRouteIdHash,
+                targetDirectionOriginalId = targetDirectionOriginalId,
+                agencyTimeZone = agencyTimeZone,
+                findTripId = findTripId,
+                staticRDTripIds = staticRDTripIds,
+                tripIdOutOfSync = tripIdOutOfSync,
+                ignoreDirection = ignoreDirection,
+                parseRouteId = parseRouteId,
+                parseTripId = parseTripId,
+            )
+            ?.let { staticTripId ->
+                staticTripId to gTripUpdate
+            }
+    }
+    .filter { (_, gTripUpdate) -> gTripUpdate.isUseful(nowMs, agencyTimeZone) }
+    .filterDuplicatesTrips()
+    .toMap()
 
 // Montréal-based competitor: 4.5 hours (?)
 private val FUTURE_TRIP_UPDATE_MAX_DIFF_MS = 90.minutes.times(3).inWholeMilliseconds
 
-private fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone): Boolean {
+internal fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone): Boolean {
     val td = optTrip ?: return false // not useful
     td.optScheduleRelationship?.let { scheduleRelationship ->
         if (scheduleRelationship == GTDScheduleRelationship.DELETED
@@ -106,16 +103,12 @@ private fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone): Boole
             return false // not useful (too far in advance to display)
         }
     }
-    if (hasDelay() || hasStopTimeUpdateList()) {
-        return true // useful (contains delay or STUs)
+    val notScheduledSR = td.optScheduleRelationship?.let { sr -> sr != GTDScheduleRelationship.SCHEDULED } == true
+    if (!hasDelay() && !hasStopTimeUpdateList() && !notScheduledSR) {
+        MTLog.d(LOG_TAG, "isUseful() > IGNORE (no delay, stop time update & scheduled): ${this.toStringExt()}")
+        return false // not useful
     }
-    td.optScheduleRelationship?.let { scheduleRelationship ->
-        if (scheduleRelationship != GTDScheduleRelationship.SCHEDULED) {
-            return true // useful
-        }
-    }
-    MTLog.w(LOG_TAG, "isUseful() > IGNORE (why?): ${this.toStringExt()}")
-    return false // not useful
+    return true // useful (contains delay or STUs or not a SCHEDULED trip)
 }
 
 // Google Maps > Transit: https://support.google.com/transitpartners/answer/6159841
