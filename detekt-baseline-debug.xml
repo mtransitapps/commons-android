@@ -223,7 +223,6 @@
     <ID>TooManyFunctions:YouTubeNewsProvider.kt:YouTubeNewsProvider : NewsProvider</ID>
     <ID>UnreachableCode:AppUpdateLauncher.kt:AppUpdateLauncher$intent.resolveActivity(context.packageManager) != null</ID>
     <ID>UnreachableCode:GTFSRealTimeProviderExt.kt:parseAgencyId(it)</ID>
-    <ID>UnreachableCode:GTFSRealTimeProviderExt.kt:parseTripId(it)</ID>
     <ID>UnreachableCode:GTFSRealTimeServiceAlertsProvider.kt:GTFSRealTimeServiceAlertsProvider$return getAgencyRouteTypeTagTargetUUID(agencyTag, routeType)</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$!found</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$MTLog.d(LOG_TAG, "findOutOfSyncTripId() &gt; ignore wrong out-of-sync trip ID '$staticTripId' at ${departure.toDateTimeLog()}.")</ID>
@@ -238,44 +237,6 @@
     <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$val vehicleLat = gVehiclePosition.optPosition?.optLatitude ?: return null</ID>
     <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$val vehicleLng = gVehiclePosition.optPosition?.optLongitude ?: return null</ID>
     <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$vehicleNearbyAgencyLocation(context, vehicleLat, vehicleLng) == false</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("(${it.toStringExt("detail")})")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("a18n=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("bearing=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("cause=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("congestionLevel=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("currentStatus=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("currentStopSequence=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("effect=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("feedVersion:$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("gtfsRTVersion:$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("id=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("label=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("lat=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("licensePlate=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("lon=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("occupancyPct=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("occupancyStatus=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("odometer=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("speed=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "a=" else "agencyId=") + it)</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "a=" else "arrival=") + it.toStringExt(short = true))</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "d=" else "departure=") + it.toStringExt(short = true))</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "m=" else "modificationsId=") + it)</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "rt=" else "routeType=") + it)</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "t=" else "affectedTripId=") + it)</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "t=" else "tripId=") + it)</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(if (short) "do:$it" else "dropOffType=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(if (short) "hs:$it" else "stopHeadsign=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(if (short) "id:$it" else "aStopId=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(if (short) "oc=$it" else "depOcc=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(if (short) "pu:$it" else "pickupType=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(if (short) "seq=$it" else "stopSeq=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(it.toStringExt("desc", debug))</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(it.toStringExt("header", debug))</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(it.toStringExt("url", debug))</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(it.toStringExt(short = true))</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$it to fe.id</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$it.isNotEmpty()</ID>
     <ID>UnreachableCode:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$(filter.poi as? RouteDirectionStop)?.getTargetUUIDs(includeStopTags = true) ?: filter.routeDirection?.getTargetUUIDs() ?: filter.route?.getTargetUUIDs()</ID>
     <ID>UnreachableCode:TwitterNewsProvider.kt:TwitterNewsProvider$!deleteAllDone</ID>
     <ID>UnreachableCode:VehicleLocationProviderContract.kt:VehicleLocationProviderContract.Filter.Companion$json.optString(JSON_AUTHORITY, fallback = null) ?: poi?.authority ?: return null</ID>

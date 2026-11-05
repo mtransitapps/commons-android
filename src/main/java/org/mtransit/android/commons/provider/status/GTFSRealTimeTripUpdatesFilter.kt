@@ -40,7 +40,7 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
     agencyTimeZone: KtTimeZone,
     findOutOfSyncTripId: (departure: Instant, stuList: List<GTUStopTimeUpdate>?) -> String?,
     staticRDTripIds: Set<String>,
-    tripIdOutOfSync: Boolean,
+    getTripIdsMatch: () -> Boolean,
     ignoreDirection: Boolean,
     parseRouteId: (GTripDescriptor) -> String?,
     parseTripId: (GTripDescriptor) -> String?,
@@ -54,7 +54,7 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
                 agencyTimeZone = agencyTimeZone,
                 findOutOfSyncTripId = findOutOfSyncTripId,
                 staticRDTripIds = staticRDTripIds,
-                tripIdOutOfSync = tripIdOutOfSync,
+                getTripIdsMatch = getTripIdsMatch,
                 ignoreDirection = ignoreDirection,
                 parseRouteId = parseRouteId,
                 parseTripId = parseTripId,
@@ -102,7 +102,7 @@ internal fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone): Bool
         }
     }
     if (!hasDelay() && !hasStopTimeUpdateList() && td.scheduleRelationshipOrDefault == GTDScheduleRelationship.SCHEDULED) {
-        MTLog.d(LOG_TAG, "isUseful() > IGNORE (no delay, stop time update & scheduled): ${this.toStringExt()}")
+        // MTLog.d(LOG_TAG, "isUseful() > IGNORE (no delay, stop time update & scheduled): ${this.toStringExt()}") // too noisy
         return false // not useful
     }
     return true // useful (contains delay or STUs or not a SCHEDULED trip)
@@ -125,7 +125,7 @@ internal fun GTripUpdate.match(
     agencyTimeZone: KtTimeZone,
     findOutOfSyncTripId: (departure: Instant, stuList: List<GTUStopTimeUpdate>?) -> String?,
     staticRDTripIds: Set<String>,
-    tripIdOutOfSync: Boolean,
+    getTripIdsMatch: () -> Boolean,
     ignoreDirection: Boolean,
     parseRouteId: (GTripDescriptor) -> String?,
     parseTripId: (GTripDescriptor) -> String?,
@@ -137,13 +137,13 @@ internal fun GTripUpdate.match(
                 MTLog.d(LOG_TAG, "match() > IGNORE FOUND trip ID '$tripId' for ${toStringExt(short = true)}")
             } else {
                 // if (DEBUG_STATIC_RT_MATCH) { // too much log
-                MTLog.d(LOG_TAG, "match() > FOUND: trip ID '$tripId' for ${toStringExt(short = true)}")
+                // MTLog.d(LOG_TAG, "match() > FOUND: trip ID '$tripId' for ${toStringExt(short = true)}")
                 // }
                 return tripId // MATCH
             }
         }
         @Suppress("SimplifyBooleanWithConstants")
-        if (!tripIdOutOfSync && tripId != null && !IGNORE_TRIP_ID) return null // NOT a match
+        if (getTripIdsMatch() && tripId != null && !IGNORE_TRIP_ID) return null // NOT a match
         parseRouteId(this).let { rtRouteIdHash ->
             if (rtRouteIdHash != targetRouteIdHash) {
                 // if (DEBUG_STATIC_RT_MATCH) { // too much log
@@ -187,7 +187,7 @@ internal fun GTripUpdate.match(
         }
     }
     // if (DEBUG_STATIC_RT_MATCH) { // too much log
-    // MTLog.d(this@match, "match() > IGNORE (NOT A MATCH): ${toStringExt(short = true)}")
+    // MTLog.d(LOG_TAG, "match() > IGNORE (NOT A MATCH): ${this.optTrip?.toStringExt(short = true)}")
     // }
     return null // NOT A MATCH
 }

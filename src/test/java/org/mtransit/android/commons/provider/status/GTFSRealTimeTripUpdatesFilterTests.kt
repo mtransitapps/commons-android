@@ -60,7 +60,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
                 null
             },
             staticRDTripIds = setOf(TRIP_ID),
-            tripIdOutOfSync = false,
+            getTripIdsMatch = { true },
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
@@ -91,7 +91,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
                 null
             },
             staticRDTripIds = setOf("different_trip_id"),
-            tripIdOutOfSync = false,
+            getTripIdsMatch = { true },
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
@@ -119,7 +119,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
                 null
             },
             staticRDTripIds = setOf("different_trip_id"),
-            tripIdOutOfSync = false,
+            getTripIdsMatch = { true },
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
@@ -147,7 +147,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
                 TRIP_ID.takeIf { departure == toInstant("20261026", "19:37:00") }
             },
             staticRDTripIds = setOf(TRIP_ID),
-            tripIdOutOfSync = true,
+            getTripIdsMatch = { false },
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
@@ -174,7 +174,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
                 TRIP_ID.takeIf { departure == toInstant("20261026", "19:37:00", KtTimeZone.UTC) }
             },
             staticRDTripIds = setOf(TRIP_ID),
-            tripIdOutOfSync = true,
+            getTripIdsMatch = { false },
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
@@ -200,7 +200,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
                 TRIP_ID.takeIf { departure == toInstant("20261026", "19:37:00") }
             },
             staticRDTripIds = setOf(TRIP_ID),
-            tripIdOutOfSync = true,
+            getTripIdsMatch = { false },
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },
@@ -226,7 +226,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
                 TRIP_ID.takeIf { departure == toInstant("20261026", "19:37:00") }
             },
             staticRDTripIds = setOf(TRIP_ID),
-            tripIdOutOfSync = false,
+            getTripIdsMatch = { true },
             ignoreDirection = false,
             parseRouteId = { it.optRouteId },
             parseTripId = { it.optTripId },

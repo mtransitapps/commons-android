@@ -226,7 +226,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
             targetDirectionOriginalId = 0,
             agencyTimeZone = KtTimeZone.of(LOCAL_TZ_ID),
             staticRDTripIds = setOf(TRIP_ID),
-            tripIdOutOfSync = true,
+            getTripIdsMatch = { false },
             findOutOfSyncTripId = findTripId,
             getRDSchedulesByUUID = getSchedules,
             getRDSUUIDsByTripId = getTripIndex,
