@@ -48,7 +48,7 @@ import com.google.transit.realtime.copy as copyG
 import kotlinx.datetime.TimeZone as KtTimeZone
 
 fun GTFSRealTimeProvider.processRDTripUpdates(
-    gTripUpdates: Map<String, GTripUpdate>,
+    gTripUpdates: List<Pair<String, GTripUpdate>>,
     nowMs: Long,
     targetRouteIdHash: String,
     targetDirectionOriginalId: Int?,

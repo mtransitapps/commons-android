@@ -308,7 +308,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 MTLog.i(
                     LOG_TAG,
                     "Using ${rdTripIdsToTripUpdates.size} trip updates for route '${targetRoute.shortestName}' direction '${targetDirection.headsignValue}': " +
-                        "${rdTripIdsToTripUpdates.map { it.key }.distinct()}."
+                        "${rdTripIdsToTripUpdates.map { it.first }.distinct()}."
                 )
                 if (Constants.DEBUG) {
                     MTLog.d(

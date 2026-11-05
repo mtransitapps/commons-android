@@ -263,4 +263,4 @@ internal fun List<Pair<String, GTripUpdate>>.filterDuplicatesTrips() = buildList
             )
             add(gTripUpdate1)
         }
-}.toMap() // keeps 1 trip update / trip ID
+}
