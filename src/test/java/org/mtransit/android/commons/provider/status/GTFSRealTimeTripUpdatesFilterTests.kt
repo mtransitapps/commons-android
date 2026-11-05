@@ -299,7 +299,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             .filterDuplicatesTrips()
             .let { result ->
                 assertEquals(1, result.size)
-                assertNotNull(result.entries.firstOrNull()) { (tripId, tu) ->
+                assertNotNull(result.firstOrNull()) { (tripId, tu) ->
                     assertEquals(TRIP_ID, tripId)
                     assertNotNull(tu.optTrip) { td ->
                         assertEquals(TRIP_ID, td.optTripId)
@@ -336,7 +336,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             .filterDuplicatesTrips()
             .let { result ->
                 assertEquals(1, result.size)
-                assertNotNull(result.entries.firstOrNull()) { (tripId, tu) ->
+                assertNotNull(result.firstOrNull()) { (tripId, tu) ->
                     assertEquals(TRIP_ID, tripId)
                     assertEquals(TRIP_ID, tu.trip.tripId)
                     assertFalse(tu.trip.hasModifiedTrip())
@@ -395,7 +395,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             .filterDuplicatesTrips()
             .let { result ->
                 assertEquals(1, result.size)
-                assertNotNull(result.entries.firstOrNull()) { (tripId, gTripUpdate) ->
+                assertNotNull(result.firstOrNull()) { (tripId, gTripUpdate) ->
                     assertEquals(TRIP_ID, tripId)
                     assertNotNull(gTripUpdate.optTrip) { gTripDescriptor ->
                         assertEquals(TRIP_ID, gTripDescriptor.tripId)
@@ -437,7 +437,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             .filterDuplicatesTrips()
             .let { result ->
                 assertEquals(1, result.size)
-                assertNotNull(result.entries.firstOrNull()) { (tripId, tu) ->
+                assertNotNull(result.firstOrNull()) { (tripId, tu) ->
                     assertEquals(TRIP_ID, tripId)
                     assertEquals(TRIP_ID, tu.trip.tripId)
                     assertEquals("20260727", tu.trip.startDate)
@@ -471,7 +471,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             .filterDuplicatesTrips()
             .let { result ->
                 assertEquals(1, result.size)
-                assertNotNull(result.entries.firstOrNull()) { (tripId, tu) ->
+                assertNotNull(result.firstOrNull()) { (tripId, tu) ->
                     assertEquals(TRIP_ID, tripId)
                     assertEquals(TRIP_ID, tu.trip.tripId)
                     assertEquals("20260727", tu.trip.startDate)
@@ -505,7 +505,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             .filterDuplicatesTrips()
             .let { result ->
                 assertEquals(1, result.size)
-                assertNotNull(result.entries.firstOrNull()) { (tripId, tu) ->
+                assertNotNull(result.firstOrNull()) { (tripId, tu) ->
                     assertEquals(TRIP_ID, tripId)
                     assertEquals(TRIP_ID, tu.trip.tripId)
                     assertEquals("20260727", tu.trip.startDate)
