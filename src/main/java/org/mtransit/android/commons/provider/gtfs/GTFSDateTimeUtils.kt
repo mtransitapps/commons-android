@@ -34,11 +34,11 @@ object GTFSDateTimeUtils : MTLog.Loggable {
 
     private const val TWENTY_FOUR_HOURS = 24
 
-    private val RECENT_PATH_DEFAULT = 5.hours
+    private val RECENT_PAST_DEFAULT = 5.hours
 
     override fun getLogTag() = LOG_TAG
 
-    fun parseToTime(nowMs: Long, gtfsTimeStr: String?, agencyTimeZone: KtTimeZone, recentPast: Duration = RECENT_PATH_DEFAULT): Instant? {
+    fun parseToTime(nowMs: Long, gtfsTimeStr: String?, agencyTimeZone: KtTimeZone, recentPast: Duration = RECENT_PAST_DEFAULT): Instant? {
         try {
             val parts = gtfsTimeStr?.trim()?.split(TIME_FORMAT_HOUR_DIVIDER)?.takeIf { it.size == TIME_FORMAT_GROUPS }
             val hoursCount = parts?.getOrNull(0)?.toIntOrNull()?.takeIf { it >= 0 }
