@@ -49,7 +49,6 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
-import kotlin.uuid.Uuid
 import com.google.transit.realtime.GtfsRealtime.FeedMessage as GFeedMessage
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
@@ -329,9 +328,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             }
             val gTripUpdatesByTripId by lazy {
                 gTripUpdates
-                    .map { gTripUpdate ->
+                    .mapIndexed { index, gTripUpdate ->
                         val tripId = gTripUpdate.optTrip?.let { parseTripId(it) }
-                            ?: Uuid.random().toString() // keep all trip updates since we can match w/o trip ID
+                            ?: "no_trip_id_$index" // keep all trip updates since we can match w/o trip ID
                         tripId to gTripUpdate
                     }
                     .filter { (_, gTripUpdate) -> gTripUpdate.isUseful(nowMs, agencyTimeZone) }
