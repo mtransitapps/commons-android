@@ -9,16 +9,16 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.hasTimeOrSched
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optArrival
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDeparture
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optModifiedTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStartDate
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStartTime
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStartDateOrModifiedTripStartDate
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStartTimeOrModifiedTripStartTime
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeOrScheduledTimeMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestampMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optVehicle
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.scheduleRelationshipOrDefault
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.DEBUG_STATIC_RT_MATCH
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.LOG_TAG
@@ -38,7 +38,7 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
     targetRouteIdHash: String,
     targetDirectionOriginalId: Int?,
     agencyTimeZone: KtTimeZone,
-    findTripId: (departure: Instant, stuList: List<GTUStopTimeUpdate>?) -> String?,
+    findOutOfSyncTripId: (departure: Instant, stuList: List<GTUStopTimeUpdate>?) -> String?,
     staticRDTripIds: Set<String>,
     tripIdOutOfSync: Boolean,
     ignoreDirection: Boolean,
@@ -52,7 +52,7 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
                 targetRouteIdHash = targetRouteIdHash,
                 targetDirectionOriginalId = targetDirectionOriginalId,
                 agencyTimeZone = agencyTimeZone,
-                findTripId = findTripId,
+                findOutOfSyncTripId = findOutOfSyncTripId,
                 staticRDTripIds = staticRDTripIds,
                 tripIdOutOfSync = tripIdOutOfSync,
                 ignoreDirection = ignoreDirection,
@@ -65,7 +65,6 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
     }
     .filter { (_, gTripUpdate) -> gTripUpdate.isUseful(nowMs, agencyTimeZone) }
     .filterDuplicatesTrips()
-    .toMap()
 
 // Montréal-based competitor: 4.5 hours (?)
 private val FUTURE_TRIP_UPDATE_MAX_DIFF_MS = 90.minutes.times(3).inWholeMilliseconds
@@ -89,8 +88,7 @@ internal fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone): Bool
     val startDateTimeOrFirstTimeMs: Long? = if (hasVehicleInfo) {
         null
     } else {
-        GTFSDateTimeUtils.parseToDateTime(td.optStartDate, td.optStartTime, agencyTimeZone)?.toMillis()
-            ?: td.optModifiedTrip?.let { GTFSDateTimeUtils.parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
+        GTFSDateTimeUtils.parseToDateTime(td.optStartDateOrModifiedTripStartDate, td.optStartTimeOrModifiedTripStartTime, agencyTimeZone)?.toMillis()
             ?: optStopTimeUpdateList // not sorting because GTFS spec requires it to be already sorted & it's a fallback
                 ?.firstOrNull { it.optDeparture?.hasTimeOrScheduledTime() == true || it.optArrival?.hasTimeOrScheduledTime() == true }
                 ?.let {
@@ -103,8 +101,7 @@ internal fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone): Bool
             return false // not useful (too far in advance to display)
         }
     }
-    val notScheduledSR = td.optScheduleRelationship?.let { sr -> sr != GTDScheduleRelationship.SCHEDULED } == true
-    if (!hasDelay() && !hasStopTimeUpdateList() && !notScheduledSR) {
+    if (!hasDelay() && !hasStopTimeUpdateList() && td.scheduleRelationshipOrDefault == GTDScheduleRelationship.SCHEDULED) {
         MTLog.d(LOG_TAG, "isUseful() > IGNORE (no delay, stop time update & scheduled): ${this.toStringExt()}")
         return false // not useful
     }
@@ -126,7 +123,7 @@ internal fun GTripUpdate.match(
     targetRouteIdHash: String,
     targetDirectionOriginalId: Int?,
     agencyTimeZone: KtTimeZone,
-    findTripId: (departure: Instant, stuList: List<GTUStopTimeUpdate>?) -> String?,
+    findOutOfSyncTripId: (departure: Instant, stuList: List<GTUStopTimeUpdate>?) -> String?,
     staticRDTripIds: Set<String>,
     tripIdOutOfSync: Boolean,
     ignoreDirection: Boolean,
@@ -134,12 +131,11 @@ internal fun GTripUpdate.match(
     parseTripId: (GTripDescriptor) -> String?,
 ): String? {
     optTrip?.apply {
-        parseTripId(this)?.let { tripId ->
-            if (tripId in staticRDTripIds) {
-                if (IGNORE_TRIP_ID) {
-                    MTLog.d(LOG_TAG, "match() > IGNORE FOUND trip ID '$tripId' for ${toStringExt(short = true)}")
-                    return@let
-                }
+        val tripId = parseTripId(this)
+        if (tripId in staticRDTripIds) {
+            if (IGNORE_TRIP_ID) {
+                MTLog.d(LOG_TAG, "match() > IGNORE FOUND trip ID '$tripId' for ${toStringExt(short = true)}")
+            } else {
                 // if (DEBUG_STATIC_RT_MATCH) { // too much log
                 MTLog.d(LOG_TAG, "match() > FOUND: trip ID '$tripId' for ${toStringExt(short = true)}")
                 // }
@@ -147,7 +143,7 @@ internal fun GTripUpdate.match(
             }
         }
         @Suppress("SimplifyBooleanWithConstants")
-        if (!tripIdOutOfSync && !IGNORE_TRIP_ID) return null // NOT a match
+        if (!tripIdOutOfSync && tripId != null && !IGNORE_TRIP_ID) return null // NOT a match
         parseRouteId(this).let { rtRouteIdHash ->
             if (rtRouteIdHash != targetRouteIdHash) {
                 // if (DEBUG_STATIC_RT_MATCH) { // too much log
@@ -167,14 +163,14 @@ internal fun GTripUpdate.match(
                 }
             }
         }
-        optStartTime?.let { startTime -> // start time required when trip ID do not match
-            val tuDeparture = optStartDate?.let { startDate ->
+        optStartTimeOrModifiedTripStartTime?.let { startTime -> // start time required when trip ID do not match
+            val tuDeparture = optStartDateOrModifiedTripStartDate?.let { startDate ->
                 GTFSDateTimeUtils.parseToDateTime(startDate, startTime, agencyTimeZone)
             } ?: run {
                 GTFSDateTimeUtils.parseToTime(nowMs, startTime, agencyTimeZone)
             }
             tuDeparture?.let { tuDeparture ->
-                findTripId(tuDeparture, this@match.optStopTimeUpdateList)?.let { staticTripId ->
+                findOutOfSyncTripId(tuDeparture, this@match.optStopTimeUpdateList)?.let { staticTripId ->
                     // if (DEBUG_STATIC_RT_MATCH) {
                     MTLog.i(LOG_TAG, "match() > FOUND: out-of-sync trip ID '$staticTripId' for ${toStringExt(short = true)}")
                     // }
@@ -197,69 +193,74 @@ internal fun GTripUpdate.match(
 }
 
 internal fun List<Pair<String, GTripUpdate>>.filterDuplicatesTrips() = buildList<Pair<String, GTripUpdate>> {
-    this@filterDuplicatesTrips.groupBy { (tripId, gTripUpdate) ->
-        val td = gTripUpdate.optTrip
-        tripId to (
-            (td?.optStartDate ?: td?.optModifiedTrip?.optStartDate) to
-                (td?.optStartTime ?: td?.optModifiedTrip?.optStartTime)
-            )
-    }.forEach { (_, tripIdAndTripUpdates) ->
-        if (tripIdAndTripUpdates.isEmpty()) return@forEach
-        if (tripIdAndTripUpdates.size == 1) {
-            val gTripUpdate1 = tripIdAndTripUpdates.firstOrNull() ?: return@forEach
-            add(gTripUpdate1)
-            return@forEach
+    this@filterDuplicatesTrips
+        .filter { (_, gTripUpdate) ->
+            gTripUpdate.optTrip?.optScheduleRelationship?.let {
+                @Suppress("DEPRECATION")
+                it == GTDScheduleRelationship.DUPLICATED || it == GTDScheduleRelationship.ADDED || it == GTDScheduleRelationship.NEW
+            } != true // schedule relationships not supported YET
         }
-        // PICK ONE
-        // 1 - pick one w/o ModifiedTrip AND w/ Vehicle descriptor
-        tripIdAndTripUpdates
-            .filter { (_, tu) -> tu.optTrip?.hasModifiedTrip() == false && tu.hasVehicle() }
-            .takeIf { it.isNotEmpty() }
-            ?.let { woModifiedTripAndWVehicle ->
-                val picked = woModifiedTripAndWVehicle.first()
-                MTLog.d(
-                    LOG_TAG,
-                    "filterDuplicatesTrips() > pick 1st out of ${woModifiedTripAndWVehicle.size} w/o ModifiedTrip and w/ Vehicle: " +
-                        "[${picked.first}] ${picked.second.toStringExt()}"
-                )
-                add(picked)
+        .groupBy { (tripId, gTripUpdate) ->
+            val td = gTripUpdate.optTrip
+            tripId to (td?.optStartDateOrModifiedTripStartDate to td?.optStartTimeOrModifiedTripStartTime)
+        }
+        .forEach { (_, tripIdAndTripUpdates) ->
+            if (tripIdAndTripUpdates.isEmpty()) return@forEach
+            if (tripIdAndTripUpdates.size == 1) {
+                val gTripUpdate1 = tripIdAndTripUpdates.firstOrNull() ?: return@forEach
+                add(gTripUpdate1)
                 return@forEach
             }
-        // 2 - pick one w/o ModifiedTrip
-        tripIdAndTripUpdates
-            .filter { (_, tu) -> tu.optTrip?.hasModifiedTrip() == false }
-            .takeIf { it.isNotEmpty() }
-            ?.let { woModifiedTrip ->
-                val picked = woModifiedTrip.first()
-                MTLog.d(
-                    LOG_TAG,
-                    "filterDuplicatesTrips() > pick 1st out of ${woModifiedTrip.size} w/o ModifiedTrip: " +
-                        "[${picked.first}] ${picked.second.toStringExt()}"
-                )
-                add(picked)
-                return@forEach
-            }
-        // 3 - pick one w/ Vehicle descriptor (even if it has ModifiedTrip)
-        tripIdAndTripUpdates
-            .filter { (_, tu) -> tu.hasVehicle() }
-            .takeIf { it.isNotEmpty() }
-            ?.let { wVehicle ->
-                val picked = wVehicle.first()
-                MTLog.d(
-                    LOG_TAG,
-                    "filterDuplicatesTrips() > pick 1st out of ${wVehicle.size} w/ Vehicle: " +
-                        "[${picked.first}] ${picked.second.toStringExt()}"
-                )
-                add(picked)
-                return@forEach
-            }
-        // ELSE -> pick 1st one in the list
-        val gTripUpdate1 = tripIdAndTripUpdates.firstOrNull() ?: return@forEach
-        MTLog.d(
-            LOG_TAG,
-            "filterDuplicatesTrips() > use 1st one out of ${tripIdAndTripUpdates.size}: " +
-                "[${gTripUpdate1.first}] ${gTripUpdate1.second.toStringExt()}"
-        )
-        add(gTripUpdate1)
-    }
-}
+            // PICK ONE
+            // 1 - pick one w/o ModifiedTrip AND w/ Vehicle descriptor
+            tripIdAndTripUpdates
+                .filter { (_, tu) -> tu.optTrip?.hasModifiedTrip() == false && tu.hasVehicle() }
+                .takeIf { it.isNotEmpty() }
+                ?.let { woModifiedTripAndWVehicle ->
+                    val picked = woModifiedTripAndWVehicle.first()
+                    MTLog.d(
+                        LOG_TAG,
+                        "filterDuplicatesTrips() > pick 1st out of ${woModifiedTripAndWVehicle.size} w/o ModifiedTrip and w/ Vehicle: " +
+                            "[${picked.first}] ${picked.second.toStringExt()}"
+                    )
+                    add(picked)
+                    return@forEach
+                }
+            // 2 - pick one w/o ModifiedTrip
+            tripIdAndTripUpdates
+                .filter { (_, tu) -> tu.optTrip?.hasModifiedTrip() == false }
+                .takeIf { it.isNotEmpty() }
+                ?.let { woModifiedTrip ->
+                    val picked = woModifiedTrip.first()
+                    MTLog.d(
+                        LOG_TAG,
+                        "filterDuplicatesTrips() > pick 1st out of ${woModifiedTrip.size} w/o ModifiedTrip: " +
+                            "[${picked.first}] ${picked.second.toStringExt()}"
+                    )
+                    add(picked)
+                    return@forEach
+                }
+            // 3 - pick one w/ Vehicle descriptor (even if it has ModifiedTrip)
+            tripIdAndTripUpdates
+                .filter { (_, tu) -> tu.hasVehicle() }
+                .takeIf { it.isNotEmpty() }
+                ?.let { wVehicle ->
+                    val picked = wVehicle.first()
+                    MTLog.d(
+                        LOG_TAG,
+                        "filterDuplicatesTrips() > pick 1st out of ${wVehicle.size} w/ Vehicle: " +
+                            "[${picked.first}] ${picked.second.toStringExt()}"
+                    )
+                    add(picked)
+                    return@forEach
+                }
+            // ELSE -> pick 1st one in the list
+            val gTripUpdate1 = tripIdAndTripUpdates.firstOrNull() ?: return@forEach
+            MTLog.d(
+                LOG_TAG,
+                "filterDuplicatesTrips() > use 1st one out of ${tripIdAndTripUpdates.size}: " +
+                    "[${gTripUpdate1.first}] ${gTripUpdate1.second.toStringExt()}"
+            )
+            add(gTripUpdate1)
+        }
+}.toMap() // keeps 1 trip update / trip ID

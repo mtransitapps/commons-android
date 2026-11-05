@@ -31,7 +31,7 @@ object GTFSDateTimeUtils : MTLog.Loggable {
 
     private const val TWENTY_FOUR_HOURS = 24
 
-    private val RECENT_PATH_DEFAULT = 3.hours
+    private val RECENT_PATH_DEFAULT = 5.hours
 
     override fun getLogTag() = LOG_TAG
 
@@ -46,10 +46,10 @@ object GTFSDateTimeUtils : MTLog.Loggable {
                 minutesCount.minutes + secondsCount.seconds
 
             val nowInstant = nowMs.millisToInstant()
-            val startOfDay = nowInstant.toLocalDateTime(agencyTimeZone).date.atStartOfDayIn(agencyTimeZone)
-            val todayService = startOfDay + durationFromStartOfDay
-            val yesterdayService = startOfDay.minus(1.days) + durationFromStartOfDay
-            val tomorrowService = startOfDay + 1.days + durationFromStartOfDay
+            val today = nowInstant.toLocalDateTime(agencyTimeZone).date
+            val todayService = today.atStartOfDayIn(agencyTimeZone) + durationFromStartOfDay
+            val yesterdayService = LocalDate.fromEpochDays(today.toEpochDays() - 1).atStartOfDayIn(agencyTimeZone) + durationFromStartOfDay
+            val tomorrowService = LocalDate.fromEpochDays(today.toEpochDays() + 1).atStartOfDayIn(agencyTimeZone) + durationFromStartOfDay
             val todayServiceDiff = (todayService - nowInstant).absoluteValue
             val yesterdayServiceDiff = (nowInstant - yesterdayService).absoluteValue
             val tomorrowServiceDiff = (tomorrowService - nowInstant).absoluteValue

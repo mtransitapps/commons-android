@@ -22,6 +22,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Instant
+import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
 import kotlinx.datetime.TimeZone as KtTimeZone
 
 class GTFSRealTimeTripUpdatesFilterTests {
@@ -54,7 +55,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            findTripId = { _, _ ->
+            findOutOfSyncTripId = { _, _ ->
                 findTripIdCalled++
                 null
             },
@@ -85,7 +86,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            findTripId = { _, _ ->
+            findOutOfSyncTripId = { _, _ ->
                 findTripIdCalled++
                 null
             },
@@ -113,7 +114,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            findTripId = { _, _ ->
+            findOutOfSyncTripId = { _, _ ->
                 findTripIdCalled++
                 null
             },
@@ -142,7 +143,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            findTripId = { departure, _ ->
+            findOutOfSyncTripId = { departure, _ ->
                 TRIP_ID.takeIf { departure == toInstant("20261026", "19:37:00") }
             },
             staticRDTripIds = setOf(TRIP_ID),
@@ -169,7 +170,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = KtTimeZone.UTC,
-            findTripId = { departure, _ ->
+            findOutOfSyncTripId = { departure, _ ->
                 TRIP_ID.takeIf { departure == toInstant("20261026", "19:37:00", KtTimeZone.UTC) }
             },
             staticRDTripIds = setOf(TRIP_ID),
@@ -195,7 +196,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            findTripId = { departure, _ ->
+            findOutOfSyncTripId = { departure, _ ->
                 TRIP_ID.takeIf { departure == toInstant("20261026", "19:37:00") }
             },
             staticRDTripIds = setOf(TRIP_ID),
@@ -221,7 +222,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = LOCAL_TZ,
-            findTripId = { departure, _ ->
+            findOutOfSyncTripId = { departure, _ ->
                 TRIP_ID.takeIf { departure == toInstant("20261026", "19:37:00") }
             },
             staticRDTripIds = setOf(TRIP_ID),
@@ -298,7 +299,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             .filterDuplicatesTrips()
             .let { result ->
                 assertEquals(1, result.size)
-                assertNotNull(result.getOrNull(0)) { (tripId, tu) ->
+                assertNotNull(result.entries.firstOrNull()) { (tripId, tu) ->
                     assertEquals(TRIP_ID, tripId)
                     assertNotNull(tu.optTrip) { td ->
                         assertEquals(TRIP_ID, td.optTripId)
@@ -335,7 +336,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             .filterDuplicatesTrips()
             .let { result ->
                 assertEquals(1, result.size)
-                assertNotNull(result.getOrNull(0)) { (tripId, tu) ->
+                assertNotNull(result.entries.firstOrNull()) { (tripId, tu) ->
                     assertEquals(TRIP_ID, tripId)
                     assertEquals(TRIP_ID, tu.trip.tripId)
                     assertFalse(tu.trip.hasModifiedTrip())
@@ -394,7 +395,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             .filterDuplicatesTrips()
             .let { result ->
                 assertEquals(1, result.size)
-                assertNotNull(result.getOrNull(0)) { (tripId, gTripUpdate) ->
+                assertNotNull(result.entries.firstOrNull()) { (tripId, gTripUpdate) ->
                     assertEquals(TRIP_ID, tripId)
                     assertNotNull(gTripUpdate.optTrip) { gTripDescriptor ->
                         assertEquals(TRIP_ID, gTripDescriptor.tripId)
@@ -407,6 +408,109 @@ class GTFSRealTimeTripUpdatesFilterTests {
                         assertEquals("1096", stu.stopId)
                         assertEquals(39, stu.departure.delay)
                     }
+                }
+            }
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun test_filterDuplicatesTrips_SameTripId_DiffStartDateTime_Added() {
+        listOf(
+            tripUpdate {
+                trip = tripDescriptor {
+                    tripId = TRIP_ID
+                    startDate = "20260727"
+                    startTime = "151800"
+                    scheduleRelationship = GTDScheduleRelationship.SCHEDULED
+                }
+            },
+            tripUpdate {
+                trip = tripDescriptor {
+                    tripId = TRIP_ID
+                    startDate = "20260727"
+                    startTime = "161800"
+                    scheduleRelationship = GTDScheduleRelationship.ADDED
+                }
+            },
+        )
+            .mapNotNull { tu -> tu.optTrip?.optTripIdNotEmpty?.let { it to tu } }
+            .filterDuplicatesTrips()
+            .let { result ->
+                assertEquals(1, result.size)
+                assertNotNull(result.entries.firstOrNull()) { (tripId, tu) ->
+                    assertEquals(TRIP_ID, tripId)
+                    assertEquals(TRIP_ID, tu.trip.tripId)
+                    assertEquals("20260727", tu.trip.startDate)
+                    assertEquals("151800", tu.trip.startTime)
+                    assertEquals(GTDScheduleRelationship.SCHEDULED, tu.trip.scheduleRelationship)
+                }
+            }
+    }
+
+    @Test
+    fun test_filterDuplicatesTrips_SameTripId_DiffStartDateTime_Duplicated() {
+        listOf(
+            tripUpdate {
+                trip = tripDescriptor {
+                    tripId = TRIP_ID
+                    startDate = "20260727"
+                    startTime = "151800"
+                    scheduleRelationship = GTDScheduleRelationship.SCHEDULED
+                }
+            },
+            tripUpdate {
+                trip = tripDescriptor {
+                    tripId = TRIP_ID
+                    startDate = "20260727"
+                    startTime = "161800"
+                    scheduleRelationship = GTDScheduleRelationship.DUPLICATED
+                }
+            },
+        )
+            .mapNotNull { tu -> tu.optTrip?.optTripIdNotEmpty?.let { it to tu } }
+            .filterDuplicatesTrips()
+            .let { result ->
+                assertEquals(1, result.size)
+                assertNotNull(result.entries.firstOrNull()) { (tripId, tu) ->
+                    assertEquals(TRIP_ID, tripId)
+                    assertEquals(TRIP_ID, tu.trip.tripId)
+                    assertEquals("20260727", tu.trip.startDate)
+                    assertEquals("151800", tu.trip.startTime)
+                    assertEquals(GTDScheduleRelationship.SCHEDULED, tu.trip.scheduleRelationship)
+                }
+            }
+    }
+
+    @Test
+    fun test_filterDuplicatesTrips_SameTripId_DiffStartDateTime_New() {
+        listOf(
+            tripUpdate {
+                trip = tripDescriptor {
+                    tripId = TRIP_ID
+                    startDate = "20260727"
+                    startTime = "151800"
+                    scheduleRelationship = GTDScheduleRelationship.SCHEDULED
+                }
+            },
+            tripUpdate {
+                trip = tripDescriptor {
+                    tripId = "new_trip_id"
+                    startDate = "20260727"
+                    startTime = "161800"
+                    scheduleRelationship = GTDScheduleRelationship.NEW
+                }
+            },
+        )
+            .mapNotNull { tu -> tu.optTrip?.optTripIdNotEmpty?.let { it to tu } }
+            .filterDuplicatesTrips()
+            .let { result ->
+                assertEquals(1, result.size)
+                assertNotNull(result.entries.firstOrNull()) { (tripId, tu) ->
+                    assertEquals(TRIP_ID, tripId)
+                    assertEquals(TRIP_ID, tu.trip.tripId)
+                    assertEquals("20260727", tu.trip.startDate)
+                    assertEquals("151800", tu.trip.startTime)
+                    assertEquals(GTDScheduleRelationship.SCHEDULED, tu.trip.scheduleRelationship)
                 }
             }
     }

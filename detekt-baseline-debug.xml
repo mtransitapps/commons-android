@@ -149,7 +149,6 @@
     <ID>ReturnCount:BatteryUtils.kt:BatteryUtils$@JvmStatic fun shouldUseBatteryForOptionalWork: Boolean</ID>
     <ID>ReturnCount:GBFSStorage.kt:GBFSStorage$@WorkerThread fun getArea: Area?</ID>
     <ID>ReturnCount:GTFSDateTimeUtils.kt:GTFSDateTimeUtils$fun parseToDateTime: Instant?</ID>
-    <ID>ReturnCount:GTFSDateTimeUtils.kt:GTFSDateTimeUtils$fun parseToTime: Instant?</ID>
     <ID>ReturnCount:GTFSRTAlertsManager.kt:GTFSRTAlertsManager$@JvmStatic fun parseSeverity: Int</ID>
     <ID>ReturnCount:GTFSRealTimeServiceAlertsProvider.kt:GTFSRealTimeServiceAlertsProvider$@JvmStatic fun GTFSRealTimeProvider.parseProviderTargetUUID: String?</ID>
     <ID>ReturnCount:GTFSRealTimeTripUpdatesFilter.kt:internal fun GTripUpdate.isUseful: Boolean</ID>
@@ -225,11 +224,10 @@
     <ID>UnreachableCode:GTFSRealTimeProviderExt.kt:parseAgencyId(it)</ID>
     <ID>UnreachableCode:GTFSRealTimeProviderExt.kt:parseTripId(it)</ID>
     <ID>UnreachableCode:GTFSRealTimeServiceAlertsProvider.kt:GTFSRealTimeServiceAlertsProvider$return getAgencyRouteTypeTagTargetUUID(agencyTag, routeType)</ID>
-    <ID>UnreachableCode:GTFSRealTimeTripUpdatesFilter.kt:td.optModifiedTrip?.let { GTFSDateTimeUtils.parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$!found</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$Constants.DEBUG</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$MTLog.d( LOG_TAG, "makeCachedStatusFromAgencyData() &gt; GTFS {R:'${targetRoute.shortestName}'|D:${targetDirection.headsignValue}} [${gTripUpdates.size}]: " )</ID>
-    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$MTLog.d(LOG_TAG, "findTripId() &gt; ignore wrong out-of-sync trip ID '$staticTripId' at ${departure.toDateTimeLog()}.")</ID>
+    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$MTLog.d(LOG_TAG, "findOutOfSyncTripId() &gt; ignore wrong out-of-sync trip ID '$staticTripId' at ${departure.toDateTimeLog()}.")</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$MTLog.i( LOG_TAG, "Using ${rdTripIdsToTripUpdates.size} trip updates for route '${targetRoute.shortestName}' direction '${targetDirection.headsignValue}': " + "${rdTripIdsToTripUpdates.map { it.key }.distinct()}." )</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$rdTripIdsToTripUpdates.forEach { (_, gTripUpdate) -&gt; MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() &gt; GTFS - ${gTripUpdate.toStringExt()}.") if (PRINT_ALL_RD_STOP_TIME_UPDATES) { gTripUpdate.optStopTimeUpdateList?.forEachIndexed { idx, stu -&gt; MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() &gt; GTFS - [$idx] ${stu.toStringExt()}") } } }</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$return@candidates</ID>

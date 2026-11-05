@@ -26,6 +26,7 @@ import com.google.transit.realtime.GtfsRealtime.TranslatedString as GTranslatedS
 import com.google.transit.realtime.GtfsRealtime.TranslatedString.Translation as GTSTranslation
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor as GTripDescriptor
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ModifiedTripSelector as GTDModifiedTripSelector
+import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUStopTimeEvent
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
@@ -528,8 +529,12 @@ object GtfsRealtimeExt {
     val GTripDescriptor.optDirectionIdValid get() = optDirectionId?.takeIf { it.isValidDirection }
     val GTripDescriptor.optModifiedTrip get() = if (hasModifiedTrip()) modifiedTrip else null
     val GTripDescriptor.optScheduleRelationship get() = if (hasScheduleRelationship()) scheduleRelationship else null
+    val GTripDescriptor.scheduleRelationshipOrDefault get() = optScheduleRelationship ?: GTDScheduleRelationship.SCHEDULED
     val GTripDescriptor.optStartDate get() = if (hasStartDate()) startDate else null
     val GTripDescriptor.optStartTime get() = if (hasStartTime()) startTime else null
+
+    val GTripDescriptor.optStartDateOrModifiedTripStartDate get() = this.optStartDate ?: this.optModifiedTrip?.optStartDate
+    val GTripDescriptor.optStartTimeOrModifiedTripStartTime get() = this.optStartTime ?: this.optModifiedTrip?.optStartTime
 
     @JvmStatic
     @JvmOverloads
