@@ -205,6 +205,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             val findOutOfSyncTripId: (departure: Instant, stuList: List<GTUStopTimeUpdate>?) -> String? = findTripId@{ departure, gSTUList ->
                 if (gSTUList.isNullOrEmpty()) {
                     MTLog.d(LOG_TAG, "findOutOfSyncTripId() > out-of-sync trip ID NOT found at ${departure.toDateTimeLog()} (no stop time updates).")
+                    // could be CANCELLED or DELETED trips (w/o stop time updates)
+                    // -> good-enough for now as it's already a fall-back for out-of-sync trip IDs
                     return@findTripId null // NO MATCH
                 }
                 val staticTripIdsWithSameDepartures = departuresToOutOfSyncTripIds[departure]

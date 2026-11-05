@@ -153,7 +153,7 @@ internal fun GTripUpdate.match(
             }
         }
         @Suppress("SimplifyBooleanWithConstants")
-        if (!ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID || optTripIdNotEmpty == null) {
+        if (!ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID || optTripIdNotEmpty == null) { // trip ID was provided so can ignore often unreliable direction ID
             optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
                 if (directionId != targetDirectionOriginalId) {
                     if (DEBUG_STATIC_RT_MATCH) {
