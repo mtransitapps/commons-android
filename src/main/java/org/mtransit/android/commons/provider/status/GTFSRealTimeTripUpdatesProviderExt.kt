@@ -63,25 +63,29 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
     includeCancelledTimestamps: Boolean = false,
 ) {
     if (gTripUpdates.isEmpty()) return
+    val staticTripIdTripUpdates = gTripUpdates
+        .mapNotNull { (tripId, gTripUpdate) ->
+            val staticTripId = if (PRE_FILTER_TRIP_UPDATES) {
+                tripId
+            } else {
+                gTripUpdate.match(
+                    nowMs = nowMs,
+                    targetRouteIdHash = targetRouteIdHash,
+                    targetDirectionOriginalId = targetDirectionOriginalId,
+                    agencyTimeZone = agencyTimeZone,
+                    findOutOfSyncTripId = findOutOfSyncTripId,
+                    staticRDTripIds = staticRDTripIds,
+                    tripIdOutOfSync = tripIdOutOfSync,
+                    ignoreDirection = ignoreDirection,
+                    parseRouteId = ::parseRouteId,
+                    parseTripId = ::parseTripId,
+                ) ?: return@mapNotNull null // no trip descriptor / ID OR not a match
+            }
+            staticTripId to gTripUpdate
+        }.filterDuplicatesTrips()
     val rdsSchedulesByUUID = getRDSchedulesByUUID()
     val rdsUUIDsByTripId = getRDSUUIDsByTripId()
-    gTripUpdates.forEach { (tripId, gTripUpdate) ->
-        val staticTripId = if (PRE_FILTER_TRIP_UPDATES) {
-            tripId
-        } else {
-            gTripUpdate.match(
-                nowMs = nowMs,
-                targetRouteIdHash = targetRouteIdHash,
-                targetDirectionOriginalId = targetDirectionOriginalId,
-                agencyTimeZone = agencyTimeZone,
-                findOutOfSyncTripId = findOutOfSyncTripId,
-                staticRDTripIds = staticRDTripIds,
-                tripIdOutOfSync = tripIdOutOfSync,
-                ignoreDirection = ignoreDirection,
-                parseRouteId = ::parseRouteId,
-                parseTripId = ::parseTripId,
-            ) ?: return@forEach // no trip descriptor / ID OR not a match
-        }
+    staticTripIdTripUpdates.forEach { (staticTripId, gTripUpdate) ->
         val tripRdsUUIDs = rdsUUIDsByTripId[staticTripId]
             ?: return@forEach // trip ID not in static data
         val tripSchedules = tripRdsUUIDs.mapNotNull { rdsSchedulesByUUID[it] }
