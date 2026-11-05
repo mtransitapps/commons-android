@@ -128,8 +128,8 @@ object GTFSDateTimeUtils : MTLog.Loggable {
     @Suppress("unused")
     fun String.cleanGtfsTimeStr() = this.padStart(TIME_FORMAT_LENGTH, '0')
 
-    private val DATE_FORMATTER by lazy { DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN) }
-    private val TIME_FORMATTER by lazy { DateTimeFormatter.ofPattern(TIME_FORMAT_PATTERN) }
+    private val DATE_FORMATTER by lazy { DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN, Locale.ENGLISH) }
+    private val TIME_FORMATTER by lazy { DateTimeFormatter.ofPattern(TIME_FORMAT_PATTERN, Locale.ENGLISH) }
 
     @Suppress("unused")
     fun Instant.formatGtfsDateStr(agencyTimeZone: KtTimeZone, startedYesterday: Boolean = false): String {
