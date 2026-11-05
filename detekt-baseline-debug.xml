@@ -110,7 +110,7 @@
     <ID>LongParameterList:GTFSRealTimeTripUpdatesFilter.kt:internal fun GTripUpdate.match: String?</ID>
     <ID>LongParameterList:GTFSRealTimeTripUpdatesFilter.kt:internal fun List&lt;GTripUpdate&gt;.selectRouteDirectionTripUpdates</ID>
     <ID>LongParameterList:GTFSRealTimeTripUpdatesProviderExt.kt:@VisibleForTesting internal fun processRDTripUpdate</ID>
-    <ID>LongParameterList:GTFSRealTimeTripUpdatesProviderExt.kt:fun GTFSRealTimeProvider.processRDTripUpdates</ID>
+    <ID>LongParameterList:GTFSRealTimeTripUpdatesProviderExt.kt:fun GTFSRealTimeProvider.processRDTripUpdates: Boolean</ID>
     <ID>LongParameterList:InstagramNewsProvider.kt:InstagramNewsProvider$private fun loadUserTimeline</ID>
     <ID>LongParameterList:InstagramNewsProvider.kt:InstagramNewsProvider$private fun readNews: News</ID>
     <ID>LongParameterList:POIProviderContract.kt:POIProviderContract.Filter.Companion$@SuppressLint("DiscouragedApi") fun getNewAreaFilter</ID>
@@ -157,6 +157,7 @@
     <ID>ReturnCount:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData: POIStatus?</ID>
     <ID>ReturnCount:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyDataLock: POIStatus?</ID>
     <ID>ReturnCount:GTFSRealTimeTripUpdatesProviderExt.kt:@VisibleForTesting internal fun processRDTripUpdate</ID>
+    <ID>ReturnCount:GTFSRealTimeTripUpdatesProviderExt.kt:fun GTFSRealTimeProvider.processRDTripUpdates: Boolean</ID>
     <ID>ReturnCount:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$@VisibleForTesting internal fun GTFSRealTimeProvider.parseProviderTargetUUID: String?</ID>
     <ID>ReturnCount:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
     <ID>ReturnCount:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.processVehiclePositions: Set&lt;VehicleLocation&gt;?</ID>
@@ -225,11 +226,7 @@
     <ID>UnreachableCode:GTFSRealTimeProviderExt.kt:parseTripId(it)</ID>
     <ID>UnreachableCode:GTFSRealTimeServiceAlertsProvider.kt:GTFSRealTimeServiceAlertsProvider$return getAgencyRouteTypeTagTargetUUID(agencyTag, routeType)</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$!found</ID>
-    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$Constants.DEBUG</ID>
-    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$MTLog.d( LOG_TAG, "makeCachedStatusFromAgencyData() &gt; GTFS {R:'${targetRoute.shortestName}'|D:${targetDirection.headsignValue}} [${gTripUpdates.size}]: " )</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$MTLog.d(LOG_TAG, "findOutOfSyncTripId() &gt; ignore wrong out-of-sync trip ID '$staticTripId' at ${departure.toDateTimeLog()}.")</ID>
-    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$MTLog.i( LOG_TAG, "Using ${rdTripIdsToTripUpdates.size} trip updates for route '${targetRoute.shortestName}' direction '${targetDirection.headsignValue}': " + "${rdTripIdsToTripUpdates.map { it.key }.distinct()}." )</ID>
-    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$rdTripIdsToTripUpdates.forEach { (_, gTripUpdate) -&gt; MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() &gt; GTFS - ${gTripUpdate.toStringExt()}.") if (PRINT_ALL_RD_STOP_TIME_UPDATES) { gTripUpdate.optStopTimeUpdateList?.forEachIndexed { idx, stu -&gt; MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() &gt; GTFS - [$idx] ${stu.toStringExt()}") } } }</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$return@candidates</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$val found = sortedRDS.any { rds -&gt; val rdsTimestamp = tripTargetUUIDStopSeqTimestamps?.find { (targetUUIDAndStopSeq, _) -&gt; val targetUUID = targetUUIDAndStopSeq.first /** stop sequence should not be null if FF is turned ON [org.mtransit.commons.FeatureFlags.F_EXPORT_STOP_SEQUENCE] */ val stopSeq = targetUUIDAndStopSeq.second targetUUID == rds.uuid &amp;&amp; (stopSeq == null || stopSeq == gSTUStopSequence) }?.second rdsTimestamp != null &amp;&amp; rds.stop.isSameOriginalId(gSTUStopIDHash) }</ID>
     <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$val gSTUStopSequence = gSTU.optStopSequence ?: return@forEach</ID>

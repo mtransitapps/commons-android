@@ -3,10 +3,15 @@ package org.mtransit.android.commons.provider.gtfs
 import org.mtransit.android.commons.millisToInstant
 import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.append24Hours
 import org.mtransit.commons.CommonsApp
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone as KtTimeZone
 
 class GTFSDateTimeUtilsTest {
@@ -144,6 +149,52 @@ class GTFSDateTimeUtilsTest {
             GTFSDateTimeUtils.parseToDateTime(date, time, LOCAL_TZ)
         }.let { result ->
             assertNull(result)
+        }
+    }
+
+    @Test
+    fun test_parseToTime_daylightSavingTransitions() {
+        listOf(
+            Triple("2026-11-02T00:19:19Z", "19:37:00", "2026-11-02T00:37:00Z"),
+            Triple("2026-11-02T00:19:19Z", "24:24:24", "2026-11-02T05:24:24Z"),
+            Triple("2026-11-02T05:10:20Z", "23:59:00", "2026-11-02T04:59:00Z"),
+            Triple("2026-11-02T05:10:20Z", "24:24:24", "2026-11-02T05:24:24Z"),
+            Triple("2026-11-01T03:50:00Z", "03:15:00", "2026-11-01T08:15:00Z"),
+            Triple("2026-11-01T06:10:00Z", "01:30:00", "2026-11-01T06:30:00Z"),
+            Triple("2026-03-08T23:19:19Z", "19:37:00", "2026-03-08T23:37:00Z"),
+            Triple("2026-03-08T23:19:19Z", "24:24:24", "2026-03-09T04:24:24Z"),
+            Triple("2026-03-09T04:10:20Z", "23:59:00", "2026-03-09T03:59:00Z"),
+            Triple("2026-03-09T04:10:20Z", "24:24:24", "2026-03-09T04:24:24Z"),
+            Triple("2026-03-08T04:50:00Z", "03:15:00", "2026-03-08T07:15:00Z"),
+            Triple("2026-03-08T07:10:00Z", "02:30:00", "2026-03-08T07:30:00Z"),
+        ).forEach { (now, time, expected) ->
+            assertEquals(
+                Instant.parse(expected),
+                GTFSDateTimeUtils.parseToTime(Instant.parse(now).toEpochMilliseconds(), time, LOCAL_TZ),
+                "$now / $time",
+            )
+        }
+    }
+
+    @Test
+    fun test_parseToDateTime_matchesStaticScheduleOnDaylightSavingTransitions() {
+        val staticScheduleFormat = SimpleDateFormat("yyyyMMddHHmmss", Locale.ENGLISH).apply {
+            timeZone = TimeZone.getTimeZone(LOCAL_TZ_ID)
+        }
+        listOf(
+            "20261101" to "19:37:00",
+            "20261101" to "24:24:24",
+            "20261031" to "25:30:00",
+            "20261101" to "01:30:00",
+            "20261031" to "49:24:24",
+            "20260308" to "19:37:00",
+            "20260308" to "24:24:24",
+            "20260307" to "26:30:00",
+            "20260308" to "02:30:00",
+            "20260307" to "49:24:24",
+        ).forEach { (date, time) ->
+            val expected = assertNotNull(staticScheduleFormat.parse(date + time.replace(":", ""))).time.millisToInstant()
+            assertEquals(expected, GTFSDateTimeUtils.parseToDateTime(date, time, LOCAL_TZ), "$date / $time")
         }
     }
 

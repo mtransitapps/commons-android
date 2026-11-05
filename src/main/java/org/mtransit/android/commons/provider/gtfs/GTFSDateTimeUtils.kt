@@ -1,12 +1,15 @@
 package org.mtransit.android.commons.provider.gtfs
 
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.number
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.millisToInstant
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
+import java.util.Locale
+import java.util.TimeZone
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -47,9 +50,13 @@ object GTFSDateTimeUtils : MTLog.Loggable {
 
             val nowInstant = nowMs.millisToInstant()
             val today = nowInstant.toLocalDateTime(agencyTimeZone).date
-            val todayService = today.atStartOfDayIn(agencyTimeZone) + durationFromStartOfDay
-            val yesterdayService = LocalDate.fromEpochDays(today.toEpochDays() - 1).atStartOfDayIn(agencyTimeZone) + durationFromStartOfDay
-            val tomorrowService = LocalDate.fromEpochDays(today.toEpochDays() + 1).atStartOfDayIn(agencyTimeZone) + durationFromStartOfDay
+            val todayService = toLocalCalendarInstant(today, hoursCount, minutesCount, secondsCount, agencyTimeZone)
+            val yesterdayService = toLocalCalendarInstant(
+                LocalDate.fromEpochDays(today.toEpochDays() - 1), hoursCount, minutesCount, secondsCount, agencyTimeZone
+            )
+            val tomorrowService = toLocalCalendarInstant(
+                LocalDate.fromEpochDays(today.toEpochDays() + 1), hoursCount, minutesCount, secondsCount, agencyTimeZone
+            )
             val todayServiceDiff = (todayService - nowInstant).absoluteValue
             val yesterdayServiceDiff = (nowInstant - yesterdayService).absoluteValue
             val tomorrowServiceDiff = (tomorrowService - nowInstant).absoluteValue
@@ -87,19 +94,30 @@ object GTFSDateTimeUtils : MTLog.Loggable {
             val hoursCount = parts.getOrNull(0)?.toIntOrNull()?.takeIf { it >= 0 } ?: return null
             val minutesCount = parts.getOrNull(1)?.toIntOrNull()?.takeIf { it in 0..59 } ?: return null
             val secondsCount = parts.getOrNull(2)?.toIntOrNull()?.takeIf { it in 0..59 } ?: return null
-            val durationFromStartOfDay = hoursCount.hours + // compat with 24+ hours
-                minutesCount.minutes + secondsCount.seconds
-
             val year = cleanedDate.substring(0, 4).toIntOrNull() ?: return null
             val month = cleanedDate.substring(4, 6).toIntOrNull() ?: return null
             val day = cleanedDate.substring(6, 8).toIntOrNull() ?: return null
-            val startOfDay = LocalDate(year, month, day).atStartOfDayIn(agencyTimeZone)
 
-            return startOfDay + durationFromStartOfDay
+            return toLocalCalendarInstant(LocalDate(year, month, day), hoursCount, minutesCount, secondsCount, agencyTimeZone)
         } catch (e: Exception) {
             MTLog.w(this, e, "Error while parsing GTFS date '$gtfsDateStr' & time '$gtfsTimeStr'!")
             return null
         }
+    }
+
+    private fun toLocalCalendarInstant(
+        serviceDate: LocalDate,
+        hours: Int,
+        minutes: Int,
+        seconds: Int,
+        agencyTimeZone: KtTimeZone,
+    ): Instant {
+        val date = LocalDate.fromEpochDays(serviceDate.toEpochDays() + hours / TWENTY_FOUR_HOURS)
+        // Match the static schedule's SimpleDateFormat resolution of DST gaps and repeated hours.
+        return Calendar.getInstance(TimeZone.getTimeZone(agencyTimeZone.id), Locale.ENGLISH).apply {
+            clear()
+            set(date.year, date.month.number - 1, date.day, hours % TWENTY_FOUR_HOURS, minutes, seconds)
+        }.timeInMillis.millisToInstant()
     }
 
     private const val TIME_FORMAT_LENGTH = 8 // can be 7 if hour < 10 or more if hour > 99

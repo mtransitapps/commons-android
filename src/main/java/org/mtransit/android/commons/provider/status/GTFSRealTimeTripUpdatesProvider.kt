@@ -287,7 +287,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 )
             }
             if (PRE_FILTER_TRIP_UPDATES) {
-                rdTripIdsToTripUpdates?.takeIf { rdSchedules.isNotEmpty() } ?: run {
+                rdTripIdsToTripUpdates?.takeIf { it.isNotEmpty() && rdSchedules.isNotEmpty() } ?: run {
                     sortedRDS.forEach { rds ->
                         rds.makeSchedule(
                             lastUpdateInMs = lastUpdateInMs,
@@ -327,8 +327,33 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     }
                 }
             }
+            val gTripUpdatesByTripId by lazy {
+                gTripUpdates
+                    .map { gTripUpdate ->
+                        val tripId = gTripUpdate.optTrip?.let { parseTripId(it) }
+                            ?: Uuid.random().toString() // keep all trip updates since we can match w/o trip ID
+                        tripId to gTripUpdate
+                    }
+                    .filter { (_, gTripUpdate) -> gTripUpdate.isUseful(nowMs, agencyTimeZone) }
+                    .filterDuplicatesTrips()
+            }
+            val hasMatchingTripUpdates = processRDTripUpdates(
+                gTripUpdates = if (PRE_FILTER_TRIP_UPDATES) rdTripIdsToTripUpdates.orEmpty() else gTripUpdatesByTripId,
+                nowMs = nowMs,
+                targetRouteIdHash = targetRouteIdHash,
+                targetDirectionOriginalId = targetDirectionOriginalId,
+                staticRDTripIds = staticRDTripIds,
+                tripIdOutOfSync = tripIdOutOfSync,
+                agencyTimeZone = agencyTimeZone,
+                findOutOfSyncTripId = findOutOfSyncTripId,
+                getRDSchedulesByUUID = { rdSchedulesByUUID },
+                getRDSUUIDsByTripId = { rdsUUIDsByTripId },
+                sortedRDS = sortedRDS,
+                feedReadFromSourceMs = feedReadFromSourceMs,
+                includeCancelledTimestamps = filter.isIncludeCancelledTimestampsOrDefault,
+            )
             @Suppress("SimplifyBooleanWithConstants")
-            if (!PRE_FILTER_TRIP_UPDATES && rdSchedules.isEmpty()) {
+            if (!PRE_FILTER_TRIP_UPDATES && !hasMatchingTripUpdates) {
                 sortedRDS.forEach { rds ->
                     rds.makeSchedule(
                         lastUpdateInMs = lastUpdateInMs,
@@ -345,35 +370,10 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 MTLog.d(
                     LOG_TAG,
                     "makeCachedStatusFromAgencyData() > SKIP " +
-                        "(no static schedule to update for this route direction: $targetAuthority, ${targetRoute.id}, ${targetDirection.id})."
+                        "(no matching trip updates or static schedule for this route direction: $targetAuthority, ${targetRoute.id}, ${targetDirection.id})."
                 )
                 return null
             }
-            val gTripUpdatesByTripId by lazy {
-                gTripUpdates
-                    .map { gTripUpdate ->
-                        val tripId = gTripUpdate.optTrip?.let { parseTripId(it) }
-                            ?: Uuid.random().toString() // keep all trip updates since we can match w/o trip ID
-                        tripId to gTripUpdate
-                    }
-                    .filter { (_, gTripUpdate) -> gTripUpdate.isUseful(nowMs, agencyTimeZone) }
-                    .filterDuplicatesTrips()
-            }
-            processRDTripUpdates(
-                gTripUpdates = if (PRE_FILTER_TRIP_UPDATES) rdTripIdsToTripUpdates.orEmpty() else gTripUpdatesByTripId,
-                nowMs = nowMs,
-                targetRouteIdHash = targetRouteIdHash,
-                targetDirectionOriginalId = targetDirectionOriginalId,
-                staticRDTripIds = staticRDTripIds,
-                tripIdOutOfSync = tripIdOutOfSync,
-                agencyTimeZone = agencyTimeZone,
-                findOutOfSyncTripId = findOutOfSyncTripId,
-                getRDSchedulesByUUID = { rdSchedulesByUUID },
-                getRDSUUIDsByTripId = { rdsUUIDsByTripId },
-                sortedRDS = sortedRDS,
-                feedReadFromSourceMs = feedReadFromSourceMs,
-                includeCancelledTimestamps = filter.isIncludeCancelledTimestampsOrDefault,
-            )
             cacheRealTimeSchedules(rdSchedules = rdSchedules, sourceLabel = sourceLabel, lastUpdateInMs = lastUpdateInMs)
             return getCachedStatusS(filter.targetUUID, staticRDTripIds)
         } catch (e: Exception) {
