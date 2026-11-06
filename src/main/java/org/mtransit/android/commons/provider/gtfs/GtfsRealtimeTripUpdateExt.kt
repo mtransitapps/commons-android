@@ -23,15 +23,12 @@ fun GTUStopTimeUpdate.isSameStop(
     rds ?: return false // nothing to match on
     val gStuStopId = this.optStopIdNotEmpty
     val gStuStopSeq = this.optStopSequence
-    if (gStuStopId == null && gStuStopSeq == null) return false // nothing to match on
-    val sameOrUnspecifiedStopSequence = gStuStopSeq?.let {
-        it == stopSequence
-    } ?: true
-    if (!sameOrUnspecifiedStopSequence) return false // no match
-    val sameOrUnspecifiedStopId = gStuStopId?.let {
-        rds.stop.isSameOriginalId(parseStopId(it))
-    } ?: true
-    return sameOrUnspecifiedStopId
+    if (gStuStopId == null && gStuStopSeq == null) {
+        MTLog.d(LOG_TAG, "isSameStop() > false (nothing to match on in ${this.toStringExt(short = true)})")
+        return false // nothing to match on
+    }
+    return (gStuStopSeq == null || gStuStopSeq == stopSequence) // unspecified OR same stop sequence
+        && (gStuStopId == null || rds.stop.isSameOriginalId(parseStopId(gStuStopId))) // unspecified OR same stop ID matches
 }
 
 fun GTFSRealTimeProvider.match(gSTU: GTUStopTimeUpdate, rdsCandidates: List<RouteDirectionStop>, findStopTimestamp: (String, Int) -> Boolean) =
@@ -50,12 +47,8 @@ fun GTUStopTimeUpdate.match(
     }
     val gStuStopIdHash = gStuStopId?.let { parseStopId(gStuStopId) }
     return rdsCandidates.any { rds ->
-        val sameOrUnspecifiedStopId = gStuStopIdHash?.let {
-            rds.stop.isSameOriginalId(it)
-        } ?: true
-        if (!sameOrUnspecifiedStopId) return@any false
-        gStuStopSeq ?: return@any true // stop ID was provided and matches
-        return@any findStopTimestamp(rds.uuid, gStuStopSeq)
+        (gStuStopIdHash == null || rds.stop.isSameOriginalId(gStuStopIdHash)) // unspecified OR same stop ID matches
+            && (gStuStopSeq == null || findStopTimestamp(rds.uuid, gStuStopSeq)) // unspecified OR matching timestamp stop sequence
     }
 }
 

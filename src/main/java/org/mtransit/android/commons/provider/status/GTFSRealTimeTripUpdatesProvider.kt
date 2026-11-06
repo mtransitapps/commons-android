@@ -163,7 +163,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         )
                         return null
                     }
-            val rdSchedules: Collection<Schedule> by lazy { // delay/avoid DB read
+            val rdSchedules: Collection<Schedule> by lazy(LazyThreadSafetyMode.NONE) { // delay/avoid DB read
                 context.getRDSSchedules(targetAuthority, sortedRDS, filter.isIncludeCancelledTimestampsOrDefault)
             }
             val agencyTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context)
@@ -171,8 +171,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 MTLog.w(LOG_TAG, e, "makeCachedStatusFromAgencyData($rdID) > error getting timezone from '$agencyTimeZoneId'!")
                 KtTimeZone.currentSystemDefault()
             }
-            val rdSchedulesByUUID by lazy { rdSchedules.associateBy { it.targetUUID } }
-            val rdsUUIDsByTripId by lazy {
+            val rdSchedulesByUUID by lazy(LazyThreadSafetyMode.NONE) { rdSchedules.associateBy { it.targetUUID } }
+            val rdsUUIDsByTripId by lazy(LazyThreadSafetyMode.NONE) {
                 mutableMapOf<String, MutableSet<String>>().apply {
                     rdSchedules.forEach { schedule ->
                         schedule.timestamps.forEach { timestamp ->
@@ -183,7 +183,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 }
             }
             // region Out Of Sync Trip IDs
-            val outOfSyncTripIdToTargetUUIDStopSeqTimestamps by lazy {
+            val outOfSyncTripIdToTargetUUIDStopSeqTimestamps by lazy(LazyThreadSafetyMode.NONE) {
                 mutableMapOf<String, MutableList<Pair<Pair<String, Int?>, Schedule.Timestamp>>>().apply {
                     rdSchedules.forEach { schedule ->
                         schedule.timestamps.forEach { timestamp ->
@@ -197,7 +197,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     }
                 }
             }
-            val departuresToOutOfSyncTripIds by lazy {
+            val departuresToOutOfSyncTripIds by lazy(LazyThreadSafetyMode.NONE) {
                 // might not contain the actual 1st trip stop departure
                 // since we are loading last X hours instead of all trips started and not finished + near future trips
                 // -> good-enough for now as it's already a fall-back for out-of-sync trip IDs
@@ -292,7 +292,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 return@findTripId null // NO MATCH
             }
             // endregion Out Of Sync Trip IDs
-            val tripIdsMatch by lazy {
+            val tripIdsMatch by lazy(LazyThreadSafetyMode.NONE) {
                 val rdTripUpdatesCandidates =
                     gTripUpdates.filter { gTripUpdate ->
                         val gTripDescriptor = gTripUpdate.optTrip ?: return@filter false
@@ -394,7 +394,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     }
                 }
             }
-            val gTripUpdatesByTripId by lazy {
+            val gTripUpdatesByTripId by lazy(LazyThreadSafetyMode.NONE) {
                 gTripUpdates
                     .mapIndexed { index, gTripUpdate ->
                         val tripId = gTripUpdate.optTrip?.let { parseTripId(it) }
