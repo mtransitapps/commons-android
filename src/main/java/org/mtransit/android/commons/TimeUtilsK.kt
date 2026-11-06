@@ -31,7 +31,7 @@ object TimeUtilsK {
 }
 
 @Suppress("unused")
-fun Duration.formatSimpleDuration(short: Boolean = false) = this.inWholeMilliseconds.let { TimeUtilsK.formatSimpleDuration(it, short) }
+fun Duration.formatSimpleDuration(short: Boolean = true) = this.inWholeMilliseconds.let { TimeUtilsK.formatSimpleDuration(it, short) }
 
 fun Long.millisToInstant() = Instant.fromEpochMilliseconds(this)
 

@@ -218,7 +218,7 @@ public class TimeUtils implements MTLog.Loggable {
 
 	@NonNull
 	public static String formatSimpleDuration(long durationInMs) {
-		return formatSimpleDuration(durationInMs, false);
+		return formatSimpleDuration(durationInMs, true);
 	}
 
 	@NonNull
