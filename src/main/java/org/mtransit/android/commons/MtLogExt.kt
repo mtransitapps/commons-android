@@ -11,7 +11,8 @@ import kotlin.time.Duration
 import kotlin.time.Instant
 
 // region duration
-fun Long?.toDurationLog(short: Boolean = true): String? = if (Constants.DEBUG) MtLogExt.formatDuration(this, short) else this?.toString() // formatting is expensive, only in debug
+// formatting is expensive, only in debug
+fun Long?.toDurationLog(short: Boolean = true): String? = if (Constants.DEBUG) MtLogExt.formatDuration(this, short) else this?.toString()
 fun Duration?.toDurationLog(short: Boolean = true): String? = this?.inWholeMilliseconds.toDurationLog()
 
 // endregion

@@ -176,7 +176,11 @@ internal fun GTripUpdate.match(
                     // }
                     @Suppress("SimplifyBooleanWithConstants")
                     if (IGNORE_TRIP_ID && staticTripId != tripId) {
-                        MTLog.w(LOG_TAG, "match() > WARNING: found out-of-sync trip ID '$staticTripId' different than \"not really out-of-sync\" '$tripId'! (${this@match.toStringExt()})")
+                        MTLog.w(
+                            LOG_TAG,
+                            "match() > WARNING: found out-of-sync trip ID '$staticTripId' different than \"not really out-of-sync\" '$tripId'! " +
+                                "(${this@match.toStringExt()})"
+                        )
                     }
                     return staticTripId
                 }

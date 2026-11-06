@@ -99,14 +99,14 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
         val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(staticTripId, tripSchedules, tripSortedRDS)
         processRDTripUpdate(
             staticTripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, rdsSchedulesByUUID,
-            isSameStop = { gSTU, rds, stopSeq -> isSameStop(gSTU, rds, stopSeq)},
+            isSameStop = { gSTU, rds, stopSeq -> isSameStop(gSTU, rds, stopSeq) },
             feedReadFromSourceMs = feedReadFromSourceMs,
             fixStopSequence = { gSTUList ->
                 gSTUList?.fixStopSequence(
                     tripId = staticTripId,
                     tripSortedRDS = tripSortedRDS,
                     sortedTargetUuidAndSequence = sortedTargetUuidAndSequence,
-                    isSameStop = { gSTU, rds, stopSeq -> isSameStop(gSTU, rds, stopSeq)},
+                    isSameStop = { gSTU, rds, stopSeq -> isSameStop(gSTU, rds, stopSeq) },
                     parseStopId = this::parseStopId,
                 )
             },

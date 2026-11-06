@@ -249,7 +249,11 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 val sTripIdsCandidates = departuresToOutOfSyncTripIds[departure]
                 if (sTripIdsCandidates.isNullOrEmpty()) {
                     if (departure < nowMs.millisToInstant() - DEFAULT_LOOK_BEHIND) {
-                        MTLog.d(LOG_TAG, "findOutOfSyncTripId() > looking for trip departed more than ${DEFAULT_LOOK_BEHIND.toDurationLog()} ago -> not loaded?")
+                        MTLog.d(
+                            LOG_TAG,
+                            "findOutOfSyncTripId() > looking for trips departed more than " +
+                                "${DEFAULT_LOOK_BEHIND.toDurationLog()} ago -> not loaded?"
+                        )
                     }
                     MTLog.d(LOG_TAG, "findOutOfSyncTripId() > NO candidates trips found starting at ${departure.toDateTimeLog()}.")
                     return@findTripId null // NO MATCH

@@ -161,6 +161,7 @@
     <ID>ReturnCount:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$@VisibleForTesting internal fun GTFSRealTimeProvider.parseProviderTargetUUID: String?</ID>
     <ID>ReturnCount:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
     <ID>ReturnCount:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.processVehiclePositions: Set&lt;VehicleLocation&gt;?</ID>
+    <ID>ReturnCount:GtfsRealtimeTripUpdateExt.kt:fun GTUStopTimeUpdate.isSameStop: Boolean</ID>
     <ID>ReturnCount:ModuleReceiver.kt:ModuleReceiver$override fun onReceive</ID>
     <ID>ReturnCount:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun NextBusProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
     <ID>ReturnCount:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun NextBusProvider.processVehiclePositions: Set&lt;VehicleLocation&gt;?</ID>
@@ -224,7 +225,6 @@
     <ID>UnreachableCode:AppUpdateLauncher.kt:AppUpdateLauncher$intent.resolveActivity(context.packageManager) != null</ID>
     <ID>UnreachableCode:GTFSRealTimeProviderExt.kt:parseAgencyId(it)</ID>
     <ID>UnreachableCode:GTFSRealTimeServiceAlertsProvider.kt:GTFSRealTimeServiceAlertsProvider$return getAgencyRouteTypeTagTargetUUID(agencyTag, routeType)</ID>
-    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:it == stopSequence</ID>
     <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$gVehiclePosition.optTimestampMs?.let { vpTimestamp -&gt; if (vpTimestamp + VEHICLE_POSITIONS_MAX_AGE_MS &lt; lastUpdateInMs) { MTLog.d(LOG_TAG, "processVehiclePositions() &gt; IGNORE ${(lastUpdateInMs - vpTimestamp).toDurationLog()} old: ${gVehiclePosition.toStringExt()}") return null } }</ID>
     <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$return null</ID>
     <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$return setOf( VehicleLocation( authority = this.authority, targetUUID = targetUUIDs, targetTripId = gVehiclePosition.optTrip?.let { parseTripId(it) }, lastUpdateInMs = lastUpdateInMs, maxValidityInMs = this@processVehiclePositions.vehicleLocationMaxValidityInMs, // vehicleId = gVehiclePosition.optVehicle?.optId, vehicleLabel = gVehiclePosition.optVehicle?.optLabel, reportTimestamp = gVehiclePosition.optTimestamp?.secsToInstant(), latitude = vehicleLat, longitude = vehicleLng, bearingDegrees = gVehiclePosition.optPosition?.optBearing?.toInt(), // in degrees speedMetersPerSecond = gVehiclePosition.optPosition?.optSpeed?.toInt(), // in meters per second ) )</ID>
@@ -232,8 +232,9 @@
     <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$val vehicleLat = gVehiclePosition.optPosition?.optLatitude ?: return null</ID>
     <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$val vehicleLng = gVehiclePosition.optPosition?.optLongitude ?: return null</ID>
     <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$vehicleNearbyAgencyLocation(context, vehicleLat, vehicleLng) == false</ID>
-    <ID>UnreachableCode:GtfsRealtimeTripUpdateExt.kt:GtfsRealtimeTripUpdateExt$return rdsCandidates.any { rds -&gt; rds.stop.isSameOriginalId(gSTUStopIDHash) &amp;&amp; findStopTimestamp(rds.uuid, gSTUStopSequence) != null }</ID>
-    <ID>UnreachableCode:GtfsRealtimeTripUpdateExt.kt:GtfsRealtimeTripUpdateExt$val gSTUStopSequence = gSTU.optStopSequence ?: return false // no match</ID>
+    <ID>UnreachableCode:GtfsRealtimeTripUpdateExt.kt:gStuStopSeq ?: return@any true</ID>
+    <ID>UnreachableCode:GtfsRealtimeTripUpdateExt.kt:it == stopSequence</ID>
+    <ID>UnreachableCode:GtfsRealtimeTripUpdateExt.kt:return@any findStopTimestamp(rds.uuid, gStuStopSeq)</ID>
     <ID>UnreachableCode:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$(filter.poi as? RouteDirectionStop)?.getTargetUUIDs(includeStopTags = true) ?: filter.routeDirection?.getTargetUUIDs() ?: filter.route?.getTargetUUIDs()</ID>
     <ID>UnreachableCode:TwitterNewsProvider.kt:TwitterNewsProvider$!deleteAllDone</ID>
     <ID>UnreachableCode:VehicleLocationProviderContract.kt:VehicleLocationProviderContract.Filter.Companion$json.optString(JSON_AUTHORITY, fallback = null) ?: poi?.authority ?: return null</ID>

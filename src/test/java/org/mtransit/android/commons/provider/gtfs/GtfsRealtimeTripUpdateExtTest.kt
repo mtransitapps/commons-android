@@ -50,10 +50,10 @@ class GtfsRealtimeTripUpdateExtTest {
         assertTrue { stopTimeUpdate { stopSequence = 7 }.match(rdsStop1234List, findStopTimestamp, parseStopId) }
         assertFalse { stopTimeUpdate { stopSequence = 1 }.match(rdsStop1234List, findStopTimestamp, parseStopId) }
         // STU - stop ID & stop SEQ
-        assertTrue { stopTimeUpdate { stopId = "1234"; stopSequence = 7 }.match(rdsStop1234List, findStopTimestamp, parseStopId)}
-        assertFalse { stopTimeUpdate { stopId = "1234"; stopSequence = 1 }.match(rdsStop1234List, findStopTimestamp, parseStopId)}
-        assertFalse { stopTimeUpdate { stopId = "5678"; stopSequence = 7 }.match(rdsStop1234List, findStopTimestamp, parseStopId)}
-        assertFalse { stopTimeUpdate { stopId = "5678"; stopSequence = 1 }.match(rdsStop1234List, findStopTimestamp, parseStopId)}
+        assertTrue { stopTimeUpdate { stopId = "1234"; stopSequence = 7 }.match(rdsStop1234List, findStopTimestamp, parseStopId) }
+        assertFalse { stopTimeUpdate { stopId = "1234"; stopSequence = 1 }.match(rdsStop1234List, findStopTimestamp, parseStopId) }
+        assertFalse { stopTimeUpdate { stopId = "5678"; stopSequence = 7 }.match(rdsStop1234List, findStopTimestamp, parseStopId) }
+        assertFalse { stopTimeUpdate { stopId = "5678"; stopSequence = 1 }.match(rdsStop1234List, findStopTimestamp, parseStopId) }
     }
 
     // endregion top time update - match
