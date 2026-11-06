@@ -13,7 +13,7 @@ import kotlin.time.Duration.Companion.hours
 
 // SAME as regular schedule status fetch from UI since cached is shared
 private const val DEFAULT_MAX_DATA_REQUEST = ScheduleStatusFilter.MAX_DATA_REQUESTS_DEFAULT // same as UI-trigger fetch (shared cache)
-private val DEFAULT_LOOK_BEHIND = 1.hours // same as UI-trigger fetch (shared cache)
+val DEFAULT_LOOK_BEHIND = 1.hours // same as UI-trigger fetch (shared cache)
 
 fun Context.getRDSSchedules(
     authority: String,

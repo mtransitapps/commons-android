@@ -15,8 +15,8 @@ public class TimeUtilsTest {
 
 	@Test
 	public void test_formatSimpleDuration() {
-		assertEquals("1 days 2 h 3 min 4 sec 5 ms", TimeUtils.formatSimpleDuration(93784005));
-		assertEquals("22 sec 915 ms", TimeUtils.formatSimpleDuration(22_915L));
+		assertEquals("1 day 2 hour 3 min 4 sec 5 milli", TimeUtils.formatSimpleDuration(93784005));
+		assertEquals("22s 915ms", TimeUtils.formatSimpleDuration(22_915L, true));
 		assertEquals("-1 min", TimeUtils.formatSimpleDuration(-60_000L));
 	}
 }

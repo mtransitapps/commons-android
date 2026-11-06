@@ -8,15 +8,16 @@ import kotlin.time.Instant
 
 object TimeUtilsK {
 
+    @JvmOverloads
     @JvmStatic
-    fun formatSimpleDuration(durationInMs: Long) = buildString {
+    fun formatSimpleDuration(durationInMs: Long, short: Boolean = true) = buildString {
         val negative = durationInMs < 0L
         abs(durationInMs).milliseconds.toComponents { days, hours, minutes, seconds, nanoseconds ->
-            days.takeIf { it > 0L }?.let { append(it).append(" days ") }
-            hours.takeIf { it > 0 }?.let { append(it).append(" h ") }
-            minutes.takeIf { it > 0 }?.let { append(it).append(" min ") }
-            seconds.takeIf { it > 0 }?.let { append(it).append(" sec ") }
-            nanoseconds.takeIf { it > 0 }?.nanoseconds?.inWholeMilliseconds?.let { append(it).append(" ms ") }
+            days.takeIf { it > 0L }?.let { append(it).append(if (short) "d " else " day ") }
+            hours.takeIf { it > 0 }?.let { append(it).append(if (short) "h " else " hour ") }
+            minutes.takeIf { it > 0 }?.let { append(it).append(if (short) "m " else " min ") }
+            seconds.takeIf { it > 0 }?.let { append(it).append(if (short) "s " else " sec ") }
+            nanoseconds.takeIf { it > 0 }?.nanoseconds?.inWholeMilliseconds?.let { append(it).append(if (short) "ms " else " milli ") }
         }
         if (negative) insert(0, "-")
         if (durationInMs == 0L) append("0")
@@ -29,7 +30,8 @@ object TimeUtilsK {
     val EPOCH_TIME_0: Instant = 0L.millisToInstant()
 }
 
-fun Duration.formatSimpleDuration() = this.inWholeMilliseconds.let { TimeUtilsK.formatSimpleDuration(it) }
+@Suppress("unused")
+fun Duration.formatSimpleDuration(short: Boolean = false) = this.inWholeMilliseconds.let { TimeUtilsK.formatSimpleDuration(it, short) }
 
 fun Long.millisToInstant() = Instant.fromEpochMilliseconds(this)
 
