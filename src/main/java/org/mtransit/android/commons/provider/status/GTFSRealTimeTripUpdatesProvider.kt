@@ -301,7 +301,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         val tripId = parseTripId(gTripDescriptor) ?: return@filter false
                         val rtRouteIdHash = parseRouteId(gTripDescriptor)
                         (rtRouteIdHash == null || rtRouteIdHash == targetRouteIdHash) // keep route ID unknown or match
-                            && gTripUpdate.isUseful(nowMs, agencyTZCal)
+                            && gTripUpdate.isUseful(nowMs, agencyTimeZone, agencyTZCal)
                             && stuListMatch(tripId, gTripUpdate.optStopTimeUpdateList, false) // any
                     }.takeIf { it.isNotEmpty() } ?: run {
                         return@lazy null // no trip updates for this route -> match unknown
@@ -408,7 +408,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                             ?: "no_trip_id_$index" // keep all trip updates since we can match w/o trip ID
                         tripId to gTripUpdate
                     }
-                    .filter { (_, gTripUpdate) -> gTripUpdate.isUseful(nowMs, agencyTZCal) }
+                    .filter { (_, gTripUpdate) -> gTripUpdate.isUseful(nowMs, agencyTimeZone, agencyTZCal) }
                     .filterDuplicatesTrips()
             }
             val hasMatchingTripUpdates = processRDTripUpdates(

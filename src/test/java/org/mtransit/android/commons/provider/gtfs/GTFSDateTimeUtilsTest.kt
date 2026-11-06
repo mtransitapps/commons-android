@@ -128,27 +128,27 @@ class GTFSDateTimeUtilsTest {
     @Test
     fun test_parseToDateTime() {
         ("20260730" to "12:24:00").let { (date, time) ->
-            GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ_CAL)
+            GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let { result ->
             assertEquals(1785428640_000L.millisToInstant(), result)
         }
         ("20260730" to "24:24:00").let { (date, time) ->
-            GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ_CAL)
+            GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let { result ->
             assertEquals(1785471840_000L.millisToInstant(), result)
         }
         ("20260730" to "00:24:00").let { (date, time) ->
-            GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ_CAL)
+            GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let { result ->
             assertEquals(1785385440_000L.millisToInstant(), result)
         }
         (null to null).let { (date, time) ->
-            GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ_CAL)
+            GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let { result ->
             assertNull(result)
         }
         ("2026-07-30" to "-1:74:77").let { (date, time) ->
-            GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ_CAL)
+            GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let { result ->
             assertNull(result)
         }
@@ -196,7 +196,7 @@ class GTFSDateTimeUtilsTest {
             "20260307" to "49:24:24",
         ).forEach { (date, time) ->
             val expected = assertNotNull(staticScheduleFormat.parse(date + time)).time.millisToInstant()
-            assertEquals(expected, GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ_CAL), "$date / $time")
+            assertEquals(expected, GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ, AGENCY_TZ_CAL), "$date / $time")
         }
     }
 

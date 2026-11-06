@@ -59,12 +59,14 @@ object GTFSDateTimeUtils : MTLog.Loggable {
 
             val nowInstant = nowMs.millisToInstant()
             val today = nowInstant.toLocalDateTime(agencyTimeZone).date
-            val todayService = agencyTZCal.toLocalInstant(today, hoursCount, minutesCount, secondsCount)
+            val todayService = agencyTZCal.toLocalInstant(
+                today, hoursCount, minutesCount, secondsCount, agencyTimeZone
+            )
             val yesterdayService = agencyTZCal.toLocalInstant(
-                LocalDate.fromEpochDays(today.toEpochDays() - 1), hoursCount, minutesCount, secondsCount
+                LocalDate.fromEpochDays(today.toEpochDays() - 1), hoursCount, minutesCount, secondsCount, agencyTimeZone
             )
             val tomorrowService = agencyTZCal.toLocalInstant(
-                LocalDate.fromEpochDays(today.toEpochDays() + 1), hoursCount, minutesCount, secondsCount
+                LocalDate.fromEpochDays(today.toEpochDays() + 1), hoursCount, minutesCount, secondsCount, agencyTimeZone
             )
             val todayServiceDiff = (todayService - nowInstant).absoluteValue
             val yesterdayServiceDiff = (nowInstant - yesterdayService).absoluteValue
@@ -89,7 +91,7 @@ object GTFSDateTimeUtils : MTLog.Loggable {
         }
     }
 
-    fun parseToDateTime(gtfsDateStr: String?, gtfsTimeStr: String?, agencyTZCal: Calendar): Instant? {
+    fun parseToDateTime(gtfsDateStr: String?, gtfsTimeStr: String?, agencyTimeZone: KtTimeZone, agencyTZCal: Calendar): Instant? {
         try {
             val cleanedDate = gtfsDateStr?.trim() ?: return null
             if (cleanedDate.length != DATE_FORMAT_LENGTH || cleanedDate.any { !it.isDigit() }) {
@@ -107,7 +109,7 @@ object GTFSDateTimeUtils : MTLog.Loggable {
             val month = cleanedDate.substring(4, 6).toIntOrNull() ?: return null
             val day = cleanedDate.substring(6, 8).toIntOrNull() ?: return null
 
-            return agencyTZCal.toLocalInstant(LocalDate(year, month, day), hoursCount, minutesCount, secondsCount)
+            return agencyTZCal.toLocalInstant(LocalDate(year, month, day), hoursCount, minutesCount, secondsCount, agencyTimeZone)
         } catch (e: Exception) {
             MTLog.w(this, e, "Error while parsing GTFS date '$gtfsDateStr' & time '$gtfsTimeStr'!")
             return null
@@ -119,6 +121,7 @@ object GTFSDateTimeUtils : MTLog.Loggable {
         hours: Int,
         minutes: Int,
         seconds: Int,
+        @Suppress("unused") agencyTimeZone: KtTimeZone, // using calendar solution for now
     ): Instant {
         val date = LocalDate.fromEpochDays(serviceDate.toEpochDays() + hours / TWENTY_FOUR_HOURS)
         return apply {

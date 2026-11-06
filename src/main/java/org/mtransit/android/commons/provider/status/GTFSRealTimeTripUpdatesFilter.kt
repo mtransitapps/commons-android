@@ -68,13 +68,13 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
                 staticTripId to gTripUpdate
             }
     }
-    .filter { (_, gTripUpdate) -> gTripUpdate.isUseful(nowMs, agencyTZCal) }
+    .filter { (_, gTripUpdate) -> gTripUpdate.isUseful(nowMs, agencyTimeZone, agencyTZCal) }
     .filterDuplicatesTrips()
 
 // Montréal-based competitor: 4.5 hours (?)
 private val FUTURE_TRIP_UPDATE_MAX_DIFF_MS = 90.minutes.times(3).inWholeMilliseconds
 
-internal fun GTripUpdate.isUseful(nowMs: Long, agencyTZCal: Calendar): Boolean {
+internal fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone, agencyTZCal: Calendar): Boolean {
     val td = optTrip ?: return false // not useful
     td.optScheduleRelationship?.let { scheduleRelationship ->
         if (scheduleRelationship == GTDScheduleRelationship.DELETED
@@ -93,7 +93,7 @@ internal fun GTripUpdate.isUseful(nowMs: Long, agencyTZCal: Calendar): Boolean {
     val startDateTimeOrFirstTimeMs: Long? = if (hasVehicleInfo) {
         null
     } else {
-        GTFSDateTimeUtils.parseToDateTime(td.optStartDateOrModifiedTripStartDate, td.optStartTimeOrModifiedTripStartTime, agencyTZCal)?.toMillis()
+        GTFSDateTimeUtils.parseToDateTime(td.optStartDateOrModifiedTripStartDate, td.optStartTimeOrModifiedTripStartTime, agencyTimeZone, agencyTZCal)?.toMillis()
             ?: optStopTimeUpdateList // not sorting because GTFS spec requires it to be already sorted & it's a fallback
                 ?.firstOrNull { it.optDeparture?.hasTimeOrScheduledTime() == true || it.optArrival?.hasTimeOrScheduledTime() == true }
                 ?.let {
@@ -171,7 +171,7 @@ internal fun GTripUpdate.match(
         }
         optStartTimeOrModifiedTripStartTime?.let { startTime -> // start time required when trip ID do not match
             val tuDeparture = optStartDateOrModifiedTripStartDate?.let { startDate ->
-                GTFSDateTimeUtils.parseToDateTime(startDate, startTime, agencyTZCal)
+                GTFSDateTimeUtils.parseToDateTime(startDate, startTime, agencyTimeZone, agencyTZCal)
             } ?: run {
                 GTFSDateTimeUtils.parseToTime(nowMs, startTime, agencyTimeZone, agencyTZCal)
             }
