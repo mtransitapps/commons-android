@@ -16,7 +16,7 @@ import kotlin.time.Instant
 fun Long?.toDurationLog(short: Boolean = true): String? = if (Constants.DEBUG) MtLogExt.formatDuration(this, short) else this?.toString()
 
 @JvmOverloads
-fun Duration?.toDurationLog(short: Boolean = true): String? = this?.inWholeMilliseconds.toDurationLog()
+fun Duration?.toDurationLog(short: Boolean = true): String? = this?.inWholeMilliseconds.toDurationLog(short)
 
 // endregion
 

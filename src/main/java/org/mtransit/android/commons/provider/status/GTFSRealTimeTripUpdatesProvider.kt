@@ -173,43 +173,44 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             }
             val rdSchedulesByUUID by lazy { rdSchedules.associateBy { it.targetUUID } }
             val rdsUUIDsByTripId by lazy {
-                rdSchedules
-                    .flatMap { schedule ->
-                        schedule.timestamps
-                            .mapNotNull { it.tripId }
-                            .map { staticTripId -> staticTripId to schedule.targetUUID }
+                mutableMapOf<String, MutableSet<String>>().apply {
+                    rdSchedules.forEach { schedule ->
+                        schedule.timestamps.forEach { timestamp ->
+                            val staticTripId = timestamp.tripId ?: return@forEach
+                            getOrPut(staticTripId) { mutableSetOf() }.add(schedule.targetUUID)
+                        }
                     }
-                    .groupBy({ it.first }, { it.second })
-                    .mapValues { (_, uuids) -> uuids.toSet() }
+                }
             }
             // region Out Of Sync Trip IDs
             val outOfSyncTripIdToTargetUUIDStopSeqTimestamps by lazy {
-                rdSchedules
-                    .asSequence()
-                    // 1 uuid can have multiple timestamp for 1 trip
-                    .flatMap { schedule ->
-                        schedule.timestamps.asSequence().map { (schedule.targetUUID to it.stopSequenceOrNull) to it }
+                mutableMapOf<String, MutableList<Pair<Pair<String, Int?>, Schedule.Timestamp>>>().apply {
+                    rdSchedules.forEach { schedule ->
+                        schedule.timestamps.forEach { timestamp ->
+                            val tripId = timestamp.tripId ?: return@forEach
+                            if (tripId.isNotEmpty()) {
+                                // 1 uuid can have multiple timestamp for 1 trip (different stop sequence)
+                                val targetUUIDtoStopSeq = schedule.targetUUID to timestamp.stopSequenceOrNull
+                                getOrPut(tripId) { mutableListOf() }.add(targetUUIDtoStopSeq to timestamp)
+                            }
+                        }
                     }
-                    .groupBy { (_, timestamp) -> timestamp.tripId.orEmpty() }
-                    .filterKeys { it.isNotEmpty() }
+                }
             }
             val departuresToOutOfSyncTripIds by lazy {
-                outOfSyncTripIdToTargetUUIDStopSeqTimestamps
-                    .mapNotNull { (staticTripId, targetUUIDStopSeqToTimestamps) ->
-                        // might not contain the actual 1st trip stop departure
-                        // since we are loading last X hours instead of all trips started and not finished + near future trips
-                        // -> good-enough for now as it's already a fall-back for out-of-sync trip IDs
-                        targetUUIDStopSeqToTimestamps
-                            .minByOrNull { (_, timestamp) -> timestamp.departure }
-                            ?.let { (_, timestamp) ->
-                                timestamp.departure to staticTripId
-                            }
+                // might not contain the actual 1st trip stop departure
+                // since we are loading last X hours instead of all trips started and not finished + near future trips
+                // -> good-enough for now as it's already a fall-back for out-of-sync trip IDs
+                mutableMapOf<Instant, MutableList<String>>().apply {
+                    for ((staticTripId, targetUUIDStopSeqToTimestamps) in outOfSyncTripIdToTargetUUIDStopSeqTimestamps) {
+                        val minTimestamp = targetUUIDStopSeqToTimestamps.minByOrNull { it.second.departure }?.second ?: continue
+                        getOrPut(minTimestamp.departure) { mutableListOf() }.add(staticTripId)
                     }
-                    .groupBy({ it.first }, { it.second })
+                }
             }
             val stuListMatch: (staticTripId: String, stuList: List<GTUStopTimeUpdate>?, all: Boolean) -> Boolean = stuListMatch@{ staticTripId, stuList, all ->
                 stuList?.takeIf { it.isNotEmpty() } ?: return@stuListMatch all
-                val tripTargetUUIDStopSeqTimestamps by lazy { outOfSyncTripIdToTargetUUIDStopSeqTimestamps[staticTripId] }
+                val tripTargetUUIDStopSeqTimestamps = outOfSyncTripIdToTargetUUIDStopSeqTimestamps[staticTripId]
                 stuList.forEach { gSTU ->
                     if (gSTU.optScheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) return@forEach // might already be removed from static
                     val match = match(
@@ -275,7 +276,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         tripId = staticTripId,
                         tripSortedRDS = tripSortedRDS,
                         sortedTargetUuidAndSequence = sortedTargetUuidAndSequence,
-                        isSameStop = { stu, rds, stopSeq -> stu?.isSameStop(rds, stopSeq, this::parseStopId) == true },
+                        isSameStop = { stu, rds, stopSeq -> isSameStop(stu, rds, stopSeq) },
                         parseStopId = ::parseStopId,
                     ).takeIf { it.isNotEmpty() } ?: return@candidates // NO MATCH
                     // need to match as many as possible as same stop ID + sequence can be in both directions
@@ -301,7 +302,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                             && gTripUpdate.isUseful(nowMs, agencyTimeZone)
                             && stuListMatch(tripId, gTripUpdate.optStopTimeUpdateList, false) // any
                     }.takeIf { it.isNotEmpty() } ?: run {
-                        return@lazy true // no trip updates for this route -> match
+                        return@lazy null // no trip updates for this route -> match unknown
                     }
                 rdTripUpdatesCandidates.any { gTripUpdate ->
                     gTripUpdate.optTrip?.let { parseTripId(it) }?.let { tripId -> tripId in staticRDTripIds } == true

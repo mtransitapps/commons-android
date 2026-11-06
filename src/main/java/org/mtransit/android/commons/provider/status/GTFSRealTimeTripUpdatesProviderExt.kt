@@ -55,7 +55,7 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
     targetDirectionOriginalId: Int?,
     agencyTimeZone: KtTimeZone,
     staticRDTripIds: Set<String>,
-    getTripIdsMatch: () -> Boolean,
+    getTripIdsMatch: () -> Boolean?,
     findOutOfSyncTripId: (departure: Instant, stuList: List<GTUStopTimeUpdate>?) -> String?,
     getRDSchedulesByUUID: () -> Map<String, Schedule>,
     getRDSUUIDsByTripId: () -> Map<String, Set<String>>,
@@ -99,14 +99,14 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
         val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(staticTripId, tripSchedules, tripSortedRDS)
         processRDTripUpdate(
             staticTripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, rdsSchedulesByUUID,
-            isSameStop = { gSTU, rds, stopSeq -> isSameStop(gSTU, rds, stopSeq) },
+            isSameStop = this::isSameStop,
             feedReadFromSourceMs = feedReadFromSourceMs,
             fixStopSequence = { gSTUList ->
                 gSTUList?.fixStopSequence(
                     tripId = staticTripId,
                     tripSortedRDS = tripSortedRDS,
                     sortedTargetUuidAndSequence = sortedTargetUuidAndSequence,
-                    isSameStop = { gSTU, rds, stopSeq -> isSameStop(gSTU, rds, stopSeq) },
+                    isSameStop = this::isSameStop,
                     parseStopId = this::parseStopId,
                 )
             },

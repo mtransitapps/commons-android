@@ -42,7 +42,7 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
     agencyTimeZone: KtTimeZone,
     findOutOfSyncTripId: (departure: Instant, stuList: List<GTUStopTimeUpdate>?) -> String?,
     staticRDTripIds: Set<String>,
-    getTripIdsMatch: () -> Boolean,
+    getTripIdsMatch: () -> Boolean?,
     ignoreDirection: Boolean,
     parseRouteId: (GTripDescriptor) -> String?,
     parseTripId: (GTripDescriptor) -> String?,
@@ -127,7 +127,7 @@ internal fun GTripUpdate.match(
     agencyTimeZone: KtTimeZone,
     findOutOfSyncTripId: (departure: Instant, stuList: List<GTUStopTimeUpdate>?) -> String?,
     staticRDTripIds: Set<String>,
-    getTripIdsMatch: () -> Boolean,
+    getTripIdsMatch: () -> Boolean?,
     ignoreDirection: Boolean,
     parseRouteId: (GTripDescriptor) -> String?,
     parseTripId: (GTripDescriptor) -> String?,
@@ -144,8 +144,6 @@ internal fun GTripUpdate.match(
                 return tripId // MATCH
             }
         }
-        @Suppress("SimplifyBooleanWithConstants")
-        if (!IGNORE_TRIP_ID && tripId != null && getTripIdsMatch()) return null // NOT a match
         parseRouteId(this).let { rtRouteIdHash ->
             if (rtRouteIdHash != targetRouteIdHash) {
                 // if (DEBUG_STATIC_RT_MATCH) { // too much log
@@ -154,6 +152,8 @@ internal fun GTripUpdate.match(
                 return null // NOT A MATCH
             }
         }
+        @Suppress("SimplifyBooleanWithConstants")
+        if (!IGNORE_TRIP_ID && tripId != null && getTripIdsMatch() != false) return null // NOT a match
         @Suppress("SimplifyBooleanWithConstants")
         if (!ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID || optTripIdNotEmpty == null) { // trip ID was provided so can ignore often unreliable direction ID
             optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
