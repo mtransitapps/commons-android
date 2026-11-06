@@ -143,7 +143,7 @@ internal fun GTripUpdate.match(
             }
         }
         @Suppress("SimplifyBooleanWithConstants")
-        if (getTripIdsMatch() && tripId != null && !IGNORE_TRIP_ID) return null // NOT a match
+        if (!IGNORE_TRIP_ID && tripId != null && getTripIdsMatch()) return null // NOT a match
         parseRouteId(this).let { rtRouteIdHash ->
             if (rtRouteIdHash != targetRouteIdHash) {
                 // if (DEBUG_STATIC_RT_MATCH) { // too much log
@@ -175,13 +175,14 @@ internal fun GTripUpdate.match(
                     MTLog.i(LOG_TAG, "match() > FOUND: out-of-sync trip ID '$staticTripId' for ${toStringExt(short = true)}")
                     // }
                     @Suppress("SimplifyBooleanWithConstants")
-                    if (IGNORE_TRIP_ID && staticTripId != parseTripId(this)) {
-                        MTLog.w(
-                            LOG_TAG,
-                            "match() > WARNING: found out-of-sync trip ID '$staticTripId' has different trip ID than expected (${parseTripId(this)})!"
-                        )
+                    if (IGNORE_TRIP_ID && staticTripId != tripId) {
+                        MTLog.w(LOG_TAG, "match() > WARNING: found out-of-sync trip ID '$staticTripId' different than \"not really out-of-sync\" '$tripId'! (${this@match.toStringExt()})")
                     }
                     return staticTripId
+                }
+                @Suppress("SimplifyBooleanWithConstants")
+                if (IGNORE_TRIP_ID && tripId in staticRDTripIds) {
+                    MTLog.w(LOG_TAG, "match() > WARNING: dit NOT found trip ID '$tripId' that was not really out-of-sync! (${this@match.toStringExt()})")
                 }
             }
         }

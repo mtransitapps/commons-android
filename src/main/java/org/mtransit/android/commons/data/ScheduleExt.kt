@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package org.mtransit.android.commons.data
 
 import org.mtransit.android.commons.Constants
@@ -267,8 +269,11 @@ fun Schedule.Timestamp.toStringShort() = buildString {
     if (originalDepartureDelayMs != 0L) {
         append("[+/-:").append(if (Constants.DEBUG) originalDepartureDelayMs.toDurationLog() else originalDepartureDelayMs).append("]")
     }
-    if (tripId != null) {
-        append("[tId:").append(tripId).append("]")
+    tripId?.let {
+        append("[tId:").append(it).append("]")
+    }
+    stopSequenceOrNull?.let {
+        append("[sSeq:").append(it).append("]")
     }
     //noinspection DiscouragedApi
     localTimeZoneId?.let {

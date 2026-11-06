@@ -15,8 +15,11 @@ import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.toNoData
+import org.mtransit.android.commons.millisToInstant
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.agency.AgencyUtils
+import org.mtransit.android.commons.provider.gtfs.DEFAULT_LOOK_BEHIND
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
@@ -37,6 +40,7 @@ import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.gtfs.storage
 import org.mtransit.android.commons.toDateTimeLog
+import org.mtransit.android.commons.toDurationLog
 import org.mtransit.commons.SourceUtils
 import java.io.File
 import java.io.IOException
@@ -53,6 +57,7 @@ import kotlin.time.Instant
 import com.google.transit.realtime.GtfsRealtime.FeedMessage as GFeedMessage
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship as GTUSTUScheduleRelationship
 import kotlinx.datetime.TimeZone as KtTimeZone
 
 object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
@@ -205,10 +210,11 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     }
                     .groupBy({ it.first }, { it.second })
             }
-            val stuListMatch: (tripId: String, stuList: List<GTUStopTimeUpdate>?, all: Boolean) -> Boolean = stuListMatch@{ tripId, stuList, all ->
+            val stuListMatch: (staticTripId: String, stuList: List<GTUStopTimeUpdate>?, all: Boolean) -> Boolean = stuListMatch@{ staticTripId, stuList, all ->
                 stuList?.takeIf { it.isNotEmpty() } ?: return@stuListMatch all
-                val tripTargetUUIDStopSeqTimestamps by lazy { outOfSyncTripIdToTargetUUIDStopSeqTimestamps[tripId] }
+                val tripTargetUUIDStopSeqTimestamps by lazy { outOfSyncTripIdToTargetUUIDStopSeqTimestamps[staticTripId] }
                 stuList.forEach { gSTU ->
+                    if (gSTU.optScheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) return@forEach // might already be removed from static
                     val match = match(
                         gSTU,
                         rdsCandidates = sortedRDS,
@@ -222,7 +228,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     )
                     if (all) {
                         if (!match) {
-                            MTLog.d(LOG_TAG, "stuListMatch() > trip ID '$tripId' does NOT match! (${gSTU.toStringExt(short = true)})")
+                            MTLog.d(LOG_TAG, "stuListMatch() > trip ID '$staticTripId' does NOT match! (${gSTU.toStringExt(short = true)})")
                             return@stuListMatch false
                         }
                     } else { // any
@@ -235,18 +241,21 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             }
             val findOutOfSyncTripId: (departure: Instant, stuList: List<GTUStopTimeUpdate>?) -> String? = findTripId@{ departure, gSTUList ->
                 if (gSTUList.isNullOrEmpty()) {
-                    MTLog.d(LOG_TAG, "findOutOfSyncTripId() > out-of-sync trip ID NOT found at ${departure.toDateTimeLog()} (no stop time updates).")
+                    MTLog.d(LOG_TAG, "findOutOfSyncTripId() > NO stop time updates to match for a trip at ${departure.toDateTimeLog()}.")
                     // could be CANCELLED or DELETED trips (w/o stop time updates)
                     // -> good-enough for now as it's already a fall-back for out-of-sync trip IDs
                     return@findTripId null // NO MATCH
                 }
-                val staticTripIdsWithSameDepartures = departuresToOutOfSyncTripIds[departure]
-                if (staticTripIdsWithSameDepartures.isNullOrEmpty()) {
-                    MTLog.d(LOG_TAG, "findOutOfSyncTripId() > out-of-sync trip ID NOT found at ${departure.toDateTimeLog()} (no candidates).")
+                val sTripIdsCandidates = departuresToOutOfSyncTripIds[departure]
+                if (sTripIdsCandidates.isNullOrEmpty()) {
+                    if (departure < nowMs.millisToInstant() - DEFAULT_LOOK_BEHIND) {
+                        MTLog.d(LOG_TAG, "findOutOfSyncTripId() > looking for trip departed more than ${DEFAULT_LOOK_BEHIND.toDurationLog()} ago -> not loaded?")
+                    }
+                    MTLog.d(LOG_TAG, "findOutOfSyncTripId() > NO candidates trips found starting at ${departure.toDateTimeLog()}.")
                     return@findTripId null // NO MATCH
                 }
-                MTLog.d(LOG_TAG, "findOutOfSyncTripId() > out-of-sync trip ID candidate(s) found: ${staticTripIdsWithSameDepartures.joinToString()}.")
-                staticTripIdsWithSameDepartures.forEach candidates@{ staticTripId ->
+                MTLog.d(LOG_TAG, "findOutOfSyncTripId() > found ${sTripIdsCandidates.size} trip(s) (${sTripIdsCandidates.joinToString()}) candidate(s)...")
+                sTripIdsCandidates.forEach candidates@{ staticTripId ->
                     val tripRdsUUIDs = rdsUUIDsByTripId[staticTripId]
                         ?: return@candidates // trip ID not in static data
                     val tripSchedules = tripRdsUUIDs.mapNotNull { rdSchedulesByUUID[it] }
@@ -255,11 +264,12 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         .takeIf { it.isNotEmpty() }
                         ?: return@candidates
                     gSTUList.forEach { stu ->
+                        if (stu.optScheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) return@forEach // might already be removed from static
                         stu.optStopIdNotEmpty?.let { parseStopId(it) }?.let { stopId ->
                             if (tripSortedRDS.none { it.stop.isSameOriginalId(stopId) }) {
                                 MTLog.d(
                                     LOG_TAG,
-                                    "findOutOfSyncTripId() > out-of-sync trip ID NOT found at ${departure.toDateTimeLog()} " +
+                                    "findOutOfSyncTripId() > out-of-sync trip ID '$staticTripId' NOT found at ${departure.toDateTimeLog()} " +
                                         "(stop ID '${stu.optStopId}' not in this route direction)."
                                 )
                                 return@candidates // NO MATCH
@@ -275,7 +285,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         parseStopId = ::parseStopId,
                     ).takeIf { it.isNotEmpty() } ?: return@candidates // NO MATCH
                     // need to match as many as possible as same stop ID + sequence can be in both directions
-                    val stopTimeUpdatesMatch = stuListMatch(staticTripId, gSTUStopSeqFixed, true)
+                    val stopTimeUpdatesMatch = stuListMatch(staticTripId, gSTUStopSeqFixed, true) // all
                     if (!stopTimeUpdatesMatch) {
                         MTLog.d(LOG_TAG, "findOutOfSyncTripId() > ignore wrong out-of-sync trip ID '$staticTripId' at ${departure.toDateTimeLog()}.")
                         return@candidates // NO MATCH
@@ -295,7 +305,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         val rtRouteIdHash = parseRouteId(gTripDescriptor)
                         (rtRouteIdHash == null || rtRouteIdHash == targetRouteIdHash) // keep route ID unknown or match
                             && gTripUpdate.isUseful(nowMs, agencyTimeZone)
-                            && stuListMatch(tripId, gTripUpdate.optStopTimeUpdateList, false)
+                            && stuListMatch(tripId, gTripUpdate.optStopTimeUpdateList, false) // any
                     }.takeIf { it.isNotEmpty() } ?: run {
                         return@lazy true // no trip updates for this route -> match
                     }

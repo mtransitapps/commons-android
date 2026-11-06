@@ -232,11 +232,11 @@ internal fun List<GTUStopTimeUpdate>.fixStopSequence(
                         // use STU w fixed stop sequence
                         stopSequence = stopSeq
                     }.also {
-                        MTLog.d(LOG_TAG, "fixStopSequence($tripId) > KEEP fixed wrong stop sequence (!$wrongStopSeq): ${it.toStringExt(short = true)}")
+                        MTLog.d(LOG_TAG, "fixStopSequence($tripId) > KEEP $wrongStuStopId w/ updated stop sequence: $wrongStopSeq -> $stopSeq.")
                     }
                 }
         }
-        MTLog.w(LOG_TAG, "fixStopSequence($tripId) > IGNORE (no stop ID/sequence match): ${stu.toStringExt()}")
+        MTLog.w(LOG_TAG, "fixStopSequence($tripId) > IGNORE (no stop ID/sequence match): ${stu.toStringExt(short = true)}")
         return@mapNotNull null // remove invalid STU
     }
 }
