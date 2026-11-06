@@ -14,6 +14,7 @@ import kotlin.time.Instant
 // formatting is expensive, only in debug
 @JvmOverloads
 fun Long?.toDurationLog(short: Boolean = true): String? = if (Constants.DEBUG) MtLogExt.formatDuration(this, short) else this?.toString()
+
 @JvmOverloads
 fun Duration?.toDurationLog(short: Boolean = true): String? = this?.inWholeMilliseconds.toDurationLog()
 
@@ -25,9 +26,7 @@ object MtLogExt {
     }
 
     fun formatDateTime(timeInMs: Long?): String? = try {
-        timeInMs?.let {
-            dateTimeFormatter.formatThreadSafe(it)
-        }
+        timeInMs?.let { dateTimeFormatter.formatThreadSafe(it) }
     } catch (_: Exception) {
         "e:$timeInMs!"
     }
