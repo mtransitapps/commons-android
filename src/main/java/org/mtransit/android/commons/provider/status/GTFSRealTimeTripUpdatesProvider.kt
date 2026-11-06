@@ -204,6 +204,34 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     }
                     .groupBy({ it.first }, { it.second })
             }
+            val stuListMatch: (tripId: String, stuList: List<GTUStopTimeUpdate>?, all: Boolean) -> Boolean = stuListMatch@{ tripId, stuList, all ->
+                stuList?.takeIf { it.isNotEmpty() } ?: return@stuListMatch all
+                val tripTargetUUIDStopSeqTimestamps by lazy { outOfSyncTripIdToTargetUUIDStopSeqTimestamps[tripId] }
+                stuList.forEach { gSTU ->
+                    val match = match(
+                        gSTU,
+                        rdsCandidates = sortedRDS,
+                        findStopTimestamp = { rdsUUID, gSTUStopSeq ->
+                            tripTargetUUIDStopSeqTimestamps?.find { (targetUUIDAndStopSeq, _) ->
+                                targetUUIDAndStopSeq.first == rdsUUID
+                                    && targetUUIDAndStopSeq.second.let { stopSeq -> stopSeq == null || stopSeq == gSTUStopSeq }
+                                /** stop seq should not be null if FF is turned ON [org.mtransit.commons.FeatureFlags.F_EXPORT_STOP_SEQUENCE] */
+                            }?.second
+                        }
+                    )
+                    if (all) {
+                        if (!match) {
+                            MTLog.d(LOG_TAG, "stuListMatch() > trip ID '$tripId' does NOT match! (${gSTU.toStringExt(short = true)})")
+                            return@stuListMatch false
+                        }
+                    } else { // any
+                        if (match) {
+                            return@stuListMatch true
+                        }
+                    }
+                }
+                return@stuListMatch all
+            }
             val findOutOfSyncTripId: (departure: Instant, stuList: List<GTUStopTimeUpdate>?) -> String? = findTripId@{ departure, gSTUList ->
                 if (gSTUList.isNullOrEmpty()) {
                     MTLog.d(LOG_TAG, "findOutOfSyncTripId() > out-of-sync trip ID NOT found at ${departure.toDateTimeLog()} (no stop time updates).")
@@ -245,24 +273,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         isSameStop = { stu, rds, stopSeq -> stu?.isSameStop(rds, stopSeq, this::parseStopId) == true },
                         parseStopId = ::parseStopId,
                     ).takeIf { it.isNotEmpty() } ?: return@candidates // NO MATCH
-                    val tripTargetUUIDStopSeqTimestamps = outOfSyncTripIdToTargetUUIDStopSeqTimestamps[staticTripId]
-                    val stopTimeUpdatesMatch = gSTUStopSeqFixed.all { gSTU -> // need to match as many as possible as same stop ID + sequence can be in both direction
-                        val match = match(
-                            gSTU,
-                            rdsCandidates = sortedRDS,
-                            findStopTimestamp = { rdsUUID, gSTUStopSeq ->
-                                tripTargetUUIDStopSeqTimestamps?.find { (targetUUIDAndStopSeq, _) ->
-                                    targetUUIDAndStopSeq.first == rdsUUID
-                                        /** stop sequence should not be null if FF is turned ON [org.mtransit.commons.FeatureFlags.F_EXPORT_STOP_SEQUENCE] */
-                                        && targetUUIDAndStopSeq.second.let { stopSeq -> stopSeq == null || stopSeq == gSTUStopSeq }
-                                }?.second
-                            }
-                        )
-                        if (!match) {
-                            MTLog.d(LOG_TAG, "findOutOfSyncTripId() > ignore wrong out-of-sync trip ID '$staticTripId' (${gSTU.toStringExt(short = true)}")
-                        }
-                        return@all match
-                    }
+                    // need to match as many as possible as same stop ID + sequence can be in both directions
+                    val stopTimeUpdatesMatch = stuListMatch(staticTripId, gSTUStopSeqFixed, true)
                     if (!stopTimeUpdatesMatch) {
                         MTLog.d(LOG_TAG, "findOutOfSyncTripId() > ignore wrong out-of-sync trip ID '$staticTripId' at ${departure.toDateTimeLog()}.")
                         return@candidates // NO MATCH
@@ -280,22 +292,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         val gTripDescriptor = gTripUpdate.optTrip ?: return@filter false
                         val tripId = parseTripId(gTripDescriptor) ?: return@filter false
                         val rtRouteIdHash = parseRouteId(gTripDescriptor)
-                        val tripTargetUUIDStopSeqTimestamps by lazy { outOfSyncTripIdToTargetUUIDStopSeqTimestamps[tripId] }
                         (rtRouteIdHash == null || rtRouteIdHash == targetRouteIdHash) // keep route ID unknown or match
                             && gTripUpdate.isUseful(nowMs, agencyTimeZone)
-                            && gTripUpdate.optStopTimeUpdateList?.any { gSTU ->
-                            match(
-                                gSTU,
-                                rdsCandidates = sortedRDS,
-                                findStopTimestamp = { rdsUUID, gSTUStopSeq ->
-                                    tripTargetUUIDStopSeqTimestamps?.find { (targetUUIDAndStopSeq, _) ->
-                                        targetUUIDAndStopSeq.first == rdsUUID
-                                            /** stop sequence should not be null if FF is turned ON [org.mtransit.commons.FeatureFlags.F_EXPORT_STOP_SEQUENCE] */
-                                            && targetUUIDAndStopSeq.second.let { stopSeq -> stopSeq == null || stopSeq == gSTUStopSeq }
-                                    }?.second
-                                }
-                            )
-                        } == true
+                            && stuListMatch(tripId, gTripUpdate.optStopTimeUpdateList, false)
                     }.takeIf { it.isNotEmpty() } ?: run {
                         return@lazy true // no trip updates for this route -> match
                     }
