@@ -31,6 +31,7 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestampMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.ignoreDirection
+import org.mtransit.android.commons.provider.gtfs.isSameStop
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
@@ -98,14 +99,14 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
         val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(staticTripId, tripSchedules, tripSortedRDS)
         processRDTripUpdate(
             staticTripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, rdsSchedulesByUUID,
-            isSameStop = this::isSameStop,
+            isSameStop = { gSTU, rds, stopSeq -> isSameStop(gSTU, rds, stopSeq)},
             feedReadFromSourceMs = feedReadFromSourceMs,
             fixStopSequence = { gSTUList ->
                 gSTUList?.fixStopSequence(
                     tripId = staticTripId,
                     tripSortedRDS = tripSortedRDS,
                     sortedTargetUuidAndSequence = sortedTargetUuidAndSequence,
-                    isSameStop = this::isSameStop,
+                    isSameStop = { gSTU, rds, stopSeq -> isSameStop(gSTU, rds, stopSeq)},
                     parseStopId = this::parseStopId,
                 )
             },
@@ -146,7 +147,7 @@ internal fun processRDTripUpdate(
     tripSortedRDS: List<RouteDirectionStop>,
     sortedTargetUuidAndSequence: List<Pair<String, Int>>,
     rdSchedulesByUUID: Map<String, Schedule>,
-    isSameStop: (GTUStopTimeUpdate?, RouteDirectionStop, Int) -> Boolean,
+    isSameStop: (gSTU: GTUStopTimeUpdate?, rds: RouteDirectionStop?, stopSeq: Int) -> Boolean,
     feedReadFromSourceMs: Long,
     fixStopSequence: (List<GTUStopTimeUpdate>?) -> List<GTUStopTimeUpdate>? = { it },
     includeCancelledTimestamps: Boolean = false,
@@ -352,23 +353,4 @@ internal fun applyDelay(
     }
     rdsSchedule.setReadFromSourceAtInMsKeepMostRecent(readFromSourceMs)
     return newDelay
-}
-
-private fun GTFSRealTimeProvider.isSameStop(stopTimeUpdate: GTUStopTimeUpdate?, rds: RouteDirectionStop?, stopSequence: Int) =
-    stopTimeUpdate?.isSameStop(rds, stopSequence, this::parseStopId) == true
-
-internal fun GTUStopTimeUpdate.isSameStop(
-    rds: RouteDirectionStop?,
-    stopSequence: Int,
-    parseStopId: (String) -> String,
-): Boolean {
-    rds ?: return false
-    val sameOrUnspecifiedStopSequence = this.optStopSequence?.let {
-        it == stopSequence
-    }
-    val sameOrUnspecifiedStopId = this.optStopIdNotEmpty?.let {
-        rds.stop.isSameOriginalId(parseStopId(it))
-    }
-    return !(sameOrUnspecifiedStopSequence == null && sameOrUnspecifiedStopId == null)
-        && (sameOrUnspecifiedStopSequence ?: true) && (sameOrUnspecifiedStopId ?: true)
 }

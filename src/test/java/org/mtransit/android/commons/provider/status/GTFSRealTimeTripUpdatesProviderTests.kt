@@ -24,6 +24,7 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.gtfs.GTFSStatusProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.delayDuration
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
+import org.mtransit.android.commons.provider.gtfs.isSameStop
 import org.mtransit.android.commons.secsToInstant
 import org.mtransit.android.commons.toSecs
 import org.mtransit.commons.CommonsApp
@@ -234,28 +235,6 @@ class GTFSRealTimeTripUpdatesProviderTests {
             feedReadFromSourceMs = READ_FROM_MS,
         )
     }
-
-    // region same stop
-
-    @Test
-    fun test_isSameStop() {
-        // STU - no stop ID / SEQ filter
-        assertFalse { stopTimeUpdate { }.isSameStop(makeRDS(stopId = 1234), 1, parseStopId = { it }) }
-        assertFalse { stopTimeUpdate { }.isSameStop(null, 1, parseStopId = { it }) }
-        // STU - stop ID only
-        assertTrue { stopTimeUpdate { stopId = "1234" }.isSameStop(makeRDS(stopId = 1234), 1, parseStopId = { it }) }
-        assertFalse { stopTimeUpdate { stopId = "1234" }.isSameStop(makeRDS(stopId = 5678), 1, parseStopId = { it }) }
-        // STU - stop SEQ only
-        assertTrue { stopTimeUpdate { stopSequence = 7 }.isSameStop(makeRDS(stopId = 1234), 7, parseStopId = { it }) }
-        assertFalse { stopTimeUpdate { stopSequence = 1 }.isSameStop(makeRDS(stopId = 1234), 7, parseStopId = { it }) }
-        // STU - stop ID & stop SEQ
-        assertTrue { stopTimeUpdate { stopId = "1234"; stopSequence = 7 }.isSameStop(makeRDS(stopId = 1234), 7, parseStopId = { it }) }
-        assertFalse { stopTimeUpdate { stopId = "1234"; stopSequence = 7 }.isSameStop(makeRDS(stopId = 1234), 1, parseStopId = { it }) }
-        assertFalse { stopTimeUpdate { stopId = "1234"; stopSequence = 7 }.isSameStop(makeRDS(stopId = 5678), 7, parseStopId = { it }) }
-        assertFalse { stopTimeUpdate { stopId = "1234"; stopSequence = 7 }.isSameStop(makeRDS(stopId = 5678), 1, parseStopId = { it }) }
-    }
-
-    // endregion
 
     // region applyDelay
 

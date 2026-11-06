@@ -25,12 +25,13 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortTripUpdates
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toTripUpdates
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeTripUpdateExt.match
 import org.mtransit.android.commons.provider.gtfs.getRDS
 import org.mtransit.android.commons.provider.gtfs.getRDSSchedules
 import org.mtransit.android.commons.provider.gtfs.getTripIds
 import org.mtransit.android.commons.provider.gtfs.ignoreDirection
+import org.mtransit.android.commons.provider.gtfs.isSameStop
 import org.mtransit.android.commons.provider.gtfs.makeRequest
+import org.mtransit.android.commons.provider.gtfs.match
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
@@ -216,7 +217,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                                 targetUUIDAndStopSeq.first == rdsUUID
                                     && targetUUIDAndStopSeq.second.let { stopSeq -> stopSeq == null || stopSeq == gSTUStopSeq }
                                 /** stop seq should not be null if FF is turned ON [org.mtransit.commons.FeatureFlags.F_EXPORT_STOP_SEQUENCE] */
-                            }?.second
+                            }?.second != null
                         }
                     )
                     if (all) {
