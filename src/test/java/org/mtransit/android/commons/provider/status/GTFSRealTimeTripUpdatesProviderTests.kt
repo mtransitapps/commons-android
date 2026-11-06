@@ -21,6 +21,7 @@ import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.makeStop
 import org.mtransit.android.commons.data.toScheduleTimestamp
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
+import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.makeCal
 import org.mtransit.android.commons.provider.gtfs.GTFSStatusProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.delayDuration
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
@@ -50,7 +51,9 @@ import kotlinx.datetime.TimeZone as KtTimeZone
 class GTFSRealTimeTripUpdatesProviderTests {
 
     companion object {
-        private const val LOCAL_TZ_ID: String = "America/Montreal"
+        private const val AGENCY_TZ_ID = "America/Montreal"
+        private val AGENCY_TZ = KtTimeZone.of(AGENCY_TZ_ID)
+        private val AGENCY_TZ_CAL = makeCal(AGENCY_TZ_ID)
 
         private val DEPARTURE = 1772722800L.secsToInstant() // 2026-03-06 10:00
 
@@ -225,7 +228,8 @@ class GTFSRealTimeTripUpdatesProviderTests {
             nowMs = NOW_IN_MS,
             targetRouteIdHash = "1".hashCode().toString(),
             targetDirectionOriginalId = 0,
-            agencyTimeZone = KtTimeZone.of(LOCAL_TZ_ID),
+            agencyTimeZone = AGENCY_TZ,
+            agencyTZCal = AGENCY_TZ_CAL,
             staticRDTripIds = setOf(TRIP_ID),
             getTripIdsMatch = { false },
             findOutOfSyncTripId = findTripId,
@@ -1364,7 +1368,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Suppress("SameParameterValue")
     private fun mkTime(time: Instant, tripId: String? = TRIP_ID, stopSeq: Int? = null, arrival: Instant? = null) =
-        time.toScheduleTimestamp(LOCAL_TZ_ID, arrival, tripId, stopSeq)
+        time.toScheduleTimestamp(AGENCY_TZ_ID, arrival, tripId, stopSeq)
 
     private fun mkSchedule(
         targetUuid: String = makeRDS().uuid,
@@ -1376,7 +1380,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
         maxValidityInMs = nowInMs,
         readFromSourceAtInMs = nowInMs,
         providerPrecisionInMs = GTFSStatusProvider.PROVIDER_PRECISION_IN_MS,
-        localTimeZoneId = LOCAL_TZ_ID,
+        localTimeZoneId = AGENCY_TZ_ID,
     ).apply {
         setTimestampsAndSort(timestamps)
     }
@@ -1400,7 +1404,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
         makeStop(
             stopId = stopId,
             stopOriginalIdHash = stopId, // "$stopId".hashCode()
-            stopTimeZoneId = LOCAL_TZ_ID
+            stopTimeZoneId = AGENCY_TZ_ID
         ),
         false,
         false,

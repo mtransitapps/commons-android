@@ -38,7 +38,16 @@ object GTFSDateTimeUtils : MTLog.Loggable {
 
     override fun getLogTag() = LOG_TAG
 
-    fun parseToTime(nowMs: Long, gtfsTimeStr: String?, agencyTimeZone: KtTimeZone, recentPast: Duration = RECENT_PAST_DEFAULT): Instant? {
+    fun makeCal(agencyTimeZone: KtTimeZone) = makeCal(agencyTimeZone.id)
+    fun makeCal(agencyTimeZoneId: String): Calendar = Calendar.getInstance(TimeZone.getTimeZone(agencyTimeZoneId), Locale.ENGLISH)
+
+    fun parseToTime(
+        nowMs: Long,
+        gtfsTimeStr: String?,
+        agencyTimeZone: KtTimeZone,
+        agencyTZCal: Calendar,
+        recentPast: Duration = RECENT_PAST_DEFAULT,
+    ): Instant? {
         try {
             val parts = gtfsTimeStr?.trim()?.split(TIME_FORMAT_HOUR_DIVIDER)?.takeIf { it.size == TIME_FORMAT_GROUPS }
             val hoursCount = parts?.getOrNull(0)?.toIntOrNull()?.takeIf { it >= 0 }
@@ -50,12 +59,12 @@ object GTFSDateTimeUtils : MTLog.Loggable {
 
             val nowInstant = nowMs.millisToInstant()
             val today = nowInstant.toLocalDateTime(agencyTimeZone).date
-            val todayService = toLocalCalendarInstant(today, hoursCount, minutesCount, secondsCount, agencyTimeZone)
-            val yesterdayService = toLocalCalendarInstant(
-                LocalDate.fromEpochDays(today.toEpochDays() - 1), hoursCount, minutesCount, secondsCount, agencyTimeZone
+            val todayService = agencyTZCal.toLocalInstant(today, hoursCount, minutesCount, secondsCount)
+            val yesterdayService = agencyTZCal.toLocalInstant(
+                LocalDate.fromEpochDays(today.toEpochDays() - 1), hoursCount, minutesCount, secondsCount
             )
-            val tomorrowService = toLocalCalendarInstant(
-                LocalDate.fromEpochDays(today.toEpochDays() + 1), hoursCount, minutesCount, secondsCount, agencyTimeZone
+            val tomorrowService = agencyTZCal.toLocalInstant(
+                LocalDate.fromEpochDays(today.toEpochDays() + 1), hoursCount, minutesCount, secondsCount
             )
             val todayServiceDiff = (todayService - nowInstant).absoluteValue
             val yesterdayServiceDiff = (nowInstant - yesterdayService).absoluteValue
@@ -80,7 +89,7 @@ object GTFSDateTimeUtils : MTLog.Loggable {
         }
     }
 
-    fun parseToDateTime(gtfsDateStr: String?, gtfsTimeStr: String?, agencyTimeZone: KtTimeZone): Instant? {
+    fun parseToDateTime(gtfsDateStr: String?, gtfsTimeStr: String?, agencyTZCal: Calendar): Instant? {
         try {
             val cleanedDate = gtfsDateStr?.trim() ?: return null
             if (cleanedDate.length != DATE_FORMAT_LENGTH || cleanedDate.any { !it.isDigit() }) {
@@ -98,23 +107,21 @@ object GTFSDateTimeUtils : MTLog.Loggable {
             val month = cleanedDate.substring(4, 6).toIntOrNull() ?: return null
             val day = cleanedDate.substring(6, 8).toIntOrNull() ?: return null
 
-            return toLocalCalendarInstant(LocalDate(year, month, day), hoursCount, minutesCount, secondsCount, agencyTimeZone)
+            return agencyTZCal.toLocalInstant(LocalDate(year, month, day), hoursCount, minutesCount, secondsCount)
         } catch (e: Exception) {
             MTLog.w(this, e, "Error while parsing GTFS date '$gtfsDateStr' & time '$gtfsTimeStr'!")
             return null
         }
     }
 
-    private fun toLocalCalendarInstant(
+    private fun Calendar.toLocalInstant(
         serviceDate: LocalDate,
         hours: Int,
         minutes: Int,
         seconds: Int,
-        agencyTimeZone: KtTimeZone,
     ): Instant {
         val date = LocalDate.fromEpochDays(serviceDate.toEpochDays() + hours / TWENTY_FOUR_HOURS)
-        // Match the static schedule's SimpleDateFormat resolution of DST gaps and repeated hours.
-        return Calendar.getInstance(TimeZone.getTimeZone(agencyTimeZone.id), Locale.ENGLISH).apply {
+        return apply {
             clear()
             set(date.year, date.month.number - 1, date.day, hours % TWENTY_FOUR_HOURS, minutes, seconds)
         }.timeInMillis.millisToInstant()

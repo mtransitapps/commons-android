@@ -38,6 +38,7 @@ import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.LOG_TAG
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.PRE_FILTER_TRIP_UPDATES
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.PROVIDER_PRECISION
+import java.util.Calendar
 import kotlin.time.Duration
 import kotlin.time.Instant
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
@@ -54,6 +55,7 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
     targetRouteIdHash: String,
     targetDirectionOriginalId: Int?,
     agencyTimeZone: KtTimeZone,
+    agencyTZCal: Calendar,
     staticRDTripIds: Set<String>,
     getTripIdsMatch: () -> Boolean?,
     findOutOfSyncTripId: (departure: Instant, stuList: List<GTUStopTimeUpdate>?) -> String?,
@@ -74,6 +76,7 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
                     targetRouteIdHash = targetRouteIdHash,
                     targetDirectionOriginalId = targetDirectionOriginalId,
                     agencyTimeZone = agencyTimeZone,
+                    agencyTZCal = agencyTZCal,
                     findOutOfSyncTripId = findOutOfSyncTripId,
                     staticRDTripIds = staticRDTripIds,
                     getTripIdsMatch = getTripIdsMatch,

@@ -2,6 +2,7 @@ package org.mtransit.android.commons.provider.gtfs
 
 import org.mtransit.android.commons.millisToInstant
 import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.append24Hours
+import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.makeCal
 import org.mtransit.commons.CommonsApp
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -17,8 +18,9 @@ import kotlinx.datetime.TimeZone as KtTimeZone
 class GTFSDateTimeUtilsTest {
 
     companion object {
-        private const val LOCAL_TZ_ID = "America/Montreal"
-        private val LOCAL_TZ = KtTimeZone.of(LOCAL_TZ_ID)
+        private const val AGENCY_TZ_ID = "America/Montreal"
+        private val AGENCY_TZ = KtTimeZone.of(AGENCY_TZ_ID)
+        private val AGENCY_TZ_CAL = makeCal(AGENCY_TZ_ID)
     }
 
     @BeforeTest
@@ -30,17 +32,17 @@ class GTFSDateTimeUtilsTest {
     fun test_parseToTime() {
         val nowInMs = 1793114553_000L // Tuesday, October 27, 2026 at 11:22:33 UTC-04:00 DST
         "12:24:00".let { // soon
-            GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToTime(nowInMs, it, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let {
             assertEquals(1793118240_000L.millisToInstant(), it) // Tuesday, October 27, 2026 at 12:24:00 UTC-04:00 DST
         }
         "24:24:00".let { // tomorrow morning (night service)
-            GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToTime(nowInMs, it, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let {
             assertEquals(1793161440_000L.millisToInstant(), it) // Wednesday, October 28, 2026 at 00:24:00 UTC-04:00 DST
         }
         "10:24:00".let { // in the past
-            GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToTime(nowInMs, it, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let {
             assertEquals(1793111040_000L.millisToInstant(), it) // Tuesday, October 27, 2026 at 10:24:00 UTC-04:00 DST
         }
@@ -50,22 +52,22 @@ class GTFSDateTimeUtilsTest {
     fun test_parseToTime_closeToMidnight_DayChange() {
         val nowInMs = 1793160620_000L // Wednesday, October 28, 2026 at 00:10:20 UTC-04:00 DST
         "23:59:00".let { // started 30 minutes ago yesterday
-            GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToTime(nowInMs, it, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let {
             assertEquals(1793159940_000L.millisToInstant(), it) // Tuesday, October 27, 2026 at 23:59:00 UTC-04:00 DST
         }
         "24:24:00".let { // in the past
-            GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToTime(nowInMs, it, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let {
             assertEquals(1793161440_000L.millisToInstant(), it) // Wednesday, October 28, 2026 at 00:24:00 UTC-04:00 DST
         }
         "00:05:55".let { // in the recent past
-            GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToTime(nowInMs, it, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let {
             assertEquals(1793160355_000L.millisToInstant(), it) // Wednesday, October 28, 2026 at 00:05:55 UTC-04:00 DST
         }
         "00:20:30".let { // soon
-            GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToTime(nowInMs, it, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let {
             assertEquals(1793161230_000L.millisToInstant(), it) // Wednesday, October 28, 2026 at 00:20:30 UTC-04:00 DST
         }
@@ -75,24 +77,24 @@ class GTFSDateTimeUtilsTest {
     fun test_parseToTime_closeToMidnight_DayChange2() {
         val nowInMsGeminiPRExample = 1793161800_000L // Wednesday, October 28, 2026 at 00:30:00 UTC-04:00 DST
         "00:24:00".let { // in the recent past
-            GTFSDateTimeUtils.parseToTime(nowInMsGeminiPRExample, it, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToTime(nowInMsGeminiPRExample, it, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let {
             assertEquals(1793161440_000L.millisToInstant(), it) // Wednesday, October 28, 2026 at 00:24:00 UTC-04:00 DST
         }
         "24:24:00".let { // in the recent past
-            GTFSDateTimeUtils.parseToTime(nowInMsGeminiPRExample, it, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToTime(nowInMsGeminiPRExample, it, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let {
             assertEquals(1793161440_000L.millisToInstant(), it) // Wednesday, October 28, 2026 at 00:24:00 UTC-04:00 DST
         }
         val nowInMsCodeRabbitExemple = 1793159400_000L // Tuesday, October 27, 2026 at 23:50:00 UTC-04:00 DST
         "00:15:00".let { // in the recent past
-            GTFSDateTimeUtils.parseToTime(nowInMsCodeRabbitExemple, it, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToTime(nowInMsCodeRabbitExemple, it, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let {
             assertEquals(1793160900_000L.millisToInstant(), it) // Wednesday, October 28, 2026 at 00:15:00 UTC-04:00 DST
         }
         val nowInMsTimeChange = 1793595000_000L // Sunday, November 1, 2026 at 23:50:00 UTC-05:00
         "00:15:00".let { // in the recent past
-            GTFSDateTimeUtils.parseToTime(nowInMsTimeChange, it, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToTime(nowInMsTimeChange, it, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let {
             assertEquals(1793596500_000L.millisToInstant(), it) // Monday, November 2, 2026 at 00:15:00 UTC-05:00
         }
@@ -102,7 +104,7 @@ class GTFSDateTimeUtilsTest {
     fun test_parseToTime_earlyMorning_nextDay() {
         val nowInMs = 1793160620_000L // Wednesday, October 28, 2026 at 00:10:20 UTC-04:00 DST
         "01:00:00".let {
-            GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToTime(nowInMs, it, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let {
             assertEquals(1793163600_000L.millisToInstant(), it) // Wednesday, October 28, 2026 at 01:00:00 UTC-04:00 DST
         }
@@ -112,12 +114,12 @@ class GTFSDateTimeUtilsTest {
     fun test_parseToTime_latePM() {
         val nowInMs = 1793056759_000L // Monday, October 26, 2026, at 7:19:19 p.m. UTC-04:00 DST
         "19:37:00".let {
-            GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToTime(nowInMs, it, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let {
             assertEquals(1793057820_000L.millisToInstant(), it) // Monday, October 26, 2026 at 19:37:00 UTC-04:00 DST
         }
         "24:24:24".let {
-            GTFSDateTimeUtils.parseToTime(nowInMs, it, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToTime(nowInMs, it, AGENCY_TZ, AGENCY_TZ_CAL)
         }.let {
             assertEquals(1793075064_000L.millisToInstant(), it) // Tuesday, October 27, 2026 at 00:24:24 UTC-04:00 DST
         }
@@ -126,27 +128,27 @@ class GTFSDateTimeUtilsTest {
     @Test
     fun test_parseToDateTime() {
         ("20260730" to "12:24:00").let { (date, time) ->
-            GTFSDateTimeUtils.parseToDateTime(date, time, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ_CAL)
         }.let { result ->
             assertEquals(1785428640_000L.millisToInstant(), result)
         }
         ("20260730" to "24:24:00").let { (date, time) ->
-            GTFSDateTimeUtils.parseToDateTime(date, time, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ_CAL)
         }.let { result ->
             assertEquals(1785471840_000L.millisToInstant(), result)
         }
         ("20260730" to "00:24:00").let { (date, time) ->
-            GTFSDateTimeUtils.parseToDateTime(date, time, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ_CAL)
         }.let { result ->
             assertEquals(1785385440_000L.millisToInstant(), result)
         }
         (null to null).let { (date, time) ->
-            GTFSDateTimeUtils.parseToDateTime(date, time, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ_CAL)
         }.let { result ->
             assertNull(result)
         }
         ("2026-07-30" to "-1:74:77").let { (date, time) ->
-            GTFSDateTimeUtils.parseToDateTime(date, time, LOCAL_TZ)
+            GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ_CAL)
         }.let { result ->
             assertNull(result)
         }
@@ -170,7 +172,7 @@ class GTFSDateTimeUtilsTest {
         ).forEach { (now, time, expected) ->
             assertEquals(
                 Instant.parse(expected),
-                GTFSDateTimeUtils.parseToTime(Instant.parse(now).toEpochMilliseconds(), time, LOCAL_TZ),
+                GTFSDateTimeUtils.parseToTime(Instant.parse(now).toEpochMilliseconds(), time, AGENCY_TZ, AGENCY_TZ_CAL),
                 "$now / $time",
             )
         }
@@ -178,8 +180,8 @@ class GTFSDateTimeUtilsTest {
 
     @Test
     fun test_parseToDateTime_matchesStaticScheduleOnDaylightSavingTransitions() {
-        val staticScheduleFormat = SimpleDateFormat("yyyyMMddHHmmss", Locale.ENGLISH).apply {
-            timeZone = TimeZone.getTimeZone(LOCAL_TZ_ID)
+        val staticScheduleFormat = SimpleDateFormat("yyyyMMddHH:mm:ss", Locale.ENGLISH).apply {
+            timeZone = TimeZone.getTimeZone(AGENCY_TZ_ID)
         }
         listOf(
             "20261101" to "19:37:00",
@@ -193,8 +195,8 @@ class GTFSDateTimeUtilsTest {
             "20260308" to "02:30:00",
             "20260307" to "49:24:24",
         ).forEach { (date, time) ->
-            val expected = assertNotNull(staticScheduleFormat.parse(date + time.replace(":", ""))).time.millisToInstant()
-            assertEquals(expected, GTFSDateTimeUtils.parseToDateTime(date, time, LOCAL_TZ), "$date / $time")
+            val expected = assertNotNull(staticScheduleFormat.parse(date + time)).time.millisToInstant()
+            assertEquals(expected, GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ_CAL), "$date / $time")
         }
     }
 

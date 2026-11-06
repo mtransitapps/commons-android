@@ -17,7 +17,7 @@ object TimeUtilsK {
             hours.takeIf { it > 0 }?.let { append(it).append(if (short) "h " else " hour ") }
             minutes.takeIf { it > 0 }?.let { append(it).append(if (short) "m " else " min ") }
             seconds.takeIf { it > 0 }?.let { append(it).append(if (short) "s " else " sec ") }
-            nanoseconds.takeIf { it > 0 }?.nanoseconds?.inWholeMilliseconds?.let { append(it).append(if (short) "ms " else " milli ") }
+            nanoseconds.nanoseconds.inWholeMilliseconds.takeIf { it > 0 }?.let { append(it).append(if (short) "ms " else " milli ") }
         }
         if (negative) insert(0, "-")
         if (durationInMs == 0L) append("0")

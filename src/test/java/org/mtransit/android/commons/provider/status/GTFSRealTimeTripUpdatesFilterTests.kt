@@ -9,6 +9,7 @@ import com.google.transit.realtime.vehicleDescriptor
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.atTime
 import kotlinx.datetime.toInstant
+import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.makeCal
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
@@ -28,8 +29,9 @@ import kotlinx.datetime.TimeZone as KtTimeZone
 class GTFSRealTimeTripUpdatesFilterTests {
 
     companion object {
-        private const val LOCAL_TZ_ID = "America/Montreal"
-        private val LOCAL_TZ = KtTimeZone.of(LOCAL_TZ_ID)
+        private const val AGENCY_TZ_ID = "America/Montreal"
+        private val AGENCY_TZ = KtTimeZone.of(AGENCY_TZ_ID)
+        private val AGENCY_TZ_CAL = makeCal(AGENCY_TZ_ID)
 
         private const val TRIP_ID = "123456789"
 
@@ -54,7 +56,8 @@ class GTFSRealTimeTripUpdatesFilterTests {
             nowMs = NOW_IN_MS,
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
-            agencyTimeZone = LOCAL_TZ,
+            agencyTimeZone = AGENCY_TZ,
+            agencyTZCal = AGENCY_TZ_CAL,
             findOutOfSyncTripId = { _, _ ->
                 findTripIdCalled++
                 null
@@ -85,7 +88,8 @@ class GTFSRealTimeTripUpdatesFilterTests {
             nowMs = NOW_IN_MS,
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
-            agencyTimeZone = LOCAL_TZ,
+            agencyTimeZone = AGENCY_TZ,
+            agencyTZCal = AGENCY_TZ_CAL,
             findOutOfSyncTripId = { _, _ ->
                 findTripIdCalled++
                 null
@@ -113,7 +117,8 @@ class GTFSRealTimeTripUpdatesFilterTests {
             nowMs = NOW_IN_MS,
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
-            agencyTimeZone = LOCAL_TZ,
+            agencyTimeZone = AGENCY_TZ,
+            agencyTZCal = AGENCY_TZ_CAL,
             findOutOfSyncTripId = { _, _ ->
                 findTripIdCalled++
                 null
@@ -142,7 +147,8 @@ class GTFSRealTimeTripUpdatesFilterTests {
             nowMs = NOW_IN_MS,
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
-            agencyTimeZone = LOCAL_TZ,
+            agencyTimeZone = AGENCY_TZ,
+            agencyTZCal = AGENCY_TZ_CAL,
             findOutOfSyncTripId = { departure, _ ->
                 TRIP_ID.takeIf { departure == toInstant("20261026", "19:37:00") }
             },
@@ -170,6 +176,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
             agencyTimeZone = KtTimeZone.UTC,
+            agencyTZCal = makeCal(KtTimeZone.UTC.id),
             findOutOfSyncTripId = { departure, _ ->
                 TRIP_ID.takeIf { departure == toInstant("20261026", "19:37:00", KtTimeZone.UTC) }
             },
@@ -195,7 +202,8 @@ class GTFSRealTimeTripUpdatesFilterTests {
             nowMs = NOW_IN_MS,
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
-            agencyTimeZone = LOCAL_TZ,
+            agencyTimeZone = AGENCY_TZ,
+            agencyTZCal = AGENCY_TZ_CAL,
             findOutOfSyncTripId = { departure, _ ->
                 TRIP_ID.takeIf { departure == toInstant("20261026", "19:37:00") }
             },
@@ -221,7 +229,8 @@ class GTFSRealTimeTripUpdatesFilterTests {
             nowMs = NOW_IN_MS,
             targetRouteIdHash = "1",
             targetDirectionOriginalId = 1,
-            agencyTimeZone = LOCAL_TZ,
+            agencyTimeZone = AGENCY_TZ,
+            agencyTZCal = AGENCY_TZ_CAL,
             findOutOfSyncTripId = { departure, _ ->
                 TRIP_ID.takeIf { departure == toInstant("20261026", "19:37:00") }
             },
@@ -236,7 +245,7 @@ class GTFSRealTimeTripUpdatesFilterTests {
     }
 
     @Suppress("SameParameterValue")
-    private fun toInstant(startDate: String, startTime: String, agencyTimezone: KtTimeZone = LOCAL_TZ): Instant {
+    private fun toInstant(startDate: String, startTime: String, agencyTimezone: KtTimeZone = AGENCY_TZ): Instant {
         val year = startDate.substring(0, 4).toInt()
         val month = startDate.substring(4, 6).toInt()
         val day = startDate.substring(6, 8).toInt()

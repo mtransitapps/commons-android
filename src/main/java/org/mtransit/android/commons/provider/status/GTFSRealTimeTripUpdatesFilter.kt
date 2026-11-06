@@ -27,6 +27,7 @@ import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvi
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.TRIP_UPDATE_MAX_AGE_MS
 import org.mtransit.android.commons.toDurationLog
 import org.mtransit.android.commons.toMillis
+import java.util.Calendar
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor as GTripDescriptor
@@ -40,6 +41,7 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
     targetRouteIdHash: String,
     targetDirectionOriginalId: Int?,
     agencyTimeZone: KtTimeZone,
+    agencyTZCal: Calendar,
     findOutOfSyncTripId: (departure: Instant, stuList: List<GTUStopTimeUpdate>?) -> String?,
     staticRDTripIds: Set<String>,
     getTripIdsMatch: () -> Boolean?,
@@ -54,6 +56,7 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
                 targetRouteIdHash = targetRouteIdHash,
                 targetDirectionOriginalId = targetDirectionOriginalId,
                 agencyTimeZone = agencyTimeZone,
+                agencyTZCal = agencyTZCal,
                 findOutOfSyncTripId = findOutOfSyncTripId,
                 staticRDTripIds = staticRDTripIds,
                 getTripIdsMatch = getTripIdsMatch,
@@ -65,13 +68,13 @@ internal fun List<GTripUpdate>.selectRouteDirectionTripUpdates(
                 staticTripId to gTripUpdate
             }
     }
-    .filter { (_, gTripUpdate) -> gTripUpdate.isUseful(nowMs, agencyTimeZone) }
+    .filter { (_, gTripUpdate) -> gTripUpdate.isUseful(nowMs, agencyTZCal) }
     .filterDuplicatesTrips()
 
 // Montréal-based competitor: 4.5 hours (?)
 private val FUTURE_TRIP_UPDATE_MAX_DIFF_MS = 90.minutes.times(3).inWholeMilliseconds
 
-internal fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone): Boolean {
+internal fun GTripUpdate.isUseful(nowMs: Long, agencyTZCal: Calendar): Boolean {
     val td = optTrip ?: return false // not useful
     td.optScheduleRelationship?.let { scheduleRelationship ->
         if (scheduleRelationship == GTDScheduleRelationship.DELETED
@@ -90,7 +93,7 @@ internal fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone): Bool
     val startDateTimeOrFirstTimeMs: Long? = if (hasVehicleInfo) {
         null
     } else {
-        GTFSDateTimeUtils.parseToDateTime(td.optStartDateOrModifiedTripStartDate, td.optStartTimeOrModifiedTripStartTime, agencyTimeZone)?.toMillis()
+        GTFSDateTimeUtils.parseToDateTime(td.optStartDateOrModifiedTripStartDate, td.optStartTimeOrModifiedTripStartTime, agencyTZCal)?.toMillis()
             ?: optStopTimeUpdateList // not sorting because GTFS spec requires it to be already sorted & it's a fallback
                 ?.firstOrNull { it.optDeparture?.hasTimeOrScheduledTime() == true || it.optArrival?.hasTimeOrScheduledTime() == true }
                 ?.let {
@@ -125,6 +128,7 @@ internal fun GTripUpdate.match(
     targetRouteIdHash: String,
     targetDirectionOriginalId: Int?,
     agencyTimeZone: KtTimeZone,
+    agencyTZCal: Calendar,
     findOutOfSyncTripId: (departure: Instant, stuList: List<GTUStopTimeUpdate>?) -> String?,
     staticRDTripIds: Set<String>,
     getTripIdsMatch: () -> Boolean?,
@@ -167,9 +171,9 @@ internal fun GTripUpdate.match(
         }
         optStartTimeOrModifiedTripStartTime?.let { startTime -> // start time required when trip ID do not match
             val tuDeparture = optStartDateOrModifiedTripStartDate?.let { startDate ->
-                GTFSDateTimeUtils.parseToDateTime(startDate, startTime, agencyTimeZone)
+                GTFSDateTimeUtils.parseToDateTime(startDate, startTime, agencyTZCal)
             } ?: run {
-                GTFSDateTimeUtils.parseToTime(nowMs, startTime, agencyTimeZone)
+                GTFSDateTimeUtils.parseToTime(nowMs, startTime, agencyTimeZone, agencyTZCal)
             }
             tuDeparture?.let { tuDeparture ->
                 findOutOfSyncTripId(tuDeparture, this@match.optStopTimeUpdateList)?.let { staticTripId ->

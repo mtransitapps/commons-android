@@ -17,6 +17,7 @@ import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.toNoData
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.agency.AgencyUtils
+import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.makeCal
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopIdNotEmpty
@@ -163,7 +164,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         )
                         return null
                     }
-            val rdSchedules: Collection<Schedule> by lazy { // delay/avoid DB read
+            val rdSchedules: Collection<Schedule> by lazy(LazyThreadSafetyMode.NONE) { // delay/avoid DB read
                 context.getRDSSchedules(targetAuthority, sortedRDS, filter.isIncludeCancelledTimestampsOrDefault)
             }
             val agencyTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context)
@@ -171,8 +172,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 MTLog.w(LOG_TAG, e, "makeCachedStatusFromAgencyData($rdID) > error getting timezone from '$agencyTimeZoneId'!")
                 KtTimeZone.currentSystemDefault()
             }
-            val rdSchedulesByUUID by lazy { rdSchedules.associateBy { it.targetUUID } }
-            val rdsUUIDsByTripId by lazy {
+            val agencyTZCal = makeCal(agencyTimeZone)
+            val rdSchedulesByUUID by lazy(LazyThreadSafetyMode.NONE) { rdSchedules.associateBy { it.targetUUID } }
+            val rdsUUIDsByTripId by lazy(LazyThreadSafetyMode.NONE) {
                 mutableMapOf<String, MutableSet<String>>().apply {
                     rdSchedules.forEach { schedule ->
                         schedule.timestamps.forEach { timestamp ->
@@ -183,7 +185,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 }
             }
             // region Out Of Sync Trip IDs
-            val outOfSyncTripIdToTargetUUIDStopSeqTimestamps by lazy {
+            val outOfSyncTripIdToTargetUUIDStopSeqTimestamps by lazy(LazyThreadSafetyMode.NONE) {
                 mutableMapOf<String, MutableList<Pair<Pair<String, Int?>, Schedule.Timestamp>>>().apply {
                     rdSchedules.forEach { schedule ->
                         schedule.timestamps.forEach { timestamp ->
@@ -197,7 +199,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     }
                 }
             }
-            val departuresToOutOfSyncTripIds by lazy {
+            val departuresToOutOfSyncTripIds by lazy(LazyThreadSafetyMode.NONE) {
                 // might not contain the actual 1st trip stop departure
                 // since we are loading last X hours instead of all trips started and not finished + near future trips
                 // -> good-enough for now as it's already a fall-back for out-of-sync trip IDs
@@ -292,14 +294,14 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 return@findTripId null // NO MATCH
             }
             // endregion Out Of Sync Trip IDs
-            val tripIdsMatch by lazy {
+            val tripIdsMatch by lazy(LazyThreadSafetyMode.NONE) {
                 val rdTripUpdatesCandidates =
                     gTripUpdates.filter { gTripUpdate ->
                         val gTripDescriptor = gTripUpdate.optTrip ?: return@filter false
                         val tripId = parseTripId(gTripDescriptor) ?: return@filter false
                         val rtRouteIdHash = parseRouteId(gTripDescriptor)
                         (rtRouteIdHash == null || rtRouteIdHash == targetRouteIdHash) // keep route ID unknown or match
-                            && gTripUpdate.isUseful(nowMs, agencyTimeZone)
+                            && gTripUpdate.isUseful(nowMs, agencyTZCal)
                             && stuListMatch(tripId, gTripUpdate.optStopTimeUpdateList, false) // any
                     }.takeIf { it.isNotEmpty() } ?: run {
                         return@lazy null // no trip updates for this route -> match unknown
@@ -342,6 +344,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     targetRouteIdHash = targetRouteIdHash,
                     targetDirectionOriginalId = targetDirectionOriginalId,
                     agencyTimeZone = agencyTimeZone,
+                    agencyTZCal = agencyTZCal,
                     findOutOfSyncTripId = findOutOfSyncTripId,
                     staticRDTripIds = staticRDTripIds,
                     getTripIdsMatch = { tripIdsMatch },
@@ -394,14 +397,18 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     }
                 }
             }
-            val gTripUpdatesByTripId by lazy {
+            val gTripUpdatesByTripId by lazy(LazyThreadSafetyMode.NONE) {
                 gTripUpdates
+                    .filter { gTripUpdate ->
+                        val rtRouteIdHash = gTripUpdate.optTrip?.let { parseRouteId(it) }
+                        rtRouteIdHash == null || rtRouteIdHash == targetRouteIdHash
+                    }
                     .mapIndexed { index, gTripUpdate ->
                         val tripId = gTripUpdate.optTrip?.let { parseTripId(it) }
                             ?: "no_trip_id_$index" // keep all trip updates since we can match w/o trip ID
                         tripId to gTripUpdate
                     }
-                    .filter { (_, gTripUpdate) -> gTripUpdate.isUseful(nowMs, agencyTimeZone) }
+                    .filter { (_, gTripUpdate) -> gTripUpdate.isUseful(nowMs, agencyTZCal) }
                     .filterDuplicatesTrips()
             }
             val hasMatchingTripUpdates = processRDTripUpdates(
@@ -412,6 +419,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 staticRDTripIds = staticRDTripIds,
                 getTripIdsMatch = { tripIdsMatch },
                 agencyTimeZone = agencyTimeZone,
+                agencyTZCal = agencyTZCal,
                 findOutOfSyncTripId = findOutOfSyncTripId,
                 getRDSchedulesByUUID = { rdSchedulesByUUID },
                 getRDSUUIDsByTripId = { rdsUUIDsByTripId },
