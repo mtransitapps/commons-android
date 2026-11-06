@@ -15,10 +15,8 @@ import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.toNoData
-import org.mtransit.android.commons.millisToInstant
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.agency.AgencyUtils
-import org.mtransit.android.commons.provider.gtfs.DEFAULT_LOOK_BEHIND
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopIdNotEmpty
@@ -40,7 +38,6 @@ import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.gtfs.storage
 import org.mtransit.android.commons.toDateTimeLog
-import org.mtransit.android.commons.toDurationLog
 import org.mtransit.commons.SourceUtils
 import java.io.File
 import java.io.IOException
@@ -248,13 +245,6 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 }
                 val sTripIdsCandidates = departuresToOutOfSyncTripIds[departure]
                 if (sTripIdsCandidates.isNullOrEmpty()) {
-                    if (departure < nowMs.millisToInstant() - DEFAULT_LOOK_BEHIND) {
-                        MTLog.d(
-                            LOG_TAG,
-                            "findOutOfSyncTripId() > looking for trips departed more than " +
-                                "${DEFAULT_LOOK_BEHIND.toDurationLog()} ago -> not loaded?"
-                        )
-                    }
                     MTLog.d(LOG_TAG, "findOutOfSyncTripId() > NO candidates trips found starting at ${departure.toDateTimeLog()}.")
                     return@findTripId null // NO MATCH
                 }

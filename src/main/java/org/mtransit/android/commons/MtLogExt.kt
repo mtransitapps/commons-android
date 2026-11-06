@@ -12,7 +12,9 @@ import kotlin.time.Instant
 
 // region duration
 // formatting is expensive, only in debug
+@JvmOverloads
 fun Long?.toDurationLog(short: Boolean = true): String? = if (Constants.DEBUG) MtLogExt.formatDuration(this, short) else this?.toString()
+@JvmOverloads
 fun Duration?.toDurationLog(short: Boolean = true): String? = this?.inWholeMilliseconds.toDurationLog()
 
 // endregion

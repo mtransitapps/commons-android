@@ -232,11 +232,15 @@ internal fun List<GTUStopTimeUpdate>.fixStopSequence(
                         // use STU w fixed stop sequence
                         stopSequence = stopSeq
                     }.also {
-                        MTLog.d(LOG_TAG, "fixStopSequence($tripId) > KEEP $wrongStuStopId w/ updated stop sequence: $wrongStopSeq -> $stopSeq.")
+                        MTLog.d(LOG_TAG, "fixStopSequence($tripId) > KEEP ${it.toStringExt(short = true)} w/ updated stop sequence (from $wrongStopSeq).")
                     }
                 }
         }
-        MTLog.w(LOG_TAG, "fixStopSequence($tripId) > IGNORE (no stop ID/sequence match): ${stu.toStringExt(short = true)}")
+        if (stu.optScheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) {
+            MTLog.d(LOG_TAG, "fixStopSequence($tripId) > IGNORE skipped (no stop ID/sequence match): ${stu.toStringExt(short = true)}")
+        } else {
+            MTLog.w(LOG_TAG, "fixStopSequence($tripId) > IGNORE (no stop ID/sequence match): ${stu.toStringExt(short = true)}")
+        }
         return@mapNotNull null // remove invalid STU
     }
 }

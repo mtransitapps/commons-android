@@ -2,7 +2,9 @@ package org.mtransit.android.commons.provider.status
 
 import androidx.annotation.VisibleForTesting
 import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.millisToInstant
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID
+import org.mtransit.android.commons.provider.gtfs.DEFAULT_LOOK_BEHIND
 import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.hasStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.hasTimeOrScheduledTime
@@ -185,7 +187,7 @@ internal fun GTripUpdate.match(
                     return staticTripId
                 }
                 @Suppress("SimplifyBooleanWithConstants")
-                if (IGNORE_TRIP_ID && tripId in staticRDTripIds) {
+                if (IGNORE_TRIP_ID && tripId in staticRDTripIds && tuDeparture < nowMs.millisToInstant() - DEFAULT_LOOK_BEHIND) {
                     MTLog.w(LOG_TAG, "match() > WARNING: dit NOT found trip ID '$tripId' that was not really out-of-sync! (${this@match.toStringExt()})")
                 }
             }
