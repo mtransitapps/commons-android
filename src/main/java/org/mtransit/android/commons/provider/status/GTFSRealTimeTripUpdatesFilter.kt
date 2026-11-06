@@ -93,7 +93,8 @@ internal fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone, agenc
     val startDateTimeOrFirstTimeMs: Long? = if (hasVehicleInfo) {
         null
     } else {
-        GTFSDateTimeUtils.parseToDateTime(td.optStartDateOrModifiedTripStartDate, td.optStartTimeOrModifiedTripStartTime, agencyTimeZone, agencyTZCal)?.toMillis()
+        GTFSDateTimeUtils.parseToDateTime(td.optStartDateOrModifiedTripStartDate, td.optStartTimeOrModifiedTripStartTime, agencyTimeZone, agencyTZCal)
+            ?.toMillis()
             ?: optStopTimeUpdateList // not sorting because GTFS spec requires it to be already sorted & it's a fallback
                 ?.firstOrNull { it.optDeparture?.hasTimeOrScheduledTime() == true || it.optArrival?.hasTimeOrScheduledTime() == true }
                 ?.let {
