@@ -187,7 +187,7 @@ internal fun GTripUpdate.match(
                     return staticTripId
                 }
                 @Suppress("SimplifyBooleanWithConstants")
-                if (IGNORE_TRIP_ID && tripId in staticRDTripIds && tuDeparture < nowMs.millisToInstant() - DEFAULT_LOOK_BEHIND) {
+                if (IGNORE_TRIP_ID && tripId in staticRDTripIds && tuDeparture > nowMs.millisToInstant() - DEFAULT_LOOK_BEHIND) {
                     MTLog.w(LOG_TAG, "match() > WARNING: dit NOT found trip ID '$tripId' that was not really out-of-sync! (${this@match.toStringExt()})")
                 }
             }
