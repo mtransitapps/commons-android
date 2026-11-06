@@ -11,9 +11,12 @@ import kotlin.time.Duration
 import kotlin.time.Instant
 
 // region duration
+// formatting is expensive, only in debug
+@JvmOverloads
+fun Long?.toDurationLog(short: Boolean = true): String? = if (Constants.DEBUG) MtLogExt.formatDuration(this, short) else this?.toString()
 
-fun Long?.toDurationLog(): String? = if (Constants.DEBUG) MtLogExt.formatDuration(this) else this?.toString() // formatting is expensive, only in debug
-fun Duration?.toDurationLog(): String? = this?.inWholeMilliseconds.toDurationLog()
+@JvmOverloads
+fun Duration?.toDurationLog(short: Boolean = true): String? = this?.inWholeMilliseconds.toDurationLog(short)
 
 // endregion
 
@@ -23,15 +26,13 @@ object MtLogExt {
     }
 
     fun formatDateTime(timeInMs: Long?): String? = try {
-        timeInMs?.let {
-            dateTimeFormatter.formatThreadSafe(it)
-        }
+        timeInMs?.let { dateTimeFormatter.formatThreadSafe(it) }
     } catch (_: Exception) {
         "e:$timeInMs!"
     }
 
-    fun formatDuration(durationInMs: Long?) = try {
-        durationInMs?.let { TimeUtils.formatSimpleDuration(it) }
+    fun formatDuration(durationInMs: Long?, short: Boolean = true) = try {
+        durationInMs?.let { TimeUtilsK.formatSimpleDuration(it, short) }
     } catch (_: Exception) {
         "e:$durationInMs!"
     }

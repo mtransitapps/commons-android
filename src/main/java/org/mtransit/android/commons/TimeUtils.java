@@ -17,7 +17,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class TimeUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = TimeUtils.class.getSimpleName();
@@ -218,6 +218,11 @@ public class TimeUtils implements MTLog.Loggable {
 
 	@NonNull
 	public static String formatSimpleDuration(long durationInMs) {
-		return TimeUtilsK.formatSimpleDuration(durationInMs);
+		return formatSimpleDuration(durationInMs, true);
+	}
+
+	@NonNull
+	public static String formatSimpleDuration(long durationInMs, boolean isShort) {
+		return TimeUtilsK.formatSimpleDuration(durationInMs, isShort);
 	}
 }

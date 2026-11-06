@@ -1,9 +1,14 @@
 package org.mtransit.android.commons.provider.status
 
+import android.content.Context
+import android.content.res.Resources
 import com.google.transit.realtime.TripUpdateKt.stopTimeEvent
 import com.google.transit.realtime.TripUpdateKt.stopTimeUpdate
 import com.google.transit.realtime.tripDescriptor
 import com.google.transit.realtime.tripUpdate
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import org.mtransit.android.commons.data.DataSourceTypeId
 import org.mtransit.android.commons.data.Direction
 import org.mtransit.android.commons.data.Route
@@ -15,37 +20,44 @@ import org.mtransit.android.commons.data.departureArrivalDiff
 import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.makeStop
 import org.mtransit.android.commons.data.toScheduleTimestamp
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider
+import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.makeCal
 import org.mtransit.android.commons.provider.gtfs.GTFSStatusProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.delayDuration
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
-import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.match
+import org.mtransit.android.commons.provider.gtfs.isSameStop
 import org.mtransit.android.commons.secsToInstant
 import org.mtransit.android.commons.toSecs
+import org.mtransit.commons.CommonsApp
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.test.fail
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
+import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUStopTimeEvent
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship as GTUSTUScheduleRelationship
+import kotlinx.datetime.TimeZone as KtTimeZone
 
 class GTFSRealTimeTripUpdatesProviderTests {
 
     companion object {
-        private const val LOCAL_TZ_ID: String = "America/Montreal"
+        private const val AGENCY_TZ_ID = "America/Montreal"
+        private val AGENCY_TZ = KtTimeZone.of(AGENCY_TZ_ID)
+        private val AGENCY_TZ_CAL = makeCal(AGENCY_TZ_ID)
 
         private val DEPARTURE = 1772722800L.secsToInstant() // 2026-03-06 10:00
 
-        private const val NOW_IN_MS = 1234567890_000L // Friday, February 13, 2009 at 11:31:30 p.m. UTC
+        private const val NOW_IN_MS = 1234567890_000L // Friday, February 13, 2009, at 11:31:30 p.m. UTC
 
         private const val READ_FROM_MS = NOW_IN_MS
 
@@ -53,27 +65,180 @@ class GTFSRealTimeTripUpdatesProviderTests {
         private const val STOP_SEQUENCE = 1
     }
 
-    // region same stop
-
-    @Test
-    fun test_isSameStop() {
-        // STU - no stop ID / SEQ filter
-        assertFalse { stopTimeUpdate { }.isSameStop(makeRDS(stopId = 1234), 1, parseStopId = { it }) }
-        assertFalse { stopTimeUpdate { }.isSameStop(null, 1, parseStopId = { it }) }
-        // STU - stop ID only
-        assertTrue { stopTimeUpdate { stopId = "1234" }.isSameStop(makeRDS(stopId = 1234), 1, parseStopId = { it }) }
-        assertFalse { stopTimeUpdate { stopId = "1234" }.isSameStop(makeRDS(stopId = 5678), 1, parseStopId = { it }) }
-        // STU - stop SEQ only
-        assertTrue { stopTimeUpdate { stopSequence = 7 }.isSameStop(makeRDS(stopId = 1234), 7, parseStopId = { it }) }
-        assertFalse { stopTimeUpdate { stopSequence = 1 }.isSameStop(makeRDS(stopId = 1234), 7, parseStopId = { it }) }
-        // STU - stop ID & stop SEQ
-        assertTrue { stopTimeUpdate { stopId = "1234"; stopSequence = 7 }.isSameStop(makeRDS(stopId = 1234), 7, parseStopId = { it }) }
-        assertFalse { stopTimeUpdate { stopId = "1234"; stopSequence = 7 }.isSameStop(makeRDS(stopId = 1234), 1, parseStopId = { it }) }
-        assertFalse { stopTimeUpdate { stopId = "1234"; stopSequence = 7 }.isSameStop(makeRDS(stopId = 5678), 7, parseStopId = { it }) }
-        assertFalse { stopTimeUpdate { stopId = "1234"; stopSequence = 7 }.isSameStop(makeRDS(stopId = 5678), 1, parseStopId = { it }) }
+    @BeforeTest
+    fun setUp() {
+        CommonsApp.setup(isAndroidPlatform = false)
     }
 
-    // endregion
+    @Test
+    fun test_processRDTripUpdates_empty_feed_does_not_load_schedules() {
+        assertFalse(processTripUpdates(emptyList()))
+    }
+
+    @Test
+    fun test_processRDTripUpdates_ineligible_feed_does_not_load_schedules() {
+        val ineligibleUpdates = listOf(
+            GTripUpdate.newBuilder().buildPartial(),
+            tripUpdate {
+                trip = tripDescriptor {
+                    routeId = "other_route"
+                    startTime = "10:00:00"
+                }
+            },
+            tripUpdate {
+                trip = tripDescriptor {
+                    routeId = "1"
+                    directionId = 1
+                    startTime = "10:00:00"
+                }
+            },
+            tripUpdate {
+                trip = tripDescriptor {
+                    routeId = "1"
+                }
+            },
+            tripUpdate {
+                trip = tripDescriptor {
+                    routeId = "1"
+                    startTime = "invalid"
+                }
+            },
+        )
+        ineligibleUpdates.forEach { update ->
+            assertFalse(processTripUpdates(listOf(update)))
+        }
+    }
+
+    @Test
+    fun test_processRDTripUpdates_direct_match_loads_schedules() {
+        var scheduleLoads = 0
+        var tripIndexLoads = 0
+        val result = processTripUpdates(
+            listOf(tripUpdate { trip = tripDescriptor { tripId = TRIP_ID } }),
+            getSchedules = {
+                scheduleLoads++
+                mapOf("target" to mkSchedule(targetUuid = "target"))
+            },
+            getTripIndex = {
+                tripIndexLoads++
+                emptyMap()
+            },
+        )
+        assertEquals(!IGNORE_TRIP_ID, result)
+        assertEquals(if (IGNORE_TRIP_ID) 0 else 1, scheduleLoads)
+        assertEquals(if (IGNORE_TRIP_ID) 0 else 1, tripIndexLoads)
+    }
+
+    @Test
+    fun test_processRDTripUpdates_eligible_fallback_loads_schedules() {
+        var scheduleLoads = 0
+        var fallbackCalls = 0
+        var tripIndexLoads = 0
+        val schedules by lazy {
+            scheduleLoads++
+            mapOf("target" to mkSchedule(targetUuid = "target"))
+        }
+        val result = processTripUpdates(
+            listOf(
+                tripUpdate {
+                    trip = tripDescriptor {
+                        routeId = "1"
+                        startTime = "10:00:00"
+                    }
+                    stopTimeUpdate.add(stopTimeUpdate { stopId = "1" })
+                }
+            ),
+            findTripId = { _, _ ->
+                fallbackCalls++
+                schedules
+                TRIP_ID
+            },
+            getSchedules = { schedules },
+            getTripIndex = {
+                tripIndexLoads++
+                emptyMap()
+            },
+        )
+        assertTrue(result)
+        assertEquals(1, fallbackCalls)
+        assertEquals(1, scheduleLoads)
+        assertEquals(1, tripIndexLoads)
+    }
+
+    @Test
+    fun test_processRDTripUpdates_unmatched_fallback_does_not_force_schedule_load() {
+        var fallbackCalls = 0
+        val result = processTripUpdates(
+            listOf(
+                tripUpdate {
+                    trip = tripDescriptor {
+                        routeId = "1"
+                        startTime = "10:00:00"
+                    }
+                }
+            ),
+            findTripId = { _, _ ->
+                fallbackCalls++
+                null
+            },
+        )
+        assertFalse(result)
+        assertEquals(1, fallbackCalls)
+    }
+
+    @Test
+    fun test_processRDTripUpdates_no_static_schedules_returns_false() {
+        var scheduleLoads = 0
+        val result = processTripUpdates(
+            listOf(
+                tripUpdate {
+                    trip = tripDescriptor {
+                        routeId = "1"
+                        startTime = "10:00:00"
+                    }
+                }
+            ),
+            findTripId = { _, _ -> TRIP_ID },
+            getSchedules = {
+                scheduleLoads++
+                emptyMap()
+            },
+        )
+        assertFalse(result)
+        assertEquals(1, scheduleLoads)
+    }
+
+    private fun processTripUpdates(
+        updates: List<GTripUpdate>,
+        findTripId: (Instant, List<GTUStopTimeUpdate>?) -> String? = { _, _ -> fail("Unexpected fallback lookup") },
+        getSchedules: () -> Map<String, Schedule> = { fail("Unexpected static schedule load") },
+        getTripIndex: () -> Map<String, Set<String>> = { fail("Unexpected static trip index load") },
+    ): Boolean {
+        val resources: Resources = mock {
+            on { getBoolean(any()) } doReturn false
+        }
+        val context: Context = mock {
+            on { getResources() } doReturn resources
+        }
+        val provider: GTFSRealTimeProvider = mock {
+            on { requireContextCompat() } doReturn context
+        }
+        return provider.processRDTripUpdates(
+            gTripUpdates = updates.map { TRIP_ID to it },
+            nowMs = NOW_IN_MS,
+            targetRouteIdHash = "1".hashCode().toString(),
+            targetDirectionOriginalId = 0,
+            agencyTimeZone = AGENCY_TZ,
+            agencyTZCal = AGENCY_TZ_CAL,
+            staticRDTripIds = setOf(TRIP_ID),
+            getTripIdsMatch = { false },
+            findOutOfSyncTripId = findTripId,
+            getRDSchedulesByUUID = getSchedules,
+            getRDSUUIDsByTripId = getTripIndex,
+            sortedRDS = emptyList(),
+            feedReadFromSourceMs = READ_FROM_MS,
+        )
+    }
 
     // region applyDelay
 
@@ -1197,66 +1362,13 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     // endregion
 
-    // region TripDescriptor match
-
-    @Test
-    fun test_match_trip_id_only_matches() {
-        tripDescriptor {
-            tripId = TRIP_ID
-        }.match(
-            targetRouteIdHash = "1",
-            targetDirectionOriginalId = 1,
-            staticRDTripIds = setOf(TRIP_ID),
-            ignoreDirection = false,
-            parseRouteId = { it.optRouteId },
-            parseTripId = { it.optTripId },
-        ).let { result ->
-            assertTrue(result)
-        }
-    }
-
-    @Test
-    fun test_match_trip_id_only_does_not_match() {
-        tripDescriptor {
-            tripId = TRIP_ID
-        }.match(
-            targetRouteIdHash = "1",
-            targetDirectionOriginalId = 1,
-            staticRDTripIds = setOf("different_trip_id"),
-            ignoreDirection = false,
-            parseRouteId = { it.optRouteId },
-            parseTripId = { it.optTripId },
-        ).let { result ->
-            assertFalse(result)
-        }
-    }
-
-    @Test
-    fun test_match_trip_id_does_not_match_and_route_matches() {
-        tripDescriptor {
-            routeId = "1"
-            tripId = TRIP_ID
-        }.match(
-            targetRouteIdHash = "1",
-            targetDirectionOriginalId = 1,
-            staticRDTripIds = setOf("different_trip_id"),
-            ignoreDirection = false,
-            parseRouteId = { it.optRouteId },
-            parseTripId = { it.optTripId },
-        ).let { result ->
-            assertFalse(result)
-        }
-    }
-
-    // endregion
-
     private fun Schedule.Timestamp.toSchedule() = mkSchedule(
         timestamps = listOf(this),
     )
 
     @Suppress("SameParameterValue")
     private fun mkTime(time: Instant, tripId: String? = TRIP_ID, stopSeq: Int? = null, arrival: Instant? = null) =
-        time.toScheduleTimestamp(LOCAL_TZ_ID, arrival, tripId, stopSeq)
+        time.toScheduleTimestamp(AGENCY_TZ_ID, arrival, tripId, stopSeq)
 
     private fun mkSchedule(
         targetUuid: String = makeRDS().uuid,
@@ -1268,7 +1380,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
         maxValidityInMs = nowInMs,
         readFromSourceAtInMs = nowInMs,
         providerPrecisionInMs = GTFSStatusProvider.PROVIDER_PRECISION_IN_MS,
-        localTimeZoneId = LOCAL_TZ_ID,
+        localTimeZoneId = AGENCY_TZ_ID,
     ).apply {
         setTimestampsAndSort(timestamps)
     }
@@ -1292,7 +1404,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
         makeStop(
             stopId = stopId,
             stopOriginalIdHash = stopId, // "$stopId".hashCode()
-            stopTimeZoneId = LOCAL_TZ_ID
+            stopTimeZoneId = AGENCY_TZ_ID
         ),
         false,
         false,

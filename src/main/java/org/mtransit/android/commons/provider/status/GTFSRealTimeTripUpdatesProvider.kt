@@ -2,7 +2,6 @@ package org.mtransit.android.commons.provider.status
 
 import android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND
 import android.content.Context
-import androidx.annotation.VisibleForTesting
 import com.google.transit.realtime.headerOrNull
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.MTLog
@@ -17,38 +16,29 @@ import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.toNoData
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
-import org.mtransit.android.commons.provider.GTFSRealTimeProvider.ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID
 import org.mtransit.android.commons.provider.agency.AgencyUtils
-import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.parseToDateTime
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.hasStopTimeUpdateList
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.hasTimeOrScheduledTime
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optArrival
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDeparture
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optModifiedTrip
+import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.makeCal
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStartDate
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStartTime
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopIdNotEmpty
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeOrScheduledTimeMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestampMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optVehicle
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortTripUpdates
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toTripUpdates
 import org.mtransit.android.commons.provider.gtfs.getRDS
-import org.mtransit.android.commons.provider.gtfs.getRDSSchedule
+import org.mtransit.android.commons.provider.gtfs.getRDSSchedules
 import org.mtransit.android.commons.provider.gtfs.getTripIds
 import org.mtransit.android.commons.provider.gtfs.ignoreDirection
+import org.mtransit.android.commons.provider.gtfs.isSameStop
 import org.mtransit.android.commons.provider.gtfs.makeRequest
+import org.mtransit.android.commons.provider.gtfs.match
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
+import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.gtfs.storage
 import org.mtransit.android.commons.toDateTimeLog
-import org.mtransit.android.commons.toDurationLog
-import org.mtransit.android.commons.toMillis
 import org.mtransit.commons.SourceUtils
 import java.io.File
 import java.io.IOException
@@ -61,10 +51,11 @@ import kotlin.math.min
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import com.google.transit.realtime.GtfsRealtime.FeedMessage as GFeedMessage
-import com.google.transit.realtime.GtfsRealtime.TripDescriptor as GTripDescriptor
-import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship as GTUSTUScheduleRelationship
 import kotlinx.datetime.TimeZone as KtTimeZone
 
 object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
@@ -94,7 +85,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             filter.routeId.let { routeId ->
                 context?.getTripIds(targetAuthority, routeId, filter.directionId)
             }
-        }?.takeIf { tripIds -> tripIds.isNotEmpty() } // trip IDs REQUIRED for GTFS Trip Updates
+        }?.takeIf { tripIds -> tripIds.isNotEmpty() } // static trip IDs REQUIRED for GTFS Trip Updates
             ?: return null
         return getCachedStatusS(filter.targetUUID, staticRDTripIds)
             ?: makeCachedStatusFromAgencyDataLock(filter, staticRDTripIds)
@@ -115,64 +106,19 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         }
     }
 
-    private const val DEBUG_STATIC_RT_MATCH = false
-    // private const val DEBUG_STATIC_RT_MATCH = true // DEBUG
+    internal const val DEBUG_STATIC_RT_MATCH = false
+    // internal const val DEBUG_STATIC_RT_MATCH = true // DEBUG
 
     private const val PRINT_ALL_RD_STOP_TIME_UPDATES = false
     // private const val PRINT_ALL_RD_STOP_TIME_UPDATES = true // DEBUG
 
-    private fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone): Boolean {
-        val optTrip = optTrip ?: return false // not useful
-        optTrip.optScheduleRelationship?.let { scheduleRelationship ->
-            if (scheduleRelationship == GTDScheduleRelationship.DELETED
-                || scheduleRelationship == GTDScheduleRelationship.CANCELED
-            ) {
-                return true // useful (no max age)
-            }
-        }
-        optTimestampMs?.let { tuTimestamp ->
-            if (tuTimestamp + TRIP_UPDATE_MAX_AGE_MS < nowMs) {
-                MTLog.d(LOG_TAG, "isUseful() > IGNORE ${(nowMs - tuTimestamp).toDurationLog()} old: ${optTrip.toStringExt(true)}")
-                return false // not useful (too old to display)
-            }
-        }
-        val hasVehicleInfo = optVehicle?.let { it.hasId() || it.hasLabel() || it.hasLicensePlate() } == true
-        val startDateTimeOrFirstTimeMs: Long? = if (hasVehicleInfo) {
-            null
-        } else {
-            optTrip.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
-                ?: optTrip.optModifiedTrip?.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()
-                ?: optStopTimeUpdateList // not sorting because GTFS spec requires it to be already sorted & it's a fallback
-                    ?.firstOrNull { it.optDeparture?.hasTimeOrScheduledTime() == true || it.optArrival?.hasTimeOrScheduledTime() == true }
-                    ?.let {
-                        it.optDeparture?.optTimeOrScheduledTimeMs ?: it.optArrival?.optTimeOrScheduledTimeMs
-                    }
-        }
-        startDateTimeOrFirstTimeMs?.let { timeMs ->
-            if (nowMs + FUTURE_TRIP_UPDATE_MAX_DIFF_MS < timeMs) {
-                MTLog.d(LOG_TAG, "isUseful() > IGNORE ${((timeMs - nowMs)).toDurationLog()} in the future: ${optTrip.toStringExt(true)}")
-                return false // not useful (too far in advance to display)
-            }
-        }
-        if (hasDelay() || hasStopTimeUpdateList()) {
-            return true // useful (contains delay or STUs)
-        }
-        optTrip.optScheduleRelationship?.let { scheduleRelationship ->
-            if (scheduleRelationship != GTDScheduleRelationship.SCHEDULED) {
-                return true // useful
-            }
-        }
-        MTLog.w(LOG_TAG, "isUseful() > IGNORE (why?): ${this.toStringExt()}")
-        return false // not useful
-    }
-
     // Best practices: 90 seconds
     // https://gtfs.org/documentation/realtime/realtime-best-practices/#feed-publishing-general-practices
     // Montréal-based competitor: 10 minutes
-    private val TRIP_UPDATE_MAX_AGE_MS = 90.times(7).seconds.inWholeMilliseconds
+    internal val TRIP_UPDATE_MAX_AGE_MS = 90.times(7).seconds.inWholeMilliseconds
 
-    // Montréal-based competitor: 4.5 hours (?)
-    private val FUTURE_TRIP_UPDATE_MAX_DIFF_MS = 90.minutes.times(3).inWholeMilliseconds
+    // internal const val PRE_FILTER_TRIP_UPDATES = true
+    internal const val PRE_FILTER_TRIP_UPDATES = false // WIP
 
     private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData(
         context: Context,
@@ -187,7 +133,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             .takeIf { it > 0L }
             ?.also { feedTimestamp ->
                 if (feedTimestamp + TRIP_UPDATE_MAX_AGE_MS < nowMs) {
-                    MTLog.w(LOG_TAG, "makeCachedStatusFromAgencyData() > IGNORE cached feed (too old: ${feedTimestamp.toDateTimeLog()})")
+                    MTLog.w(LOG_TAG, "makeCachedStatusFromAgencyData(${filter.targetUUID}) > IGNORE cached feed (too old: ${feedTimestamp.toDateTimeLog()})")
                     return null
                 }
             } ?: lastUpdateInMs
@@ -197,42 +143,292 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         )
         try {
             val (targetRoute, targetDirection) = filter.routeDirectionStop.let { it.route to it.direction }
+            val rdID = "${targetRoute.id}-${targetDirection.id}"
             val targetAuthority = filter.targetAuthority
             val targetRouteIdHash = targetRoute.originalIdHash.toString()
             val targetDirectionOriginalId = targetDirection.originalDirectionIdOrNull
             if (DEBUG_STATIC_RT_MATCH) {
-                MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > target trip IDs [${staticRDTripIds.size}]:")
+                MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData($rdID) > target trip IDs [${staticRDTripIds.size}]:")
                 staticRDTripIds.chunked(9).forEach {
-                    MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > - ${it.joinToString(",")}")
+                    MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData($rdID) > - ${it.joinToString(",")}")
                 }
             }
-            val sortedRDS by lazy {
-                context.getRDS(targetAuthority, targetRoute.id, targetDirection.id).orEmpty()
-            }
-            val rdSchedules: Collection<Schedule> by lazy {
-                context.getRDSSchedule(targetAuthority, sortedRDS, filter.isIncludeCancelledTimestampsOrDefault)
+            val sortedRDS = // needed all the time: generate real-time OR no-date schedule
+                context.getRDS(targetAuthority, targetRoute.id, targetDirection.id)
+                    ?.takeIf { it.isNotEmpty() }
+                    ?: run {
+                        MTLog.d(
+                            LOG_TAG,
+                            "makeCachedStatusFromAgencyData($rdID) > SKIP " +
+                                "(no stops for this route direction: $targetAuthority, ${targetRoute.id}, ${targetDirection.id})."
+                        )
+                        return null
+                    }
+            val rdSchedules: Collection<Schedule> by lazy(LazyThreadSafetyMode.NONE) { // delay/avoid DB read
+                context.getRDSSchedules(targetAuthority, sortedRDS, filter.isIncludeCancelledTimestampsOrDefault)
             }
             val agencyTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context)
             val agencyTimeZone = runCatching { KtTimeZone.of(agencyTimeZoneId) }.getOrElse { e ->
-                MTLog.w(LOG_TAG, e, "makeCachedStatusFromAgencyData() > error getting timezone from '$agencyTimeZoneId'!")
+                MTLog.w(LOG_TAG, e, "makeCachedStatusFromAgencyData($rdID) > error getting timezone from '$agencyTimeZoneId'!")
                 KtTimeZone.currentSystemDefault()
             }
-            val rdTripUpdates = gTripUpdates
-                .filter { gTripUpdate ->
-                    gTripUpdate.optTrip?.match(
-                        targetRouteIdHash = targetRouteIdHash,
-                        targetDirectionOriginalId = targetDirectionOriginalId,
-                        staticRDTripIds = staticRDTripIds,
-                        ignoreDirection = ignoreDirection,
-                        parseRouteId = ::parseRouteId,
-                        parseTripId = ::parseTripId,
-                    ) == true
+            val agencyTZCal = makeCal(agencyTimeZone)
+            val rdSchedulesByUUID by lazy(LazyThreadSafetyMode.NONE) { rdSchedules.associateBy { it.targetUUID } }
+            val rdsUUIDsByTripId by lazy(LazyThreadSafetyMode.NONE) {
+                mutableMapOf<String, MutableSet<String>>().apply {
+                    rdSchedules.forEach { schedule ->
+                        schedule.timestamps.forEach { timestamp ->
+                            val staticTripId = timestamp.tripId ?: return@forEach
+                            getOrPut(staticTripId) { mutableSetOf() }.add(schedule.targetUUID)
+                        }
+                    }
                 }
-                .filter { it.isUseful(nowMs, agencyTimeZone) }
-                .filterDuplicatesTrips()
-                .takeIf { it.isNotEmpty() }
-                ?.mapNotNull { gTripUpdate -> gTripUpdate.optTrip?.let { it to gTripUpdate } }
-            rdTripUpdates ?: run {
+            }
+            // region Out Of Sync Trip IDs
+            val outOfSyncTripIdToTargetUUIDStopSeqTimestamps by lazy(LazyThreadSafetyMode.NONE) {
+                mutableMapOf<String, MutableList<Pair<Pair<String, Int?>, Schedule.Timestamp>>>().apply {
+                    rdSchedules.forEach { schedule ->
+                        schedule.timestamps.forEach { timestamp ->
+                            val tripId = timestamp.tripId ?: return@forEach
+                            if (tripId.isNotEmpty()) {
+                                // 1 uuid can have multiple timestamp for 1 trip (different stop sequence)
+                                val targetUUIDtoStopSeq = schedule.targetUUID to timestamp.stopSequenceOrNull
+                                getOrPut(tripId) { mutableListOf() }.add(targetUUIDtoStopSeq to timestamp)
+                            }
+                        }
+                    }
+                }
+            }
+            val departuresToOutOfSyncTripIds by lazy(LazyThreadSafetyMode.NONE) {
+                // might not contain the actual 1st trip stop departure
+                // since we are loading last X hours instead of all trips started and not finished + near future trips
+                // -> good-enough for now as it's already a fall-back for out-of-sync trip IDs
+                mutableMapOf<Instant, MutableList<String>>().apply {
+                    for ((staticTripId, targetUUIDStopSeqToTimestamps) in outOfSyncTripIdToTargetUUIDStopSeqTimestamps) {
+                        val minTimestamp = targetUUIDStopSeqToTimestamps.minByOrNull { it.second.departure }?.second ?: continue
+                        getOrPut(minTimestamp.departure) { mutableListOf() }.add(staticTripId)
+                    }
+                }
+            }
+            val stuListMatch: (staticTripId: String, stuList: List<GTUStopTimeUpdate>?, all: Boolean) -> Boolean = stuListMatch@{ staticTripId, stuList, all ->
+                stuList?.takeIf { it.isNotEmpty() } ?: return@stuListMatch all
+                val tripTargetUUIDStopSeqTimestamps = outOfSyncTripIdToTargetUUIDStopSeqTimestamps[staticTripId]
+                stuList.forEach { gSTU ->
+                    if (gSTU.optScheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) return@forEach // might already be removed from static
+                    val match = match(
+                        gSTU,
+                        rdsCandidates = sortedRDS,
+                        findStopTimestamp = { rdsUUID, gSTUStopSeq ->
+                            tripTargetUUIDStopSeqTimestamps?.find { (targetUUIDAndStopSeq, _) ->
+                                targetUUIDAndStopSeq.first == rdsUUID
+                                    && targetUUIDAndStopSeq.second.let { stopSeq -> stopSeq == null || stopSeq == gSTUStopSeq }
+                                /** stop seq should not be null if FF is turned ON [org.mtransit.commons.FeatureFlags.F_EXPORT_STOP_SEQUENCE] */
+                            }?.second != null
+                        }
+                    )
+                    if (all) {
+                        if (!match) {
+                            MTLog.d(LOG_TAG, "stuListMatch() > trip ID '$staticTripId' does NOT match! (${gSTU.toStringExt(short = true)})")
+                            return@stuListMatch false
+                        }
+                    } else { // any
+                        if (match) {
+                            return@stuListMatch true
+                        }
+                    }
+                }
+                return@stuListMatch all
+            }
+            val findOutOfSyncTripId: (departure: Instant, stuList: List<GTUStopTimeUpdate>?) -> String? = findTripId@{ departure, gSTUList ->
+                if (gSTUList.isNullOrEmpty()) {
+                    MTLog.d(LOG_TAG, "findOutOfSyncTripId() > NO stop time updates to match for a trip at ${departure.toDateTimeLog()}.")
+                    // could be CANCELLED or DELETED trips (w/o stop time updates)
+                    // -> good-enough for now as it's already a fall-back for out-of-sync trip IDs
+                    return@findTripId null // NO MATCH
+                }
+                val sTripIdsCandidates = departuresToOutOfSyncTripIds[departure]
+                if (sTripIdsCandidates.isNullOrEmpty()) {
+                    MTLog.d(LOG_TAG, "findOutOfSyncTripId() > NO candidates trips found starting at ${departure.toDateTimeLog()}.")
+                    return@findTripId null // NO MATCH
+                }
+                MTLog.d(LOG_TAG, "findOutOfSyncTripId() > found ${sTripIdsCandidates.size} trip(s) (${sTripIdsCandidates.joinToString()}) candidate(s)...")
+                sTripIdsCandidates.forEach candidates@{ staticTripId ->
+                    val tripRdsUUIDs = rdsUUIDsByTripId[staticTripId]
+                        ?: return@candidates // trip ID not in static data
+                    val tripSchedules = tripRdsUUIDs.mapNotNull { rdSchedulesByUUID[it] }
+                    val tripSortedRDS = sortedRDS
+                        .filter { rds -> rds.uuid in tripRdsUUIDs }
+                        .takeIf { it.isNotEmpty() }
+                        ?: return@candidates
+                    gSTUList.forEach { stu ->
+                        if (stu.optScheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) return@forEach // might already be removed from static
+                        stu.optStopIdNotEmpty?.let { parseStopId(it) }?.let { stopId ->
+                            if (tripSortedRDS.none { it.stop.isSameOriginalId(stopId) }) {
+                                MTLog.d(
+                                    LOG_TAG,
+                                    "findOutOfSyncTripId() > out-of-sync trip ID '$staticTripId' NOT found at ${departure.toDateTimeLog()} " +
+                                        "(stop ID '${stu.optStopId}' not in this route direction)."
+                                )
+                                return@candidates // NO MATCH
+                            }
+                        }
+                    }
+                    val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(staticTripId, tripSchedules, tripSortedRDS)
+                    val gSTUStopSeqFixed = gSTUList.fixStopSequence(
+                        tripId = staticTripId,
+                        tripSortedRDS = tripSortedRDS,
+                        sortedTargetUuidAndSequence = sortedTargetUuidAndSequence,
+                        isSameStop = { stu, rds, stopSeq -> isSameStop(stu, rds, stopSeq) },
+                        parseStopId = ::parseStopId,
+                    ).takeIf { it.isNotEmpty() } ?: return@candidates // NO MATCH
+                    // need to match as many as possible as same stop ID + sequence can be in both directions
+                    val stopTimeUpdatesMatch = stuListMatch(staticTripId, gSTUStopSeqFixed, true) // all
+                    if (!stopTimeUpdatesMatch) {
+                        MTLog.d(LOG_TAG, "findOutOfSyncTripId() > ignore wrong out-of-sync trip ID '$staticTripId' at ${departure.toDateTimeLog()}.")
+                        return@candidates // NO MATCH
+                    }
+                    MTLog.d(LOG_TAG, "findOutOfSyncTripId() > out-of-sync trip ID '$staticTripId' found at ${departure.toDateTimeLog()}.")
+                    return@findTripId staticTripId // MATCH
+                }
+                MTLog.d(LOG_TAG, "findOutOfSyncTripId() > out-of-sync trip ID NOT found at ${departure.toDateTimeLog()}.")
+                return@findTripId null // NO MATCH
+            }
+            // endregion Out Of Sync Trip IDs
+            val tripIdsMatch by lazy(LazyThreadSafetyMode.NONE) {
+                val rdTripUpdatesCandidates =
+                    gTripUpdates.filter { gTripUpdate ->
+                        val gTripDescriptor = gTripUpdate.optTrip ?: return@filter false
+                        val tripId = parseTripId(gTripDescriptor) ?: return@filter false
+                        val rtRouteIdHash = parseRouteId(gTripDescriptor)
+                        (rtRouteIdHash == null || rtRouteIdHash == targetRouteIdHash) // keep route ID unknown or match
+                            && gTripUpdate.isUseful(nowMs, agencyTimeZone, agencyTZCal)
+                            && stuListMatch(tripId, gTripUpdate.optStopTimeUpdateList, false) // any
+                    }.takeIf { it.isNotEmpty() } ?: run {
+                        return@lazy null // no trip updates for this route -> match unknown
+                    }
+                rdTripUpdatesCandidates.any { gTripUpdate ->
+                    gTripUpdate.optTrip?.let { parseTripId(it) }?.let { tripId -> tripId in staticRDTripIds } == true
+                }.also { tripIdsMatch ->
+                    if (!tripIdsMatch) {
+                        MTLog.w(LOG_TAG, "makeCachedStatusFromAgencyData($rdID) > no trip IDs matches!")
+                        if (Constants.DEBUG) {
+                            MTLog.w(
+                                LOG_TAG,
+                                "makeCachedStatusFromAgencyData($rdID) > - static trip IDs: [${staticRDTripIds.size}] ${staticRDTripIds.joinToString()}"
+                            )
+                            if (PRINT_ALL_RD_STOP_TIME_UPDATES) {
+                                MTLog.w(LOG_TAG, "makeCachedStatusFromAgencyData($rdID) > - real-time trip IDs: [${rdTripUpdatesCandidates.size}]")
+                                rdTripUpdatesCandidates.forEach {
+                                    MTLog.w(LOG_TAG, "makeCachedStatusFromAgencyData($rdID) > - real-time trip IDs: - ${it.toStringExt()}")
+                                }
+                            } else {
+                                MTLog.w(
+                                    LOG_TAG,
+                                    "makeCachedStatusFromAgencyData($rdID) > - real-time trip IDs: [${rdTripUpdatesCandidates.size}] ${
+                                        rdTripUpdatesCandidates.joinToString { tu ->
+                                            tu.optTrip?.let { parseTripId(it) }.orEmpty()
+                                        }
+                                    }"
+                                )
+                            }
+                        }
+                    }
+                    MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData($rdID) > tripIdsMatch > $tripIdsMatch")
+                }
+            }
+            val rdTripIdsToTripUpdates = if (!PRE_FILTER_TRIP_UPDATES) {
+                null
+            } else {
+                gTripUpdates.selectRouteDirectionTripUpdates(
+                    nowMs = nowMs,
+                    targetRouteIdHash = targetRouteIdHash,
+                    targetDirectionOriginalId = targetDirectionOriginalId,
+                    agencyTimeZone = agencyTimeZone,
+                    agencyTZCal = agencyTZCal,
+                    findOutOfSyncTripId = findOutOfSyncTripId,
+                    staticRDTripIds = staticRDTripIds,
+                    getTripIdsMatch = { tripIdsMatch },
+                    ignoreDirection = ignoreDirection,
+                    parseRouteId = ::parseRouteId,
+                    parseTripId = ::parseTripId,
+                )
+            }
+            if (PRE_FILTER_TRIP_UPDATES) {
+                rdTripIdsToTripUpdates?.takeIf { it.isNotEmpty() && rdSchedules.isNotEmpty() } ?: run {
+                    sortedRDS.forEach { rds ->
+                        rds.makeSchedule(
+                            lastUpdateInMs = lastUpdateInMs,
+                            maxValidityInMs = statusMaxValidityInMs,
+                            readFromSourceAtInMs = feedReadFromSourceMs,
+                            providerPrecisionInMs = PROVIDER_PRECISION_IN_MS,
+                            localTimeZoneId = agencyTimeZoneId,
+                            sourceLabel = sourceLabel,
+                            noData = true, // NO DATA
+                        ).let { noDataStatus ->
+                            cacheStatus(noDataStatus) // avoid re-run
+                        }
+                    }
+                    MTLog.i(
+                        LOG_TAG,
+                        "makeCachedStatusFromAgencyData($rdID) > No trip updates or static schedule found " +
+                            "for route '${targetRoute.shortestName}' direction '${targetDirection.headsignValue}'."
+                    )
+                    return null
+                }
+                MTLog.i(
+                    LOG_TAG,
+                    "makeCachedStatusFromAgencyData($rdID) > Using ${rdTripIdsToTripUpdates.size} trip updates " +
+                        "for route '${targetRoute.shortestName}' direction '${targetDirection.headsignValue}': " +
+                        "${rdTripIdsToTripUpdates.map { it.first }.distinct()}."
+                )
+                if (Constants.DEBUG) {
+                    MTLog.d(
+                        LOG_TAG,
+                        "makeCachedStatusFromAgencyData($rdID) > GTFS " +
+                            "{R:'${targetRoute.shortestName}'|D:${targetDirection.headsignValue}} [${gTripUpdates.size}]: "
+                    )
+                    rdTripIdsToTripUpdates.forEach { (_, gTripUpdate) ->
+                        MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData($rdID) > GTFS - ${gTripUpdate.toStringExt()}.")
+                        if (PRINT_ALL_RD_STOP_TIME_UPDATES) {
+                            gTripUpdate.optStopTimeUpdateList?.forEachIndexed { idx, stu ->
+                                MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData($rdID) > GTFS - [$idx] ${stu.toStringExt()}")
+                            }
+                        }
+                    }
+                }
+            }
+            val gTripUpdatesByTripId by lazy(LazyThreadSafetyMode.NONE) {
+                gTripUpdates
+                    .filter { gTripUpdate ->
+                        val rtRouteIdHash = gTripUpdate.optTrip?.let { parseRouteId(it) }
+                        rtRouteIdHash == null || rtRouteIdHash == targetRouteIdHash
+                    }
+                    .mapIndexed { index, gTripUpdate ->
+                        val tripId = gTripUpdate.optTrip?.let { parseTripId(it) }
+                            ?: "no_trip_id_$index" // keep all trip updates since we can match w/o trip ID
+                        tripId to gTripUpdate
+                    }
+                    .filter { (_, gTripUpdate) -> gTripUpdate.isUseful(nowMs, agencyTimeZone, agencyTZCal) }
+                    .filterDuplicatesTrips()
+            }
+            val hasMatchingTripUpdates = processRDTripUpdates(
+                gTripUpdates = if (PRE_FILTER_TRIP_UPDATES) rdTripIdsToTripUpdates.orEmpty() else gTripUpdatesByTripId,
+                nowMs = nowMs,
+                targetRouteIdHash = targetRouteIdHash,
+                targetDirectionOriginalId = targetDirectionOriginalId,
+                staticRDTripIds = staticRDTripIds,
+                getTripIdsMatch = { tripIdsMatch },
+                agencyTimeZone = agencyTimeZone,
+                agencyTZCal = agencyTZCal,
+                findOutOfSyncTripId = findOutOfSyncTripId,
+                getRDSchedulesByUUID = { rdSchedulesByUUID },
+                getRDSUUIDsByTripId = { rdsUUIDsByTripId },
+                sortedRDS = sortedRDS,
+                feedReadFromSourceMs = feedReadFromSourceMs,
+                includeCancelledTimestamps = filter.isIncludeCancelledTimestampsOrDefault,
+            )
+            @Suppress("SimplifyBooleanWithConstants")
+            if (!PRE_FILTER_TRIP_UPDATES && !hasMatchingTripUpdates) {
                 sortedRDS.forEach { rds ->
                     rds.makeSchedule(
                         lastUpdateInMs = lastUpdateInMs,
@@ -243,106 +439,22 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         sourceLabel = sourceLabel,
                         noData = true, // NO DATA
                     ).let { noDataStatus ->
-                        cacheStatus(noDataStatus)
+                        cacheStatus(noDataStatus) // avoid re-run
                     }
                 }
-                MTLog.i(
+                MTLog.d(
                     LOG_TAG,
-                    "No trip updates found for route '${targetRoute.shortestName}' direction '${targetDirection.headsignValue}'."
+                    "makeCachedStatusFromAgencyData($rdID) > SKIP " +
+                        "(no matching trip updates or static schedule for this route direction: $targetAuthority, ${targetRoute.id}, ${targetDirection.id})."
                 )
                 return null
             }
-            val distinctTripId = rdTripUpdates.mapNotNull { it.first.optTripIdNotEmpty }.distinct()
-            MTLog.i(
-                LOG_TAG,
-                "Using ${rdTripUpdates.size} trip updates for route '${targetRoute.shortestName}' direction '${targetDirection.headsignValue}': " +
-                    "$distinctTripId."
-            )
-            if (Constants.DEBUG) {
-                MTLog.d(
-                    LOG_TAG,
-                    "makeCachedStatusFromAgencyData() > GTFS {R:'${targetRoute.shortestName}'|D:${targetDirection.headsignValue}} [${gTripUpdates.size}]: "
-                )
-                rdTripUpdates.forEach { (_, gTripUpdate) ->
-                    MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > GTFS - ${gTripUpdate.toStringExt()}.")
-                    if (PRINT_ALL_RD_STOP_TIME_UPDATES) {
-                        gTripUpdate.optStopTimeUpdateList?.forEachIndexed { idx, stu ->
-                            MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > GTFS - [$idx] ${stu.toStringExt()}")
-                        }
-                    }
-                }
-            }
-            if (sortedRDS.isEmpty()) return null
-            if (rdSchedules.isEmpty()) return null
-            processRDTripUpdates(
-                rdTripUpdates = rdTripUpdates,
-                rdSchedules = rdSchedules,
-                sortedRDS = sortedRDS,
-                feedReadFromSourceMs = feedReadFromSourceMs,
-                includeCancelledTimestamps = filter.isIncludeCancelledTimestampsOrDefault,
-            )
             cacheRealTimeSchedules(rdSchedules = rdSchedules, sourceLabel = sourceLabel, lastUpdateInMs = lastUpdateInMs)
             return getCachedStatusS(filter.targetUUID, staticRDTripIds)
         } catch (e: Exception) {
-            MTLog.w(LOG_TAG, e, "makeCachedStatusFromAgencyData() > error!")
+            MTLog.w(LOG_TAG, e, "makeCachedStatusFromAgencyData(${filter.targetUUID}) > error!")
             return null
         }
-    }
-
-    // Montréal-based competitor: match with 'trip_id' first,
-    // else use 'route_id', 'direction_id', 'start_date' & 'start_time' to try to match correct trip as fallback
-
-    @VisibleForTesting
-    internal fun GTripDescriptor.match(
-        targetRouteIdHash: String,
-        targetDirectionOriginalId: Int?,
-        staticRDTripIds: Set<String>,
-        ignoreDirection: Boolean,
-        parseRouteId: (GTripDescriptor) -> String?,
-        parseTripId: (GTripDescriptor) -> String?,
-    ): Boolean {
-        parseTripId(this)?.let { tripId ->
-            if (tripId in staticRDTripIds) {
-                return true // MATCH
-            }
-        }
-        @Suppress("ConstantConditionIf")
-        if (false) { // FIXME later try to match with route_id & direction_id & start date+time
-            parseRouteId(this)?.let { rtRouteIdHash ->
-                if (rtRouteIdHash != targetRouteIdHash) {
-                    // if (DEBUG_STATIC_RT_MATCH) { // too much log
-                    // MTLog.d(LOG_TAG, "match() > IGNORE: wrong route ID '$rtRouteIdHash' (t:$targetRouteIdHash)")
-                    // }
-                    return false // NOT A MATCH
-                }
-            }
-            @Suppress("SimplifyBooleanWithConstants")
-            if (!ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID || optTripIdNotEmpty == null) {
-                optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
-                    if (directionId != targetDirectionOriginalId) {
-                        if (DEBUG_STATIC_RT_MATCH) {
-                            MTLog.d(
-                                LOG_TAG,
-                                "match() > IGNORE: wrong direction ID '$directionId' for ${toStringExt(short = true)}"
-                            )
-                        }
-                        return false // NOT A MATCH
-                    }
-                }
-            }
-            parseTripId(this)?.let { tripId ->
-                if (tripId !in staticRDTripIds) {
-                    if (hasRouteId()) {
-                        if (DEBUG_STATIC_RT_MATCH) {
-                            MTLog.d(LOG_TAG, "match() > IGNORE: wrong trip ID ($tripId) for ${toStringExt(short = true)}")
-                        }
-                    }
-                    return false // NOT A MATCH
-                }
-            }
-            return true // MATCH
-        }
-        return false // NOT A MATCH
     }
 
     private val OLDEST_FOR_REAL_TIME = 1.minutes
@@ -525,7 +637,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                                 storage.saveTripUpdateReadFromSourceMs(gFeedMessage.headerOrNull?.optTimestampMs)
                                 gTripUpdates = gFeedMessage.entityList.toTripUpdates() // will be used soon
                                 MTLog.i(LOG_TAG, "Found ${gTripUpdates?.size} statuses.")
-                                @Suppress("SimplifyBooleanWithConstants", "KotlinConstantConditions")
+                                @Suppress("SimplifyBooleanWithConstants")
                                 if (Constants.DEBUG && PRINT_ALL_LOADED_TRIP_UPDATES) {
                                     MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > GTFS trip updates[${gTripUpdates?.size}]: ")
                                     gTripUpdates?.sortTripUpdates()?.forEach { gTripUpdate ->
