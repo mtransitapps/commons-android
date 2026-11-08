@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Resources
 import androidx.annotation.VisibleForTesting
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.ConfigurationCompat
 import androidx.core.os.LocaleListCompat
 import androidx.webkit.WebViewCompat
@@ -100,6 +101,11 @@ private fun getSystemLocales() = ConfigurationCompat.getLocales(
 private fun Context.getAppLocales() = ConfigurationCompat.getLocales(
     this.resources.configuration
 )
+
+/**
+ * Empty if no locale selected by user, only works after 1st Activity created.
+ */
+fun getUserSelectedAppLocales() = AppCompatDelegate.getApplicationLocales()
 
 internal fun getPrimarySupportedDefaultLocale(context: Context) =
     getPrimarySupportedDefaultLocale(context.getAppLocales())
