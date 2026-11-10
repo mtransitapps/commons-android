@@ -233,8 +233,10 @@ if [[ -n "$AGENCY_TIME_ZONE" ]]; then
   EXPECTED_DEVICE_DATE=$(TZ="$AGENCY_TIME_ZONE" date)
   echo "Expected device date: '$EXPECTED_DEVICE_DATE'"
   # Extract components (Year, Month, Day, Hour) to ignore seconds and timezone string differences
-  DEVICE_DATE_COMPONENTS=$(echo "$DEVICE_DATE" | awk '{print $1, $2, $3, $4}' | cut -d: -f1)
-  EXPECTED_DATE_COMPONENTS=$(echo "$EXPECTED_DEVICE_DATE" | awk '{print $1, $2, $3, $4}' | cut -d: -f1)
+  DEVICE_DATE_COMPONENTS=$(echo "$DEVICE_DATE" | awk '{print $1, $2, $3, $4, $5}' | cut -d: -f1)
+  echo "Device date components: '$DEVICE_DATE_COMPONENTS'"
+  EXPECTED_DATE_COMPONENTS=$(echo "$EXPECTED_DEVICE_DATE" | awk '{print $1, $2, $3, $4, $5}' | cut -d: -f1)
+  echo "Expected date components: '$EXPECTED_DATE_COMPONENTS'"
   if [[ "$DEVICE_DATE_COMPONENTS" != "$EXPECTED_DATE_COMPONENTS" ]]; then
     echo "> Current device date components '$DEVICE_DATE_COMPONENTS' do not match expected components '$EXPECTED_DATE_COMPONENTS' for agency time zone '$AGENCY_TIME_ZONE'!"
     exit 1 #error
