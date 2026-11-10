@@ -180,8 +180,8 @@ DEVICE_AUTO_TIME=$($ADB shell settings get global auto_time)
 DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
 if [[ "not-needed" == "yes" && -n "$AGENCY_TIME_ZONE" ]]; then
   echo " - agency time-zone: '$AGENCY_TIME_ZONE'"
-  DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date)
-  AGENCY_DATE_TIME=$(TZ=":$AGENCY_TIME_ZONE" date)
+  DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date +%Y-%m-%d_%H:%M)
+  AGENCY_DATE_TIME=$(TZ=":$AGENCY_TIME_ZONE" date +%Y-%m-%d_%H:%M)
   if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
     if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
       $ADB shell settings set global auto_time 0 # turn-off automatic time
@@ -189,7 +189,7 @@ if [[ "not-needed" == "yes" && -n "$AGENCY_TIME_ZONE" ]]; then
       $ADB reboot
       $ADB wait-for-device
       DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
-      DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date)
+      DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date +%Y-%m-%d_%H:%M)
     fi
     if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
       echo "> Wrong time zone '$DEVICE_TIME_ZONE' ($DEVICE_DATE_TIME) for agency time zone '$AGENCY_TIME_ZONE' ($AGENCY_DATE_TIME)!"
@@ -359,7 +359,7 @@ $ADB shell am broadcast -a com.android.systemui.demo --es command status \
   ;
 
 # IF changing app time THEN change visible time in status bar
-if [[ -n "$DATE_TIME_IN_SEC" ]]; then
+if [[ "disabled" == "yes" && -n "$DATE_TIME_IN_SEC" ]]; then
   DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
   DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date)
   DEVICE_DATE_TIME_IN_SEC=$(TZ="$DEVICE_TIME_ZONE" date --date='07:00 today' +%s)

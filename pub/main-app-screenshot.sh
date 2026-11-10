@@ -344,10 +344,10 @@ echo "> Setting demo mode..."
 # shellcheck disable=SC2034
 DEVICE_AUTO_TIME=$($ADB shell settings get global auto_time)
 DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
-if [[ -n "$AGENCY_TIME_ZONE" ]]; then
+if [[ "disabled" == "yes" && -n "$AGENCY_TIME_ZONE" ]]; then
   echo " - agency time-zone: '$AGENCY_TIME_ZONE'"
-  DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date)
-  AGENCY_DATE_TIME=$(TZ=":$AGENCY_TIME_ZONE" date)
+  DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date +%Y-%m-%d_%H:%M)
+  AGENCY_DATE_TIME=$(TZ=":$AGENCY_TIME_ZONE" date +%Y-%m-%d_%H:%M)
   if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
     if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
       $ADB shell settings set global auto_time 0 # turn-off automatic time
@@ -355,7 +355,7 @@ if [[ -n "$AGENCY_TIME_ZONE" ]]; then
       $ADB reboot
       $ADB wait-for-device
       DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
-      DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date)
+      DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date +%Y-%m-%d_%H:%M)
     fi
     if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
       echo "> Wrong time zone '$DEVICE_TIME_ZONE' ($DEVICE_DATE_TIME) for agency time zone '$AGENCY_TIME_ZONE' ($AGENCY_DATE_TIME)!"
@@ -516,9 +516,9 @@ DEVICE_AUTO_TIME=$($ADB shell settings get global auto_time)
 echo ">> Device auto time: '$DEVICE_AUTO_TIME'."
 DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
 echo ">> Device time zone: '$DEVICE_TIME_ZONE'."
-DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date)
+DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date +%Y-%m-%d_%H:%M)
 echo ">> Device date time: '$DEVICE_DATE_TIME'."
-AGENCY_DATE_TIME=$(TZ=":$TIMEZONE" date)
+AGENCY_DATE_TIME=$(TZ=":$TIMEZONE" date +%Y-%m-%d_%H:%M)
 echo ">> Agency date time: '$AGENCY_DATE_TIME'."
 if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
   if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
@@ -527,7 +527,7 @@ if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
     $ADB reboot
     $ADB wait-for-device
     DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
-    DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date)
+    DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date +%Y-%m-%d_%H:%M)
   fi
   if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
     echo "> Wrong time zone '$DEVICE_TIME_ZONE' ($DEVICE_DATE_TIME) for agency time zone '$TIMEZONE' ($AGENCY_DATE_TIME)!"
