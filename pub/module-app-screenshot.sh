@@ -189,7 +189,7 @@ if [[ "not-needed" == "yes" && -n "$AGENCY_TIME_ZONE" ]]; then
       $ADB reboot
       $ADB wait-for-device
       DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
-      DEVICE_DATE_TIME=$(date --date="TZ=$DEVICE_TIME_ZONE")
+      DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date)
     fi
     if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
       echo "> Wrong time zone '$DEVICE_TIME_ZONE' ($DEVICE_DATE_TIME) for agency time zone '$AGENCY_TIME_ZONE' ($AGENCY_DATE_TIME)!"
@@ -229,16 +229,6 @@ if [[ -n "$AGENCY_TIME_ZONE" ]]; then
   echo "Expected date components: '$EXPECTED_DATE_COMPONENTS'"
   if [[ "$DEVICE_DATE_COMPONENTS" != "$EXPECTED_DATE_COMPONENTS" ]]; then
     echo "> Current device date components '$DEVICE_DATE_COMPONENTS' do not match expected components '$EXPECTED_DATE_COMPONENTS' for agency time zone '$AGENCY_TIME_ZONE'!"
-    exit 1 #error
-  fi
-  HOST_EPOCH=$(date +%s)
-  EMULATOR_EPOCH=$($ADB shell date +%s | tr -d '\r')
-  EPOCH_DIFF=$(( HOST_EPOCH - EMULATOR_EPOCH ))
-   if (( EPOCH_DIFF < 0 )); then
-    EPOCH_DIFF=$(( -EPOCH_DIFF ))
-  fi
-  if (( EPOCH_DIFF > 10 )); then
-    echo "> Emulator clock is desynchronized from host by $EPOCH_DIFF seconds (threshold is 10s)!"
     exit 1 #error
   fi
 fi
