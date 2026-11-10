@@ -208,18 +208,42 @@ else
   echo ">> Force time format '$FORCE_TIME_FORMAT' for language '$LANG'."
 fi
 
-echo "Agency time zone: $AGENCY_TIME_ZONE"
+echo "Agency time zone: '$AGENCY_TIME_ZONE'"
+
 HOST_TIME_ZONE=$(date +%Z)
-echo "Host time zone: $HOST_TIME_ZONE"
-CURRENT_EMULATOR_DATE=$($ADB shell date)
-echo "Current emulator date: $CURRENT_EMULATOR_DATE"
+echo "Host time zone: '$HOST_TIME_ZONE'"
+HOST_EPOCH=$(date +%s)
+echo "Host epoch: '$HOST_EPOCH'."
+HOST_EPOCH_TZ=$(TZ="$AGENCY_TIME_ZONE" date +%s)
+echo "Host epoch at '$AGENCY_TIME_ZONE': '$HOST_EPOCH_TZ'."
+
+DEVICE_DATE=$($ADB shell date)
+echo "Device date: '$DEVICE_DATE'"
 DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone)
-echo "Current emulator time zone: $DEVICE_TIME_ZONE"
-# failt if current time on emulator doesn't match expected time at agency time zone
+echo "Device time zone: '$DEVICE_TIME_ZONE'"
+DEVICE_EPOCH=$($ADB shell date +%s)
+echo "Device epoch: '$DEVICE_EPOCH'."
+
+# fail if current time on device doesn't match expected time at agency time zone
 if [[ -n "$AGENCY_TIME_ZONE" ]]; then
-  EXPECTED_EMULATOR_DATE=$(TZ="$AGENCY_TIME_ZONE" date)
-  if [[ "$CURRENT_EMULATOR_DATE" != "$EXPECTED_EMULATOR_DATE" ]]; then
-    echo "> Current emulator date '$CURRENT_EMULATOR_DATE' does not match expected date '$EXPECTED_EMULATOR_DATE' for agency time zone '$AGENCY_TIME_ZONE'!"
+  if [[ "$DEVICE_TIME_ZONE" != "$AGENCY_TIME_ZONE" ]]; then
+    echo "> Device time zone '$DEVICE_TIME_ZONE' does not match expected agency time zone '$AGENCY_TIME_ZONE'!"
+    exit 1 #error
+  fi
+  EXPECTED_DEVICE_DATE=$(TZ="$AGENCY_TIME_ZONE" date)
+  echo "Expected device date: '$EXPECTED_DEVICE_DATE'"
+  if [[ "$DEVICE_DATE" != "$EXPECTED_DEVICE_DATE" ]]; then
+    echo "> Current device '$DEVICE_DATE' does not match expected date '$EXPECTED_DEVICE_DATE' for agency time zone '$AGENCY_TIME_ZONE'!"
+    exit 1 #error
+  fi
+  HOST_EPOCH=$(date +%s)
+  EMULATOR_EPOCH=$($ADB shell date +%s)
+  EPOCH_DIFF=$(( HOST_EPOCH - EMULATOR_EPOCH ))
+   if (( EPOCH_DIFF < 0 )); then
+    EPOCH_DIFF=$(( -EPOCH_DIFF ))
+  fi
+  if (( EPOCH_DIFF > 10 )); then
+    echo "> Emulator clock is desynchronized from host by $EPOCH_DIFF seconds (threshold is 10s)!"
     exit 1 #error
   fi
 fi
