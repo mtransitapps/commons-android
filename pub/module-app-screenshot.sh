@@ -209,28 +209,25 @@ else
 fi
 
 echo "Agency time zone: '$AGENCY_TIME_ZONE'"
-
-HOST_TIME_ZONE=$(date +%Z)
-echo "Host time zone: '$HOST_TIME_ZONE'"
-HOST_EPOCH=$(date +%s)
-echo "Host epoch: '$HOST_EPOCH'."
-HOST_EPOCH_TZ=$(TZ="$AGENCY_TIME_ZONE" date +%s)
-echo "Host epoch at '$AGENCY_TIME_ZONE': '$HOST_EPOCH_TZ'."
-
-DEVICE_DATE=$($ADB shell date)
-echo "Device date: '$DEVICE_DATE'"
-DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone)
-echo "Device time zone: '$DEVICE_TIME_ZONE'"
-DEVICE_EPOCH=$($ADB shell date +%s)
-echo "Device epoch: '$DEVICE_EPOCH'."
-
 # fail if current time on device doesn't match expected time at agency time zone
 if [[ -n "$AGENCY_TIME_ZONE" ]]; then
+  DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone)
+  echo "Device time zone: '$DEVICE_TIME_ZONE'"
   if [[ "$DEVICE_TIME_ZONE" != "$AGENCY_TIME_ZONE" ]]; then
     echo "> Device time zone '$DEVICE_TIME_ZONE' does not match expected agency time zone '$AGENCY_TIME_ZONE'!"
     exit 1 #error
   fi
+  HOST_TIME_ZONE=$(date +%Z)
+  HOST_EPOCH=$(date +%s)
+  HOST_EPOCH_TZ=$(TZ="$AGENCY_TIME_ZONE" date +%s)
+  echo "Host epoch: '$HOST_EPOCH'."
+  echo "Host time zone: '$HOST_TIME_ZONE'"
+  echo "Host epoch at '$AGENCY_TIME_ZONE': '$HOST_EPOCH_TZ'."
+  DEVICE_EPOCH=$($ADB shell date +%s)
+  DEVICE_DATE=$($ADB shell date)
   EXPECTED_DEVICE_DATE=$(TZ="$AGENCY_TIME_ZONE" date)
+  echo "Device epoch: '$DEVICE_EPOCH'."
+  echo "Device date: '$DEVICE_DATE'"
   echo "Expected device date: '$EXPECTED_DEVICE_DATE'"
   # Extract components (Year, Month, Day, Hour) to ignore seconds and timezone string differences
   DEVICE_DATE_COMPONENTS=$(echo "$DEVICE_DATE" | awk '{print $1, $2, $3, $4}' | cut -d: -f1,2)
