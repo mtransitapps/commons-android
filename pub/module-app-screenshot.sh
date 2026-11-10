@@ -177,7 +177,7 @@ echo "> Setting demo mode..."
 # NOT needed anymore: time-zone SHOULD be overridden inside app.
 # shellcheck disable=SC2034
 DEVICE_AUTO_TIME=$($ADB shell settings get global auto_time)
-DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone)
+DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
 if [[ "not-needed" == "yes" && -n "$AGENCY_TIME_ZONE" ]]; then
   echo " - agency time-zone: '$AGENCY_TIME_ZONE'"
   DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date)
@@ -188,7 +188,7 @@ if [[ "not-needed" == "yes" && -n "$AGENCY_TIME_ZONE" ]]; then
       $ADB shell setprop persist.sys.timezone "$AGENCY_TIME_ZONE"
       $ADB reboot
       $ADB wait-for-device
-      DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone)
+      DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
       DEVICE_DATE_TIME=$(date --date="TZ=$DEVICE_TIME_ZONE")
     fi
     if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
@@ -211,7 +211,7 @@ fi
 echo "Agency time zone: '$AGENCY_TIME_ZONE'"
 # fail if current time on device doesn't match expected time at agency time zone
 if [[ -n "$AGENCY_TIME_ZONE" ]]; then
-  DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone)
+  DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
   echo "Device time zone: '$DEVICE_TIME_ZONE'"
   if [[ "$DEVICE_TIME_ZONE" != "$AGENCY_TIME_ZONE" ]]; then
     echo "> Device time zone '$DEVICE_TIME_ZONE' does not match expected agency time zone '$AGENCY_TIME_ZONE'!"
@@ -219,12 +219,12 @@ if [[ -n "$AGENCY_TIME_ZONE" ]]; then
   fi
   HOST_TIME_ZONE=$(date +%Z)
   HOST_EPOCH=$(date +%s)
-  HOST_EPOCH_TZ=$(TZ="$AGENCY_TIME_ZONE" date +%s)
+  HOST_EPOCH_DATE=$(TZ="$AGENCY_TIME_ZONE" date)
   echo "Host epoch: '$HOST_EPOCH'."
   echo "Host time zone: '$HOST_TIME_ZONE'"
-  echo "Host epoch at '$AGENCY_TIME_ZONE': '$HOST_EPOCH_TZ'."
-  DEVICE_EPOCH=$($ADB shell date +%s)
-  DEVICE_DATE=$($ADB shell date)
+  echo "Host epoch at '$AGENCY_TIME_ZONE': '$HOST_EPOCH_DATE'."
+  DEVICE_EPOCH=$($ADB shell date +%s | tr -d '\r')
+  DEVICE_DATE=$($ADB shell date | tr -d '\r')
   EXPECTED_DEVICE_DATE=$(TZ="$AGENCY_TIME_ZONE" date)
   echo "Device epoch: '$DEVICE_EPOCH'."
   echo "Device date: '$DEVICE_DATE'"
@@ -239,7 +239,7 @@ if [[ -n "$AGENCY_TIME_ZONE" ]]; then
     exit 1 #error
   fi
   HOST_EPOCH=$(date +%s)
-  EMULATOR_EPOCH=$($ADB shell date +%s)
+  EMULATOR_EPOCH=$($ADB shell date +%s | tr -d '\r')
   EPOCH_DIFF=$(( HOST_EPOCH - EMULATOR_EPOCH ))
    if (( EPOCH_DIFF < 0 )); then
     EPOCH_DIFF=$(( -EPOCH_DIFF ))
@@ -377,7 +377,7 @@ $ADB shell am broadcast -a com.android.systemui.demo --es command status \
 
 # IF changing app time THEN change visible time in status bar
 if [[ -n "$DATE_TIME_IN_SEC" ]]; then
-  DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone)
+  DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
   DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date)
   DEVICE_DATE_TIME_IN_SEC=$(TZ="$DEVICE_TIME_ZONE" date --date='07:00 today' +%s)
   DEVICE_DATE_TIME_IN_MS="${DEVICE_DATE_TIME_IN_SEC}000";
