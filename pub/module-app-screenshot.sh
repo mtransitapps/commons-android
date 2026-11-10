@@ -218,21 +218,14 @@ if [[ -n "$AGENCY_TIME_ZONE" ]]; then
     exit 1 #error
   fi
   HOST_TIME_ZONE=$(date +%Z)
-  HOST_EPOCH=$(date +%s)
-  HOST_EPOCH_DATE=$(TZ="$AGENCY_TIME_ZONE" date)
-  echo "Host epoch: '$HOST_EPOCH'."
   echo "Host time zone: '$HOST_TIME_ZONE'"
-  echo "Host epoch at '$AGENCY_TIME_ZONE': '$HOST_EPOCH_DATE'."
-  DEVICE_EPOCH=$($ADB shell date +%s | tr -d '\r')
-  DEVICE_DATE=$($ADB shell date | tr -d '\r')
-  EXPECTED_DEVICE_DATE=$(TZ="$AGENCY_TIME_ZONE" date)
-  echo "Device epoch: '$DEVICE_EPOCH'."
-  echo "Device date: '$DEVICE_DATE'"
-  echo "Expected device date: '$EXPECTED_DEVICE_DATE'"
-  # Extract components (Year, Month, Day, Hour) to ignore seconds and timezone string differences
-  DEVICE_DATE_COMPONENTS=$(echo "$DEVICE_DATE" | awk '{print $1, $2, $3, $4}' | cut -d: -f1,2)
+  HOST_DATE=$(date +%Y-%m-%d_%H:%M)
+  echo "Host date: '$HOST_DATE'."
+  HOST_DATE_TZ=$(TZ="$AGENCY_TIME_ZONE" date +%Y-%m-%d_%H:%M)
+  echo "Host date at '$AGENCY_TIME_ZONE': '$HOST_DATE_TZ'."
+  DEVICE_DATE_COMPONENTS=$($ADB shell date +%Y-%m-%d_%H:%M | tr -d '\r')
+  EXPECTED_DATE_COMPONENTS=$(TZ="$AGENCY_TIME_ZONE" date +%Y-%m-%d_%H:%M)
   echo "Device date components: '$DEVICE_DATE_COMPONENTS'"
-  EXPECTED_DATE_COMPONENTS=$(echo "$EXPECTED_DEVICE_DATE" | awk '{print $1, $2, $3, $4}' | cut -d: -f1,2)
   echo "Expected date components: '$EXPECTED_DATE_COMPONENTS'"
   if [[ "$DEVICE_DATE_COMPONENTS" != "$EXPECTED_DATE_COMPONENTS" ]]; then
     echo "> Current device date components '$DEVICE_DATE_COMPONENTS' do not match expected components '$EXPECTED_DATE_COMPONENTS' for agency time zone '$AGENCY_TIME_ZONE'!"
