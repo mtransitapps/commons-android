@@ -345,6 +345,7 @@ echo "> Setting demo mode..."
 DEVICE_AUTO_TIME=$($ADB shell settings get global auto_time)
 DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
 if [[ "disabled" == "yes" && -n "$AGENCY_TIME_ZONE" ]]; then
+  # detects different time-zones && out-dated timezone rules #Alerta2026
   echo " - agency time-zone: '$AGENCY_TIME_ZONE'"
   DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date +%Y-%m-%d_%H:%M)
   AGENCY_DATE_TIME=$(TZ=":$AGENCY_TIME_ZONE" date +%Y-%m-%d_%H:%M)
@@ -520,6 +521,7 @@ DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date +%Y-%m-%d_%H:%M)
 echo ">> Device date time: '$DEVICE_DATE_TIME'."
 AGENCY_DATE_TIME=$(TZ=":$TIMEZONE" date +%Y-%m-%d_%H:%M)
 echo ">> Agency date time: '$AGENCY_DATE_TIME'."
+# detects different time-zones && out-dated timezone rules #Alerta2026
 if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
   if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
     $ADB shell settings set global auto_time 0 # turn-off automatic time

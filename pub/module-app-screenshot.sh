@@ -179,6 +179,7 @@ echo "> Setting demo mode..."
 DEVICE_AUTO_TIME=$($ADB shell settings get global auto_time)
 DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
 if [[ "not-needed" == "yes" && -n "$AGENCY_TIME_ZONE" ]]; then
+  # detects different time-zones && out-dated timezone rules #Alerta2026
   echo " - agency time-zone: '$AGENCY_TIME_ZONE'"
   DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date +%Y-%m-%d_%H:%M)
   AGENCY_DATE_TIME=$(TZ=":$AGENCY_TIME_ZONE" date +%Y-%m-%d_%H:%M)
@@ -209,7 +210,7 @@ else
 fi
 
 echo "Agency time zone: '$AGENCY_TIME_ZONE'"
-# fail if current time on device doesn't match expected time at agency time zone
+# detects different time-zones && out-dated timezone rules #Alerta2026
 if [[ -n "$AGENCY_TIME_ZONE" ]]; then
   DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
   echo "Device time zone: '$DEVICE_TIME_ZONE'"
