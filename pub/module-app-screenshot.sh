@@ -208,6 +208,22 @@ else
   echo ">> Force time format '$FORCE_TIME_FORMAT' for language '$LANG'."
 fi
 
+echo "Agency time zone: $AGENCY_TIME_ZONE"
+HOST_TIME_ZONE=$(date +%Z)
+echo "Host time zone: $HOST_TIME_ZONE"
+CURRENT_EMULATOR_DATE=$($ADB shell date)
+echo "Current emulator date: $CURRENT_EMULATOR_DATE"
+DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone)
+echo "Current emulator time zone: $DEVICE_TIME_ZONE"
+# failt if current time on emulator doesn't match expected time at agency time zone
+if [[ -n "$AGENCY_TIME_ZONE" ]]; then
+  EXPECTED_EMULATOR_DATE=$(TZ="$AGENCY_TIME_ZONE" date)
+  if [[ "$CURRENT_EMULATOR_DATE" != "$EXPECTED_EMULATOR_DATE" ]]; then
+    echo "> Current emulator date '$CURRENT_EMULATOR_DATE' does not match expected date '$EXPECTED_EMULATOR_DATE' for agency time zone '$AGENCY_TIME_ZONE'!"
+    exit 1 #error
+  fi
+fi
+
 # DISABLED: overriding current time inside main app doesn't load static/real-time schedule for overridden time
 if [[ "disabled" == "yes" ]]; then
   if [[ -n "$AGENCY_TIME_ZONE" ]]; then
