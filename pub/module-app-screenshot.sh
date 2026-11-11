@@ -191,6 +191,7 @@ if [[ "not-needed" == "yes" && -n "$AGENCY_TIME_ZONE" ]]; then
       $ADB wait-for-device
       DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
       DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date +%Y-%m-%d_%H:%M)
+      AGENCY_DATE_TIME=$(TZ=":$AGENCY_TIME_ZONE" date +%Y-%m-%d_%H:%M)
     fi
     if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
       echo "> Wrong time zone '$DEVICE_TIME_ZONE' ($DEVICE_DATE_TIME) for agency time zone '$AGENCY_TIME_ZONE' ($AGENCY_DATE_TIME)!"
