@@ -1,7 +1,7 @@
 package org.mtransit.android.commons
 
 import android.app.ActivityManager
-import android.app.Application.getProcessName
+import android.app.Application
 import android.content.Context
 import android.os.Build
 import android.os.Process
@@ -9,7 +9,7 @@ import androidx.core.content.getSystemService
 
 val Context.currentProcessName: String?
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        getProcessName()
+        Application.getProcessName()
     } else {
         val pid = Process.myPid()
         getSystemService<ActivityManager>()?.runningAppProcesses?.firstOrNull { it.pid == pid }?.processName
