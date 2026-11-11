@@ -31,11 +31,6 @@ else
   STATE_COUNTRY=$4
 fi
 
-AGENCY_NAME_1="${AGENCY_NAME_1//&/\\&amp;}"; # escape "&" -> "\&amp;"
-AGENCY_NAME_2="${AGENCY_NAME_2//&/\\&amp;}"; # escape "&" -> "\&amp;"
-CITY="${CITY//&/\\&amp;}"; # escape "&" -> "\&amp;"
-STATE_COUNTRY="${STATE_COUNTRY//&/\\&amp;}"; # escape "&" -> "\&amp;"
-
 # 17: "Community Transit" << too long
 # 15: "MRC de Montcalm" << too long
 MAX_AGENCY_LENGTH=14
@@ -72,6 +67,11 @@ fi
 echo " - agency name: '$AGENCY_NAME_1' '$AGENCY_NAME_2'"
 echo " - city: '$CITY'"
 echo " - state & country: '$STATE_COUNTRY'"
+
+AGENCY_NAME_1="${AGENCY_NAME_1//&/\\&amp;}"; # escape "&" -> "\&amp;"
+AGENCY_NAME_2="${AGENCY_NAME_2//&/\\&amp;}"; # escape "&" -> "\&amp;"
+CITY="${CITY//&/\\&amp;}"; # escape "&" -> "\&amp;"
+STATE_COUNTRY="${STATE_COUNTRY//&/\\&amp;}"; # escape "&" -> "\&amp;"
 
 requireCommand "xmllint" "libxml2-utils";
 requireCommand "jq";
