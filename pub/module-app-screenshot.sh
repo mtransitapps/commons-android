@@ -209,6 +209,27 @@ else
   echo ">> Force time format '$FORCE_TIME_FORMAT' for language '$LANG'."
 fi
 
+dateComponentsToMinutes() {
+  if [[ ! "$1" =~ ^([0-9]{4})-([0-9]{2})-([0-9]{2})_([0-9]{2}):([0-9]{2})$ ]]; then
+    echo "> Invalid date components '$1'!" >&2
+    return 1
+  fi
+  local year=$((10#${BASH_REMATCH[1]}))
+  local month=$((10#${BASH_REMATCH[2]}))
+  local day=$((10#${BASH_REMATCH[3]}))
+  local hour=$((10#${BASH_REMATCH[4]}))
+  local minute=$((10#${BASH_REMATCH[5]}))
+  # Count Gregorian days from March so leap days fall at the end of each year.
+  if (( month <= 2 )); then
+    year=$((year - 1))
+    month=$((month + 9))
+  else
+    month=$((month - 3))
+  fi
+  local days=$((365 * year + year / 4 - year / 100 + year / 400 + (153 * month + 2) / 5 + day))
+  echo "$((days * 1440 + hour * 60 + minute))"
+}
+
 echo "Agency time zone: '$AGENCY_TIME_ZONE'"
 # detects different time-zones && out-dated timezone rules #Alerta2026
 if [[ -n "$AGENCY_TIME_ZONE" ]]; then
@@ -228,8 +249,16 @@ if [[ -n "$AGENCY_TIME_ZONE" ]]; then
   EXPECTED_DATE_COMPONENTS=$(TZ="$AGENCY_TIME_ZONE" date +%Y-%m-%d_%H:%M)
   echo "Device date components: '$DEVICE_DATE_COMPONENTS'"
   echo "Expected date components: '$EXPECTED_DATE_COMPONENTS'"
-  if [[ "$DEVICE_DATE_COMPONENTS" != "$EXPECTED_DATE_COMPONENTS" ]]; then
-    echo "> Current device date components '$DEVICE_DATE_COMPONENTS' do not match expected components '$EXPECTED_DATE_COMPONENTS' for agency time zone '$AGENCY_TIME_ZONE'!"
+  DEVICE_DATE_MINUTES=$(dateComponentsToMinutes "$DEVICE_DATE_COMPONENTS") || exit 1
+  EXPECTED_DATE_MINUTES=$(dateComponentsToMinutes "$EXPECTED_DATE_COMPONENTS") || exit 1
+  DATE_DIFFERENCE_MINUTES=$((DEVICE_DATE_MINUTES - EXPECTED_DATE_MINUTES))
+  if (( DATE_DIFFERENCE_MINUTES < 0 )); then
+    DATE_DIFFERENCE_MINUTES=$((-DATE_DIFFERENCE_MINUTES))
+  fi
+  MAX_DATE_DIFFERENCE_MINUTES=10
+  echo "Device date difference: '$DATE_DIFFERENCE_MINUTES' minutes (maximum: '$MAX_DATE_DIFFERENCE_MINUTES')."
+  if (( DATE_DIFFERENCE_MINUTES > MAX_DATE_DIFFERENCE_MINUTES )); then
+    echo "> Current device date components '$DEVICE_DATE_COMPONENTS' differ from expected components '$EXPECTED_DATE_COMPONENTS' by more than $MAX_DATE_DIFFERENCE_MINUTES minutes for agency time zone '$AGENCY_TIME_ZONE'!"
     exit 1 #error
   fi
 fi
