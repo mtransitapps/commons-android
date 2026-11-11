@@ -342,11 +342,11 @@ echo "> Installed org.mtransit.android package set is valid for '$LANG'."
 
 echo "> Setting demo mode..."
 # shellcheck disable=SC2034
-DEVICE_AUTO_TIME=$($ADB shell settings get global auto_time)
-DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
 if [[ "disabled" == "yes" && -n "$AGENCY_TIME_ZONE" ]]; then
   # detects different time-zones && out-dated timezone rules #Alerta2026
   echo " - agency time-zone: '$AGENCY_TIME_ZONE'"
+  DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
+  echo " - device time-zone: '$DEVICE_TIME_ZONE'"
   DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date +%Y-%m-%d_%H:%M)
   AGENCY_DATE_TIME=$(TZ=":$AGENCY_TIME_ZONE" date +%Y-%m-%d_%H:%M)
   if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then

@@ -176,11 +176,11 @@ echo "> Setting demo mode..."
 
 # NOT needed anymore: time-zone SHOULD be overridden inside app.
 # shellcheck disable=SC2034
-DEVICE_AUTO_TIME=$($ADB shell settings get global auto_time)
-DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
 if [[ "not-needed" == "yes" && -n "$AGENCY_TIME_ZONE" ]]; then
   # detects different time-zones && out-dated timezone rules #Alerta2026
   echo " - agency time-zone: '$AGENCY_TIME_ZONE'"
+  DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
+  echo " - device time-zone: '$DEVICE_TIME_ZONE'"
   DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date +%Y-%m-%d_%H:%M)
   AGENCY_DATE_TIME=$(TZ=":$AGENCY_TIME_ZONE" date +%Y-%m-%d_%H:%M)
   if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
@@ -240,12 +240,6 @@ if [[ -n "$AGENCY_TIME_ZONE" ]]; then
     echo "> Device time zone '$DEVICE_TIME_ZONE' does not match expected agency time zone '$AGENCY_TIME_ZONE'!"
     exit 1 #error
   fi
-  HOST_TIME_ZONE=$(date +%Z)
-  echo "Host time zone: '$HOST_TIME_ZONE'"
-  HOST_DATE=$(date +%Y-%m-%d_%H:%M)
-  echo "Host date: '$HOST_DATE'."
-  HOST_DATE_TZ=$(TZ="$AGENCY_TIME_ZONE" date +%Y-%m-%d_%H:%M)
-  echo "Host date at '$AGENCY_TIME_ZONE': '$HOST_DATE_TZ'."
   DEVICE_DATE_COMPONENTS=$($ADB shell date +%Y-%m-%d_%H:%M | tr -d '\r')
   EXPECTED_DATE_COMPONENTS=$(TZ="$AGENCY_TIME_ZONE" date +%Y-%m-%d_%H:%M)
   echo "Device date components: '$DEVICE_DATE_COMPONENTS'"
