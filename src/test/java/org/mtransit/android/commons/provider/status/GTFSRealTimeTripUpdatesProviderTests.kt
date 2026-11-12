@@ -1414,13 +1414,15 @@ class GTFSRealTimeTripUpdatesProviderTests {
         assertEquals(6, forMatching.first { it.stopId == "6000" }.stopSequence)
         assertEquals(2222, forMatching.first { it.stopSequence == 2222 }.stopSequence)
         // An ambiguous repeated-stop update is tolerated during processing, but cannot identify a fallback trip.
-        assertFalse(forMatching.all { stu ->
-            stu.match(
-                rdsCandidates = rdsList,
-                findStopTimestamp = { uuid, sequence -> (uuid to sequence) in sortedTargetUuidAndSequence },
-                parseStopId = { it },
-            )
-        })
+        assertFalse(
+            forMatching.all { stu ->
+                stu.match(
+                    rdsCandidates = rdsList,
+                    findStopTimestamp = { uuid, sequence -> (uuid to sequence) in sortedTargetUuidAndSequence },
+                    parseStopId = { it },
+                )
+            }
+        )
     }
 
     // endregion
