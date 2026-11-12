@@ -26,13 +26,15 @@ import com.google.transit.realtime.GtfsRealtime.TranslatedString as GTranslatedS
 import com.google.transit.realtime.GtfsRealtime.TranslatedString.Translation as GTSTranslation
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor as GTripDescriptor
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ModifiedTripSelector as GTDModifiedTripSelector
+import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUStopTimeEvent
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.TripProperties as GTUTripProperties
 import com.google.transit.realtime.GtfsRealtime.VehicleDescriptor as GVehicleDescriptor
 import com.google.transit.realtime.GtfsRealtime.VehiclePosition as GVehiclePosition
 
-@Suppress("MemberVisibilityCanBePrivate", "unused")
+@Suppress("MemberVisibilityCanBePrivate", "unused", "UnreachableCode")
 object GtfsRealtimeExt {
 
     private const val MAX_LIST_ITEMS = 5
@@ -216,6 +218,7 @@ object GtfsRealtimeExt {
         append(
             buildList {
                 optTrip?.let { add(it.toStringExt(short = true)) }
+                optTripProperties?.let { add(it.toStringExt(short = true)) }
                 optVehicle?.let { add(it.toStringExt(short = true)) }
                 optTimestampMs?.let { add("timestamp=${it.toDateTimeLog()}") }
                 optDelayMs?.let { add("delay=${it.toDurationLog()}") }
@@ -528,8 +531,12 @@ object GtfsRealtimeExt {
     val GTripDescriptor.optDirectionIdValid get() = optDirectionId?.takeIf { it.isValidDirection }
     val GTripDescriptor.optModifiedTrip get() = if (hasModifiedTrip()) modifiedTrip else null
     val GTripDescriptor.optScheduleRelationship get() = if (hasScheduleRelationship()) scheduleRelationship else null
+    val GTripDescriptor.scheduleRelationshipOrDefault get() = optScheduleRelationship ?: GTDScheduleRelationship.SCHEDULED
     val GTripDescriptor.optStartDate get() = if (hasStartDate()) startDate else null
     val GTripDescriptor.optStartTime get() = if (hasStartTime()) startTime else null
+
+    val GTripDescriptor.optStartDateOrModifiedTripStartDate get() = this.optStartDate ?: this.optModifiedTrip?.optStartDate
+    val GTripDescriptor.optStartTimeOrModifiedTripStartTime get() = this.optStartTime ?: this.optModifiedTrip?.optStartTime
 
     @JvmStatic
     @JvmOverloads
@@ -549,6 +556,30 @@ object GtfsRealtimeExt {
     val GTDModifiedTripSelector.optAffectedTripId get() = if (hasAffectedTripId()) affectedTripId else null
     val GTDModifiedTripSelector.optStartDate get() = if (hasStartDate()) startDate else null
     val GTDModifiedTripSelector.optStartTime get() = if (hasStartTime()) startTime else null
+
+    @JvmStatic
+    @JvmOverloads
+    fun GTUTripProperties.toStringExt(short: Boolean = false): String = buildString {
+        append(if (short) "TP:" else "TripProperties:")
+        append(
+            buildList {
+                optTripIdNotEmpty?.let { add((if (short) "t=" else "tripId=") + it) }
+                optStartDate?.let { add((if (short) "sd=" else "startDate=") + it) }
+                optStartTime?.let { add((if (short) "st=" else "startTime=") + it) }
+                optShapeId?.let { add((if (short) "s=" else "shapeId=") + it) }
+                optTripHeadsign?.let { add((if (short) "hs=" else "tripHeadsign=") + it) }
+                optTripShortName?.let { add((if (short) "sn=" else "tripShortName=") + it) }
+            }.joinToStringOption()
+        )
+    }
+
+    val GTUTripProperties.optTripId get() = if (hasTripId()) tripId else null
+    val GTUTripProperties.optTripIdNotEmpty get() = optTripId?.takeIf { it.isNotEmpty() }
+    val GTUTripProperties.optStartDate get() = if (hasStartDate()) startDate else null
+    val GTUTripProperties.optStartTime get() = if (hasStartTime()) startTime else null
+    val GTUTripProperties.optShapeId get() = if (hasShapeId()) shapeId else null
+    val GTUTripProperties.optTripHeadsign get() = if (hasTripHeadsign()) tripHeadsign else null
+    val GTUTripProperties.optTripShortName get() = if (hasTripShortName()) tripShortName else null
 
     @JvmOverloads
     @JvmStatic

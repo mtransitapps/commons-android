@@ -78,9 +78,10 @@
     <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private var _youtubeApi: YouTubeV3Api? = null</ID>
     <ID>CyclomaticComplexMethod:AppUpdateUtils.kt:AppUpdateUtils$private fun triggerRefreshIfNecessary</ID>
     <ID>CyclomaticComplexMethod:BatteryUtils.kt:BatteryUtils$@JvmStatic fun shouldUseBatteryForOptionalWork: Boolean</ID>
+    <ID>CyclomaticComplexMethod:GTFSRealTimeTripUpdatesFilter.kt:internal fun GTripUpdate.isUseful: Boolean</ID>
+    <ID>CyclomaticComplexMethod:GTFSRealTimeTripUpdatesFilter.kt:internal fun GTripUpdate.match: String?</ID>
     <ID>CyclomaticComplexMethod:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: Boolean</ID>
     <ID>CyclomaticComplexMethod:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData: POIStatus?</ID>
-    <ID>CyclomaticComplexMethod:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTripUpdate.isUseful: Boolean</ID>
     <ID>CyclomaticComplexMethod:GTFSRealTimeTripUpdatesProviderExt.kt:@VisibleForTesting internal fun processRDTripUpdate</ID>
     <ID>CyclomaticComplexMethod:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
     <ID>CyclomaticComplexMethod:InstagramNewsProvider.kt:InstagramNewsProvider$private fun loadUserTimeline</ID>
@@ -106,7 +107,10 @@
     <ID>LongMethod:YouTubeNewsProvider.kt:YouTubeNewsProvider$private fun loadUserUploadsPlaylist</ID>
     <ID>LongParameterList:GTFSProviderDBHelperUtils.kt:GTFSProviderDBHelperUtils$@JvmStatic @JvmOverloads fun initDbTableWithRetry</ID>
     <ID>LongParameterList:GTFSProviderDBHelperUtils.kt:GTFSProviderDBHelperUtils$private fun SQLiteDatabase.initDbTable: Boolean</ID>
+    <ID>LongParameterList:GTFSRealTimeTripUpdatesFilter.kt:internal fun GTripUpdate.match: String?</ID>
+    <ID>LongParameterList:GTFSRealTimeTripUpdatesFilter.kt:internal fun List&lt;GTripUpdate&gt;.selectRouteDirectionTripUpdates</ID>
     <ID>LongParameterList:GTFSRealTimeTripUpdatesProviderExt.kt:@VisibleForTesting internal fun processRDTripUpdate</ID>
+    <ID>LongParameterList:GTFSRealTimeTripUpdatesProviderExt.kt:fun GTFSRealTimeProvider.processRDTripUpdates: Boolean</ID>
     <ID>LongParameterList:InstagramNewsProvider.kt:InstagramNewsProvider$private fun loadUserTimeline</ID>
     <ID>LongParameterList:InstagramNewsProvider.kt:InstagramNewsProvider$private fun readNews: News</ID>
     <ID>LongParameterList:POIProviderContract.kt:POIProviderContract.Filter.Companion$@SuppressLint("DiscouragedApi") fun getNewAreaFilter</ID>
@@ -117,8 +121,6 @@
     <ID>LongParameterList:VehicleLocationProviderUtils.kt:VehicleLocationProviderUtils$@VisibleForTesting internal fun vehicleNearbyAgencyLocation: Boolean?</ID>
     <ID>LongParameterList:YouTubeNewsProvider.kt:YouTubeNewsProvider$private fun loadUserUploadsPlaylist</ID>
     <ID>LoopWithTooManyJumpStatements:GTFSRealTimeTripUpdatesProviderExt.kt:while</ID>
-    <ID>MagicNumber:GTFSDateTimeUtils.kt:GTFSDateTimeUtils$3</ID>
-    <ID>MagicNumber:GTFSDateTimeUtils.kt:GTFSDateTimeUtils$8</ID>
     <ID>MagicNumber:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$567</ID>
     <ID>MagicNumber:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$9</ID>
     <ID>MagicNumber:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$567</ID>
@@ -149,15 +151,17 @@
     <ID>ReturnCount:GTFSDateTimeUtils.kt:GTFSDateTimeUtils$fun parseToDateTime: Instant?</ID>
     <ID>ReturnCount:GTFSRTAlertsManager.kt:GTFSRTAlertsManager$@JvmStatic fun parseSeverity: Int</ID>
     <ID>ReturnCount:GTFSRealTimeServiceAlertsProvider.kt:GTFSRealTimeServiceAlertsProvider$@JvmStatic fun GTFSRealTimeProvider.parseProviderTargetUUID: String?</ID>
-    <ID>ReturnCount:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$@VisibleForTesting internal fun GTripDescriptor.match: Boolean</ID>
+    <ID>ReturnCount:GTFSRealTimeTripUpdatesFilter.kt:internal fun GTripUpdate.isUseful: Boolean</ID>
+    <ID>ReturnCount:GTFSRealTimeTripUpdatesFilter.kt:internal fun GTripUpdate.match: String?</ID>
     <ID>ReturnCount:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: Boolean</ID>
     <ID>ReturnCount:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData: POIStatus?</ID>
     <ID>ReturnCount:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyDataLock: POIStatus?</ID>
-    <ID>ReturnCount:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTripUpdate.isUseful: Boolean</ID>
     <ID>ReturnCount:GTFSRealTimeTripUpdatesProviderExt.kt:@VisibleForTesting internal fun processRDTripUpdate</ID>
+    <ID>ReturnCount:GTFSRealTimeTripUpdatesProviderExt.kt:fun GTFSRealTimeProvider.processRDTripUpdates: Boolean</ID>
     <ID>ReturnCount:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$@VisibleForTesting internal fun GTFSRealTimeProvider.parseProviderTargetUUID: String?</ID>
     <ID>ReturnCount:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
     <ID>ReturnCount:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.processVehiclePositions: Set&lt;VehicleLocation&gt;?</ID>
+    <ID>ReturnCount:GtfsRealtimeTripUpdateExt.kt:fun GTUStopTimeUpdate.isSameStop: Boolean</ID>
     <ID>ReturnCount:ModuleReceiver.kt:ModuleReceiver$override fun onReceive</ID>
     <ID>ReturnCount:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun NextBusProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
     <ID>ReturnCount:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun NextBusProvider.processVehiclePositions: Set&lt;VehicleLocation&gt;?</ID>
@@ -220,17 +224,7 @@
     <ID>TooManyFunctions:YouTubeNewsProvider.kt:YouTubeNewsProvider : NewsProvider</ID>
     <ID>UnreachableCode:AppUpdateLauncher.kt:AppUpdateLauncher$intent.resolveActivity(context.packageManager) != null</ID>
     <ID>UnreachableCode:GTFSRealTimeProviderExt.kt:parseAgencyId(it)</ID>
-    <ID>UnreachableCode:GTFSRealTimeProviderExt.kt:parseTripId(it)</ID>
     <ID>UnreachableCode:GTFSRealTimeServiceAlertsProvider.kt:GTFSRealTimeServiceAlertsProvider$return getAgencyRouteTypeTagTargetUUID(agencyTag, routeType)</ID>
-    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$optTrip.optModifiedTrip?.let { parseToDateTime(it.optStartDate, it.optStartTime, agencyTimeZone) }?.toMillis()</ID>
-    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:it == stopSequence</ID>
-    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:processRDTripUpdate( tripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, rdSchedulesByUUID, isSameStop = this::isSameStop, feedReadFromSourceMs = feedReadFromSourceMs, fixStopSequence = { it?.fixStopSequence( tripId = tripId, tripSortedRDS = tripSortedRDS, sortedTargetUuidAndSequence = sortedTargetUuidAndSequence, isSameStop = this::isSameStop, parseStopId = this::parseStopId, ) }, includeCancelledTimestamps = includeCancelledTimestamps, )</ID>
-    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:val gTripId = td.optTripIdNotEmpty ?: return@forEach</ID>
-    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(tripId, tripSchedules, tripSortedRDS)</ID>
-    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:val tripId = parseTripId(gTripId)</ID>
-    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:val tripRdsUUIDs = rdsUUIDsByTripId[tripId] ?: return@forEach // trip ID not in static data</ID>
-    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:val tripSchedules = tripRdsUUIDs.mapNotNull { rdSchedulesByUUID[it] }</ID>
-    <ID>UnreachableCode:GTFSRealTimeTripUpdatesProviderExt.kt:val tripSortedRDS = sortedRDS .filter { rds -&gt; rds.uuid in tripRdsUUIDs } .takeIf { it.isNotEmpty() } ?: return@forEach</ID>
     <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$gVehiclePosition.optTimestampMs?.let { vpTimestamp -&gt; if (vpTimestamp + VEHICLE_POSITIONS_MAX_AGE_MS &lt; lastUpdateInMs) { MTLog.d(LOG_TAG, "processVehiclePositions() &gt; IGNORE ${(lastUpdateInMs - vpTimestamp).toDurationLog()} old: ${gVehiclePosition.toStringExt()}") return null } }</ID>
     <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$return null</ID>
     <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$return setOf( VehicleLocation( authority = this.authority, targetUUID = targetUUIDs, targetTripId = gVehiclePosition.optTrip?.let { parseTripId(it) }, lastUpdateInMs = lastUpdateInMs, maxValidityInMs = this@processVehiclePositions.vehicleLocationMaxValidityInMs, // vehicleId = gVehiclePosition.optVehicle?.optId, vehicleLabel = gVehiclePosition.optVehicle?.optLabel, reportTimestamp = gVehiclePosition.optTimestamp?.secsToInstant(), latitude = vehicleLat, longitude = vehicleLng, bearingDegrees = gVehiclePosition.optPosition?.optBearing?.toInt(), // in degrees speedMetersPerSecond = gVehiclePosition.optPosition?.optSpeed?.toInt(), // in meters per second ) )</ID>
@@ -238,44 +232,9 @@
     <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$val vehicleLat = gVehiclePosition.optPosition?.optLatitude ?: return null</ID>
     <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$val vehicleLng = gVehiclePosition.optPosition?.optLongitude ?: return null</ID>
     <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$vehicleNearbyAgencyLocation(context, vehicleLat, vehicleLng) == false</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("(${it.toStringExt("detail")})")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("a18n=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("bearing=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("cause=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("congestionLevel=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("currentStatus=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("currentStopSequence=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("effect=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("feedVersion:$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("gtfsRTVersion:$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("id=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("label=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("lat=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("licensePlate=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("lon=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("occupancyPct=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("occupancyStatus=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("odometer=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add("speed=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "a=" else "agencyId=") + it)</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "a=" else "arrival=") + it.toStringExt(short = true))</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "d=" else "departure=") + it.toStringExt(short = true))</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "m=" else "modificationsId=") + it)</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "rt=" else "routeType=") + it)</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "t=" else "affectedTripId=") + it)</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add((if (short) "t=" else "tripId=") + it)</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(if (short) "do:$it" else "dropOffType=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(if (short) "hs:$it" else "stopHeadsign=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(if (short) "id:$it" else "aStopId=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(if (short) "oc=$it" else "depOcc=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(if (short) "pu:$it" else "pickupType=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(if (short) "seq=$it" else "stopSeq=$it")</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(it.toStringExt("desc", debug))</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(it.toStringExt("header", debug))</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(it.toStringExt("url", debug))</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$add(it.toStringExt(short = true))</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$it to fe.id</ID>
-    <ID>UnreachableCode:GtfsRealtimeExt.kt:GtfsRealtimeExt$it.isNotEmpty()</ID>
+    <ID>UnreachableCode:GtfsRealtimeTripUpdateExt.kt:gStuStopSeq ?: return@any true</ID>
+    <ID>UnreachableCode:GtfsRealtimeTripUpdateExt.kt:it == stopSequence</ID>
+    <ID>UnreachableCode:GtfsRealtimeTripUpdateExt.kt:return@any findStopTimestamp(rds.uuid, gStuStopSeq)</ID>
     <ID>UnreachableCode:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$(filter.poi as? RouteDirectionStop)?.getTargetUUIDs(includeStopTags = true) ?: filter.routeDirection?.getTargetUUIDs() ?: filter.route?.getTargetUUIDs()</ID>
     <ID>UnreachableCode:TwitterNewsProvider.kt:TwitterNewsProvider$!deleteAllDone</ID>
     <ID>UnreachableCode:VehicleLocationProviderContract.kt:VehicleLocationProviderContract.Filter.Companion$json.optString(JSON_AUTHORITY, fallback = null) ?: poi?.authority ?: return null</ID>

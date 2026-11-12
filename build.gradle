@@ -66,6 +66,7 @@ android {
                 jvmArgs "-noverify"
                 testLogging {
                     if (isCI) {
+                        showStandardStreams = true
                         events("started", "passed", "skipped", "failed", "standard_out", "standard_error")
                     } else {
                         events("failed")
