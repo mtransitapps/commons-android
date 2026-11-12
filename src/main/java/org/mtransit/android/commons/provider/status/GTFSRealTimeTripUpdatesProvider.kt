@@ -288,7 +288,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     if (!gSTUStopSeqFixed.isInStopSequenceOrder()) {
                         MTLog.v(
                             LOG_TAG,
-                            "findOutOfSyncTripId() > ignore static trip ID '$staticTripId' at ${departure.toDateTimeLog()} (stop time updates are out of order)."
+                            "findOutOfSyncTripId() > ignore static trip ID '$staticTripId' at ${departure.toDateTimeLog()} " +
+                                "(stop time updates are out of order)."
                         )
                         return@candidates // NO MATCH
                     }
