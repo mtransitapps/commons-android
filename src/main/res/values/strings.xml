@@ -72,9 +72,8 @@
     <string name="module_app_installed_and_module"><![CDATA[ <b>%s</b> for <b>MonTransit</b> installed. ]]></string>
     <string name="congratulations_module_app_installed_default"><![CDATA[ Congratulations! <br/><br/>You have installed the <b>transit agency data</b> for <b>MonTransit</b>. ]]></string>
     <string name="congratulations_module_app_installed_and_module"><![CDATA[ Congratulations! <br/><br/>You have installed <b>%s</b> for <b>MonTransit</b>. ]]></string>
-    <string name="why_title">Why?</string>
-    <string name="why_multiple_apps">This app adds the transit agency information to the main <b>MonTransit</b> app which is <b>compatible with many transit agencies</b> this way.\nThis helps reduce costs and <b>keep the app 100%% free</b>.</string>
-    <string name="why_multiple_apps_rds">This app adds transit agency information (<b>full schedule accessible offline</b>…) to the main <b>MonTransit</b> app which is <b>compatible with many transit agencies</b> this way.\nThis helps reduce costs and <b>keep the app 100%% free</b>.</string>
+    <string name="why_title">Why multiple apps?</string>
+    <string name="why_multiple_apps">This way of distributing the <b>MonTransit</b> application allows it to be <b>compatible with many transit agencies</b> while reducing costs and <b>remaining 100% free</b>.</string>
     <string name="keep_temporary_app_icon">Keep temporary app icon</string>
     <string name="action_open_main_app">Open MonTransit</string>
     <string name="action_download_main_app">Download MonTransit (free)</string>
@@ -83,6 +82,14 @@
         <item quantity="other">Opening in %d seconds&#8230;</item>
     </plurals>
     <string name="text_opening_main_app_cancel">(touch screen to cancel)</string>
+    <string name="app_feature_rds_all_info">all routes, stops and trips</string>
+    <string name="app_feature_other_all_info">all stations</string>
+    <string name="app_feature_planned_schedule_offline">full schedule (accessible offline)</string>
+    <string name="app_feature_real_time_next_departures">real-time next departures</string>
+    <string name="app_feature_real_time_bike_availability">real-time bikes availability</string>
+    <string name="app_feature_vehicle_locations">vehicle locations</string>
+    <string name="app_feature_service_alerts">service alerts</string>
+    <string name="app_feature_latest_news">latest news</string>
     <string name="privacy_policy">Privacy Policy</string>
     <string name="get_it_on_google_play_store_badge">Get it on the Play Store</string>
 </resources>

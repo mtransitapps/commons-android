@@ -1,28 +1,35 @@
 package org.mtransit.android.commons.ui;
 
+import static org.mtransit.android.commons.ui.ModuleRedirectActivityExtKt.loadProvidersInfo;
+import static org.mtransit.android.commons.ui.ModuleRedirectActivityExtKt.updateAgencyInfo;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ProviderInfo;
 import android.database.Cursor;
+import android.graphics.Insets;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.text.SpannableString;
 import android.text.style.UnderlineSpan;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowInsets;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.DrawableRes;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.util.Pair;
+import androidx.core.content.ContextCompat;
 
 import org.mtransit.android.commons.BatteryUtils;
 import org.mtransit.android.commons.BuildConfig;
@@ -74,11 +81,15 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	@Nullable
 	private View rootView;
 	@Nullable
-	private ImageView typeImg;
-	@Nullable
 	private TextView typeDownArrow;
 	@Nullable
 	private TextView appInstalledTv;
+	protected @Nullable TextView appFeature1Tv;
+	protected @Nullable TextView appFeature2Tv;
+	protected @Nullable TextView appFeature3Tv;
+	protected @Nullable TextView appFeature4Tv;
+	protected @Nullable TextView appFeature5Tv;
+	protected @Nullable TextView appFeature6Tv;
 	@SuppressWarnings("FieldCanBeLocal")
 	@Nullable
 	private ImageView appIconImg;
@@ -126,9 +137,14 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		setContentView(R.layout.activity_module_redirect);
 
 		this.rootView = findViewById(R.id.module_installed_root);
-		this.typeImg = findViewById(R.id.type_img);
 		this.typeDownArrow = findViewById(R.id.type_down_arrow);
 		this.appInstalledTv = findViewById(R.id.module_installed_text);
+		this.appFeature1Tv = findViewById(R.id.module_feature_1_text);
+		this.appFeature2Tv = findViewById(R.id.module_feature_2_text);
+		this.appFeature3Tv = findViewById(R.id.module_feature_3_text);
+		this.appFeature4Tv = findViewById(R.id.module_feature_4_text);
+		this.appFeature5Tv = findViewById(R.id.module_feature_5_text);
+		this.appFeature6Tv = findViewById(R.id.module_feature_6_text);
 		this.appIconImg = findViewById(R.id.app_icon);
 		this.whyDescriptionTv = findViewById(R.id.why_description);
 		this.openDownloadTitle = findViewById(R.id.module_open_download_app_title);
@@ -138,6 +154,33 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		this.countdownCancelText = findViewById(R.id.module_countdown_cancel_text);
 		this.privacyPolicyLink = findViewById(R.id.module_privacy_policy_link);
 
+		if (this.rootView != null) {
+			final int initialLeft = this.rootView.getPaddingLeft();
+			final int initialTop = this.rootView.getPaddingTop();
+			final int initialRight = this.rootView.getPaddingRight();
+			final int initialBottom = this.rootView.getPaddingBottom();
+			this.rootView.setOnApplyWindowInsetsListener((view, insets) -> {
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+					final Insets systemBars = insets.getInsets(WindowInsets.Type.systemBars());
+					view.setPadding(
+							initialLeft + systemBars.left,
+							initialTop + systemBars.top,
+							initialRight + systemBars.right,
+							initialBottom + systemBars.bottom
+					);
+				} else {
+					//noinspection deprecation
+					view.setPadding(
+							initialLeft + insets.getSystemWindowInsetLeft(),
+							initialTop + insets.getSystemWindowInsetTop(),
+							initialRight + insets.getSystemWindowInsetRight(),
+							initialBottom + insets.getSystemWindowInsetBottom()
+					);
+				}
+				return insets;
+			});
+		}
+
 		if (FeatureFlags.F_MODULE_AUTO_OPEN) {
 			if (savedInstanceState != null) {
 				this.countDownCancelled = savedInstanceState.getBoolean(COUNT_DOWN_CANCELLED, COUNT_DOWN_CANCELLED_DEFAULT);
@@ -145,24 +188,16 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		}
 
 		if (this.appIconImg != null) {
-			this.appIconImg.setOnClickListener(v ->
-					onButtonClicked()
-			);
+			this.appIconImg.setOnClickListener(v -> onButtonClicked());
 		}
 		if (this.openDownloadTitle != null) {
-			this.openDownloadTitle.setOnClickListener(v ->
-					onButtonClicked()
-			);
+			this.openDownloadTitle.setOnClickListener(v -> onButtonClicked());
 		}
 		if (this.openDownloadButton != null) {
-			this.openDownloadButton.setOnClickListener(v ->
-					onButtonClicked()
-			);
+			this.openDownloadButton.setOnClickListener(v -> onButtonClicked());
 		}
 		if (this.getItOnGooglePlay != null) {
-			this.getItOnGooglePlay.setOnClickListener(v ->
-					onButtonClicked()
-			);
+			this.getItOnGooglePlay.setOnClickListener(v -> onButtonClicked());
 		}
 
 		setupPrivacyPolicyLink();
@@ -170,7 +205,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		initAgencyData();
 
 		if (isMainAppInstalled() && BatteryUtils.shouldUseBatteryForOptionalWork(this)) {
-			TaskUtils.execute(new PingTask(getApplication()));
+			TaskUtils.execute(new PingTask(getApplication(), this.agencyProviderAuthority, this.agencyProviderType)); // LAST
 		}
 	}
 
@@ -226,9 +261,15 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 
 		@NonNull
 		private final Application appContext;
+		@Nullable
+		private final String agencyProviderAuthority;
+		@Nullable
+		private final Integer agencyProviderType;
 
-		PingTask(@NonNull Application appContext) {
+		PingTask(@NonNull Application appContext, @Nullable String agencyProviderAuthority, @Nullable Integer agencyProviderType) {
 			this.appContext = appContext;
+			this.agencyProviderAuthority = agencyProviderAuthority;
+			this.agencyProviderType = agencyProviderType;
 		}
 
 		@Nullable
@@ -239,21 +280,18 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		}
 
 		private void ping() {
-			final Pair<String, Integer> authorityAndType = findProviderAuthorityAndType(this.appContext);
-			final String authority = authorityAndType.first;
-			final Integer type = authorityAndType.second;
-			if (type != null) {
+			if (this.agencyProviderType != null) {
 				if (FeatureFlags.F_PROVIDER_DEPLOY_SYNC_GTFS_ONLY) {
-					if (!DataSourceTypeId.isGTFSType(type)) {
+					if (!DataSourceTypeId.isGTFSType(this.agencyProviderType)) {
 						return;
 					}
 				}
 			}
-			if (authority != null) {
+			if (this.agencyProviderAuthority != null) {
 				Cursor cursor = null;
 				try {
-					Uri authorityUri = UriUtils.newContentUri(authority);
-					Uri pingUri = Uri.withAppendedPath(authorityUri, AgencyProviderContract.PING_PATH);
+					final Uri authorityUri = UriUtils.newContentUri(this.agencyProviderAuthority);
+					final Uri pingUri = Uri.withAppendedPath(authorityUri, AgencyProviderContract.PING_PATH);
 					cursor = this.appContext.getContentResolver().query(pingUri, null, null, null, null);
 				} catch (Exception e) {
 					MTLog.w(this, e, "Error!");
@@ -267,13 +305,11 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	private void initAgencyData() {
 		String bgColor = "6699FF"; // DEFAULT
 		CharSequence appInstalledText = getResources().getText(R.string.module_app_installed_default); // DEFAULT
-		final Pair<String, Integer> authorityAndType = findProviderAuthorityAndType(this);
-		final String authority = authorityAndType.first;
-		final Integer type = authorityAndType.second;
-		if (authority != null) {
+		loadProvidersInfo(this);
+		if (this.agencyProviderAuthority != null) {
 			Cursor cursor = null;
 			try {
-				final Uri authorityUri = UriUtils.newContentUri(authority);
+				final Uri authorityUri = UriUtils.newContentUri(this.agencyProviderAuthority);
 				final Uri uri = Uri.withAppendedPath(authorityUri, AgencyProviderContract.ALL_PATH);
 				cursor = getContentResolver().query(uri, null, null, null, null);
 				if (cursor != null && cursor.getCount() > 0) {
@@ -289,76 +325,70 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 				SqlUtils.closeQuietly(cursor);
 			}
 		}
-		boolean typeSet = false;
-		if (type != null && this.typeImg != null) {
-			switch (type) {
+		@Nullable @DrawableRes Integer typeImgResId = null;
+		if (this.agencyProviderType != null) {
+			switch (this.agencyProviderType) {
 			case DataSourceTypeId.LIGHT_RAIL:
-				this.typeImg.setImageResource(R.drawable.ic_light_rail_black_24dp);
-				typeSet = true;
+				typeImgResId = R.drawable.ic_light_rail_black_24dp;
 				break;
 			case DataSourceTypeId.SUBWAY:
-				this.typeImg.setImageResource(R.drawable.ic_directions_subway_black_24dp);
-				typeSet = true;
+				typeImgResId = R.drawable.ic_directions_subway_black_24dp;
 				break;
 			case DataSourceTypeId.RAIL:
-				this.typeImg.setImageResource(R.drawable.ic_directions_railway_black_24dp);
-				typeSet = true;
+				typeImgResId = R.drawable.ic_directions_railway_black_24dp;
 				break;
 			case DataSourceTypeId.FERRY:
-				this.typeImg.setImageResource(R.drawable.ic_directions_boat_black_24dp);
-				typeSet = true;
+				typeImgResId = R.drawable.ic_directions_boat_black_24dp;
 				break;
 			case DataSourceTypeId.BIKE:
-				this.typeImg.setImageResource(R.drawable.ic_directions_bike_black_24dp);
-				typeSet = true;
+				typeImgResId = R.drawable.ic_directions_bike_black_24dp;
 				break;
 			case DataSourceTypeId.BUS:
-				this.typeImg.setImageResource(R.drawable.ic_directions_bus_black_24dp);
-				typeSet = true;
+				typeImgResId = R.drawable.ic_directions_bus_black_24dp;
 				break;
 			}
 		}
-		if (this.typeImg != null) {
-			this.typeImg.setVisibility(typeSet ? View.VISIBLE : View.GONE);
+		if (typeImgResId != null && this.appInstalledTv != null) {
+			final Drawable typeImgDrawable = ContextCompat.getDrawable(this, typeImgResId);
+			if (typeImgDrawable != null) {
+				final int typeImgSize = getResources().getDimensionPixelSize(R.dimen.module_redirect_type_img_size);
+				typeImgDrawable.setBounds(0, 0, typeImgSize, typeImgSize);
+				this.appInstalledTv.setCompoundDrawablesRelative(
+						typeImgDrawable, // start
+						null,
+						null,
+						null
+				);
+			} else {
+				this.appInstalledTv.setCompoundDrawablesRelativeWithIntrinsicBounds(
+						typeImgResId, // start
+						0, 0, 0
+				);
+			}
 		}
 		if (this.typeDownArrow != null) {
-			this.typeDownArrow.setVisibility(typeSet ? View.VISIBLE : View.GONE);
+			this.typeDownArrow.setVisibility(typeImgResId != null ? View.VISIBLE : View.GONE);
 		}
 		if (this.appInstalledTv != null) {
 			this.appInstalledTv.setText(appInstalledText);
 		}
+		updateAgencyInfo(this);
 		if (this.whyDescriptionTv != null) {
-			if (type != null && DataSourceTypeId.isRDSType(type)) {
-				this.whyDescriptionTv.setText(getText(R.string.why_multiple_apps_rds));
-			} else {
-				this.whyDescriptionTv.setText(getText(R.string.why_multiple_apps));
-			}
+			this.whyDescriptionTv.setText(getText(R.string.why_multiple_apps));
 		}
 		if (this.rootView != null) {
 			this.rootView.setBackgroundColor(ColorUtils.parseColor(bgColor));
 		}
 	}
 
-	@NonNull
-	private static Pair<String, Integer> findProviderAuthorityAndType(@NonNull Context context) {
-		final String agencyProviderMetaData = context.getString(R.string.agency_provider);
-		final String agencyProviderTypeMetaData = context.getString(R.string.agency_provider_type);
-		final ProviderInfo[] providers = PackageManagerUtils.findContentProvidersWithMetaData(context, context.getPackageName());
-		String providerAuthority = null;
-		Integer providerType = null;
-		if (providers != null) {
-			for (ProviderInfo provider : providers) {
-				if (provider.metaData != null) {
-					if (agencyProviderMetaData.equals(provider.metaData.getString(agencyProviderMetaData))) {
-						providerAuthority = provider.authority;
-						providerType = provider.metaData.getInt(agencyProviderTypeMetaData, -1);
-					}
-
-				}
-			}
-		}
-		return new Pair<>(providerAuthority, providerType);
-	}
+	protected @Nullable String agencyProviderAuthority = null;
+	protected @Nullable Integer agencyProviderType = null;
+	protected @Nullable Boolean hasRDSProvider = null;
+	protected @Nullable Boolean hasScheduleProvider = null;
+	protected @Nullable Boolean hasNonStaticStatusProvider = null;
+	protected @Nullable Boolean hasServiceUpdateProvider = null;
+	protected @Nullable Boolean hasVehicleLocationProvider = null;
+	protected @Nullable Boolean hasNewsProvider = null;
 
 	@Override
 	protected void onSaveInstanceState(@NonNull Bundle outState) {
@@ -407,9 +437,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	}
 
 	private void onCountDownTimeStateChanged(long millisUntilFinished) {
-		if (!FeatureFlags.F_MODULE_AUTO_OPEN) {
-			return;
-		}
+		if (!FeatureFlags.F_MODULE_AUTO_OPEN) return;
 		if (this.countdownText != null) {
 			final int seconds = Math.round(millisUntilFinished / 1000.0f);
 			this.countdownText.setText(
@@ -419,9 +447,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	}
 
 	private void onCountDownCancelStateChanged() {
-		if (!FeatureFlags.F_MODULE_AUTO_OPEN) {
-			return;
-		}
+		if (!FeatureFlags.F_MODULE_AUTO_OPEN) return;
 		if (this.countDownCancelled) {
 			if (this.countdownText != null) {
 				this.countdownText.setVisibility(View.INVISIBLE);

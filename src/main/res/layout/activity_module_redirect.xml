@@ -20,8 +20,8 @@
         android:id="@+id/module_installed_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:drawableStart="@drawable/ic_baseline_check_box_black_24"
-        android:drawablePadding="8dp"
+        android:drawableStart="@drawable/ic_directions_bus_black_24dp"
+        android:drawablePadding="16dp"
         android:gravity="start"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textStyle="normal"
@@ -33,15 +33,52 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <ImageView
-        android:id="@+id/type_img"
-        android:layout_width="@dimen/module_redirect_type_img_size"
-        android:layout_height="@dimen/module_redirect_type_img_size"
-        android:contentDescription="@string/app_name"
-        android:visibility="gone"
-        tools:src="@drawable/ic_directions_bus_black_24dp"
+    <TextView
+        android:id="@+id/module_feature_1_text"
+        style="@style/moduleFeatureText"
+        tools:ignore="UseCompatTextViewDrawableXml"
+        tools:text="all POIs information"
         tools:visibility="visible" />
 
+    <TextView
+        android:id="@+id/module_feature_2_text"
+        style="@style/moduleFeatureText"
+        tools:ignore="UseCompatTextViewDrawableXml"
+        tools:text="POIs statuses info (accessible offline)"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/module_feature_3_text"
+        style="@style/moduleFeatureText"
+        tools:ignore="UseCompatTextViewDrawableXml"
+        tools:text="real time next departures"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/module_feature_4_text"
+        style="@style/moduleFeatureText"
+        tools:ignore="UseCompatTextViewDrawableXml"
+        tools:text="vehicle locations"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/module_feature_5_text"
+        style="@style/moduleFeatureText"
+        tools:ignore="UseCompatTextViewDrawableXml"
+        tools:text="service alerts"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/module_feature_6_text"
+        style="@style/moduleFeatureText"
+        tools:ignore="UseCompatTextViewDrawableXml"
+        tools:text="latest news"
+        tools:visibility="visible" />
+
+    <Space
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
     <TextView
         android:id="@+id/type_down_arrow"
         android:layout_width="wrap_content"
@@ -57,6 +94,11 @@
         android:visibility="gone"
         tools:ignore="HardcodedText"
         tools:visibility="visible" />
+
+    <Space
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
     <ImageView
         android:id="@+id/app_icon"
@@ -106,11 +148,15 @@
 
     <ImageView
         android:id="@+id/get_it_on_google_play"
-        android:layout_width="wrap_content"
+        android:layout_width="320dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="0dp"
+        android:adjustViewBounds="true"
         android:contentDescription="@string/get_it_on_google_play_store_badge"
         android:foreground="@drawable/img_button_fg"
+        android:minHeight="48dp"
+        android:padding="16dp"
+        android:scaleType="fitCenter"
         android:src="@drawable/google_play_badge"
         android:visibility="gone"
         tools:ignore="UnusedAttribute"
@@ -123,7 +169,7 @@
         android:paddingTop="0dp"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="@android:color/white"
-        android:visibility="gone"
+        android:visibility="invisible"
         tools:text="@plurals/text_opening_main_app_in_and_seconds"
         tools:visibility="visible" />
 
@@ -136,7 +182,7 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="@android:color/white"
         android:textSize="11sp"
-        android:visibility="gone"
+        android:visibility="invisible"
         tools:visibility="visible" />
 
     <Space
@@ -149,7 +195,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/why_title"
-        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="@android:color/white"
         android:textStyle="italic" />
 
     <TextView
@@ -159,7 +206,7 @@
         android:text="@string/why_multiple_apps"
         android:textColor="@android:color/white"
         android:textStyle="italic"
-        tools:textAppearance="?android:attr/textAppearanceMedium" />
+        tools:textAppearance="?android:attr/textAppearanceSmall" />
 
     <Space
         android:layout_width="wrap_content"
@@ -185,7 +232,7 @@
         android:layout_height="wrap_content"
         android:minWidth="48dp"
         android:paddingTop="16dp"
-        android:paddingBottom="8dp"
+        android:paddingBottom="0dp"
         android:text="@string/privacy_policy"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="@android:color/white"
