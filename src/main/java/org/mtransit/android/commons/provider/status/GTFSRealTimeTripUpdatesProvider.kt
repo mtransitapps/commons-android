@@ -246,6 +246,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     MTLog.d(LOG_TAG, "findOutOfSyncTripId() > NO stop time updates to match for a trip at ${departure.toDateTimeLog()}.")
                     // could be CANCELLED or DELETED trips (w/o stop time updates)
                     // -> good-enough for now as it's already a fall-back for out-of-sync trip IDs
+                    // (later: we could do all route directions at the same time, so we can see if there is only 1 candidate at this departure)
                     return@findTripId null // NO MATCH
                 }
                 val sTripIdsCandidates = departuresToOutOfSyncTripIds[departure]
