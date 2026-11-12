@@ -25,6 +25,7 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.DEBUG_STATIC_RT_MATCH
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.LOG_TAG
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.TRIP_UPDATE_MAX_AGE_MS
+import org.mtransit.android.commons.toDateTimeLog
 import org.mtransit.android.commons.toDurationLog
 import org.mtransit.android.commons.toMillis
 import java.util.Calendar
@@ -179,13 +180,13 @@ internal fun GTripUpdate.match(
             tuDeparture?.let { tuDeparture ->
                 findOutOfSyncTripId(tuDeparture, this@match.optStopTimeUpdateList)?.let { staticTripId ->
                     // if (DEBUG_STATIC_RT_MATCH) {
-                    MTLog.i(LOG_TAG, "match() > FOUND: out-of-sync trip ID '$staticTripId' for ${toStringExt(short = true)}")
+                    MTLog.i(LOG_TAG, "match() > FOUND: outdated static trip ID '$staticTripId' match at ${tuDeparture.toDateTimeLog()} for ${toStringExt(short = true)}")
                     // }
                     @Suppress("SimplifyBooleanWithConstants")
                     if (IGNORE_TRIP_ID && staticTripId != tripId) {
                         MTLog.w(
                             LOG_TAG,
-                            "match() > WARNING: found out-of-sync trip ID '$staticTripId' different than \"not really out-of-sync\" '$tripId'! " +
+                            "match() > WARNING: found outdated static trip ID '$staticTripId' different than \"not really out-of-sync\" '$tripId'! " +
                                 "(${this@match.toStringExt()})"
                         )
                     }

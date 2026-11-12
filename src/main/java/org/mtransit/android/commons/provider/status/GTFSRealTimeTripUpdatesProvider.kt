@@ -253,7 +253,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     MTLog.d(LOG_TAG, "findOutOfSyncTripId() > NO candidates trips found starting at ${departure.toDateTimeLog()}.")
                     return@findTripId null // NO MATCH
                 }
-                MTLog.d(LOG_TAG, "findOutOfSyncTripId() > found ${sTripIdsCandidates.size} trip(s) (${sTripIdsCandidates.joinToString()}) candidate(s)...")
+                MTLog.v(LOG_TAG, "findOutOfSyncTripId() > found ${sTripIdsCandidates.size} trip(s) (${sTripIdsCandidates.joinToString()}) candidate(s)...")
                 sTripIdsCandidates.forEach candidates@{ staticTripId ->
                     val tripRdsUUIDs = rdsUUIDsByTripId[staticTripId]
                         ?: return@candidates // trip ID not in static data
@@ -266,9 +266,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         if (stu.optScheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) return@forEach // might already be removed from static
                         stu.optStopIdNotEmpty?.let { parseStopId(it) }?.let { stopId ->
                             if (tripSortedRDS.none { it.stop.isSameOriginalId(stopId) }) {
-                                MTLog.d(
+                                MTLog.v(
                                     LOG_TAG,
-                                    "findOutOfSyncTripId() > out-of-sync trip ID '$staticTripId' NOT found at ${departure.toDateTimeLog()} " +
+                                    "findOutOfSyncTripId() > ignore static trip ID '$staticTripId' at ${departure.toDateTimeLog()} " +
                                         "(stop ID '${stu.optStopId}' not in this route direction)."
                                 )
                                 return@candidates // NO MATCH
@@ -285,15 +285,18 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         removeUnmatched = false,
                     ).takeIf { it.isNotEmpty() } ?: return@candidates // NO MATCH
                     // need to match as many as possible as same stop ID + sequence can be in both directions
-                    val stopTimeUpdatesMatch = stuListMatch(staticTripId, gSTUStopSeqFixed, true) // all
-                    if (!stopTimeUpdatesMatch) {
-                        MTLog.d(LOG_TAG, "findOutOfSyncTripId() > ignore wrong out-of-sync trip ID '$staticTripId' at ${departure.toDateTimeLog()}.")
+                    val stopTimeUpdatesMatchAll = stuListMatch(staticTripId, gSTUStopSeqFixed, true) // all
+                    if (!stopTimeUpdatesMatchAll) {
+                        MTLog.v(
+                            LOG_TAG,
+                            "findOutOfSyncTripId() > ignore static trip ID '$staticTripId' at ${departure.toDateTimeLog()} (stop time updates dit not match)."
+                        )
                         return@candidates // NO MATCH
                     }
-                    MTLog.d(LOG_TAG, "findOutOfSyncTripId() > out-of-sync trip ID '$staticTripId' found at ${departure.toDateTimeLog()}.")
+                    MTLog.d(LOG_TAG, "findOutOfSyncTripId() > match found for outdated static trip ID '$staticTripId' at ${departure.toDateTimeLog()}.")
                     return@findTripId staticTripId // MATCH
                 }
-                MTLog.d(LOG_TAG, "findOutOfSyncTripId() > out-of-sync trip ID NOT found at ${departure.toDateTimeLog()}.")
+                MTLog.d(LOG_TAG, "findOutOfSyncTripId() > match NOT found for outdated static trip ID at ${departure.toDateTimeLog()}.")
                 return@findTripId null // NO MATCH
             }
             // endregion Out Of Sync Trip IDs
@@ -301,11 +304,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 val rdTripUpdatesCandidates =
                     gTripUpdates.filter { gTripUpdate ->
                         val gTripDescriptor = gTripUpdate.optTrip ?: return@filter false
-                        val tripId = parseTripId(gTripDescriptor) ?: return@filter false
                         val rtRouteIdHash = parseRouteId(gTripDescriptor)
                         (rtRouteIdHash == null || rtRouteIdHash == targetRouteIdHash) // keep route ID unknown or match
                             && gTripUpdate.isUseful(nowMs, agencyTimeZone, agencyTZCal)
-                            && stuListMatch(tripId, gTripUpdate.optStopTimeUpdateList, false) // any
                     }.takeIf { it.isNotEmpty() } ?: run {
                         return@lazy null // no trip updates for this route -> match unknown
                     }
