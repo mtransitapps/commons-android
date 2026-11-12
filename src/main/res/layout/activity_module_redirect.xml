@@ -169,7 +169,7 @@
         android:paddingTop="0dp"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="@android:color/white"
-        android:visibility="invisible"
+        android:visibility="gone"
         tools:text="@plurals/text_opening_main_app_in_and_seconds"
         tools:visibility="visible" />
 
@@ -182,7 +182,7 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="@android:color/white"
         android:textSize="11sp"
-        android:visibility="invisible"
+        android:visibility="gone"
         tools:visibility="visible" />
 
     <Space
