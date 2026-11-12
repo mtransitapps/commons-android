@@ -2,7 +2,8 @@ package org.mtransit.android.commons.provider.gtfs
 
 import org.mtransit.android.commons.millisToInstant
 import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.append24Hours
-import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.makeCal
+import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.formatGtfsDateStr
+import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.formatGtfsTimeStr
 import org.mtransit.commons.CommonsApp
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -20,7 +21,7 @@ class GTFSDateTimeUtilsTest {
     companion object {
         private const val AGENCY_TZ_ID = "America/Montreal"
         private val AGENCY_TZ = KtTimeZone.of(AGENCY_TZ_ID)
-        private val AGENCY_TZ_CAL = makeCal(AGENCY_TZ_ID)
+        private val AGENCY_TZ_CAL = GTFSDateTimeUtils.makeCal(AGENCY_TZ_ID)
     }
 
     @BeforeTest

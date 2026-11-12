@@ -26,6 +26,7 @@ import org.mtransit.android.commons.provider.gtfs.GTFSStatusProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.delayDuration
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.isSameStop
+import org.mtransit.android.commons.provider.gtfs.match
 import org.mtransit.android.commons.secsToInstant
 import org.mtransit.android.commons.toSecs
 import org.mtransit.commons.CommonsApp
@@ -1262,6 +1263,48 @@ class GTFSRealTimeTripUpdatesProviderTests {
     // region fixStopSequence
 
     @Test
+    fun test_fixStopSequence_candidate_matching_checks_unmatched_updates_in_either_order() {
+        val rdsList = (1..3).map { makeRDS(stopId = it) }
+        val shortTrip = rdsList.take(2).mapIndexed { index, rds -> rds.uuid to index + 1 }
+        val longTrip = rdsList.mapIndexed { index, rds -> rds.uuid to index + 1 }
+        val updates = (1..3).map { sequence -> stopTimeUpdate { stopSequence = sequence } }
+
+        fun matches(sequences: List<Pair<String, Int>>, stuList: List<GTUStopTimeUpdate>): Boolean {
+            val repaired = stuList.fixStopSequence(
+                tripId = TRIP_ID,
+                tripSortedRDS = rdsList.filter { rds -> sequences.any { it.first == rds.uuid } },
+                sortedTargetUuidAndSequence = sequences,
+                isSameStop = isSameStop,
+                parseStopId = { it },
+                removeUnmatched = false,
+            )
+            return repaired.isNotEmpty() && repaired.all { stu ->
+                stu.scheduleRelationship == GTUSTUScheduleRelationship.SKIPPED || stu.match(
+                    rdsCandidates = rdsList,
+                    findStopTimestamp = { uuid, sequence -> (uuid to sequence) in sequences },
+                    parseStopId = { it },
+                )
+            }
+        }
+
+        val candidates = listOf("A" to shortTrip, "B" to longTrip)
+        listOf(candidates, candidates.reversed()).forEach { ordered ->
+            assertEquals("B", ordered.firstOrNull { matches(it.second, updates) }?.first)
+        }
+        val skippedLast = updates.take(2) + stopTimeUpdate {
+            stopSequence = 3
+            scheduleRelationship = GTUSTUScheduleRelationship.SKIPPED
+        }
+        assertTrue(matches(shortTrip, skippedLast))
+        val correctedLast = updates.take(2) + stopTimeUpdate {
+            stopSequence = 999
+            stopId = "3"
+        }
+        assertTrue(matches(longTrip, correctedLast))
+        assertFalse(matches(shortTrip, correctedLast))
+    }
+
+    @Test
     fun test_fixStopSequence_fix_wrong_and_ignore_repeated() {
         val startsAt = DEPARTURE
         val gTripUpdate = tripUpdate {
@@ -1358,6 +1401,26 @@ class GTFSRealTimeTripUpdatesProviderTests {
             assertEquals(9, stu.stopSequence)
             assertEquals("9000", stu.stopId)
         }
+
+        val forMatching = assertNotNull(gTripUpdate.optStopTimeUpdateList).fixStopSequence(
+            tripId = TRIP_ID,
+            tripSortedRDS = rdsList,
+            sortedTargetUuidAndSequence = sortedTargetUuidAndSequence,
+            isSameStop = isSameStop,
+            parseStopId = { it },
+            removeUnmatched = false,
+        )
+        assertEquals(6, forMatching.size)
+        assertEquals(6, forMatching.first { it.stopId == "6000" }.stopSequence)
+        assertEquals(2222, forMatching.first { it.stopSequence == 2222 }.stopSequence)
+        // An ambiguous repeated-stop update is tolerated during processing, but cannot identify a fallback trip.
+        assertFalse(forMatching.all { stu ->
+            stu.match(
+                rdsCandidates = rdsList,
+                findStopTimestamp = { uuid, sequence -> (uuid to sequence) in sortedTargetUuidAndSequence },
+                parseStopId = { it },
+            )
+        })
     }
 
     // endregion

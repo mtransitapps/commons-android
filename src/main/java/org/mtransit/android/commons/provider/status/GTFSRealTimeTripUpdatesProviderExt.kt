@@ -216,6 +216,7 @@ internal fun List<GTUStopTimeUpdate>.fixStopSequence(
     sortedTargetUuidAndSequence: List<Pair<String, Int>>,
     isSameStop: (GTUStopTimeUpdate?, RouteDirectionStop, Int) -> Boolean,
     parseStopId: (String) -> String,
+    removeUnmatched: Boolean = true,
 ): List<GTUStopTimeUpdate> {
     return this.mapNotNull { stu ->
         val match = tripSortedRDS.any { rds ->
@@ -239,11 +240,13 @@ internal fun List<GTUStopTimeUpdate>.fixStopSequence(
                     }
                 }
         }
-        if (stu.optScheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) {
+        if (stu.optScheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) { // skipped stops have often already be removed from GTFS-Static data
             MTLog.d(LOG_TAG, "fixStopSequence($tripId) > IGNORE skipped (no stop ID/sequence match): ${stu.toStringExt(short = true)}")
-        } else {
-            MTLog.w(LOG_TAG, "fixStopSequence($tripId) > IGNORE (no stop ID/sequence match): ${stu.toStringExt(short = true)}")
+            return@mapNotNull null // remove invalid STU
         }
+        // Candidate matching must still check updates that could not be repaired, including ambiguous repeated stops.
+        if (!removeUnmatched) return@mapNotNull stu
+        MTLog.w(LOG_TAG, "fixStopSequence($tripId) > IGNORE (no stop ID/sequence match): ${stu.toStringExt(short = true)}")
         return@mapNotNull null // remove invalid STU
     }
 }

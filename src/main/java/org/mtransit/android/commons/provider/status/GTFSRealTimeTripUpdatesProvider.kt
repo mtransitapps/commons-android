@@ -282,6 +282,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         sortedTargetUuidAndSequence = sortedTargetUuidAndSequence,
                         isSameStop = { stu, rds, stopSeq -> isSameStop(stu, rds, stopSeq) },
                         parseStopId = ::parseStopId,
+                        removeUnmatched = false,
                     ).takeIf { it.isNotEmpty() } ?: return@candidates // NO MATCH
                     // need to match as many as possible as same stop ID + sequence can be in both directions
                     val stopTimeUpdatesMatch = stuListMatch(staticTripId, gSTUStopSeqFixed, true) // all
