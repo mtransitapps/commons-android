@@ -201,6 +201,24 @@ class GTFSDateTimeUtilsTest {
     }
 
     @Test
+    fun test_formatGtfsDateTime_roundTripAcrossDaylightSavingTransitions() {
+        listOf(
+            Triple("2026-03-09T04:24:24Z", "20260308", "20260309"),
+            Triple("2026-11-02T05:24:24Z", "20261101", "20261102"),
+            Triple("2026-10-28T04:24:24Z", "20261027", "20261028"),
+        ).forEach { (timestamp, previousDate, localDate) ->
+            val instant = Instant.parse(timestamp)
+            listOf(false, true).forEach { startedYesterday ->
+                val date = instant.formatGtfsDateStr(AGENCY_TZ, startedYesterday)
+                val time = instant.formatGtfsTimeStr(AGENCY_TZ, startedYesterday)
+                assertEquals(if (startedYesterday) previousDate else localDate, date, timestamp)
+                assertEquals(if (startedYesterday) "24:24:24" else "00:24:24", time, timestamp)
+                assertEquals(instant, GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ, AGENCY_TZ_CAL), timestamp)
+            }
+        }
+    }
+
+    @Test
     fun test_append24Hours() {
         "01:02:03".append24Hours().let { result ->
             assertEquals("25:02:03", result)

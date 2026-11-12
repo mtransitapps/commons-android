@@ -2,6 +2,7 @@ package org.mtransit.android.commons.provider.gtfs
 
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.number
+import kotlinx.datetime.toJavaLocalDate
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
 import org.mtransit.android.commons.MTLog
@@ -143,18 +144,15 @@ object GTFSDateTimeUtils : MTLog.Loggable {
 
     @Suppress("unused")
     fun Instant.formatGtfsDateStr(agencyTimeZone: KtTimeZone, startedYesterday: Boolean = false): String {
-        if (startedYesterday) { // need to return previous day yyyyMMdd
-            return DATE_FORMATTER.format(this.minus(1.days).toLocalDateTime(agencyTimeZone).toJavaLocalDateTime())
-        }
-        return DATE_FORMATTER.format(toLocalDateTime(agencyTimeZone).toJavaLocalDateTime())
+        val localDate = toLocalDateTime(agencyTimeZone).date
+        val serviceDate = if (startedYesterday) LocalDate.fromEpochDays(localDate.toEpochDays() - 1) else localDate
+        return DATE_FORMATTER.format(serviceDate.toJavaLocalDate())
     }
 
     @Suppress("unused")
     fun Instant.formatGtfsTimeStr(agencyTimeZone: KtTimeZone, startedYesterday: Boolean = false): String {
-        if (startedYesterday) { // needs to return GTFS time > 24:00:00
-            return TIME_FORMATTER.format(this.minus(1.days).toLocalDateTime(agencyTimeZone).toJavaLocalDateTime()).append24Hours()
-        }
-        return TIME_FORMATTER.format(toLocalDateTime(agencyTimeZone).toJavaLocalDateTime())
+        val localTimeStr = TIME_FORMATTER.format(toLocalDateTime(agencyTimeZone).toJavaLocalDateTime())
+        return if (startedYesterday) localTimeStr.append24Hours() else localTimeStr
     }
 
     @Suppress("unused")
