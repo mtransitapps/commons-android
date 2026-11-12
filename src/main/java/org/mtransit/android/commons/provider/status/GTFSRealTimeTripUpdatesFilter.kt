@@ -180,7 +180,10 @@ internal fun GTripUpdate.match(
             tuDeparture?.let { tuDeparture ->
                 findOutOfSyncTripId(tuDeparture, this@match.optStopTimeUpdateList)?.let { staticTripId ->
                     // if (DEBUG_STATIC_RT_MATCH) {
-                    MTLog.i(LOG_TAG, "match() > FOUND: outdated static trip ID '$staticTripId' match at ${tuDeparture.toDateTimeLog()} for ${toStringExt(short = true)}")
+                    MTLog.i(
+                        LOG_TAG,
+                        "match() > FOUND: outdated static trip ID '$staticTripId' match at ${tuDeparture.toDateTimeLog()} for ${toStringExt(short = true)}"
+                    )
                     // }
                     @Suppress("SimplifyBooleanWithConstants")
                     if (IGNORE_TRIP_ID && staticTripId != tripId) {
