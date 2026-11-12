@@ -176,23 +176,29 @@ echo "> Setting demo mode..."
 
 # NOT needed anymore: time-zone SHOULD be overridden inside app.
 # shellcheck disable=SC2034
-DEVICE_AUTO_TIME=$($ADB shell settings get global auto_time)
-DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone)
 if [[ "not-needed" == "yes" && -n "$AGENCY_TIME_ZONE" ]]; then
+  # detects different time-zones && out-dated timezone rules #November2026
   echo " - agency time-zone: '$AGENCY_TIME_ZONE'"
-  DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date)
-  AGENCY_DATE_TIME=$(TZ=":$AGENCY_TIME_ZONE" date)
-  if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
+  DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
+  echo " - device time-zone: '$DEVICE_TIME_ZONE'"
+  HOST_DATE_DEVICE_TZ=$(TZ=":$DEVICE_TIME_ZONE" date +%Y-%m-%d_%H:%M)
+  HOST_DATE_AGENCY_TZ=$(TZ=":$AGENCY_TIME_ZONE" date +%Y-%m-%d_%H:%M)
+  echo " - host date at '$AGENCY_TIME_ZONE': '$HOST_DATE_AGENCY_TZ'."
+  echo " - host date at '$DEVICE_TIME_ZONE': '$HOST_DATE_DEVICE_TZ'."
+  if [ "$HOST_DATE_AGENCY_TZ" != "$HOST_DATE_DEVICE_TZ" ]; then
     if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
       $ADB shell settings set global auto_time 0 # turn-off automatic time
       $ADB shell setprop persist.sys.timezone "$AGENCY_TIME_ZONE"
       $ADB reboot
       $ADB wait-for-device
-      DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone)
-      DEVICE_DATE_TIME=$(date --date="TZ=$DEVICE_TIME_ZONE")
+      DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
+      HOST_DATE_DEVICE_TZ=$(TZ=":$DEVICE_TIME_ZONE" date +%Y-%m-%d_%H:%M)
+      HOST_DATE_AGENCY_TZ=$(TZ=":$AGENCY_TIME_ZONE" date +%Y-%m-%d_%H:%M)
+      echo " - host date at '$DEVICE_TIME_ZONE': '$HOST_DATE_DEVICE_TZ'."
+      echo " - host date at '$AGENCY_TIME_ZONE': '$HOST_DATE_AGENCY_TZ'."
     fi
-    if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
-      echo "> Wrong time zone '$DEVICE_TIME_ZONE' ($DEVICE_DATE_TIME) for agency time zone '$AGENCY_TIME_ZONE' ($AGENCY_DATE_TIME)!"
+    if [ "$HOST_DATE_AGENCY_TZ" != "$HOST_DATE_DEVICE_TZ" ]; then
+      echo "> Wrong time zone '$DEVICE_TIME_ZONE' ($HOST_DATE_DEVICE_TZ) for agency time zone '$AGENCY_TIME_ZONE' ($HOST_DATE_AGENCY_TZ)!"
       $ADB shell am start -a android.settings.DATE_SETTINGS
       exit 1 #error
     fi
@@ -206,6 +212,54 @@ elif [[ "${LANG}" == "fr-FR" ]]; then
   FORCE_TIME_FORMAT="24"
 else
   echo ">> Force time format '$FORCE_TIME_FORMAT' for language '$LANG'."
+fi
+
+dateComponentsToMinutes() {
+  if [[ ! "$1" =~ ^([0-9]{4})-([0-9]{2})-([0-9]{2})_([0-9]{2}):([0-9]{2})$ ]]; then
+    echo "> Invalid date components '$1'!" >&2
+    return 1
+  fi
+  local year=$((10#${BASH_REMATCH[1]}))
+  local month=$((10#${BASH_REMATCH[2]}))
+  local day=$((10#${BASH_REMATCH[3]}))
+  local hour=$((10#${BASH_REMATCH[4]}))
+  local minute=$((10#${BASH_REMATCH[5]}))
+  # Count Gregorian days from March so leap days fall at the end of each year.
+  if (( month <= 2 )); then
+    year=$((year - 1))
+    month=$((month + 9))
+  else
+    month=$((month - 3))
+  fi
+  local days=$((365 * year + year / 4 - year / 100 + year / 400 + (153 * month + 2) / 5 + day))
+  echo "$((days * 1440 + hour * 60 + minute))"
+}
+
+echo "Agency time zone: '$AGENCY_TIME_ZONE'"
+# detects different time-zones && out-dated timezone rules #November2026
+if [[ -n "$AGENCY_TIME_ZONE" ]]; then
+  DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
+  echo "Device time zone: '$DEVICE_TIME_ZONE'"
+  if [[ "$DEVICE_TIME_ZONE" != "$AGENCY_TIME_ZONE" ]]; then
+    echo "> Device time zone '$DEVICE_TIME_ZONE' does not match expected agency time zone '$AGENCY_TIME_ZONE'!"
+    exit 1 #error
+  fi
+  DEVICE_DATE_COMPONENTS=$($ADB shell date +%Y-%m-%d_%H:%M | tr -d '\r')
+  EXPECTED_DATE_COMPONENTS=$(TZ="$AGENCY_TIME_ZONE" date +%Y-%m-%d_%H:%M)
+  echo "Device date components: '$DEVICE_DATE_COMPONENTS'"
+  echo "Expected date components: '$EXPECTED_DATE_COMPONENTS'"
+  DEVICE_DATE_MINUTES=$(dateComponentsToMinutes "$DEVICE_DATE_COMPONENTS") || exit 1
+  EXPECTED_DATE_MINUTES=$(dateComponentsToMinutes "$EXPECTED_DATE_COMPONENTS") || exit 1
+  DATE_DIFFERENCE_MINUTES=$((DEVICE_DATE_MINUTES - EXPECTED_DATE_MINUTES))
+  if (( DATE_DIFFERENCE_MINUTES < 0 )); then
+    DATE_DIFFERENCE_MINUTES=$((-DATE_DIFFERENCE_MINUTES))
+  fi
+  MAX_DATE_DIFFERENCE_MINUTES=10
+  echo "Device date difference: '$DATE_DIFFERENCE_MINUTES' minutes (maximum: '$MAX_DATE_DIFFERENCE_MINUTES')."
+  if (( DATE_DIFFERENCE_MINUTES > MAX_DATE_DIFFERENCE_MINUTES )); then
+    echo "> Current device date components '$DEVICE_DATE_COMPONENTS' differ from expected components '$EXPECTED_DATE_COMPONENTS' by more than $MAX_DATE_DIFFERENCE_MINUTES minutes for agency time zone '$AGENCY_TIME_ZONE'!"
+    exit 1 #error
+  fi
 fi
 
 # DISABLED: overriding current time inside main app doesn't load static/real-time schedule for overridden time
@@ -334,14 +388,14 @@ $ADB shell am broadcast -a com.android.systemui.demo --es command status \
   ;
 
 # IF changing app time THEN change visible time in status bar
-if [[ -n "$DATE_TIME_IN_SEC" ]]; then
-  DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone)
-  DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date)
-  DEVICE_DATE_TIME_IN_SEC=$(TZ="$DEVICE_TIME_ZONE" date --date='07:00 today' +%s)
-  DEVICE_DATE_TIME_IN_MS="${DEVICE_DATE_TIME_IN_SEC}000";
-  echo "> Device date time (status bar): $DEVICE_DATE_TIME_IN_SEC secs."
+if [[ "disabled" == "yes" && -n "$DATE_TIME_IN_SEC" ]]; then
+  DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone | tr -d '\r')
+  HOST_DATE_DEVICE_TZ=$(TZ=":$DEVICE_TIME_ZONE" date)
+  HOST_DATE_DEVICE_TZ_IN_SEC=$(TZ="$DEVICE_TIME_ZONE" date --date='07:00 today' +%s)
+  HOST_DATE_DEVICE_TZ_IN_MS="${HOST_DATE_DEVICE_TZ_IN_SEC}000";
+  echo "> Device date time (status bar): $HOST_DATE_DEVICE_TZ_IN_SEC secs."
   $ADB shell am broadcast -a com.android.systemui.demo --es command clock \
-    --es millis ${DEVICE_DATE_TIME_IN_MS} \
+    --es millis ${HOST_DATE_DEVICE_TZ_IN_MS} \
     ;
 fi
 echo "> Setting demo mode... DONE"

@@ -7,6 +7,7 @@ object KeysIds : MTLog.Loggable {
     override fun getLogTag() = LOG_TAG
 
     const val GOOGLE_PLACES_NEW_API_KEY = "google_places_new_api_key" // poi
+    const val GOOGLE_MAPS_EMBED_API_KEY = "google_maps_embed_api_key" // transit direction iframe
 
     const val TWITTER_CACHED_API_URL = "twitter_cached_api_url" // news
     const val TWITTER_BEARER_TOKEN = "twitter_bearer_token" // news
