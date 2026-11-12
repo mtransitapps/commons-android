@@ -191,7 +191,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         schedule.timestamps.forEach { timestamp ->
                             val tripId = timestamp.tripId ?: return@forEach
                             if (tripId.isNotEmpty()) {
-                                // 1 uuid can have multiple timestamp for 1 trip (different stop sequence)
+                                // 1 uuid can have multiple timestamps for 1 trip (different stop sequence)
                                 val targetUUIDtoStopSeq = schedule.targetUUID to timestamp.stopSequenceOrNull
                                 getOrPut(tripId) { mutableListOf() }.add(targetUUIDtoStopSeq to timestamp)
                             }
@@ -205,8 +205,10 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 // -> good-enough for now as it's already a fall-back for out-of-sync trip IDs
                 mutableMapOf<Instant, MutableSet<String>>().apply {
                     for ((staticTripId, targetUUIDStopSeqToTimestamps) in outOfSyncTripIdToTargetUUIDStopSeqTimestamps) {
-                        val minTimestamp = targetUUIDStopSeqToTimestamps.minByOrNull { it.second.departure }?.second ?: continue
-                        getOrPut(minTimestamp.departure) { mutableSetOf() }.add(staticTripId)
+                        val staticTripStartDateTime = targetUUIDStopSeqToTimestamps
+                            .minByOrNull { (_, timestamp) -> timestamp.departureT } // should be planned static trip start date & time
+                            ?.second?.departure ?: continue
+                        getOrPut(staticTripStartDateTime) { mutableSetOf() }.add(staticTripId)
                     }
                 }
             }
