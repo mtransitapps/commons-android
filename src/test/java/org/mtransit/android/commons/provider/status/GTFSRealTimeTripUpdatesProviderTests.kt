@@ -1305,6 +1305,78 @@ class GTFSRealTimeTripUpdatesProviderTests {
     }
 
     @Test
+    fun test_fixStopSequence_rejects_repaired_stop_order_reversal() {
+        val rdsList = listOf(makeRDS(stopId = 77), makeRDS(stopId = 88), makeRDS(stopId = 99))
+        val sequenceA = listOf(rdsList[0].uuid to 1, rdsList[1].uuid to 2, rdsList[2].uuid to 3)
+        val sequenceB = listOf(rdsList[0].uuid to 1, rdsList[2].uuid to 2, rdsList[1].uuid to 3)
+        val updatesForB = listOf(
+            stopTimeUpdate {
+                stopSequence = 1
+                stopId = "77"
+            },
+            stopTimeUpdate {
+                stopSequence = 2
+                stopId = "99"
+            },
+            stopTimeUpdate {
+                stopSequence = 3
+                stopId = "88"
+            },
+        )
+
+        fun repaired(sequences: List<Pair<String, Int>>, updates: List<GTUStopTimeUpdate>) =
+            updates.fixStopSequence(
+                tripId = TRIP_ID,
+                tripSortedRDS = rdsList,
+                sortedTargetUuidAndSequence = sequences,
+                isSameStop = isSameStop,
+                parseStopId = { it },
+                removeUnmatched = false,
+            )
+
+        val repairedForA = repaired(sequenceA, updatesForB)
+        assertEquals(listOf(1, 3, 2), repairedForA.map { it.stopSequence })
+        assertFalse(repairedForA.isInStopSequenceOrder())
+
+        val repairedForB = repaired(sequenceB, updatesForB)
+        assertEquals(listOf(1, 2, 3), repairedForB.map { it.stopSequence })
+        assertTrue(repairedForB.isInStopSequenceOrder())
+
+        val matchingCandidate = listOf("A" to sequenceA, "B" to sequenceB).firstOrNull { (_, sequences) ->
+            repaired(sequences, updatesForB).let { candidate ->
+                candidate.isInStopSequenceOrder() && candidate.all { stu ->
+                    stu.match(
+                        rdsCandidates = rdsList,
+                        findStopTimestamp = { uuid, sequence -> (uuid to sequence) in sequences },
+                        parseStopId = { it },
+                    )
+                }
+            }
+        }
+        assertEquals("B", matchingCandidate?.first)
+
+        val orderPreservingCorrection = repaired(
+            sequenceA,
+            listOf(
+                stopTimeUpdate {
+                    stopSequence = 1
+                    stopId = "77"
+                },
+                stopTimeUpdate {
+                    stopSequence = 666
+                    stopId = "88"
+                },
+                stopTimeUpdate {
+                    stopSequence = 3
+                    stopId = "99"
+                },
+            ),
+        )
+        assertEquals(listOf(1, 2, 3), orderPreservingCorrection.map { it.stopSequence })
+        assertTrue(orderPreservingCorrection.isInStopSequenceOrder())
+    }
+
+    @Test
     fun test_fixStopSequence_fix_wrong_and_ignore_repeated() {
         val startsAt = DEPARTURE
         val gTripUpdate = tripUpdate {

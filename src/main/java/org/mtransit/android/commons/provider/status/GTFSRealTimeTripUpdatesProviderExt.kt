@@ -251,6 +251,11 @@ internal fun List<GTUStopTimeUpdate>.fixStopSequence(
     }
 }
 
+internal fun List<GTUStopTimeUpdate>.isInStopSequenceOrder(): Boolean =
+    mapNotNull { it.optStopSequence }
+        .zipWithNext()
+        .all { (previous, next) -> previous < next }
+
 private val Pair<String, Int>.uuid get() = this.first
 private val Pair<String, Int>.stopSequence get() = this.second
 

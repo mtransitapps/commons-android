@@ -285,6 +285,13 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                         parseStopId = ::parseStopId,
                         removeUnmatched = false,
                     ).takeIf { it.isNotEmpty() } ?: return@candidates // NO MATCH
+                    if (!gSTUStopSeqFixed.isInStopSequenceOrder()) {
+                        MTLog.v(
+                            LOG_TAG,
+                            "findOutOfSyncTripId() > ignore static trip ID '$staticTripId' at ${departure.toDateTimeLog()} (stop time updates are out of order)."
+                        )
+                        return@candidates // NO MATCH
+                    }
                     // need to match as many as possible as same stop ID + sequence can be in both directions
                     val stopTimeUpdatesMatchAll = stuListMatch(staticTripId, gSTUStopSeqFixed, true) // all
                     if (!stopTimeUpdatesMatchAll) {
