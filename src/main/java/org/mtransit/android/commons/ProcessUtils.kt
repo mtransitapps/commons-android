@@ -6,8 +6,7 @@ import android.content.Context
 import android.os.Build
 import android.os.Process
 import androidx.core.content.getSystemService
-import java.io.BufferedReader
-import java.io.FileReader
+import java.io.File
 
 @Volatile
 private var cachedProcessName: String? = null
@@ -20,10 +19,7 @@ val Context.currentProcessName: String?
         } else {
             // Fallback for Android 8.1 and below: Read /proc/self/cmdline (Fast & No IPC)
             try {
-                BufferedReader(FileReader("/proc/self/cmdline")).use { reader ->
-                    val line = reader.readLine()
-                    line?.substringBefore('\u0000')?.trim()
-                }
+                File("/proc/self/cmdline").readText().substringBefore('\u0000').trim().takeIf { it.isNotEmpty() }
             } catch (_: Exception) {
                 null
             } ?: run {
