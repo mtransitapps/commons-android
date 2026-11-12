@@ -203,10 +203,10 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 // might not contain the actual 1st trip stop departure
                 // since we are loading last X hours instead of all trips started and not finished + near future trips
                 // -> good-enough for now as it's already a fall-back for out-of-sync trip IDs
-                mutableMapOf<Instant, MutableList<String>>().apply {
+                mutableMapOf<Instant, MutableSet<String>>().apply {
                     for ((staticTripId, targetUUIDStopSeqToTimestamps) in outOfSyncTripIdToTargetUUIDStopSeqTimestamps) {
                         val minTimestamp = targetUUIDStopSeqToTimestamps.minByOrNull { it.second.departure }?.second ?: continue
-                        getOrPut(minTimestamp.departure) { mutableListOf() }.add(staticTripId)
+                        getOrPut(minTimestamp.departure) { mutableSetOf() }.add(staticTripId)
                     }
                 }
             }
