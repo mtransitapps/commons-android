@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Resources
 import androidx.annotation.VisibleForTesting
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.ConfigurationCompat
 import androidx.core.os.LocaleListCompat
 import androidx.webkit.WebViewCompat
@@ -12,7 +13,6 @@ import androidx.webkit.WebViewStartUpConfig
 import androidx.webkit.WebViewStartUpResult
 import androidx.webkit.WebViewStartupException
 import org.mtransit.android.commons.LocaleUtils.getDefaultLocale
-import org.mtransit.android.commons.ProcessUtils.isMainProcess
 import java.util.Locale
 import java.util.concurrent.Executors
 
@@ -28,7 +28,7 @@ import java.util.concurrent.Executors
 @Suppress("TooGenericExceptionCaught")
 @SuppressLint("SetJavaScriptEnabled")
 fun fixWebViewLocale(context: Context) {
-    if (!context.isMainProcess()) {
+    if (!context.isMainProcess) {
         // RuntimeException: Using WebView from more than one process at once with the same data directory is not supported. https://crbug.com/558377 :
         // Current process org.mtransit.android (pid 1111), lock owner org.mtransit.android (pid 2222) is a zombie
         return
@@ -100,6 +100,11 @@ private fun getSystemLocales() = ConfigurationCompat.getLocales(
 private fun Context.getAppLocales() = ConfigurationCompat.getLocales(
     this.resources.configuration
 )
+
+/**
+ * Empty if no locale selected by user, only works after 1st Activity created.
+ */
+fun getUserSelectedAppLocales() = AppCompatDelegate.getApplicationLocales()
 
 internal fun getPrimarySupportedDefaultLocale(context: Context) =
     getPrimarySupportedDefaultLocale(context.getAppLocales())
