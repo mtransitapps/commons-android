@@ -60,14 +60,16 @@ object GTFSDateTimeUtils : MTLog.Loggable {
 
             val nowInstant = nowMs.millisToInstant()
             val today = nowInstant.toLocalDateTime(agencyTimeZone).date
+            // Shift service dates back for each full day beyond the first overnight service day.
+            val serviceDate = LocalDate.fromEpochDays(today.toEpochDays() - maxOf(0, hoursCount / TWENTY_FOUR_HOURS - 1))
             val todayService = agencyTZCal.toLocalInstant(
-                today, hoursCount, minutesCount, secondsCount, agencyTimeZone
+                serviceDate, hoursCount, minutesCount, secondsCount, agencyTimeZone
             )
             val yesterdayService = agencyTZCal.toLocalInstant(
-                LocalDate.fromEpochDays(today.toEpochDays() - 1), hoursCount, minutesCount, secondsCount, agencyTimeZone
+                LocalDate.fromEpochDays(serviceDate.toEpochDays() - 1), hoursCount, minutesCount, secondsCount, agencyTimeZone
             )
             val tomorrowService = agencyTZCal.toLocalInstant(
-                LocalDate.fromEpochDays(today.toEpochDays() + 1), hoursCount, minutesCount, secondsCount, agencyTimeZone
+                LocalDate.fromEpochDays(serviceDate.toEpochDays() + 1), hoursCount, minutesCount, secondsCount, agencyTimeZone
             )
             val todayServiceDiff = (todayService - nowInstant).absoluteValue
             val yesterdayServiceDiff = (nowInstant - yesterdayService).absoluteValue

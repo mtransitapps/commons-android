@@ -127,6 +127,24 @@ class GTFSDateTimeUtilsTest {
     }
 
     @Test
+    fun test_parseToTime_withoutDate_multiDayService() {
+        listOf(
+            Triple("2026-10-26T04:10:00Z", "48:00:00", "2026-10-26T04:00:00Z"),
+            Triple("2026-10-26T04:10:00Z", "48:24:00", "2026-10-26T04:24:00Z"),
+            Triple("2026-10-26T10:00:00Z", "48:00:00", "2026-10-27T04:00:00Z"),
+            Triple("2026-10-26T04:10:00Z", "72:00:00", "2026-10-26T04:00:00Z"),
+            Triple("2026-11-02T05:10:00Z", "48:00:00", "2026-11-02T05:00:00Z"),
+            Triple("2026-03-09T04:10:00Z", "48:00:00", "2026-03-09T04:00:00Z"),
+        ).forEach { (now, time, expected) ->
+            assertEquals(
+                Instant.parse(expected),
+                GTFSDateTimeUtils.parseToTime(Instant.parse(now).toEpochMilliseconds(), time, AGENCY_TZ, AGENCY_TZ_CAL),
+                "$now / $time",
+            )
+        }
+    }
+
+    @Test
     fun test_parseToDateTime() {
         ("20260730" to "12:24:00").let { (date, time) ->
             GTFSDateTimeUtils.parseToDateTime(date, time, AGENCY_TZ, AGENCY_TZ_CAL)
