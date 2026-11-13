@@ -73,7 +73,7 @@
     <string name="congratulations_module_app_installed_default"><![CDATA[ Congratulations! <br/><br/>You have installed the <b>transit agency data</b> for <b>MonTransit</b>. ]]></string>
     <string name="congratulations_module_app_installed_and_module"><![CDATA[ Congratulations! <br/><br/>You have installed <b>%s</b> for <b>MonTransit</b>. ]]></string>
     <string name="why_title">Why multiple apps?</string>
-    <string name="why_multiple_apps">This way of distributing the <b>MonTransit</b> application allows it to be <b>compatible with many transit agencies</b> while reducing costs and <b>remaining 100% free</b>.</string>
+    <string name="why_multiple_apps" formatted="false">This way of distributing the <b>MonTransit</b> application allows it to be <b>compatible with many transit agencies</b> while reducing costs and <b>remaining 100% free</b>.</string>
     <string name="keep_temporary_app_icon">Keep temporary app icon</string>
     <string name="action_open_main_app">Open MonTransit</string>
     <string name="action_download_main_app">Download MonTransit (free)</string>
