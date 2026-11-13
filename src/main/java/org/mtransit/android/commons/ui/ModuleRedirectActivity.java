@@ -172,6 +172,18 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	}
 
 	@Override
+	public boolean dispatchTouchEvent(MotionEvent event) {
+		if (FeatureFlags.F_MODULE_AUTO_OPEN) {
+			if (event != null && event.getAction() == MotionEvent.ACTION_UP) {
+				this.countDownCancelled = true;
+				this.countDownTimer.cancel();
+				onCountDownCancelStateChanged();
+			}
+		}
+		return super.dispatchTouchEvent(event);
+	}
+
+	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		if (FeatureFlags.F_MODULE_AUTO_OPEN) {
 			if (event != null && event.getAction() == MotionEvent.ACTION_UP) {

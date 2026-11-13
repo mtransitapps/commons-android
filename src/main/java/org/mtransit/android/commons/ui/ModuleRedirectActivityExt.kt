@@ -39,8 +39,8 @@ internal fun ModuleRedirectActivity.loadProvidersInfo() {
         }
         if (providerMetaData.isKeyMT(scheduleProviderMetaData)) {
             hasScheduleProvider = true
-        } else if (providerMetaData.isKeyMT(statusProviderMetaData)) {
-            hasNonStaticStatusProvider = true // non-full static schedule based providers -> real-time next departures providers
+        } else if (providerMetaData.isKeyMT(statusProviderMetaData)) { // IF non-schedule provider & status provider THEN real-time status provider
+            hasNonStaticStatusProvider = true
         }
         if (providerMetaData.isKeyMT(serviceUpdateProviderMetaData)) {
             hasServiceUpdateProvider = true
