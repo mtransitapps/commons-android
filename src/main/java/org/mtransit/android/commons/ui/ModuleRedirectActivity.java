@@ -88,7 +88,6 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	protected @Nullable Boolean hasVehicleLocationProvider = null;
 	protected @Nullable Boolean hasNewsProvider = null;
 
-
 	private boolean countDownCancelled = COUNT_DOWN_CANCELLED_DEFAULT;
 
 	@NonNull
@@ -119,11 +118,11 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		binding = ActivityModuleRedirectBinding.inflate(getLayoutInflater());
 		setContentView(binding.getRoot());
 
-		final int initialLeft = binding.moduleInstalledRoot.getPaddingLeft();
-		final int initialTop = binding.moduleInstalledRoot.getPaddingTop();
-		final int initialRight = binding.moduleInstalledRoot.getPaddingRight();
-		final int initialBottom = binding.moduleInstalledRoot.getPaddingBottom();
-		ViewCompat.setOnApplyWindowInsetsListener(binding.moduleInstalledRoot, (view, insets) -> {
+		final int initialLeft = binding.getRoot().getPaddingLeft();
+		final int initialTop = binding.getRoot().getPaddingTop();
+		final int initialRight = binding.getRoot().getPaddingRight();
+		final int initialBottom = binding.getRoot().getPaddingBottom();
+		ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (view, insets) -> {
 			final Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
 			view.setPadding(
 					initialLeft + systemBars.left,
@@ -314,7 +313,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		binding.moduleInstalledText.setText(appInstalledText);
 		updateAgencyInfo(this, binding);
 		binding.whyDescription.setText(getText(R.string.why_multiple_apps));
-		binding.moduleInstalledRoot.setBackgroundColor(ColorUtils.parseColor(bgColor));
+		binding.getRoot().setBackgroundColor(ColorUtils.parseColor(bgColor));
 	}
 
 	@Override

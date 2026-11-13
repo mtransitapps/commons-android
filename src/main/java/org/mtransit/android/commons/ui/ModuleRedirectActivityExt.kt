@@ -33,7 +33,6 @@ internal fun ModuleRedirectActivity.loadProvidersInfo() {
         if (providerMetaData.isKeyMT(agencyProviderMetaData)) {
             agencyProviderAuthority = providerInfo.authority
             agencyProviderType = providerMetaData.getInt(agencyProviderTypeMetaData, -1)
-            hasRDSProvider = providerMetaData.isKeyMT(rdsProviderMetaData)
         }
         if (providerMetaData.isKeyMT(rdsProviderMetaData)) {
             hasRDSProvider = true
