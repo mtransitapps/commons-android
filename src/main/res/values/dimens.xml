@@ -2,5 +2,5 @@
 <resources>
     <dimen name="module_redirect_app_icon_size">72dp</dimen>
     <dimen name="module_get_it_on_google_play_img_width">280dp</dimen>
-    <dimen name="module_content_width">-1</dimen><!-- match_parent -->
+    <item name="module_content_width" type="dimen" format="integer">-1</item><!-- match_parent -->
 </resources>
