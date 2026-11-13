@@ -25,11 +25,11 @@
             android:id="@+id/module_installed_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:drawableStart="@drawable/ic_directions_bus_black_24dp"
             android:drawablePadding="16dp"
             android:gravity="start"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:textStyle="normal"
+            tools:drawableStart="@drawable/ic_directions_bus_black_24dp"
             tools:ignore="UseCompatTextViewDrawableXml"
             tools:text="@string/module_app_installed_default" />
 
@@ -41,37 +41,37 @@
         <TextView
             android:id="@+id/module_feature_1_text"
             style="@style/moduleFeatureText"
-            tools:text="all POIs information"
+            tools:text="@string/app_feature_rds_all_info"
             tools:visibility="visible" />
 
         <TextView
             android:id="@+id/module_feature_2_text"
             style="@style/moduleFeatureText"
-            tools:text="POIs statuses info (accessible offline)"
+            tools:text="@string/app_feature_planned_schedule_offline"
             tools:visibility="visible" />
 
         <TextView
             android:id="@+id/module_feature_3_text"
             style="@style/moduleFeatureText"
-            tools:text="real time next departures"
+            tools:text="@string/app_feature_real_time_next_departures"
             tools:visibility="visible" />
 
         <TextView
             android:id="@+id/module_feature_4_text"
             style="@style/moduleFeatureText"
-            tools:text="vehicle locations"
+            tools:text="@string/app_feature_vehicle_locations"
             tools:visibility="visible" />
 
         <TextView
             android:id="@+id/module_feature_5_text"
             style="@style/moduleFeatureText"
-            tools:text="service alerts"
+            tools:text="@string/app_feature_service_alerts"
             tools:visibility="visible" />
 
         <TextView
             android:id="@+id/module_feature_6_text"
             style="@style/moduleFeatureText"
-            tools:text="latest news"
+            tools:text="@string/app_feature_latest_news"
             tools:visibility="visible" />
 
         <Space
