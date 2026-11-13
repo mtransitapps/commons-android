@@ -2,13 +2,11 @@ package org.mtransit.android.commons.ui
 
 import android.os.Bundle
 import androidx.core.view.isVisible
-import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.getInstalledProvidersWithMetaData
 import org.mtransit.android.commons.isKeyMT
 
 internal fun ModuleRedirectActivity.loadProvidersInfo() {
-    MTLog.d(this, "updateAgencyInfo()")
     val agencyProviderMetaData by lazy { getString(R.string.agency_provider) }
 
     val statusProviderMetaData by lazy { getString(R.string.status_provider) }
@@ -30,9 +28,7 @@ internal fun ModuleRedirectActivity.loadProvidersInfo() {
     hasNewsProvider = null
 
     packageManager.getInstalledProvidersWithMetaData(packageName)?.forEach { providerInfo ->
-        MTLog.d(this, "updateAgencyInfo() > providerInfo: $providerInfo")
         val providerMetaData: Bundle = providerInfo.metaData ?: return@forEach
-        MTLog.d(this, "updateAgencyInfo() > providerMetaData: $providerMetaData")
         if (providerMetaData.isKeyMT(agencyProviderMetaData)) {
             agencyProviderAuthority = providerInfo.authority
             agencyProviderType = providerMetaData.getInt(agencyProviderTypeMetaData, -1)
@@ -58,10 +54,9 @@ internal fun ModuleRedirectActivity.loadProvidersInfo() {
     }
 }
 
+@Suppress("MagicNumber")
 internal fun ModuleRedirectActivity.updateAgencyInfo() {
-    MTLog.d(this, "updateAgencyInfo()")
     val appFeatureTexts = computeAppFeatureTexts()
-    MTLog.d(this, "updateAgencyInfo() > appFeatureTexts: [${appFeatureTexts.size}]: $appFeatureTexts")
     appFeatureTexts.getOrNull(0).let { this.appFeature1Tv?.apply { text = it; isVisible = !it.isNullOrBlank() } }
     appFeatureTexts.getOrNull(1).let { this.appFeature2Tv?.apply { text = it; isVisible = !it.isNullOrBlank() } }
     appFeatureTexts.getOrNull(2).let { this.appFeature3Tv?.apply { text = it; isVisible = !it.isNullOrBlank() } }
