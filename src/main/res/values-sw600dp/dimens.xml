@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="module_get_it_on_google_play_img_width">320dp</dimen>
+    <dimen name="module_content_width">600dp</dimen>
+</resources>

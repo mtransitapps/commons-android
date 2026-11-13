@@ -76,9 +76,8 @@
     <string name="module_app_installed_and_module"><![CDATA[ <b>%s</b> pour <b>MonTransit</b> installée. ]]></string>
     <string name="congratulations_module_app_installed_default"><![CDATA[ Félicitations! <br/><br/>Vous avez installé <b>les données de l\'agence de transport</b> pour <b>MonTransit</b>. ]]></string>
     <string name="congratulations_module_app_installed_and_module"><![CDATA[ Félicitations! <br/><br/>Vous avez installé <b>%s</b> pour <b>MonTransit</b>. ]]></string>
-    <string name="why_title">Pourquoi ?</string>
-    <string name="why_multiple_apps">Cette application rajoute les informations de l\'agence de transport à l\'application principale <b>MonTransit</b> qui est ainsi <b>compatible avec de nombreuses agences de transport</b>.\nCela permet de réduire les coûts et de <b>maintenir l\'application 100%% gratuite</b>.</string>
-    <string name="why_multiple_apps_rds">Cette application rajoute les informations de l\'agence de transport (<b>horaire complet accessible hors-ligne</b>…) à l\'application principale <b>MonTransit</b> qui est ainsi <b>compatible avec de nombreuses agences de transport</b>.\nCela permet de réduire les coûts et de <b>maintenir l\'application 100%% gratuite</b>.</string>
+    <string name="why_title">Pourquoi plusieurs apps ?</string>
+    <string name="why_multiple_apps" formatted="false">Cette façon de distribuer l\'application <b>MonTransit</b> lui permet d\'être <b>compatible avec de nombreuses agences de transport</b> tout en réduisant les coûts et en restant <b>100% gratuite</b>.</string>
     <string name="keep_temporary_app_icon">Conserver l\'icône temporaire</string>
     <string name="action_open_main_app">Ouvrir MonTransit</string>
     <string name="action_download_main_app">Télécharger MonTransit (gratuit)</string>
@@ -88,6 +87,14 @@
         <item quantity="many">Ouverture dans %d secondes&#8230;</item>
     </plurals>
     <string name="text_opening_main_app_cancel">(toucher l\'écran pour annuler)</string>
+    <string name="app_feature_rds_all_info">toutes les lignes, arrêts et trajets</string>
+    <string name="app_feature_other_all_info">toutes les stations</string>
+    <string name="app_feature_planned_schedule_offline">horaire complet (accessible hors-ligne)</string>
+    <string name="app_feature_real_time_next_departures">prochains départs en temps-réel</string>
+    <string name="app_feature_real_time_bike_availability">disponibilité des vélos et bornes en temps-réel</string>
+    <string name="app_feature_vehicle_locations">positions des véhicules</string>
+    <string name="app_feature_service_alerts">alertes de service</string>
+    <string name="app_feature_latest_news">dernières nouvelles</string>
     <string name="privacy_policy">Politique de confidentialité</string>
     <string name="get_it_on_google_play_store_badge">L\'obtenir sur le Play Store</string>
 </resources>

@@ -1,196 +1,246 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/module_installed_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center_horizontal"
-    android:orientation="vertical"
-    android:padding="32dp"
+    android:clipToPadding="false"
+    android:fillViewport="true"
     tools:background="#FF0000"
     tools:context=".ui.ModuleRedirectActivity">
 
-    <Space
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
-
-    <TextView
-        android:id="@+id/module_installed_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:drawableStart="@drawable/ic_baseline_check_box_black_24"
-        android:drawablePadding="8dp"
-        android:gravity="start"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textStyle="normal"
-        tools:ignore="UseCompatTextViewDrawableXml"
-        tools:text="@string/module_app_installed_default" />
-
-    <Space
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
-
-    <ImageView
-        android:id="@+id/type_img"
-        android:layout_width="@dimen/module_redirect_type_img_size"
-        android:layout_height="@dimen/module_redirect_type_img_size"
-        android:contentDescription="@string/app_name"
-        android:visibility="gone"
-        tools:src="@drawable/ic_directions_bus_black_24dp"
-        tools:visibility="visible" />
-
-    <TextView
-        android:id="@+id/type_down_arrow"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="@dimen/module_content_width"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_marginStart="2dp"
-        android:layout_marginBottom="4dp"
-        android:rotation="90"
-        android:text="&#10132;"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textColor="@android:color/white"
-        android:textStyle="bold"
-        android:visibility="gone"
-        tools:ignore="HardcodedText"
-        tools:visibility="visible" />
-
-    <ImageView
-        android:id="@+id/app_icon"
-        android:layout_width="@dimen/module_redirect_app_icon_size"
-        android:layout_height="@dimen/module_redirect_app_icon_size"
-        android:contentDescription="@string/app_name"
-        android:src="@mipmap/ic_launcher" />
-
-    <Space
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
-
-    <Button
-        android:id="@+id/module_open_download_app_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:background="@drawable/button_bg"
-        android:minHeight="48dp"
-        android:paddingStart="16dp"
-        android:paddingTop="8dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="8dp"
-        android:textAllCaps="false"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textColor="@android:color/white"
-        android:textStyle="bold"
-        android:visibility="gone"
-        tools:ignore="UnusedAttribute"
-        tools:text="@string/action_download_main_app"
-        tools:visibility="gone" />
-
-    <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/module_open_download_app_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ellipsize="end"
         android:gravity="center_horizontal"
-        android:maxLines="1"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textStyle="bold"
-        android:visibility="gone"
-        app:autoSizeTextType="uniform"
-        tools:text="@string/action_download_main_app"
-        tools:visibility="visible" />
+        android:orientation="vertical"
+        android:padding="32dp">
 
-    <ImageView
-        android:id="@+id/get_it_on_google_play"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="0dp"
-        android:contentDescription="@string/get_it_on_google_play_store_badge"
-        android:foreground="@drawable/img_button_fg"
-        android:src="@drawable/google_play_badge"
-        android:visibility="gone"
-        tools:ignore="UnusedAttribute"
-        tools:visibility="visible" />
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
-    <TextView
-        android:id="@+id/module_countdown_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="0dp"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="@android:color/white"
-        android:visibility="gone"
-        tools:text="@plurals/text_opening_main_app_in_and_seconds"
-        tools:visibility="visible" />
+        <TextView
+            android:id="@+id/module_installed_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawablePadding="16dp"
+            android:gravity="start"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textStyle="normal"
+            tools:drawableStart="@drawable/ic_directions_bus_black_24dp"
+            tools:ignore="UseCompatTextViewDrawableXml"
+            tools:text="@string/module_app_installed_default" />
 
-    <TextView
-        android:id="@+id/module_countdown_cancel_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="8dp"
-        android:text="@string/text_opening_main_app_cancel"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="@android:color/white"
-        android:textSize="11sp"
-        android:visibility="gone"
-        tools:visibility="visible" />
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
-    <Space
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        <TextView
+            android:id="@+id/module_feature_1_text"
+            style="@style/moduleFeatureText"
+            tools:text="@string/app_feature_rds_all_info"
+            tools:visibility="visible" />
 
-    <TextView
-        android:id="@+id/why_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/why_title"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textStyle="italic" />
+        <TextView
+            android:id="@+id/module_feature_2_text"
+            style="@style/moduleFeatureText"
+            tools:text="@string/app_feature_planned_schedule_offline"
+            tools:visibility="visible" />
 
-    <TextView
-        android:id="@+id/why_description"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/why_multiple_apps"
-        android:textColor="@android:color/white"
-        android:textStyle="italic"
-        tools:textAppearance="?android:attr/textAppearanceMedium" />
+        <TextView
+            android:id="@+id/module_feature_3_text"
+            style="@style/moduleFeatureText"
+            tools:text="@string/app_feature_real_time_next_departures"
+            tools:visibility="visible" />
 
-    <Space
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        <TextView
+            android:id="@+id/module_feature_4_text"
+            style="@style/moduleFeatureText"
+            tools:text="@string/app_feature_vehicle_locations"
+            tools:visibility="visible" />
 
-    <CheckBox
-        android:id="@+id/module_keep_temp_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:buttonTint="@android:color/white"
-        android:checked="true"
-        android:paddingStart="8dp"
-        android:paddingEnd="0dp"
-        android:text="@string/keep_temporary_app_icon"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:visibility="gone"
-        tools:ignore="UnusedAttribute" />
+        <TextView
+            android:id="@+id/module_feature_5_text"
+            style="@style/moduleFeatureText"
+            tools:text="@string/app_feature_service_alerts"
+            tools:visibility="visible" />
 
-    <TextView
-        android:id="@+id/module_privacy_policy_link"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minWidth="48dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="8dp"
-        android:text="@string/privacy_policy"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="@android:color/white"
-        android:textSize="11sp"
-        android:visibility="gone"
-        tools:visibility="visible" />
+        <TextView
+            android:id="@+id/module_feature_6_text"
+            style="@style/moduleFeatureText"
+            tools:text="@string/app_feature_latest_news"
+            tools:visibility="visible" />
 
-</LinearLayout>
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/type_down_arrow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginStart="2dp"
+            android:layout_marginBottom="4dp"
+            android:rotation="90"
+            android:text="&#10132;"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:ignore="HardcodedText"
+            tools:visibility="visible" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/app_icon"
+            android:layout_width="@dimen/module_redirect_app_icon_size"
+            android:layout_height="@dimen/module_redirect_app_icon_size"
+            android:contentDescription="@string/app_name"
+            android:src="@mipmap/ic_launcher" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/module_open_download_app_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/button_bg"
+            android:minHeight="48dp"
+            android:paddingStart="16dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="8dp"
+            android:textAllCaps="false"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:ignore="UnusedAttribute"
+            tools:text="@string/action_download_main_app"
+            tools:visibility="gone" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/module_open_download_app_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:gravity="center_horizontal"
+            android:maxLines="1"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:autoSizeTextType="uniform"
+            tools:text="@string/action_download_main_app"
+            tools:visibility="visible" />
+
+        <ImageView
+            android:id="@+id/get_it_on_google_play"
+            android:layout_width="@dimen/module_get_it_on_google_play_img_width"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="0dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/get_it_on_google_play_store_badge"
+            android:foreground="@drawable/img_button_fg"
+            android:minHeight="48dp"
+            android:padding="16dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/google_play_badge"
+            android:visibility="gone"
+            tools:ignore="UnusedAttribute"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/module_countdown_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="0dp"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@android:color/white"
+            android:visibility="gone"
+            tools:text="@plurals/text_opening_main_app_in_and_seconds"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/module_countdown_cancel_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:text="@string/text_opening_main_app_cancel"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@android:color/white"
+            android:textSize="11sp"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/why_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/why_title"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@android:color/white"
+            android:textStyle="italic" />
+
+        <TextView
+            android:id="@+id/why_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/why_multiple_apps"
+            android:textColor="@android:color/white"
+            android:textStyle="italic"
+            tools:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <CheckBox
+            android:id="@+id/module_keep_temp_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:buttonTint="@android:color/white"
+            android:checked="true"
+            android:paddingStart="8dp"
+            android:paddingEnd="0dp"
+            android:text="@string/keep_temporary_app_icon"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:visibility="gone"
+            tools:ignore="UnusedAttribute" />
+
+        <TextView
+            android:id="@+id/module_privacy_policy_link"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="48dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="0dp"
+            android:text="@string/privacy_policy"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@android:color/white"
+            android:textSize="11sp"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+    </LinearLayout>
+
+</ScrollView>
