@@ -295,7 +295,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		if (typeImgResId != null) {
 			final Drawable typeImgDrawable = ContextCompat.getDrawable(this, typeImgResId);
 			if (typeImgDrawable != null) {
-				final int typeImgSize = getResources().getDimensionPixelSize(R.dimen.module_redirect_type_img_size);
+				final int typeImgSize = getResources().getDimensionPixelSize(R.dimen.module_redirect_app_icon_size);
 				typeImgDrawable.setBounds(0, 0, typeImgSize, typeImgSize);
 				binding.moduleInstalledText.setCompoundDrawablesRelative(
 						typeImgDrawable, // start
