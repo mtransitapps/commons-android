@@ -115,7 +115,8 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		}
 		setTheme(R.style.ModuleBaseTheme);
 		WindowCompat.enableEdgeToEdge(getWindow());
-		binding = ActivityModuleRedirectBinding.inflate(getLayoutInflater());
+		final ActivityModuleRedirectBinding binding = ActivityModuleRedirectBinding.inflate(getLayoutInflater());
+		this.binding = binding;
 		setContentView(binding.getRoot());
 
 		final int initialLeft = binding.getRoot().getPaddingLeft();
@@ -312,7 +313,6 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		binding.typeDownArrow.setVisibility(typeImgResId != null ? View.VISIBLE : View.GONE);
 		binding.moduleInstalledText.setText(appInstalledText);
 		updateAgencyInfo(this, binding);
-		binding.whyDescription.setText(getText(R.string.why_multiple_apps));
 		binding.getRoot().setBackgroundColor(ColorUtils.parseColor(bgColor));
 	}
 

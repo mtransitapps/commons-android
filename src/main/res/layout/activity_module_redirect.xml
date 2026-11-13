@@ -40,42 +40,36 @@
         <TextView
             android:id="@+id/module_feature_1_text"
             style="@style/moduleFeatureText"
-            tools:ignore="UseCompatTextViewDrawableXml"
             tools:text="all POIs information"
             tools:visibility="visible" />
 
         <TextView
             android:id="@+id/module_feature_2_text"
             style="@style/moduleFeatureText"
-            tools:ignore="UseCompatTextViewDrawableXml"
             tools:text="POIs statuses info (accessible offline)"
             tools:visibility="visible" />
 
         <TextView
             android:id="@+id/module_feature_3_text"
             style="@style/moduleFeatureText"
-            tools:ignore="UseCompatTextViewDrawableXml"
             tools:text="real time next departures"
             tools:visibility="visible" />
 
         <TextView
             android:id="@+id/module_feature_4_text"
             style="@style/moduleFeatureText"
-            tools:ignore="UseCompatTextViewDrawableXml"
             tools:text="vehicle locations"
             tools:visibility="visible" />
 
         <TextView
             android:id="@+id/module_feature_5_text"
             style="@style/moduleFeatureText"
-            tools:ignore="UseCompatTextViewDrawableXml"
             tools:text="service alerts"
             tools:visibility="visible" />
 
         <TextView
             android:id="@+id/module_feature_6_text"
             style="@style/moduleFeatureText"
-            tools:ignore="UseCompatTextViewDrawableXml"
             tools:text="latest news"
             tools:visibility="visible" />
 
@@ -153,7 +147,7 @@
 
         <ImageView
             android:id="@+id/get_it_on_google_play"
-            android:layout_width="320dp"
+            android:layout_width="280dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="0dp"
             android:adjustViewBounds="true"

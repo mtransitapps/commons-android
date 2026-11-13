@@ -77,7 +77,7 @@
     <string name="congratulations_module_app_installed_default"><![CDATA[ Félicitations! <br/><br/>Vous avez installé <b>les données de l\'agence de transport</b> pour <b>MonTransit</b>. ]]></string>
     <string name="congratulations_module_app_installed_and_module"><![CDATA[ Félicitations! <br/><br/>Vous avez installé <b>%s</b> pour <b>MonTransit</b>. ]]></string>
     <string name="why_title">Pourquoi plusieurs apps ?</string>
-    <string name="why_multiple_apps" formatted="false">Cette façon de distribuer l\'application <b>MonTransit</b> lui permet d\'être <b>compatible avec de nombreuses agences de transport</b> tout en réduisant les coûts et en <b>restant 100% gratuite</b>.</string>
+    <string name="why_multiple_apps" formatted="false">Cette façon de distribuer l\'application <b>MonTransit</b> lui permet d\'être <b>compatible avec de nombreuses agences de transport</b> tout en réduisant les coûts et en restant <b>100% gratuite</b>.</string>
     <string name="keep_temporary_app_icon">Conserver l\'icône temporaire</string>
     <string name="action_open_main_app">Ouvrir MonTransit</string>
     <string name="action_download_main_app">Télécharger MonTransit (gratuit)</string>
