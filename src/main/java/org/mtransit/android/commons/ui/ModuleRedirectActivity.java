@@ -162,7 +162,11 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		binding.modulePrivacyPolicyLink.setOnClickListener(v -> {
 			final String url = LocaleUtils.isFR() ? PRIVACY_POLICY_FR_PAGE_URL : PRIVACY_POLICY_PAGE_URL;
 			final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-			startActivity(browserIntent);
+			try {
+				startActivity(browserIntent);
+			} catch (Exception e) {
+				MTLog.w(this, e, "Failed to open privacy policy URL: %s", url);
+			}
 		});
 		binding.modulePrivacyPolicyLink.setVisibility(View.VISIBLE);
 	}
