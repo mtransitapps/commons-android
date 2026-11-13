@@ -91,7 +91,7 @@
     <string name="app_feature_other_all_info">toutes les stations</string>
     <string name="app_feature_planned_schedule_offline">horaire complet (accessible hors-ligne)</string>
     <string name="app_feature_real_time_next_departures">prochains départs en temps-réel</string>
-    <string name="app_feature_real_time_bike_availability">disponibilité des vélos et des bornes en temps-réel</string>
+    <string name="app_feature_real_time_bike_availability">disponibilité des vélos et bornes en temps-réel</string>
     <string name="app_feature_vehicle_locations">positions des véhicules</string>
     <string name="app_feature_service_alerts">alertes de service</string>
     <string name="app_feature_latest_news">dernières nouvelles</string>
