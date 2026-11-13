@@ -9,27 +9,25 @@ import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Insets;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.text.SpannableString;
 import android.text.style.UnderlineSpan;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowInsets;
-import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import org.mtransit.android.commons.BatteryUtils;
 import org.mtransit.android.commons.BuildConfig;
@@ -48,6 +46,7 @@ import org.mtransit.android.commons.StoreUtils;
 import org.mtransit.android.commons.TaskUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.DataSourceTypeId;
+import org.mtransit.android.commons.databinding.ActivityModuleRedirectBinding;
 import org.mtransit.android.commons.provider.agency.AgencyProviderContract;
 import org.mtransit.android.commons.task.MTCancellableAsyncTask;
 import org.mtransit.commons.FeatureFlags;
@@ -78,35 +77,17 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	private static final String PRIVACY_POLICY_PAGE_URL = "https://mtransitapps.github.io/privacy/";
 	private static final String PRIVACY_POLICY_FR_PAGE_URL = "https://mtransitapps.github.io/privacy/fr";
 
-	@Nullable
-	private View rootView;
-	@Nullable
-	private TextView typeDownArrow;
-	@Nullable
-	private TextView appInstalledTv;
-	protected @Nullable TextView appFeature1Tv;
-	protected @Nullable TextView appFeature2Tv;
-	protected @Nullable TextView appFeature3Tv;
-	protected @Nullable TextView appFeature4Tv;
-	protected @Nullable TextView appFeature5Tv;
-	protected @Nullable TextView appFeature6Tv;
-	@SuppressWarnings("FieldCanBeLocal")
-	@Nullable
-	private ImageView appIconImg;
-	@Nullable
-	private TextView whyDescriptionTv;
-	@Nullable
-	private TextView openDownloadTitle;
-	@Nullable
-	private Button openDownloadButton;
-	@Nullable
-	private View getItOnGooglePlay;
-	@Nullable
-	private TextView countdownText;
-	@Nullable
-	private TextView countdownCancelText;
-	@Nullable
-	private TextView privacyPolicyLink;
+	private @Nullable ActivityModuleRedirectBinding binding;
+
+	protected @Nullable String agencyProviderAuthority = null;
+	protected @Nullable Integer agencyProviderType = null;
+	protected @Nullable Boolean hasRDSProvider = null;
+	protected @Nullable Boolean hasScheduleProvider = null;
+	protected @Nullable Boolean hasNonStaticStatusProvider = null;
+	protected @Nullable Boolean hasServiceUpdateProvider = null;
+	protected @Nullable Boolean hasVehicleLocationProvider = null;
+	protected @Nullable Boolean hasNewsProvider = null;
+
 
 	private boolean countDownCancelled = COUNT_DOWN_CANCELLED_DEFAULT;
 
@@ -134,52 +115,24 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 			}
 		}
 		setTheme(R.style.ModuleBaseTheme);
-		setContentView(R.layout.activity_module_redirect);
+		WindowCompat.enableEdgeToEdge(getWindow());
+		binding = ActivityModuleRedirectBinding.inflate(getLayoutInflater());
+		setContentView(binding.getRoot());
 
-		this.rootView = findViewById(R.id.module_installed_root);
-		this.typeDownArrow = findViewById(R.id.type_down_arrow);
-		this.appInstalledTv = findViewById(R.id.module_installed_text);
-		this.appFeature1Tv = findViewById(R.id.module_feature_1_text);
-		this.appFeature2Tv = findViewById(R.id.module_feature_2_text);
-		this.appFeature3Tv = findViewById(R.id.module_feature_3_text);
-		this.appFeature4Tv = findViewById(R.id.module_feature_4_text);
-		this.appFeature5Tv = findViewById(R.id.module_feature_5_text);
-		this.appFeature6Tv = findViewById(R.id.module_feature_6_text);
-		this.appIconImg = findViewById(R.id.app_icon);
-		this.whyDescriptionTv = findViewById(R.id.why_description);
-		this.openDownloadTitle = findViewById(R.id.module_open_download_app_title);
-		this.openDownloadButton = findViewById(R.id.module_open_download_app_button);
-		this.getItOnGooglePlay = findViewById(R.id.get_it_on_google_play);
-		this.countdownText = findViewById(R.id.module_countdown_text);
-		this.countdownCancelText = findViewById(R.id.module_countdown_cancel_text);
-		this.privacyPolicyLink = findViewById(R.id.module_privacy_policy_link);
-
-		if (this.rootView != null) {
-			final int initialLeft = this.rootView.getPaddingLeft();
-			final int initialTop = this.rootView.getPaddingTop();
-			final int initialRight = this.rootView.getPaddingRight();
-			final int initialBottom = this.rootView.getPaddingBottom();
-			this.rootView.setOnApplyWindowInsetsListener((view, insets) -> {
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-					final Insets systemBars = insets.getInsets(WindowInsets.Type.systemBars());
-					view.setPadding(
-							initialLeft + systemBars.left,
-							initialTop + systemBars.top,
-							initialRight + systemBars.right,
-							initialBottom + systemBars.bottom
-					);
-				} else {
-					//noinspection deprecation
-					view.setPadding(
-							initialLeft + insets.getSystemWindowInsetLeft(),
-							initialTop + insets.getSystemWindowInsetTop(),
-							initialRight + insets.getSystemWindowInsetRight(),
-							initialBottom + insets.getSystemWindowInsetBottom()
-					);
-				}
-				return insets;
-			});
-		}
+		final int initialLeft = binding.moduleInstalledRoot.getPaddingLeft();
+		final int initialTop = binding.moduleInstalledRoot.getPaddingTop();
+		final int initialRight = binding.moduleInstalledRoot.getPaddingRight();
+		final int initialBottom = binding.moduleInstalledRoot.getPaddingBottom();
+		ViewCompat.setOnApplyWindowInsetsListener(binding.moduleInstalledRoot, (view, insets) -> {
+			final Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+			view.setPadding(
+					initialLeft + systemBars.left,
+					initialTop + systemBars.top,
+					initialRight + systemBars.right,
+					initialBottom + systemBars.bottom
+			);
+			return insets;
+		});
 
 		if (FeatureFlags.F_MODULE_AUTO_OPEN) {
 			if (savedInstanceState != null) {
@@ -187,22 +140,14 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 			}
 		}
 
-		if (this.appIconImg != null) {
-			this.appIconImg.setOnClickListener(v -> onButtonClicked());
-		}
-		if (this.openDownloadTitle != null) {
-			this.openDownloadTitle.setOnClickListener(v -> onButtonClicked());
-		}
-		if (this.openDownloadButton != null) {
-			this.openDownloadButton.setOnClickListener(v -> onButtonClicked());
-		}
-		if (this.getItOnGooglePlay != null) {
-			this.getItOnGooglePlay.setOnClickListener(v -> onButtonClicked());
-		}
+		binding.appIcon.setOnClickListener(v -> onButtonClicked());
+		binding.moduleOpenDownloadAppTitle.setOnClickListener(v -> onButtonClicked());
+		binding.moduleOpenDownloadAppButton.setOnClickListener(v -> onButtonClicked());
+		binding.getItOnGooglePlay.setOnClickListener(v -> onButtonClicked());
 
 		setupPrivacyPolicyLink();
 
-		initAgencyData();
+		initAgencyData(binding);
 
 		if (isMainAppInstalled() && BatteryUtils.shouldUseBatteryForOptionalWork(this)) {
 			TaskUtils.execute(new PingTask(getApplication(), this.agencyProviderAuthority, this.agencyProviderType)); // LAST
@@ -210,17 +155,16 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	}
 
 	private void setupPrivacyPolicyLink() {
-		if (this.privacyPolicyLink != null) {
-			final SpannableString privacyPolicyLink = new SpannableString(getString(R.string.privacy_policy));
-			privacyPolicyLink.setSpan(new UnderlineSpan(), 0, privacyPolicyLink.length(), 0);
-			this.privacyPolicyLink.setText(privacyPolicyLink);
-			this.privacyPolicyLink.setOnClickListener(v -> {
-				final String url = LocaleUtils.isFR() ? PRIVACY_POLICY_FR_PAGE_URL : PRIVACY_POLICY_PAGE_URL;
-				final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-				startActivity(browserIntent);
-			});
-			this.privacyPolicyLink.setVisibility(View.VISIBLE);
-		}
+		if (this.binding == null) return;
+		final SpannableString privacyPolicyLink = new SpannableString(getString(R.string.privacy_policy));
+		privacyPolicyLink.setSpan(new UnderlineSpan(), 0, privacyPolicyLink.length(), 0);
+		binding.modulePrivacyPolicyLink.setText(privacyPolicyLink);
+		binding.modulePrivacyPolicyLink.setOnClickListener(v -> {
+			final String url = LocaleUtils.isFR() ? PRIVACY_POLICY_FR_PAGE_URL : PRIVACY_POLICY_PAGE_URL;
+			final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+			startActivity(browserIntent);
+		});
+		binding.modulePrivacyPolicyLink.setVisibility(View.VISIBLE);
 	}
 
 	@Override
@@ -302,7 +246,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		}
 	}
 
-	private void initAgencyData() {
+	private void initAgencyData(@NonNull ActivityModuleRedirectBinding binding) {
 		String bgColor = "6699FF"; // DEFAULT
 		CharSequence appInstalledText = getResources().getText(R.string.module_app_installed_default); // DEFAULT
 		loadProvidersInfo(this);
@@ -348,47 +292,30 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 				break;
 			}
 		}
-		if (typeImgResId != null && this.appInstalledTv != null) {
+		if (typeImgResId != null) {
 			final Drawable typeImgDrawable = ContextCompat.getDrawable(this, typeImgResId);
 			if (typeImgDrawable != null) {
 				final int typeImgSize = getResources().getDimensionPixelSize(R.dimen.module_redirect_type_img_size);
 				typeImgDrawable.setBounds(0, 0, typeImgSize, typeImgSize);
-				this.appInstalledTv.setCompoundDrawablesRelative(
+				binding.moduleInstalledText.setCompoundDrawablesRelative(
 						typeImgDrawable, // start
 						null,
 						null,
 						null
 				);
 			} else {
-				this.appInstalledTv.setCompoundDrawablesRelativeWithIntrinsicBounds(
+				binding.moduleInstalledText.setCompoundDrawablesRelativeWithIntrinsicBounds(
 						typeImgResId, // start
 						0, 0, 0
 				);
 			}
 		}
-		if (this.typeDownArrow != null) {
-			this.typeDownArrow.setVisibility(typeImgResId != null ? View.VISIBLE : View.GONE);
-		}
-		if (this.appInstalledTv != null) {
-			this.appInstalledTv.setText(appInstalledText);
-		}
-		updateAgencyInfo(this);
-		if (this.whyDescriptionTv != null) {
-			this.whyDescriptionTv.setText(getText(R.string.why_multiple_apps));
-		}
-		if (this.rootView != null) {
-			this.rootView.setBackgroundColor(ColorUtils.parseColor(bgColor));
-		}
+		binding.typeDownArrow.setVisibility(typeImgResId != null ? View.VISIBLE : View.GONE);
+		binding.moduleInstalledText.setText(appInstalledText);
+		updateAgencyInfo(this, binding);
+		binding.whyDescription.setText(getText(R.string.why_multiple_apps));
+		binding.moduleInstalledRoot.setBackgroundColor(ColorUtils.parseColor(bgColor));
 	}
-
-	protected @Nullable String agencyProviderAuthority = null;
-	protected @Nullable Integer agencyProviderType = null;
-	protected @Nullable Boolean hasRDSProvider = null;
-	protected @Nullable Boolean hasScheduleProvider = null;
-	protected @Nullable Boolean hasNonStaticStatusProvider = null;
-	protected @Nullable Boolean hasServiceUpdateProvider = null;
-	protected @Nullable Boolean hasVehicleLocationProvider = null;
-	protected @Nullable Boolean hasNewsProvider = null;
 
 	@Override
 	protected void onSaveInstanceState(@NonNull Bundle outState) {
@@ -409,27 +336,27 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (this.openDownloadTitle != null) {
-			this.openDownloadTitle.setText(isMainAppInstalled() ?
-					R.string.action_open_main_app :
-					R.string.action_download_main_app);
-			this.openDownloadTitle.setVisibility(isMainAppInstalled() ?
-					View.GONE :
-					View.VISIBLE);
+		if (this.binding != null) {
+			updateUIState(this.binding);
 		}
-		if (this.openDownloadButton != null) {
-			this.openDownloadButton.setText(isMainAppInstalled() ?
-					R.string.action_open_main_app :
-					R.string.action_download_main_app);
-			this.openDownloadButton.setVisibility(isMainAppInstalled() ?
-					View.VISIBLE :
-					View.GONE);
-		}
-		if (this.getItOnGooglePlay != null) {
-			this.getItOnGooglePlay.setVisibility(isMainAppInstalled() ?
-					View.GONE :
-					View.VISIBLE);
-		}
+	}
+
+	private void updateUIState(@NonNull ActivityModuleRedirectBinding binding) {
+		binding.moduleOpenDownloadAppTitle.setText(isMainAppInstalled() ?
+				R.string.action_open_main_app :
+				R.string.action_download_main_app);
+		binding.moduleOpenDownloadAppTitle.setVisibility(isMainAppInstalled() ?
+				View.GONE :
+				View.VISIBLE);
+		binding.moduleOpenDownloadAppButton.setText(isMainAppInstalled() ?
+				R.string.action_open_main_app :
+				R.string.action_download_main_app);
+		binding.moduleOpenDownloadAppButton.setVisibility(isMainAppInstalled() ?
+				View.VISIBLE :
+				View.GONE);
+		binding.getItOnGooglePlay.setVisibility(isMainAppInstalled() ?
+				View.GONE :
+				View.VISIBLE);
 	}
 
 	private boolean isMainAppInstalled() {
@@ -438,9 +365,9 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 
 	private void onCountDownTimeStateChanged(long millisUntilFinished) {
 		if (!FeatureFlags.F_MODULE_AUTO_OPEN) return;
-		if (this.countdownText != null) {
+		if (this.binding != null) {
 			final int seconds = Math.round(millisUntilFinished / 1000.0f);
-			this.countdownText.setText(
+			binding.moduleCountdownText.setText(
 					getResources().getQuantityString(R.plurals.text_opening_main_app_in_and_seconds, seconds, seconds)
 			);
 		}
@@ -448,20 +375,13 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 
 	private void onCountDownCancelStateChanged() {
 		if (!FeatureFlags.F_MODULE_AUTO_OPEN) return;
+		if (this.binding == null) return;
 		if (this.countDownCancelled) {
-			if (this.countdownText != null) {
-				this.countdownText.setVisibility(View.INVISIBLE);
-			}
-			if (this.countdownCancelText != null) {
-				this.countdownCancelText.setVisibility(View.INVISIBLE);
-			}
+			binding.moduleCountdownText.setVisibility(View.INVISIBLE);
+			binding.moduleCountdownCancelText.setVisibility(View.INVISIBLE);
 		} else {
-			if (this.countdownText != null) {
-				this.countdownText.setVisibility(View.VISIBLE);
-			}
-			if (this.countdownCancelText != null) {
-				this.countdownCancelText.setVisibility(View.VISIBLE);
-			}
+			binding.moduleCountdownText.setVisibility(View.VISIBLE);
+			binding.moduleCountdownCancelText.setVisibility(View.VISIBLE);
 		}
 	}
 

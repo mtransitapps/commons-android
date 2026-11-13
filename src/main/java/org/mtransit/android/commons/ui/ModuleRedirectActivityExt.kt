@@ -3,20 +3,21 @@ package org.mtransit.android.commons.ui
 import android.os.Bundle
 import androidx.core.view.isVisible
 import org.mtransit.android.commons.R
+import org.mtransit.android.commons.databinding.ActivityModuleRedirectBinding
 import org.mtransit.android.commons.getInstalledProvidersWithMetaData
 import org.mtransit.android.commons.isKeyMT
 
 internal fun ModuleRedirectActivity.loadProvidersInfo() {
-    val agencyProviderMetaData by lazy { getString(R.string.agency_provider) }
+    val agencyProviderMetaData = getString(R.string.agency_provider)
 
-    val statusProviderMetaData by lazy { getString(R.string.status_provider) }
-    val scheduleProviderMetaData by lazy { getString(R.string.schedule_provider) }
-    val serviceUpdateProviderMetaData by lazy { getString(R.string.service_update_provider) }
-    val vehicleLocationProviderMetaData by lazy { getString(R.string.vehicle_location_provider) }
-    val newsProviderMetaData by lazy { getString(R.string.news_provider) }
+    val statusProviderMetaData = getString(R.string.status_provider)
+    val scheduleProviderMetaData = getString(R.string.schedule_provider)
+    val serviceUpdateProviderMetaData = getString(R.string.service_update_provider)
+    val vehicleLocationProviderMetaData = getString(R.string.vehicle_location_provider)
+    val newsProviderMetaData = getString(R.string.news_provider)
 
-    val agencyProviderTypeMetaData by lazy { getString(R.string.agency_provider_type) }
-    val rdsProviderMetaData by lazy { getString(R.string.rts_provider) }
+    val agencyProviderTypeMetaData = getString(R.string.agency_provider_type)
+    val rdsProviderMetaData = getString(R.string.rts_provider)
 
     agencyProviderAuthority = null
     agencyProviderType = null
@@ -54,15 +55,20 @@ internal fun ModuleRedirectActivity.loadProvidersInfo() {
     }
 }
 
-@Suppress("MagicNumber")
-internal fun ModuleRedirectActivity.updateAgencyInfo() {
+internal fun ModuleRedirectActivity.updateAgencyInfo(binding: ActivityModuleRedirectBinding) = binding.apply {
     val appFeatureTexts = computeAppFeatureTexts()
-    appFeatureTexts.getOrNull(0).let { this.appFeature1Tv?.apply { text = it; isVisible = !it.isNullOrBlank() } }
-    appFeatureTexts.getOrNull(1).let { this.appFeature2Tv?.apply { text = it; isVisible = !it.isNullOrBlank() } }
-    appFeatureTexts.getOrNull(2).let { this.appFeature3Tv?.apply { text = it; isVisible = !it.isNullOrBlank() } }
-    appFeatureTexts.getOrNull(3).let { this.appFeature4Tv?.apply { text = it; isVisible = !it.isNullOrBlank() } }
-    appFeatureTexts.getOrNull(4).let { this.appFeature5Tv?.apply { text = it; isVisible = !it.isNullOrBlank() } }
-    appFeatureTexts.getOrNull(5).let { this.appFeature6Tv?.apply { text = it; isVisible = !it.isNullOrBlank() } }
+    listOfNotNull(
+        moduleFeature1Text,
+        moduleFeature2Text,
+        moduleFeature3Text,
+        moduleFeature4Text,
+        moduleFeature5Text,
+        moduleFeature6Text,
+    ).forEachIndexed { index, textView ->
+        val text = appFeatureTexts.getOrNull(index)
+        textView.text = text
+        textView.isVisible = !text.isNullOrBlank()
+    }
 }
 
 internal fun ModuleRedirectActivity.computeAppFeatureTexts() = buildList<CharSequence> {
