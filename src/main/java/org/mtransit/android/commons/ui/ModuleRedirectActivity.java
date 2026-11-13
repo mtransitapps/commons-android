@@ -253,12 +253,12 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 			Cursor cursor = null;
 			try {
 				final Uri authorityUri = UriUtils.newContentUri(this.agencyProviderAuthority);
-				final Uri uri = Uri.withAppendedPath(authorityUri, AgencyProviderContract.ALL_PATH);
+				final Uri uri = Uri.withAppendedPath(authorityUri, AgencyProviderContract.ALL_PATH); // agency name & color
 				cursor = getContentResolver().query(uri, null, null, null, null);
 				if (cursor != null && cursor.getCount() > 0) {
 					if (cursor.moveToFirst()) {
-						String longName = cursor.getString(cursor.getColumnIndexOrThrow(AgencyProviderContract.LABEL_PATH));
-						appInstalledText = ResourceExtKt.getText(getResources(), R.string.module_app_installed_and_module, longName);
+						final String shortName = cursor.getString(cursor.getColumnIndexOrThrow(AgencyProviderContract.SHORT_NAME_PATH));
+						appInstalledText = ResourceExtKt.getText(getResources(), R.string.module_app_installed_and_module, shortName);
 						bgColor = cursor.getString(cursor.getColumnIndexOrThrow(AgencyProviderContract.COLOR_PATH));
 					}
 				}
