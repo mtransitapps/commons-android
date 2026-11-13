@@ -86,7 +86,7 @@
     <string name="app_feature_other_all_info">all stations</string>
     <string name="app_feature_planned_schedule_offline">full schedule (accessible offline)</string>
     <string name="app_feature_real_time_next_departures">real-time next departures</string>
-    <string name="app_feature_real_time_bike_availability">real-time bikes availability</string>
+    <string name="app_feature_real_time_bike_availability">real-time bike and dock availability</string>
     <string name="app_feature_vehicle_locations">vehicle locations</string>
     <string name="app_feature_service_alerts">service alerts</string>
     <string name="app_feature_latest_news">latest news</string>
