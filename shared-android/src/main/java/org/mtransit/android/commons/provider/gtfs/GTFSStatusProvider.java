@@ -349,7 +349,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	/**
 	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
 	 */
-	// R8: commons-android/src/main/res/raw/org_mtransit_android_keep_gtfs_schedule_stop.xml
+	// R8: commons-android/shared-android/src/main/res/raw/org_mtransit_android_keep_gtfs_schedule_stop.xml
 	@NonNull
 	private static String getSTOP_SCHEDULE_RAW_FILE_FORMAT(@NonNull Context context) {
 		GTFSCurrentNextProvider.checkForNextData(context);
