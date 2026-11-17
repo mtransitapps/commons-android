@@ -175,6 +175,8 @@ interface StatusProviderContract : ProviderContract {
 
         abstract fun copyWithCacheOnly(cacheOnly: Boolean): Filter
 
+        abstract fun copyWithFetchOnly(fetchOnly: Boolean): Filter
+
         @Suppress("unused")
         abstract fun fromJSONStringStatic(jsonString: String?): Filter?
 

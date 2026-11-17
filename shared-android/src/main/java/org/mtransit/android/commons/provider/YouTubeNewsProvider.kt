@@ -277,6 +277,9 @@ class YouTubeNewsProvider : NewsProvider() {
 
     override fun getNewNews(newsFilter: NewsProviderContract.Filter): ArrayList<News>? {
         this.providedApiKey = SecureStringUtils.dec(newsFilter.getProvidedEncryptKey(KeysIds.YOUTUBE_API_KEY))
+        if (newsFilter.isFetchOnlyOrDefault) {
+            return loadAgencyNewsDataFromWWW(requireContextCompat())
+        }
         updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault)
         return getCachedNews(newsFilter)
     }

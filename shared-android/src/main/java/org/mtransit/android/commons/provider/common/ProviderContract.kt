@@ -38,13 +38,18 @@ interface ProviderContract : Loggable {
     abstract class Filter {
 
         companion object {
+            private const val FETCH_ONLY_DEFAULT = false
             private const val CACHE_ONLY_DEFAULT = false
             private const val IN_FOCUS_DEFAULT = false
 
+            private const val JSON_FETCH_ONLY = "fetchOnly" // download and return all (no cache stored)
             private const val JSON_CACHE_ONLY = "cacheOnly"
             private const val JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs"
             private const val JSON_IN_FOCUS = "inFocus"
             private const val JSON_PROVIDED_ENCRYPT_KEYS_MAP = "providedEncryptKeysMap"
+
+            @Throws(JSONException::class)
+            fun getFetchOnlyFromJSON(json: JSONObject) = json.optBoolean(JSON_FETCH_ONLY, null)
 
             @Throws(JSONException::class)
             fun getCacheOnlyFromJSON(json: JSONObject) = json.optBoolean(JSON_CACHE_ONLY, null)
@@ -62,6 +67,7 @@ interface ProviderContract : Loggable {
             @JvmStatic
             @Throws(JSONException::class)
             fun toJSON(filter: Filter, json: JSONObject) = filter.apply {
+                fetchOnly?.let { json.put(JSON_FETCH_ONLY, it) }
                 cacheOnly?.let { json.put(JSON_CACHE_ONLY, it) }
                 cacheValidityInMs?.let { json.put(JSON_CACHE_VALIDITY_IN_MS, it) }
                 inFocus?.let { json.put(JSON_IN_FOCUS, it) }
@@ -73,6 +79,9 @@ interface ProviderContract : Loggable {
                 it.key to enc
             }?.toMap()?.let { Secret(it) }
         }
+
+        abstract val fetchOnly: Boolean?
+        val isFetchOnlyOrDefault: Boolean get() = this.fetchOnly ?: FETCH_ONLY_DEFAULT
 
         abstract val cacheOnly: Boolean?
         val isCacheOnlyOrDefault: Boolean get() = this.cacheOnly ?: CACHE_ONLY_DEFAULT
@@ -92,6 +101,7 @@ interface ProviderContract : Loggable {
         abstract fun toJSONString(): String?
 
         fun toStringParts() = buildString {
+            fetchOnly?.let { append("fetchOnly:").append(it).append(",") }
             cacheOnly?.let { append("cacheOnly:").append(it).append(",") }
             cacheValidityInMs?.let { append("cacheValidityInMs:").append(MTLog.formatDuration(it)).append(",") }
             inFocus?.let { append("inFocus:").append(it).append(",") }

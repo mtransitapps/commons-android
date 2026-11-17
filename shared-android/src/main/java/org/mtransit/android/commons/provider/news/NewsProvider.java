@@ -160,7 +160,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			return provider.getNewsFromDB(newsFilter);
 		}
 		final long nowInMs = TimeUtils.currentTimeMillis();
-		final ArrayList<News> cachedNews = provider.getCachedNews(newsFilter);
+		final ArrayList<News> cachedNews = newsFilter.isFetchOnlyOrDefault() ? null : provider.getCachedNews(newsFilter);
 		boolean purgeNecessary = false;
 		if (cachedNews != null) {
 			final Iterator<News> it = cachedNews.iterator();
@@ -194,7 +194,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			cacheValidityInMs = filterCacheValidityInMs;
 		}
 		boolean loadNewNews = false;
-		if (CollectionUtils.getSize(cachedNews) == 0) {
+		if (newsFilter.isFetchOnlyOrDefault() || CollectionUtils.getSize(cachedNews) == 0) {
 			loadNewNews = true;
 		} else if (cachedNews != null) {
 			final long tooOldNeedLoadingInMs = nowInMs - cacheValidityInMs;
@@ -243,10 +243,8 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	private static Cursor getNewsCursor(ArrayList<News> news) {
-		if (news == null) {
-			return ContentProviderConstants.EMPTY_CURSOR;
-		}
-		MatrixCursor matrixCursor = new MatrixCursor(NewsProviderContract.getPROJECTION_NEWS());
+		if (news == null) return ContentProviderConstants.EMPTY_CURSOR;
+		final MatrixCursor matrixCursor = new MatrixCursor(NewsProviderContract.getPROJECTION_NEWS());
 		for (News oneNews : news) {
 			matrixCursor.addRow(oneNews.getCursorRow());
 		}
@@ -383,13 +381,13 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 
 	@Nullable
 	public static ArrayList<News> getCachedNewsS(@NonNull NewsProviderContract provider, @NonNull Filter newFilter) {
-		Uri uri = getNewsContentUri(provider);
-		String filterSelection = newFilter.getSqlSelection(
+		final Uri uri = getNewsContentUri(provider);
+		final String filterSelection = newFilter.getSqlSelection(
 				NewsProviderContract.Columns.T_NEWS_K_UUID,
 				NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID,
 				NewsProviderContract.Columns.T_NEWS_K_CREATED_AT
 		);
-		StringBuilder sqlSelectionSb = new StringBuilder();
+		final StringBuilder sqlSelectionSb = new StringBuilder();
 		if (!TextUtils.isEmpty(filterSelection)) {
 			sqlSelectionSb.append(filterSelection).append(SqlUtils.AND);
 		}
@@ -402,7 +400,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		ArrayList<News> cache = new ArrayList<>();
 		Cursor cursor = null;
 		try {
-			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+			final SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getNewsDbTableName());
 			qb.setProjectionMap(provider.getNewsProjectionMap());
 			cursor = qb.query(provider.getReadDB(), provider.getNewsProjection(), selection, null, null, null, LATEST_NEWS_SORT_ORDER,

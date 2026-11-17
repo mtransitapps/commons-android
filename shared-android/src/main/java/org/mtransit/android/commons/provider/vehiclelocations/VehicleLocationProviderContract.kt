@@ -105,6 +105,7 @@ interface VehicleLocationProviderContract : ProviderContract {
     data class Filter
     @Discouraged("use secondary constructor() instead")
     constructor(
+        override val fetchOnly: Boolean? = null,
         override val cacheOnly: Boolean? = null,
         override val cacheValidityInMs: Long? = null,
         override val inFocus: Boolean? = null,
@@ -148,6 +149,7 @@ interface VehicleLocationProviderContract : ProviderContract {
                 val route = json.optJSONObject(JSON_ROUTE)?.let { Route.fromJSON(it, authority) }
                 val routeDirection = json.optJSONObject(JSON_ROUTE_DIRECTION)?.let { RouteDirection.fromJSON(it, authority) }
                 return Filter(
+                    fetchOnly = getFetchOnlyFromJSON(json),
                     cacheOnly = getCacheOnlyFromJSON(json),
                     cacheValidityInMs = getCacheValidityInMsFromJSON(json),
                     inFocus = getInFocusFromJSON(json),

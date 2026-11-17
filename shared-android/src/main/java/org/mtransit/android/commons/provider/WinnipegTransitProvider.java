@@ -615,6 +615,9 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	@Override
 	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		this.providedApiKey = SecureStringUtils.dec(newsFilter.getProvidedEncryptKey(KeysIds.CA_WINNIPEG_TRANSIT_API_KEY));
+		if (newsFilter.isFetchOnlyOrDefault()) {
+			return loadAgencyNewsDataFromWWW(requireContextCompat());
+		}
 		updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault());
 		return getCachedNews(newsFilter);
 	}

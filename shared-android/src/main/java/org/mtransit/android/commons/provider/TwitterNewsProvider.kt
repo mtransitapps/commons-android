@@ -319,6 +319,9 @@ class TwitterNewsProvider : NewsProvider() {
     override fun getNewNews(newsFilter: NewsProviderContract.Filter): ArrayList<News>? {
         this.providedBearerToken = SecureStringUtils.dec(newsFilter.getProvidedEncryptKey(KeysIds.TWITTER_BEARER_TOKEN))
         this.providedCachedApiUrl = SecureStringUtils.dec(newsFilter.getProvidedEncryptKey(KeysIds.TWITTER_CACHED_API_URL))
+        if (newsFilter.isFetchOnlyOrDefault) {
+            return loadAgencyNewsDataFromWWW(requireContextCompat())
+        }
         updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault)
         return getCachedNews(newsFilter)
     }

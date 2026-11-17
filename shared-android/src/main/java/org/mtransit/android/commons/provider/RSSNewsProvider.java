@@ -376,6 +376,9 @@ public class RSSNewsProvider extends NewsProvider {
 	@Nullable
 	@Override
 	public ArrayList<News> getNewNews(@NonNull Filter newsFilter) {
+		if (newsFilter.isFetchOnlyOrDefault()) {
+			return loadAgencyNewsDataFromWWW(requireContextCompat());
+		}
 		updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault());
 		return getCachedNews(newsFilter);
 	}
@@ -436,9 +439,9 @@ public class RSSNewsProvider extends NewsProvider {
 			deleteAllAgencyNewsData();
 			deleteAllDone = true;
 		}
-		ArrayList<News> newNews = loadAgencyNewsDataFromWWW(context);
+		final ArrayList<News> newNews = loadAgencyNewsDataFromWWW(context);
 		if (newNews != null) { // empty is OK
-			long nowInMs = TimeUtils.currentTimeMillis();
+			final long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
 				deleteAllAgencyNewsData();
 			}

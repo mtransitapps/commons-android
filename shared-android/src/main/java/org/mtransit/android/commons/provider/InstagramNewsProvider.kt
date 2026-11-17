@@ -228,6 +228,9 @@ class InstagramNewsProvider : NewsProvider() {
     }
 
     override fun getNewNews(newsFilter: NewsProviderContract.Filter): ArrayList<News>? {
+        if (newsFilter.isFetchOnlyOrDefault) {
+            return loadAgencyNewsDataFromWWW(requireContextCompat())
+        }
         updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault)
         return getCachedNews(newsFilter)
     }

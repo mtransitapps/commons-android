@@ -7,6 +7,7 @@ import org.mtransit.android.commons.provider.status.StatusProviderContract
 import org.mtransit.commons.model.Secret
 
 data class AppStatusFilter(
+    override val fetchOnly: Boolean? = null,
     override val cacheOnly: Boolean? = null,
     override val cacheValidityInMs: Long? = null,
     override val inFocus: Boolean? = null,
@@ -39,6 +40,7 @@ data class AppStatusFilter(
         fun fromJSON(json: JSONObject): StatusProviderContract.Filter? {
             try {
                 return AppStatusFilter(
+                    fetchOnly = getFetchOnlyFromJSON(json),
                     cacheOnly = getCacheOnlyFromJSON(json),
                     cacheValidityInMs = getCacheValidityInMsFromJSON(json),
                     inFocus = getInFocusFromJSON(json),
@@ -76,6 +78,9 @@ data class AppStatusFilter(
 
     override fun copyWithCacheOnly(cacheOnly: Boolean) =
         this.copy(cacheOnly = cacheOnly)
+
+    override fun copyWithFetchOnly(fetchOnly: Boolean) =
+        this.copy(fetchOnly = fetchOnly)
 
     override fun fromJSONStringStatic(jsonString: String?) = fromJSONString(jsonString)
 

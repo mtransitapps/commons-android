@@ -12,6 +12,7 @@ import org.mtransit.commons.model.Secret
 import java.util.concurrent.TimeUnit
 
 data class ScheduleStatusFilter(
+    override val fetchOnly: Boolean? = null,
     override val cacheOnly: Boolean? = null,
     override val cacheValidityInMs: Long? = null,
     override val inFocus: Boolean? = null,
@@ -75,6 +76,7 @@ data class ScheduleStatusFilter(
             try {
                 val routeDirectionStop = RouteDirectionStop.fromJSONStatic(json.getJSONObject(JSON_ROUTE_DIRECTION_STOP)) ?: return null
                 return ScheduleStatusFilter(
+                    fetchOnly = getFetchOnlyFromJSON(json),
                     cacheOnly = getCacheOnlyFromJSON(json),
                     cacheValidityInMs = getCacheValidityInMsFromJSON(json),
                     inFocus = getInFocusFromJSON(json),
@@ -131,6 +133,9 @@ data class ScheduleStatusFilter(
 
     override fun copyWithCacheOnly(cacheOnly: Boolean) =
         this.copy(cacheOnly = cacheOnly)
+
+    override fun copyWithFetchOnly(fetchOnly: Boolean) =
+        this.copy(fetchOnly = fetchOnly)
 
     val targetAuthority: String get() = this.routeDirectionStop.authority
 

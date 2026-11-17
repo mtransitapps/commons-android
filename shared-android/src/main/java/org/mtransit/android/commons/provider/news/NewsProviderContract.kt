@@ -133,6 +133,7 @@ interface NewsProviderContract : ProviderContract {
     data class Filter
     @Discouraged("use static methods instead")
     constructor(
+        override val fetchOnly: Boolean? = null,
         override val cacheOnly: Boolean? = null,
         override val cacheValidityInMs: Long? = null,
         override val inFocus: Boolean? = null,
@@ -189,6 +190,7 @@ interface NewsProviderContract : ProviderContract {
                 try {
                     //noinspection DiscouragedApi
                     return Filter(
+                        fetchOnly = getFetchOnlyFromJSON(json),
                         cacheOnly = getCacheOnlyFromJSON(json),
                         cacheValidityInMs = getCacheValidityInMsFromJSON(json),
                         inFocus = getInFocusFromJSON(json),

@@ -101,6 +101,7 @@ interface ServiceUpdateProviderContract : ProviderContract {
     data class Filter
     @Discouraged("use static methods instead")
     constructor(
+        override val fetchOnly: Boolean? = null,
         override val cacheOnly: Boolean? = null,
         override val cacheValidityInMs: Long? = null,
         override val inFocus: Boolean? = null,
@@ -145,6 +146,7 @@ interface ServiceUpdateProviderContract : ProviderContract {
                     }
                     //noinspection DiscouragedApi
                     return Filter(
+                        fetchOnly = getFetchOnlyFromJSON(json),
                         cacheOnly = getCacheOnlyFromJSON(json),
                         cacheValidityInMs = getCacheValidityInMsFromJSON(json),
                         inFocus = getInFocusFromJSON(json),
@@ -236,6 +238,11 @@ interface ServiceUpdateProviderContract : ProviderContract {
         @Suppress("unused") // main app only
         fun copyWithCacheOnly(cacheOnly: Boolean): Filter = this.copy(
             cacheOnly = cacheOnly,
+        )
+
+        @Suppress("unused") // main app only
+        fun copyWithFetchOnly(fetchOnly: Boolean): Filter = this.copy(
+            fetchOnly = fetchOnly,
         )
 
         override fun toJSONString() = toJSONString(this)
