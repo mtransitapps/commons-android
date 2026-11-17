@@ -86,7 +86,7 @@ android {
 }
 
 dependencies {
-    api(project(":commons-java"))
+    api(project(":commons-java:commons-jvm"))
 
     coreLibraryDesugaring(libs.android.desugarJdkLibs) // required for Play Services https://developers.google.com/android/guides/releases#april_14_2025
 
