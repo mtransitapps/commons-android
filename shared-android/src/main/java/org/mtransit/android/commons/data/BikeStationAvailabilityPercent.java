@@ -14,7 +14,7 @@ public class BikeStationAvailabilityPercent extends AvailabilityPercent {
 		return LOG_TAG;
 	}
 
-	// R8: commons-android/src/main/res/raw/org_mtransit_android_keep_poi_status_availability.xml
+	// R8: commons-android/shared-android/src/main/res/raw/org_mtransit_android_keep_poi_status_availability.xml
 	public BikeStationAvailabilityPercent(@Nullable Integer id, @NonNull String targetUUID,
 			long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs, @Nullable String sourceLabel,
 			int value1Color, int value1ColorBg,
