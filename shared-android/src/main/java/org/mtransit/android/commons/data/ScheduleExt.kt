@@ -1,0 +1,292 @@
+@file:Suppress("unused")
+
+package org.mtransit.android.commons.data
+
+import org.mtransit.android.commons.Constants
+import org.mtransit.android.commons.floorBy
+import org.mtransit.android.commons.millisToInstant
+import org.mtransit.android.commons.roundToNearest
+import org.mtransit.android.commons.toDateTimeLog
+import org.mtransit.android.commons.toDurationLog
+import org.mtransit.android.commons.toMillis
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
+
+fun makeSchedule(
+    id: Int? = null,
+    targetUUID: String,
+    lastUpdateInMs: Long,
+    maxValidityInMs: Long,
+    readFromSourceAtInMs: Long,
+    providerPrecisionInMs: Long,
+    isNoPickup: Boolean = false,
+    localTimeZoneId: String?,
+    sourceLabel: String? = null,
+    noData: Boolean = false,
+) = Schedule(
+    id,
+    targetUUID,
+    lastUpdateInMs,
+    maxValidityInMs,
+    readFromSourceAtInMs,
+    providerPrecisionInMs,
+    isNoPickup,
+    localTimeZoneId,
+    sourceLabel,
+    noData,
+)
+
+fun RouteDirectionStop.makeSchedule(
+    lastUpdateInMs: Long,
+    maxValidityInMs: Long,
+    readFromSourceAtInMs: Long,
+    providerPrecisionInMs: Long,
+    localTimeZoneId: String,
+    sourceLabel: String,
+    noData: Boolean,
+) = makeSchedule(
+    targetUUID = uuid,
+    lastUpdateInMs = lastUpdateInMs,
+    maxValidityInMs = maxValidityInMs,
+    readFromSourceAtInMs = readFromSourceAtInMs,
+    providerPrecisionInMs = providerPrecisionInMs,
+    localTimeZoneId = localTimeZoneId,
+    sourceLabel = sourceLabel,
+    noData = noData
+).apply {
+    isNoPickup = this@makeSchedule.isNoPickup
+}
+
+fun Schedule.toNoData() = makeSchedule(
+    id = id,
+    targetUUID = targetUUID,
+    lastUpdateInMs = lastUpdateInMs,
+    maxValidityInMs = maxValidityInMs,
+    readFromSourceAtInMs = readFromSourceAtInMs,
+    providerPrecisionInMs = providerPrecisionInMs,
+    isNoPickup = isNoPickup,
+    localTimeZoneId = localTimeZoneId,
+    sourceLabel = sourceLabel,
+    noData = true // NO DATA
+)
+
+val Schedule.providerPrecision get() = providerPrecisionInMs.milliseconds
+
+fun Schedule.getTripTimestamps(tripId: String) = this.timestamps.filter { it.tripId == tripId }
+
+fun Instant.toScheduleTimestamp(localTimeZoneId: String, arrival: Instant? = null, tripId: String? = null, stopSequence: Int? = null) =
+    Schedule.Timestamp(this.toMillis(), localTimeZoneId).apply {
+        arrival?.let { this.arrivalT = it.toMillis() }
+        tripId?.let { this.tripId = it }
+        stopSequence?.let { this.setStopSequence(it) }
+    }
+
+fun Collection<Schedule>.setTripDeleted(tripId: String, readFromSourceMs: Long) =
+    forEach { it.setTripDeleted(tripId, readFromSourceMs) }
+
+fun Schedule.setTripDeleted(tripId: String, readFromSourceMs: Long) {
+    val tripTimestamps = getTripTimestamps(tripId).takeIf { it.isNotEmpty() } ?: return
+    tripTimestamps.forEach { removeTimestamp(it) }
+    setReadFromSourceAtInMsKeepMostRecent(readFromSourceMs)
+}
+
+fun Collection<Schedule>.setTripCancelled(tripId: String, includeCancelledTimestamps: Boolean, readFromSourceMs: Long) =
+    forEach { it.setTripCancelled(tripId, includeCancelledTimestamps, readFromSourceMs) }
+
+fun Schedule.setTripCancelled(tripId: String, includeCancelledTimestamps: Boolean, readFromSourceMs: Long) {
+    val tripTimestamps = getTripTimestamps(tripId).takeIf { it.isNotEmpty() } ?: return
+    tripTimestamps.forEach { setStopTimeCancelled(it, includeCancelledTimestamps) }
+    setReadFromSourceAtInMsKeepMostRecent(readFromSourceMs)
+}
+
+fun Schedule.setStopTimeCancelled(timestamp: Schedule.Timestamp, includeCancelledTimestamps: Boolean) {
+    if (includeCancelledTimestamps) {
+        timestamp.cancelled = true
+    } else {
+        removeTimestamp(timestamp)
+    }
+}
+
+fun Schedule.Timestamp.isDepartureLate(minDelay: Duration = 30.seconds) =
+    originalDepartureDelay > minDelay
+
+fun Schedule.Timestamp.isDepartureEarly(maxDelay: Duration = 30.seconds) =
+    originalDepartureDelay < -maxDelay
+
+fun Schedule.Timestamp.isArrivalLate(minDelay: Duration = 30.seconds) =
+    originalArrivalDelay > minDelay
+
+fun Schedule.Timestamp.isArrivalEarly(maxDelay: Duration = 30.seconds) =
+    originalArrivalDelay < -maxDelay
+
+val Schedule.Timestamp.departure get() = departureT.millisToInstant()
+
+var Schedule.Timestamp.originalDepartureDelay: Duration
+    get() = originalDepartureDelayMs.milliseconds
+    set(value) {
+        originalDepartureDelayMs = value.inWholeMilliseconds
+    }
+
+fun Schedule.Timestamp.departureMs(hideRealTime: Boolean) = if (hideRealTime) originalDepartureMs else departureT
+fun Schedule.Timestamp.arrivalMs(hideRealTime: Boolean) = if (hideRealTime) originalArrivalMs else arrivalT
+
+val Schedule.Timestamp.originalDepartureMs get() = departureT - originalDepartureDelayMs
+val Schedule.Timestamp.originalDeparture get() = originalDepartureMs.millisToInstant()
+
+/**
+ * It's better to be early at the stop, than late and miss the vehicle departure -> truncate (floor by) to early w/ precision
+ */
+fun Schedule.Timestamp.updateDepartureForRealTime(departureDelay: Duration, currentPrecision: Duration, delayPrecision: Duration) {
+    val maxPrecision = currentPrecision.coerceAtLeast(delayPrecision)
+    updateDepartureForRealTime(computeInstant(departure, departureDelay, maxPrecision))
+}
+
+fun Schedule.Timestamp.updateDepartureForRealTime(newDeparture: Instant) {
+    val departureDelay = newDeparture - originalDeparture
+    originalDepartureDelay = departureDelay
+    departureT = newDeparture.toMillis()
+    realTime = true
+}
+
+fun Schedule.Timestamp.updateForRealTime(delay: Duration, currentPrecision: Duration, delayPrecision: Duration) =
+    updateForRealTime(arrivalDelay = delay, departureDelay = delay, currentPrecision = currentPrecision, delayPrecision = delayPrecision)
+
+fun Schedule.Timestamp.updateForRealTime(arrivalDelay: Duration?, departureDelay: Duration, currentPrecision: Duration, delayPrecision: Duration) {
+    updateDepartureForRealTime(departureDelay, currentPrecision, delayPrecision)
+    arrivalDelay?.let { updateArrivalForRealTime(it, currentPrecision, delayPrecision) }
+}
+
+fun Schedule.Timestamp.updateForRealTime(newArrival: Instant?, newDeparture: Instant) {
+    updateDepartureForRealTime(newDeparture)
+    newArrival?.let { updateArrivalForRealTime(it) }
+}
+
+val Schedule.Timestamp.departureArrivalDiff get() = this.departureArrivalDiffMs?.coerceAtLeast(0L)?.milliseconds ?: Duration.ZERO
+
+val Schedule.Timestamp.arrival get() = arrivalT.millisToInstant()
+
+var Schedule.Timestamp.originalArrivalDelay: Duration
+    get() = originalArrivalDelayMs.milliseconds
+    set(value) {
+        originalArrivalDelayMs = value.inWholeMilliseconds
+    }
+
+val Schedule.Timestamp.originalArrivalMs get() = arrivalT - originalArrivalDelayMs
+val Schedule.Timestamp.originalArrival get() = originalArrivalMs.millisToInstant()
+
+val Schedule.Timestamp.originalDepartureArrivalDiffMs get() = (originalDepartureMs - originalArrivalMs).coerceAtLeast(0L)
+val Schedule.Timestamp.originalDepartureArrivalDiff get() = originalDepartureArrivalDiffMs.milliseconds
+
+fun Schedule.Timestamp.getDepartureArrivalDiff(hideRealTime: Boolean) = if (hideRealTime) originalDepartureArrivalDiff else departureArrivalDiff
+
+private fun computeInstant(
+    initialInstant: Instant,
+    delay: Duration,
+    precision: Duration,
+    canRoundToNearest: Boolean = false,
+    canRoundUp: Boolean = false
+): Instant {
+    val newInstant = initialInstant + delay
+    val roundedNewInstant = if (canRoundToNearest && delay.absoluteValue > precision.div(2)) {
+        newInstant.roundToNearest(precision)
+    } else {
+        newInstant.floorBy(precision, down = !canRoundUp || delay.isPositive())
+    }
+    return roundedNewInstant
+}
+
+/**
+ * Arrival is almost never shown in UI, has to be before departure -> same rule as departure
+ */
+fun Schedule.Timestamp.updateArrivalForRealTime(arrivalDelay: Duration, currentPrecision: Duration, delayPrecision: Duration) {
+    val maxPrecision = currentPrecision.coerceAtLeast(delayPrecision)
+    updateArrivalForRealTime(computeInstant(arrival, arrivalDelay, maxPrecision))
+}
+
+fun Schedule.Timestamp.updateArrivalForRealTime(newArrival: Instant) {
+    val arrivalDelay = newArrival - originalArrival
+    originalArrivalDelay = arrivalDelay
+    arrivalT = newArrival.toMillis()
+    realTime = true
+}
+
+@Suppress("unused")
+val Schedule.hasRealTime get() = this.timestamps.any { it.isRealTime }
+
+@Suppress("unused")
+val Schedule.hasRealTimeOrCancelled get() = this.timestamps.any { it.isRealTimeOrCancelled }
+
+fun Schedule.toStringK() = buildString {
+    append("S{")
+    append("uuid:").append(targetUUID)
+    append(",")
+    append("proPre:").append(providerPrecisionInMs.toDurationLog())
+    append(",")
+    append("use:").append(isUseful)
+    append(",")
+    timestampsUntilInMs.takeIf { it > 0L }?.let {
+        append("timesUseUtl:").append(it.toDateTimeLog())
+        append(",")
+    }
+    if (isNoData) {
+        append("noData")
+        append(",")
+    }
+    if (isNoPickup) {
+        append("noPickup")
+        append(",")
+    }
+    timestamps.takeIf { it.isNotEmpty() }?.let { timestamps ->
+        append("t[").append(timestamps.size).append("]")
+        if (Constants.DEBUG) {
+            append(timestamps.joinToString(separator = ",", prefix = ":{", postfix = "}") { it.toStringShort() })
+        }
+        append(",")
+    }
+    frequencies.takeIf { it.isNotEmpty() }?.let { frequencies ->
+        append("f[").append(frequencies.size).append("]")
+        if (Constants.DEBUG) {
+            append(frequencies.joinToString(separator = ",", prefix = ":{", postfix = "}") { it.toString() })
+        }
+        append(",")
+    }
+    append("}")
+}
+
+@Suppress("unused")
+fun Schedule.Timestamp.toStringShort() = buildString {
+    append("T{")
+    arrivalTIfDifferent?.let {
+        append("a=").append(if (Constants.DEBUG) arrivalT.toDateTimeLog() else arrivalT)
+        if (originalArrivalDelayMs != 0L) {
+            append("[+/-:").append(if (Constants.DEBUG) originalArrivalDelayMs.toDurationLog() else originalArrivalDelayMs).append("]")
+        }
+        append(",")
+    }
+    append("d=").append(if (Constants.DEBUG) departureT.toDateTimeLog() else departureT)
+    if (originalDepartureDelayMs != 0L) {
+        append("[+/-:").append(if (Constants.DEBUG) originalDepartureDelayMs.toDurationLog() else originalDepartureDelayMs).append("]")
+    }
+    tripId?.let {
+        append("[tId:").append(it).append("]")
+    }
+    stopSequenceOrNull?.let {
+        append("[sSeq:").append(it).append("]")
+    }
+    //noinspection DiscouragedApi
+    localTimeZoneId?.let {
+        append("[tz:").append(it).append("]")
+    }
+    if (isRealTime) {
+        append("[RT]")
+    }
+    if (isCancelled) {
+        append("[CX]")
+    }
+    if (isOldSchedule) {
+        append("[OLD]")
+    }
+    append("}")
+}

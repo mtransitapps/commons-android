@@ -1,0 +1,180 @@
+package org.mtransit.android.commons.provider.serviceupdate
+
+import androidx.annotation.VisibleForTesting
+import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.data.ServiceUpdates
+import org.mtransit.android.commons.data.buildServiceUpdates
+import org.mtransit.android.commons.data.makeServiceUpdateNoneList
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.AGENCY_SOURCE_ID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionStopTagTargetUUID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionTagTargetUUID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteStopTagTargetUUID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTagTargetUUID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTypeTagTargetUUID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyStopTagTargetUUID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optAgencyIdNotEmpty
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteType
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripIdNotEmpty
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
+import org.mtransit.android.commons.provider.gtfs.agencyTag
+import org.mtransit.android.commons.provider.gtfs.getTargetUUIDs
+import org.mtransit.android.commons.provider.gtfs.getTripIds
+import org.mtransit.android.commons.provider.gtfs.parseRouteId
+import org.mtransit.android.commons.provider.gtfs.parseStopId
+import org.mtransit.android.commons.provider.gtfs.parseTripId
+import org.mtransit.android.commons.provider.gtfs.setTripIdsOutOfSync
+import org.mtransit.android.commons.provider.gtfs.storage
+import kotlin.time.Duration.Companion.minutes
+import com.google.transit.realtime.GtfsRealtime.EntitySelector as GEntitySelector
+
+object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
+
+    @JvmStatic
+    val LOG_TAG: String = GTFSRealTimeServiceAlertsProvider::class.java.simpleName
+
+    override fun getLogTag() = LOG_TAG
+
+    private var _tripIdsOutOfSync: Boolean? = null
+
+    private fun GTFSRealTimeProvider.getTripIdOutOfSync() = _tripIdsOutOfSync
+        ?: storage.getServiceUpdateTripIdsOutOfSync(default = false).also {
+            _tripIdsOutOfSync = it
+        }
+
+    @JvmStatic
+    fun GTFSRealTimeProvider.getCached(filter: ServiceUpdateProviderContract.Filter) =
+        getCached(
+            filter = filter,
+            tripIdsOutOfSync = getTripIdOutOfSync(),
+            getTripIds = { authority, routeId, directionId ->
+                context?.getTripIds(authority, routeId, directionId)
+            },
+            getCachedServiceUpdates = { targetUUIDs, tripIds ->
+                getCachedServiceUpdatesS(targetUUIDs, tripIds)
+            },
+        )
+
+    @VisibleForTesting
+    internal fun GTFSRealTimeProvider.getCached(
+        filter: ServiceUpdateProviderContract.Filter,
+        tripIdsOutOfSync: Boolean?,
+        getTripIds: (authority: String, routeId: Long, directionId: Long?) -> Set<String>?,
+        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: Set<String>?) -> ServiceUpdates?,
+    ): ServiceUpdates? {
+        val tripIdsOutOfSync = tripIdsOutOfSync == true
+        return filter.getTargetUUIDs(this, includeAgencyTag = true, includeRouteType = true, includeStopTags = true)
+            ?.let { targetUUIDs ->
+                val tripIds = if (tripIdsOutOfSync) {
+                    null
+                } else {
+                    filter.targetAuthority?.let { targetAuthority ->
+                        filter.targetRouteId?.let { targetRouteId ->
+                            getTripIds(targetAuthority, targetRouteId, filter.targetDirectionId)
+                        }
+                    }
+                }
+                targetUUIDs to tripIds?.takeIf { it.isNotEmpty() } // trip IDs not required for GTFS Alerts
+            }?.let { (targetUUIDs, tripIds) ->
+                getCached(targetUUIDs, tripIds, getCachedServiceUpdates)
+                    .let { cache ->
+                        if (!tripIdsOutOfSync) return@let cache
+                        if (cache.isEmpty()) return@let cache
+                        val targetUUIDsToBroad = buildList {
+                            add(getAgencyTagTargetUUID(agencyTag))
+                            filter.targetRoute?.let { getAgencyRouteTypeTagTargetUUID(agencyTag, getRouteTypeTag(it)) }?.let { add(it) }
+                        }
+                        return@let cache.filterNot { serviceUpdate ->
+                            // remove service updates targeted to the entire agency or all route type for a specific trip ID
+                            serviceUpdate.targetUUID in targetUUIDsToBroad && serviceUpdate.targetTripId != null
+                        }
+                    }
+            }
+    }
+
+    private fun getCached(
+        targetUUIDs: Map<String, String>,
+        tripIds: Set<String>?,
+        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: Set<String>?) -> ServiceUpdates?,
+    ) = buildServiceUpdates {
+        getCachedServiceUpdates(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
+            ?.let {
+                addAll(it)
+            }
+        forEach { serviceUpdate ->
+            targetUUIDs[serviceUpdate.targetUUID]?.let { serviceUpdate.targetUUID = it }
+        }
+    }
+
+    // Best practices: 10 minutes
+    // https://gtfs.org/documentation/realtime/realtime-best-practices/#feed-publishing-general-practices
+    // Montréal-based competitor: no limit
+    @JvmStatic
+    val SERVICE_ALERTS_MAX_AGE_MS = 10.times(13).minutes.inWholeMilliseconds
+
+    @JvmStatic
+    fun GTFSRealTimeProvider.getNew(filter: ServiceUpdateProviderContract.Filter): ServiceUpdates? {
+        updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), filter.isInFocusOrDefault)
+        return getCached(filter)
+            ?: filter.target?.let { enhanceServiceUpdate(makeServiceUpdateNoneList(it, AGENCY_SOURCE_ID)) }
+    }
+
+    @JvmStatic
+    fun GTFSRealTimeProvider.parseTargetTripId(gEntitySelector: GEntitySelector) =
+        gEntitySelector.optTrip?.let { parseTripId(it) }
+
+    @JvmStatic
+    fun GTFSRealTimeProvider.parseProviderTargetUUID(
+        gEntitySelector: GEntitySelector,
+        ignoreDirection: Boolean,
+    ): String? {
+        parseRouteId(gEntitySelector)?.let { routeId ->
+            @Suppress("SimplifyBooleanWithConstants")
+            if (!ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID || gEntitySelector.optTrip?.optTripIdNotEmpty == null) {
+                gEntitySelector.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
+                    parseStopId(gEntitySelector)?.let { stopId ->
+                        return getAgencyRouteDirectionStopTagTargetUUID(agencyTag, routeId, directionId, stopId)
+                    } // no stop
+                    return getAgencyRouteDirectionTagTargetUUID(agencyTag, routeId, directionId)
+                } // no direction
+            }
+            parseStopId(gEntitySelector)?.let { stopId ->
+                return getAgencyRouteStopTagTargetUUID(agencyTag, routeId, stopId)
+            }
+            return getAgencyRouteTagTargetUUID(agencyTag, routeId)
+        }
+        parseStopId(gEntitySelector)?.let { stopId ->
+            return getAgencyStopTagTargetUUID(agencyTag, stopId)
+        }
+        gEntitySelector.optRouteType?.let { routeType ->
+            return getAgencyRouteTypeTagTargetUUID(agencyTag, routeType)
+        }
+        gEntitySelector.optAgencyIdNotEmpty?.let { _ ->
+            return getAgencyTagTargetUUID(agencyTag)
+        }
+        MTLog.w(LOG_TAG, "parseTargetUUID() > unexpected entity selector: %s (IGNORED)", gEntitySelector.toStringExt())
+        return null
+    }
+
+    @JvmStatic
+    fun GTFSRealTimeProvider.enhanceServiceUpdate(cachedServiceUpdates: ServiceUpdates?): ServiceUpdates? =
+        cachedServiceUpdates?.apply { forEach { it.setTextHTML(enhanceHtmlDateTime(requireContextCompat(), it.textHTML)) } }
+
+    @JvmStatic
+    fun GTFSRealTimeProvider.setTripIdsOutOfSync(serviceUpdates: ServiceUpdates) {
+        setTripIdsOutOfSync(
+            getOneTripId = { serviceUpdates.firstOrNull { it.targetTripId != null }?.targetTripId },
+            saveTripIdsOutOfSync = { tripIdsOutOfSync ->
+                if (tripIdsOutOfSync) {
+                    MTLog.w(LOG_TAG, "Trip IDs out of sync!")
+                }
+                storage.saveServiceUpdateTripIdsOutOfSync(tripIdsOutOfSync)
+                _tripIdsOutOfSync = tripIdsOutOfSync
+            }
+        )
+    }
+}

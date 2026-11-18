@@ -1,9 +1,10 @@
 #!/bin/bash
 SCRIPT_DIR="$(dirname "$0")"
-source "${SCRIPT_DIR}/../../commons/commons.sh"
-echo ">> Converting Module App Icon SVG to PNG..."
+ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd);
 
-ROOT_DIR="${SCRIPT_DIR}/../..";
+source "${ROOT_DIR}/commons/sh/commons.sh";
+
+echo ">> Converting Module App Icon SVG to PNG..."
 
 # Creating Long Cast Shadow in Inkscape
 # - https://designbundles.net/design-school/how-to-make-a-long-shadow-in-inkscape
@@ -12,23 +13,32 @@ ROOT_DIR="${SCRIPT_DIR}/../..";
 # Also:
 # - https://icon.kitchen/
 
-COLOR=""
+requireCommand "xmllint" "libxml2-utils";
+requireCommand "jq";
+
 APP_ANDROID_DIR="$ROOT_DIR/app-android";
 RES_DIR="$APP_ANDROID_DIR/src/main/res";
-AGENCY_RDS_FILE="$RES_DIR/values/gtfs_rts_values_gen.xml"; # do not change to avoid breaking compat w/ old modules
-AGENCY_BIKE_FILE="$RES_DIR/values/bike_station_values.xml";
+GTFS_RDS_VALUES_GEN_FILE="$RES_DIR/values/gtfs_rts_values_gen.xml"; # do not change to avoid breaking compat w/ old modules
+BIKE_STATION_VALUES_FILE="$RES_DIR/values/bike_station_values.xml";
+AGENCY_JSON_FILE="$ROOT_DIR/config/gtfs/agency.json";
+COLOR=""
 TYPE=-1
-if [ -f $AGENCY_RDS_FILE ]; then
-  echo "> Agency file: '$AGENCY_BIKE_FILE'."
-  COLOR=$(grep -E "<string name=\"gtfs_rts_color\">[0-9A-Z]+</string>" $AGENCY_RDS_FILE | tr -dc '0-9A-Z') # "<!-- color name --> often added
+if [ -f $GTFS_RDS_VALUES_GEN_FILE ]; then #1st because color computed
+  echo "> Agency file: '$GTFS_RDS_VALUES_GEN_FILE'."
+  COLOR=$(xmllint --xpath "//resources/string[@name='gtfs_rts_color']/text()" "$GTFS_RDS_VALUES_GEN_FILE")
   # https://github.com/mtransitapps/parser/blob/master/src/main/java/org/mtransit/parser/gtfs/data/GRouteType.kt
-  TYPE=$(grep -E "<integer name=\"gtfs_rts_agency_type\">[0-9]+</integer>$" $AGENCY_RDS_FILE | tr -dc '0-9')
-elif [ -f $AGENCY_BIKE_FILE ]; then
-  echo "> Agency file: '$AGENCY_BIKE_FILE'."
-  COLOR=$(grep -E "<string name=\"bike_station_color\">[0-9A-Z]+</string>" $AGENCY_BIKE_FILE | tr -dc '0-9A-Z') # "<!-- color name --> often added
-  TYPE=$(grep -E "<integer name=\"bike_station_agency_type\">[0-9]+</integer>$" $AGENCY_BIKE_FILE | tr -dc '0-9')
+  TYPE=$(xmllint --xpath "//resources/integer[@name='gtfs_rts_agency_type']/text()" "$GTFS_RDS_VALUES_GEN_FILE")
+elif [ -f $AGENCY_JSON_FILE ]; then
+  echo "> Agency file: '$AGENCY_JSON_FILE'."
+  # https://github.com/mtransitapps/parser/blob/master/src/main/java/org/mtransit/parser/gtfs/data/GRouteType.kt
+  TYPE=$(jq '.target_route_type_id // empty' "$AGENCY_JSON_FILE")
+  COLOR=$(jq -r '.default_color // empty' "$AGENCY_JSON_FILE")
+elif [ -f $BIKE_STATION_VALUES_FILE ]; then
+  echo "> Agency file: '$BIKE_STATION_VALUES_FILE'."
+  COLOR=$(xmllint --xpath "//resources/string[@name='bike_station_color']/text()" "$BIKE_STATION_VALUES_FILE")
+  TYPE=$(xmllint --xpath "//resources/integer[@name='bike_station_agency_type']/text()" "$BIKE_STATION_VALUES_FILE")
 else
-  echo "> No agency file! (rds:$AGENCY_RDS_FILE|bike:$AGENCY_BIKE_FILE)"
+  echo "> No agency file! (rds:$GTFS_RDS_VALUES_GEN_FILE|json:$AGENCY_JSON_FILE|bike:$BIKE_STATION_VALUES_FILE)"
   exit 1 #error
 fi
 echo " - color: '$COLOR'"
@@ -50,7 +60,7 @@ SOURCE=$(case $TYPE in
   "100") echo "$ROOT_DIR/commons-android/pub/module-hi-res-app-icon-bike.svg" ;;
   *)
     echo "> Unexpected agency type '$TYPE'!"
-    exit 1 #error;;
+    exit 1 #error
     ;;
   esac)
 
@@ -63,9 +73,11 @@ echo " - width: $WIDTH"
 HEIGHT=512
 echo " - height: $HEIGHT"
 
+requireCommand "inkscape";
+
 if ! [ -x "$(command -v inkscape)" ]; then
   echo "> Inkscape not installed!"
-  exit "${RESULT}"
+  exit 1 # error
 fi
 
 INKSCAPE_VERSION=$(inkscape --version)

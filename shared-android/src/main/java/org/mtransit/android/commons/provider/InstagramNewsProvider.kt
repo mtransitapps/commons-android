@@ -1,0 +1,693 @@
+package org.mtransit.android.commons.provider
+
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.SharedPreferences
+import android.content.UriMatcher
+import android.database.sqlite.SQLiteDatabase
+import android.net.Uri
+import androidx.annotation.IntegerRes
+import androidx.annotation.StringRes
+import androidx.core.content.ContentProviderCompat
+import androidx.core.content.edit
+import androidx.core.text.toHtml
+import androidx.core.text.toSpanned
+import com.google.gson.annotations.SerializedName
+import org.mtransit.android.commons.ColorUtils
+import org.mtransit.android.commons.Constants
+import org.mtransit.android.commons.HtmlUtils
+import org.mtransit.android.commons.LocaleUtils
+import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.NetworkUtils
+import org.mtransit.android.commons.PreferenceUtils
+import org.mtransit.android.commons.R
+import org.mtransit.android.commons.SqlUtils
+import org.mtransit.android.commons.StringUtils
+import org.mtransit.android.commons.StringUtils.EMPTY
+import org.mtransit.android.commons.TimeUtils
+import org.mtransit.android.commons.UriUtils
+import org.mtransit.android.commons.data.News
+import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JEdgeOwnerToTimelineMediaNode
+import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JProfileUser
+import org.mtransit.android.commons.provider.agency.AgencyUtils
+import org.mtransit.android.commons.provider.news.NewsProvider
+import org.mtransit.android.commons.provider.news.NewsProviderContract
+import retrofit2.Call
+import retrofit2.create
+import retrofit2.http.GET
+import retrofit2.http.Path
+import java.io.IOException
+import java.util.Locale
+import java.util.concurrent.TimeUnit
+
+// DO NOT MOVE: referenced in modules AndroidManifest.xml
+@SuppressLint("Registered")
+class InstagramNewsProvider : NewsProvider() {
+
+    companion object {
+        private val LOG_TAG: String = InstagramNewsProvider::class.java.simpleName
+
+        /**
+         * Override if multiple [InstagramNewsProvider] implementations in same app.
+         */
+        private const val PREF_KEY_AGENCY_LAST_UPDATE_MS = InstagramNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_MS
+
+        /**
+         * Override if multiple [InstagramNewsProvider] implementations in same app.
+         */
+        private const val PREF_KEY_AGENCY_LAST_UPDATE_LANG = InstagramNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_LANG
+
+        private const val MENTION_AND_SCREEN_NAME = "@%s"
+
+        private const val AGENCY_SOURCE_ID = "instagram"
+
+        private const val AGENCY_SOURCE_LABEL = "Instagram"
+
+        private const val BASE_HOST = "instagram.com"
+        private const val BASE_HOST_URL = "https://www.$BASE_HOST"
+
+        fun createInstagramApi(context: Context): InstagramApi {
+            val retrofit = NetworkUtils
+                .makeNewRetrofitWithGson(BASE_HOST_URL, context)
+
+            return retrofit.create()
+        }
+    }
+
+    private val _uriMatcher: UriMatcher by lazy {
+        getNewUriMatcher(_authority)
+    }
+
+    private val _authority: String by lazy {
+        ContentProviderCompat.requireContext(this).getString(
+            R.string.instagram_authority
+        )
+    }
+
+    private val _authorityUri: Uri by lazy {
+        UriUtils.newContentUri(_authority)
+    }
+
+    private val _color: String by lazy {
+        ContentProviderCompat.requireContext(this).getString(
+            R.string.instagram_color
+        )
+    }
+
+    private val _userNames: List<String> by lazy {
+        ContentProviderCompat.requireContext(this).resources.getStringArray(
+            R.array.instagram_user_names
+        ).toList()
+    }
+
+    private val _userNamesLang: List<String> by lazy {
+        ContentProviderCompat.requireContext(this).resources.getStringArray(
+            R.array.instagram_user_names_lang
+        ).toList()
+    }
+
+    private val _userNamesColors: List<String> by lazy {
+        ContentProviderCompat.requireContext(this).resources.getStringArray(
+            R.array.instagram_user_names_colors
+        ).toList()
+    }
+
+    private val _targetAuthority: String by lazy {
+        ContentProviderCompat.requireContext(this).getString(
+            R.string.instagram_target_for_poi_authority
+        )
+    }
+
+    private val _userNamesTarget: List<String> by lazy {
+        ContentProviderCompat.requireContext(this).resources.getStringArray(
+            R.array.instagram_user_names_target
+        ).toList()
+    }
+
+    private val _userNamesSeverity: List<Int> by lazy {
+        ContentProviderCompat.requireContext(this).resources.getIntArray(
+            R.array.instagram_user_names_severity
+        ).toList()
+    }
+
+    @get:IntegerRes
+    private val _userNamesSeverityDefaultResId: Int get() = R.integer.news_provider_severity_info_agency
+
+    private val _userNamesNoteworthy: List<Long> by lazy {
+        ContentProviderCompat.requireContext(this).resources.getStringArray(
+            R.array.instagram_user_names_noteworthy
+        ).toList().map { it.toLong() }
+    }
+
+    @get:StringRes
+    private val _userNamesNoteworthyDefaultResId: Int get() = R.string.news_provider_noteworthy_info
+
+    private val _languages: List<String> by lazy {
+        listOf<String>(
+            if (LocaleUtils.isFR()) Locale.FRENCH.language else Locale.ENGLISH.language,
+            LocaleUtils.UNKNOWN
+        )
+    }
+
+    override fun getNewsConfig() = InstagramNewsProviderConfig(
+        newsFeedConfigs = _userNames.mapIndexed { i, username ->
+            InstagramNewsFeedConfig(
+                username = username,
+                lang = _userNamesLang.getOrNull(i) ?: LocaleUtils.UNKNOWN,
+                color = _userNamesColors.getOrNull(i) ?: _color.takeIf { it.isNotBlank() }, // optional (fallback: agency color)
+                target = _userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
+                    ?: _targetAuthority.takeIf { it.isNotBlank() },  // optional (fallback: agency UUID)
+                severity = _userNamesSeverity.getOrNull(i) ?: InstagramNewsFeedConfig.SEVERITY_DEFAULT,
+                noteworthy = _userNamesNoteworthy.getOrNull(i) ?: InstagramNewsFeedConfig.NOTEWORTHY_DEFAULT,
+            )
+        }
+    )
+
+    override fun getLogTag() = LOG_TAG
+
+    override val URI_MATCHER: UriMatcher get() = _uriMatcher
+
+    private var _dbHelper: InstagramNewsDbHelper? = null
+    private var _currentDbVersion: Int = -1
+
+    private fun getDBHelper(context: Context): InstagramNewsDbHelper {
+        when (val currentDbHelper: InstagramNewsDbHelper? = _dbHelper) {
+            null -> { // initialize
+                val newDbHelper = getNewDbHelper(context)
+                _dbHelper = newDbHelper
+                _currentDbVersion = currentDbVersion
+                return newDbHelper
+            }
+
+            else -> {
+                return try {
+                    if (_currentDbVersion == currentDbVersion) {
+                        _dbHelper?.close()
+                        _dbHelper = null
+                        getDBHelper(context)
+                    } else {
+                        currentDbHelper
+                    }
+                } catch (e: Exception) { // fail if locked, will try again later
+                    MTLog.w(this, e, "Can't check DB version!")
+                    currentDbHelper
+                }
+            }
+        }
+    }
+
+    /**
+     * Override if multiple [InstagramNewsDbHelper] implementations in same app.
+     */
+    override fun getCurrentDbVersion() = _currentDbVersion
+
+    override fun getNewDbHelper(context: Context) =
+        InstagramNewsDbHelper(context.applicationContext, getStorage(context))
+
+    // override
+    fun getDBHelper() = getDBHelper(ContentProviderCompat.requireContext(this))
+
+    override fun purgeUselessCachedNews(): Boolean {
+        return purgeUselessCachedNews(this)
+    }
+
+    override fun deleteCachedNews(id: Int?): Boolean {
+        return deleteCachedNews(this, id)
+    }
+
+    private fun deleteAllAgencyNewsData(): Int {
+        var affectedRows = 0
+        try {
+            val selection = SqlUtils.getWhereEqualsString(
+                NewsProviderContract.Columns.T_NEWS_K_SOURCE_ID,
+                AGENCY_SOURCE_ID
+            )
+            affectedRows = this.getDBHelper().writableDatabase.delete(newsDbTableName, selection, null)
+        } catch (e: Exception) {
+            MTLog.w(this, e, "Error while deleting all agency news data!")
+        }
+        return affectedRows
+    }
+
+    override val authority: String get() = _authority
+
+    override val authorityUri: Uri get() = _authorityUri
+
+    override fun cacheNews(newNews: ArrayList<News>) {
+        cacheNewsS(this, newNews)
+    }
+
+    override fun getCachedNews(newsFilter: NewsProviderContract.Filter): ArrayList<News>? {
+        return getCachedNewsS(this, newsFilter)
+    }
+
+    override fun getNewNews(newsFilter: NewsProviderContract.Filter): ArrayList<News>? {
+        updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault)
+        return getCachedNews(newsFilter)
+    }
+
+    @Volatile
+    private var _storage: SharedPreferences? = null
+
+    private fun getStorage(context: Context) = _storage ?: synchronized(this) {
+        _storage ?: PreferenceUtils.getPrefLcl(context.applicationContext).also { _storage = it }
+    }
+
+    private fun updateAgencyNewsDataIfRequired(context: Context, inFocus: Boolean) {
+        val lastUpdateInMs = getStorage(context).getLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L)
+        val lastUpdateLang = getStorage(context).getString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, EMPTY)
+        val minUpdateMs = newsMaxValidityInMs.coerceAtMost(getNewsValidityInMs(inFocus))
+        val nowInMs = TimeUtils.currentTimeMillis()
+        if (lastUpdateInMs + minUpdateMs > nowInMs && LocaleUtils.getDefaultLanguage() == lastUpdateLang) {
+            return
+        }
+        updateAgencyNewsDataIfRequiredSync(context, lastUpdateInMs, inFocus)
+    }
+
+    @Synchronized
+    private fun updateAgencyNewsDataIfRequiredSync(
+        context: Context,
+        lastLastUpdateInMs: Long,
+        inFocus: Boolean
+    ) {
+        val lastUpdateInMs = getStorage(context).getLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L)
+        val lastUpdateLang = getStorage(context).getString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, EMPTY)
+        if (lastUpdateInMs > lastLastUpdateInMs // IF new more recent last update DO
+            && LocaleUtils.getDefaultLanguage() == lastUpdateLang
+        ) {
+            return // too late, another thread already updated
+        }
+        val nowInMs = TimeUtils.currentTimeMillis()
+        var deleteAllRequired = false
+        if (lastUpdateInMs + newsMaxValidityInMs < nowInMs
+            || LocaleUtils.getDefaultLanguage() != lastUpdateLang
+        ) {
+            deleteAllRequired = true // too old to display
+        }
+        val minUpdateMs = newsMaxValidityInMs.coerceAtMost(getNewsValidityInMs(inFocus))
+        if (deleteAllRequired
+            || lastUpdateInMs + minUpdateMs < nowInMs
+        ) {
+            updateAllAgencyNewsDataFromWWW(context, deleteAllRequired) // try to update
+        }
+    }
+
+    private fun updateAllAgencyNewsDataFromWWW(context: Context, deleteAllRequired: Boolean) {
+        var deleteAllDone = false
+        if (deleteAllRequired) {
+            deleteAllAgencyNewsData()
+            deleteAllDone = true
+        }
+        val newNews: ArrayList<News>? = loadAgencyNewsDataFromWWW(context)
+        if (newNews != null) { // empty is OK
+            val nowInMs = TimeUtils.currentTimeMillis()
+            if (!deleteAllDone) {
+                deleteAllAgencyNewsData()
+            }
+            cacheNews(newNews)
+            getStorage(context).edit {
+                putLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs)
+                putString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, LocaleUtils.getDefaultLanguage())
+            }
+        } // else keep whatever we have until max validity reached
+    }
+
+    private var _instagramApi: InstagramApi? = null
+
+    private fun getInstagramApi(context: Context) =
+        _instagramApi ?: createInstagramApi(context).also { _instagramApi = it }
+
+    private fun loadAgencyNewsDataFromWWW(context: Context): ArrayList<News>? {
+        try {
+            val newNews = ArrayList<News>()
+            val maxValidityInMs = newsMaxValidityInMs
+            val authority = _authority
+            _userNames.forEachIndexed { i, userName ->
+                loadUserTimeline(
+                    context,
+                    getInstagramApi(context),
+                    newNews,
+                    maxValidityInMs,
+                    authority,
+                    i,
+                    userName
+                )
+            }
+            MTLog.i(this, "Loaded ${newNews.size} news.")
+            return newNews
+        } catch (ioe: IOException) {
+            MTLog.e(LOG_TAG, ioe, "I/O ERROR: Unknown Exception")
+            return null
+        } catch (e: Exception) {
+            MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception")
+            return null
+        }
+    }
+
+    private fun loadUserTimeline(
+        context: Context,
+        instagramApi: InstagramApi,
+        newNews: MutableList<News>,
+        maxValidityInMs: Long,
+        authority: String,
+        i: Int,
+        username: String
+    ) {
+        val userLang = _userNamesLang.getOrNull(i) ?: LocaleUtils.UNKNOWN
+        if (LocaleUtils.MULTIPLE != userLang
+            && LocaleUtils.UNKNOWN != userLang
+            && LocaleUtils.getDefaultLanguage() != userLang
+        ) {
+            MTLog.d(this, "SKIP loading '$username': different language ($userLang).")
+            return
+        }
+        val newLastUpdateInMs = TimeUtils.currentTimeMillis()
+        MTLog.i(this, "Loading '@$username' posts from '$BASE_HOST'...")
+        val response = instagramApi.userProfile(username).execute()
+        val targetUUID = _userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
+            ?: _targetAuthority.takeIf { it.isNotBlank() }
+            ?: AgencyUtils.getAgencyAuthority(context)
+            ?: EMPTY.takeIf { context.packageName == Constants.MAIN_APP_PACKAGE_NAME } // target all allowed for main app
+            ?: run {
+                MTLog.w(this, "SKIP loading '$username': no target UUID!")
+                return
+            }
+        val severity = _userNamesSeverity.getOrNull(i)
+            ?: context.resources.getInteger(_userNamesSeverityDefaultResId)
+        val noteworthyInMs = _userNamesNoteworthy.getOrNull(i)
+            ?: context.resources.getString(_userNamesNoteworthyDefaultResId).toLong()
+        var loadedNewsCount = 0
+        if (!response.isSuccessful) {
+            throw IOException("ERROR while loading '@$username': HTTP Response Code ${response.code()} (Message: ${response.message()})")
+        }
+        val responseBody = response.body()
+        val user = responseBody?.graphQL?.user
+        val timelineMediaEdges = user?.edgeOwnerToTimelineMedia?.edges
+        val userColor = _userNamesColors.getOrNull(i)
+            ?: _color.takeIf { it.isNotBlank() }
+            ?: AgencyUtils.getAgencyColor(context)
+            ?: ColorUtils.BLACK
+                .also {
+                    MTLog.w(this, "No color found for '$username'! (used fallback)")
+                }
+        timelineMediaEdges
+            ?.mapNotNull { it?.node }
+            ?.forEach { timelineMedia ->
+                readNews(
+                    timelineMedia,
+                    authority,
+                    severity,
+                    noteworthyInMs,
+                    newLastUpdateInMs,
+                    maxValidityInMs,
+                    targetUUID,
+                    username,
+                    user,
+                    userLang,
+                    userColor,
+                ).apply {
+                    newNews.add(this)
+                    loadedNewsCount++
+                }
+            }
+        MTLog.i(this, "Loaded $loadedNewsCount news for '@$username'.")
+    }
+
+    private fun readNews(
+        timelineMedia: JEdgeOwnerToTimelineMediaNode,
+        authority: String,
+        severity: Int,
+        noteworthyInMs: Long,
+        newLastUpdateInMs: Long,
+        maxValidityInMs: Long,
+        targetUUID: String,
+        username: String,
+        user: JProfileUser,
+        userLang: String,
+        userColor: String,
+    ): News {
+        val mediaToCaptions = timelineMedia.edgeMediaToCaption?.edges
+        val captionText =
+            mediaToCaptions
+                ?.map { edge -> edge?.node?.text }
+                ?.first { text -> text?.isNotEmpty() == true }
+                ?: EMPTY
+        val createdAtInMs = if (timelineMedia.takenAtTimestampInSec != null) {
+            TimeUnit.SECONDS.toMillis(timelineMedia.takenAtTimestampInSec)
+        } else {
+            newLastUpdateInMs - TimeUnit.DAYS.toMillis(99L)
+        }
+        val webURL = "https://www.instagram.com/p/" + timelineMedia.shortCode
+        val textHTMLSb = StringBuilder()
+        textHTMLSb.append(
+            HtmlUtils.toHTML(
+                captionText.toSpanned().toHtml()
+            )
+        ) // TODO #Hashtags @mentions links
+        appendVideoAndGIF(textHTMLSb, timelineMedia)
+        if (textHTMLSb.isNotEmpty()) {
+            textHTMLSb.append(HtmlUtils.BR).append(HtmlUtils.BR)
+        }
+        textHTMLSb.append(HtmlUtils.linkify(webURL))
+        return News(
+            null,
+            authority,
+            AGENCY_SOURCE_ID + timelineMedia.id,
+            severity,
+            noteworthyInMs,
+            newLastUpdateInMs,
+            maxValidityInMs,
+            createdAtInMs,
+            targetUUID,
+            userColor,
+            user.fullName ?: user.username ?: username,
+            String.format(MENTION_AND_SCREEN_NAME, user.username ?: username),
+            user.profilePicUrl,
+            "https://www.instagram.com/" + user.username,
+            StringUtils.oneLineOneSpace(
+                HtmlUtils.fromHtmlLegacy(captionText).toString()
+            ),
+            textHTMLSb.toString(),
+            webURL,
+            userLang,
+            AGENCY_SOURCE_ID,
+            AGENCY_SOURCE_LABEL,
+            readImages(timelineMedia, ignoreVideo = false)
+        )
+    }
+
+    private fun appendVideoAndGIF(sb: StringBuilder, timelineMediaNode: JEdgeOwnerToTimelineMediaNode) {
+        if (timelineMediaNode.isVideo == true
+            && timelineMediaNode.videoUrl != null
+        ) {
+            appendVideo(sb, timelineMediaNode.videoUrl)
+        }
+        timelineMediaNode.edgeSidecarToChildren?.edges
+            ?.mapNotNull { edge -> edge?.node }
+            ?.filter { node -> node.isVideo == true }
+            ?.mapNotNull { node -> node.videoUrl }
+            ?.forEach { videoUrl ->
+                appendVideo(sb, videoUrl)
+            }
+    }
+
+    private fun appendVideo(sb: StringBuilder, videoUrl: String) {
+        if (sb.isEmpty()) {
+            sb.append(HtmlUtils.BR)
+        }
+        sb.append(HtmlUtils.BR)
+        sb.append("VIDEO").append(": ")
+        sb.append(HtmlUtils.linkify(videoUrl))
+    }
+
+    private fun readImages(
+        timelineMediaNode: JEdgeOwnerToTimelineMediaNode,
+        @Suppress("SameParameterValue") ignoreVideo: Boolean,
+    ): List<String> {
+        timelineMediaNode.edgeSidecarToChildren?.edges?.let { edges ->
+            return edges
+                .map { edge -> edge?.node }
+                .filter { node -> !ignoreVideo || node?.isVideo != true } // no support for video, yet
+                .mapNotNull { node -> node?.displayUrl }
+                .toList()
+        }
+        if (ignoreVideo && timelineMediaNode.isVideo == true) {
+            return emptyList() // no support for video, yet
+        }
+        return listOf(
+            timelineMediaNode.displayUrl
+                ?: timelineMediaNode.thumbnailSrc
+                ?: EMPTY
+        )
+    }
+
+    interface InstagramApi {
+
+        // @GET("/{username}/?__a=1")
+        // https://www.instagram.com/stminfo/?__a=1&__d=dis
+        @GET("/{username}/?__a=1&__d=dis")
+        fun userProfile(@Path("username") username: String): Call<JProfilePageResponse?>
+
+        data class JProfilePageResponse(
+            @SerializedName("graphql")
+            val graphQL: JProfileGraphQL?
+        )
+
+        data class JProfileGraphQL(
+            @SerializedName("user")
+            val user: JProfileUser?
+        )
+
+        data class JProfileUser(
+            @SerializedName("full_name")
+            val fullName: String?,
+            @SerializedName("id")
+            val id: String?,
+            @SerializedName("profile_pic_url")
+            val profilePicUrl: String?,
+            @SerializedName("profile_pic_url_hd")
+            val profilePicUrlHD: String?,
+            @SerializedName("username")
+            val username: String?,
+            @SerializedName("edge_owner_to_timeline_media")
+            val edgeOwnerToTimelineMedia: JEdgeOwnerToTimelineMedia?
+        )
+
+        data class JEdgeOwnerToTimelineMedia(
+            @SerializedName("edges")
+            val edges: ArrayList<JEdgeOwnerToTimelineMediaEdge?>?
+        )
+
+        data class JEdgeOwnerToTimelineMediaEdge(
+            @SerializedName("node")
+            val node: JEdgeOwnerToTimelineMediaNode?
+        )
+
+        data class JEdgeOwnerToTimelineMediaNode(
+            @SerializedName("id")
+            val id: String?,
+            @SerializedName("shortcode")
+            val shortCode: String?,
+            @SerializedName("display_url")
+            val displayUrl: String?,
+            @SerializedName("is_video")
+            val isVideo: Boolean?,
+            @SerializedName("video_url")
+            val videoUrl: String?,
+            @SerializedName("edge_media_to_caption")
+            val edgeMediaToCaption: JEdgeMediaToCaption?,
+            @SerializedName("taken_at_timestamp")
+            val takenAtTimestampInSec: Long?,
+            @SerializedName("thumbnail_src")
+            val thumbnailSrc: String?,
+            @SerializedName("edge_sidecar_to_children")
+            val edgeSidecarToChildren: JEdgeSidecarToChildren?
+        )
+
+        data class JEdgeMediaToCaption(
+            @SerializedName("edges")
+            val edges: ArrayList<JEdgeMediaToCaptionEdge?>?
+        )
+
+        data class JEdgeMediaToCaptionEdge(
+            @SerializedName("node")
+            val node: JEdgeMediaToCaptionNode?
+        )
+
+        data class JEdgeMediaToCaptionNode(
+            @SerializedName("text")
+            val text: String?
+        )
+
+        data class JEdgeSidecarToChildren(
+            @SerializedName("edges")
+            val edges: ArrayList<JEdgeSidecarToChildrenEdge?>?
+        )
+
+        data class JEdgeSidecarToChildrenEdge(
+            @SerializedName("node")
+            val node: JEdgeSidecarToChildrenNode?
+        )
+
+        data class JEdgeSidecarToChildrenNode(
+            @SerializedName("display_url")
+            val displayUrl: String?,
+            @SerializedName("is_video")
+            val isVideo: Boolean?,
+            @SerializedName("video_url")
+            val videoUrl: String?
+        )
+    }
+
+    override val newsLanguages: Collection<String> get() = _languages
+
+    class InstagramNewsDbHelper(
+        val context: Context,
+        val storage: SharedPreferences,
+        dbName: String = DB_NAME,
+        dbVersion: Int = getDbVersion(context)
+    ) : NewsDbHelper(context, dbName, dbVersion) {
+
+        companion object {
+            private val LOG_TAG: String = InstagramNewsDbHelper::class.java.simpleName
+
+            /**
+             * Override if multiple [InstagramNewsDbHelper] implementations in same app.
+             */
+            private const val DB_NAME = "news_instagram.db"
+
+            /**
+             * Override if multiple [InstagramNewsDbHelper] implementations in same app.
+             */
+            const val PREF_KEY_AGENCY_LAST_UPDATE_MS = "pInstagramNewsLastUpdate"
+
+            /**
+             * Override if multiple [InstagramNewsDbHelper] implementations in same app.
+             */
+            const val PREF_KEY_AGENCY_LAST_UPDATE_LANG = "pInstagramNewsLastUpdateLang"
+
+            private const val T_INSTAGRAM_NEWS = T_NEWS
+
+            private val T_INSTAGRAM_NEWS_SQL_CREATE = getSqlCreateBuilder(T_INSTAGRAM_NEWS).build()
+
+            private val T_INSTAGRAM_NEWS_SQL_DROP =
+                SqlUtils.getSQLDropIfExistsQuery(T_INSTAGRAM_NEWS)
+
+            private var dbVersion = -1
+
+            /**
+             * Override if multiple [InstagramNewsDbHelper] in same app.
+             */
+            fun getDbVersion(context: Context): Int {
+                if (dbVersion < 0) {
+                    dbVersion = context.resources.getInteger(R.integer.instagram_db_version)
+                    dbVersion++ // add news articles images URLs do DB -> FORCE DB update
+                }
+                return dbVersion
+            }
+        }
+
+        override fun getLogTag() = LOG_TAG
+
+        override fun getDbName(): String {
+            return DB_NAME
+        }
+
+        override fun onCreateMT(db: SQLiteDatabase) {
+            initAllDbTables(db)
+        }
+
+        override fun onUpgradeMT(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+            db.execSQL(T_INSTAGRAM_NEWS_SQL_DROP)
+            initAllDbTables(db)
+        }
+
+        private fun initAllDbTables(db: SQLiteDatabase) {
+            db.execSQL(T_INSTAGRAM_NEWS_SQL_CREATE)
+            storage.edit {
+                remove(PREF_KEY_AGENCY_LAST_UPDATE_MS)
+                remove(PREF_KEY_AGENCY_LAST_UPDATE_LANG)
+            }
+        }
+    }
+}

@@ -1,0 +1,229 @@
+package org.mtransit.android.commons.provider.vehiclelocations
+
+import android.content.Context
+import org.mtransit.android.commons.Constants
+import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.SecurityUtils
+import org.mtransit.android.commons.TimeUtils
+import org.mtransit.android.commons.TimeUtilsK
+import org.mtransit.android.commons.data.Route
+import org.mtransit.android.commons.data.RouteDirection
+import org.mtransit.android.commons.data.RouteDirectionStop
+import org.mtransit.android.commons.provider.NextBusProvider
+import org.mtransit.android.commons.provider.NextBusProvider.getAGENCY_TAG
+import org.mtransit.android.commons.provider.NextBusProvider.getAgencyRouteTagTargetUUID
+import org.mtransit.android.commons.provider.NextBusProvider.isAPPEND_HEAD_SIGN_VALUE_TO_ROUTE_TAG
+import org.mtransit.android.commons.provider.nextbus.api.NextBusApi
+import org.mtransit.android.commons.provider.nextbus.api.VehicleLocationsResponse
+import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider.Companion.getCachedVehicleLocationsS
+import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProviderUtils.vehicleNearbyAgencyLocation
+import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
+import org.mtransit.android.commons.toMillis
+import java.net.HttpURLConnection
+import java.net.SocketException
+import java.net.UnknownHostException
+import javax.net.ssl.SSLHandshakeException
+import kotlin.math.min
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
+
+object NextBusVehicleLocationsProvider {
+
+    @JvmStatic
+    fun NextBusProvider.getCached(filter: VehicleLocationProviderContract.Filter): List<VehicleLocation>? {
+        val targetUUIDs = filter.rds?.getTargetUUIDs(this)
+            ?: filter.routeDirection?.getTargetUUIDs(this)
+            ?: filter.route?.getTargetUUIDs(this)
+        return targetUUIDs?.let { targetUUIDs ->
+            getCached(targetUUIDs, tripIds = null) // NO GTFS trip.id information available
+        }
+    }
+
+    private fun RouteDirectionStop.getTargetUUIDs(provider: NextBusProvider) = buildMap {
+        if (!provider.isAppendHeadSignValueToRouteTag) {
+            put(getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)), route.uuid)
+        } else { // STLaval
+            put(getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)), routeDirectionUUID)
+        }
+    }
+
+    private fun RouteDirection.getTargetUUIDs(provider: NextBusProvider) = buildMap {
+        if (!provider.isAppendHeadSignValueToRouteTag) {
+            put(getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)), route.uuid)
+        } else { // STLaval
+            put(getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)), uuid)
+        }
+    }
+
+    private fun Route.getTargetUUIDs(provider: NextBusProvider) = buildMap {
+        if (!provider.isAppendHeadSignValueToRouteTag) {
+            put(getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)), uuid)
+        } // ELSE // STLaval
+    }
+
+    fun NextBusProvider.getCached(targetUUIDs: Map<String, String>, tripIds: List<String>? = null) = buildList {
+        getCachedVehicleLocationsS(targetUUIDs.keys, tripIds)?.let {
+            addAll(it)
+        }
+    }.map { it.copy(targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID) }
+
+    @JvmStatic
+    fun NextBusProvider.getNew(filter: VehicleLocationProviderContract.Filter): List<VehicleLocation>? {
+        updateAgencyDataIfRequired(filter.isInFocusOrDefault)
+        return getCached(filter)
+    }
+
+    private fun NextBusProvider.updateAgencyDataIfRequired(inFocus: Boolean) {
+        val context = requireContextCompat()
+        var inFocus = inFocus
+        val lastUpdateInMs = getStorage(context).getVehicleLocationLastUpdateMs(0L)
+        val lastUpdateCode = getStorage(context).getVehicleLocationLastUpdateCode(-1).takeIf { it >= 0 }
+        if (lastUpdateCode != null && lastUpdateCode != HttpURLConnection.HTTP_OK) {
+            inFocus = true // force earlier retry if last fetch returned HTTP error
+        }
+        val minUpdateMs = min(vehicleLocationMaxValidityInMs, getVehicleLocationValidityInMs(inFocus))
+        val nowInMs = TimeUtils.currentTimeMillis()
+        if (lastUpdateInMs + minUpdateMs > nowInMs) {
+            return
+        }
+        updateAgencyDataIfRequiredSync(lastUpdateInMs, inFocus)
+    }
+
+    @Synchronized
+    private fun NextBusProvider.updateAgencyDataIfRequiredSync(lastUpdateInMs: Long, inFocus: Boolean) {
+        val context = requireContextCompat()
+        if (getStorage(context).getVehicleLocationLastUpdateMs(0L) > lastUpdateInMs) return // too late, another thread already updated
+        val nowInMs = TimeUtils.currentTimeMillis()
+        var deleteAllRequired = false
+        if (lastUpdateInMs + vehicleLocationMaxValidityInMs < nowInMs) {
+            deleteAllRequired = true // too old to display
+        }
+        val minUpdateMs = min(vehicleLocationMaxValidityInMs, getVehicleLocationValidityInMs(inFocus))
+        if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
+            updateAllAgencyDataFromWWW(context, deleteAllRequired) // try to update
+        }
+    }
+
+    private fun NextBusProvider.updateAllAgencyDataFromWWW(context: Context, deleteAllRequired: Boolean) {
+        var deleteAllDone = false
+        if (deleteAllRequired) {
+            deleteAllCachedVehicleLocations()
+            deleteAllDone = true
+        }
+        val newVehicleLocations = loadAgencyDataFromWWW(context)
+        if (newVehicleLocations != null) { // empty is OK
+            if (!deleteAllDone) {
+                deleteAllCachedVehicleLocations()
+            }
+            cacheVehicleLocations(newVehicleLocations)
+        } // else keep whatever we have until max validity reached
+    }
+
+    private fun NextBusProvider.loadAgencyDataFromWWW(context: Context): List<VehicleLocation>? {
+        try {
+            MTLog.i(this, "Loading from '%s' for agency '%s'...", NextBusApi.BASE_HOST_URL, agencyTag)
+            val response = getNextBusApi(context)
+                .getVehicleLocations(agencyTag = agencyTag)
+                .execute()
+            getStorage(context).saveVehicleLocationLastUpdateCode(response.code())
+            val newLastUpdate = TimeUtilsK.currentInstant()
+            getStorage(context).saveVehicleLocationLastUpdateMs(newLastUpdate.toMillis())
+            when (response.code()) {
+                HttpURLConnection.HTTP_OK -> {
+                    val vehicleLocations = mutableListOf<VehicleLocation>()
+                    try {
+                        response.body()?.let { vehicleLocationsResponse ->
+                            vehicleLocationsResponse.vehicle?.forEach { nVehicle ->
+                                if (Constants.DEBUG) {
+                                    MTLog.d(
+                                        this@NextBusVehicleLocationsProvider,
+                                        "loadAgencyDataFromWWW() > NextBus nVehicle: $nVehicle."
+                                    )
+                                }
+                                processVehiclePositions(context, newLastUpdate, nVehicle)
+                                    ?.takeIf { it.isNotEmpty() }
+                                    ?.let {
+                                        vehicleLocations.addAll(it)
+                                    }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        MTLog.w(this@NextBusVehicleLocationsProvider, e, "loadAgencyDataFromWWW() > error while parsing NextBus Real Time data!")
+                    }
+                    MTLog.i(this@NextBusVehicleLocationsProvider, "Found %d vehicle locations.", vehicleLocations.size)
+                    if (Constants.DEBUG) {
+                        for (vehicleLocation in vehicleLocations) {
+                            MTLog.d(this@NextBusVehicleLocationsProvider, "loadAgencyDataFromWWW() > - new ${vehicleLocation.toStringShort()}.")
+                        }
+                    }
+                    return vehicleLocations
+                }
+
+                else -> {
+                    MTLog.w(
+                        this@NextBusVehicleLocationsProvider,
+                        "ERROR: HTTP URL-Connection Response Code ${response.code()} (Message: ${response.message()})"
+                    )
+                    return null
+                }
+            }
+        } catch (sslhe: SSLHandshakeException) {
+            MTLog.w(this, sslhe, "SSL error!")
+            SecurityUtils.logCertPathValidatorException(sslhe)
+            getStorage(context).saveVehicleLocationLastUpdateCode(567) // SSL certificate not trusted (on this device)
+            getStorage(context).saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
+            return null
+        } catch (uhe: UnknownHostException) {
+            if (MTLog.isLoggable(android.util.Log.DEBUG)) {
+                MTLog.w(this@NextBusVehicleLocationsProvider, uhe, "No Internet Connection!")
+            } else {
+                MTLog.w(this@NextBusVehicleLocationsProvider, "No Internet Connection!")
+            }
+            return null
+        } catch (se: SocketException) {
+            MTLog.w(this@NextBusVehicleLocationsProvider, se, "No Internet Connection!")
+            return null
+        } catch (e: Exception) { // Unknown error
+            MTLog.e(this@NextBusVehicleLocationsProvider, e, "INTERNAL ERROR: Unknown Exception")
+            return null
+        }
+    }
+
+    private fun NextBusProvider.processVehiclePositions(
+        context: Context,
+        newLastUpdate: Instant,
+        nVehicle: VehicleLocationsResponse.Vehicle,
+    ): Set<VehicleLocation>? {
+        val vehicleLat = nVehicle.lat?.toFloat() ?: return null
+        val vehicleLng = nVehicle.lon?.toFloat() ?: return null
+        if (vehicleNearbyAgencyLocation(context, vehicleLat, vehicleLng) == false) return null
+        val targetUUIDs = parseProviderTargetUUID(nVehicle)?.takeIf { it.isNotBlank() } ?: return null
+        return setOf(
+            VehicleLocation(
+                authority = this.authority,
+                targetUUID = targetUUIDs,
+                targetTripId = null, // no GTFS trip.id info returned
+                lastUpdateInMs = newLastUpdate.toMillis(),
+                maxValidityInMs = this@processVehiclePositions.vehicleLocationMaxValidityInMs,
+                //
+                vehicleId = nVehicle.id,
+                vehicleLabel = null,
+                reportTimestamp = nVehicle.secsSinceReport?.seconds?.let { newLastUpdate - it },
+                latitude = vehicleLat,
+                longitude = vehicleLng,
+                bearingDegrees = nVehicle.heading, // in degrees
+                speedMetersPerSecond = nVehicle.speedKmHr?.div(3.6)?.toInt(), // in km/h (m/s = km/h * 1000 meters / 3600 seconds)
+            )
+        )
+    }
+
+    private fun NextBusProvider.parseProviderTargetUUID(nVehicle: VehicleLocationsResponse.Vehicle) =
+        nVehicle.routeTag?.let { getAgencyRouteTagTargetUUID(agencyTag, it) }
+
+    private val NextBusProvider.agencyTag get() = getAGENCY_TAG(requireContextCompat())
+    private val NextBusProvider.isAppendHeadSignValueToRouteTag get() = isAPPEND_HEAD_SIGN_VALUE_TO_ROUTE_TAG(requireContextCompat())
+
+    private fun Route.getRouteTag(provider: NextBusProvider) = provider.getRouteTag(this, null)
+    private fun RouteDirection.getRouteTag(provider: NextBusProvider) = provider.getRouteTag(this)
+    private fun RouteDirectionStop.getRouteTag(provider: NextBusProvider) = provider.getRouteTag(this)
+}

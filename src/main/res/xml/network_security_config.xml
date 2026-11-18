@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<network-security-config>
-    <!-- NO RULES HERE: rules inside android app module -->
-</network-security-config>

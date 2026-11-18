@@ -1,0 +1,1549 @@
+package org.mtransit.android.commons.provider.status
+
+import android.content.Context
+import android.content.res.Resources
+import com.google.transit.realtime.TripUpdateKt.stopTimeEvent
+import com.google.transit.realtime.TripUpdateKt.stopTimeUpdate
+import com.google.transit.realtime.tripDescriptor
+import com.google.transit.realtime.tripUpdate
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mtransit.android.commons.data.DataSourceTypeId
+import org.mtransit.android.commons.data.Direction
+import org.mtransit.android.commons.data.Route
+import org.mtransit.android.commons.data.RouteDirectionStop
+import org.mtransit.android.commons.data.Schedule
+import org.mtransit.android.commons.data.arrival
+import org.mtransit.android.commons.data.departure
+import org.mtransit.android.commons.data.departureArrivalDiff
+import org.mtransit.android.commons.data.makeSchedule
+import org.mtransit.android.commons.data.makeStop
+import org.mtransit.android.commons.data.toScheduleTimestamp
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider
+import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.makeCal
+import org.mtransit.android.commons.provider.gtfs.GTFSStatusProvider
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.delayDuration
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
+import org.mtransit.android.commons.provider.gtfs.isSameStop
+import org.mtransit.android.commons.provider.gtfs.match
+import org.mtransit.android.commons.secsToInstant
+import org.mtransit.android.commons.toSecs
+import org.mtransit.commons.CommonsApp
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.test.fail
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
+import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
+import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUStopTimeEvent
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship as GTUSTUScheduleRelationship
+import kotlinx.datetime.TimeZone as KtTimeZone
+
+class GTFSRealTimeTripUpdatesProviderTests {
+
+    companion object {
+        private const val AGENCY_TZ_ID = "America/Montreal"
+        private val AGENCY_TZ = KtTimeZone.of(AGENCY_TZ_ID)
+        private val AGENCY_TZ_CAL = makeCal(AGENCY_TZ_ID)
+
+        private val DEPARTURE = 1772722800L.secsToInstant() // 2026-03-06 10:00
+
+        private const val NOW_IN_MS = 1234567890_000L // Friday, February 13, 2009, at 11:31:30 p.m. UTC
+
+        private const val READ_FROM_MS = NOW_IN_MS
+
+        private const val TRIP_ID = "123456789"
+        private const val STOP_SEQUENCE = 1
+    }
+
+    @BeforeTest
+    fun setUp() {
+        CommonsApp.setup(isAndroidPlatform = false)
+    }
+
+    @Test
+    fun test_processRDTripUpdates_empty_feed_does_not_load_schedules() {
+        assertFalse(processTripUpdates(emptyList()))
+    }
+
+    @Test
+    fun test_processRDTripUpdates_ineligible_feed_does_not_load_schedules() {
+        val ineligibleUpdates = listOf(
+            GTripUpdate.newBuilder().buildPartial(),
+            tripUpdate {
+                trip = tripDescriptor {
+                    routeId = "other_route"
+                    startTime = "10:00:00"
+                }
+            },
+            tripUpdate {
+                trip = tripDescriptor {
+                    routeId = "1"
+                    directionId = 1
+                    startTime = "10:00:00"
+                }
+            },
+            tripUpdate {
+                trip = tripDescriptor {
+                    routeId = "1"
+                }
+            },
+            tripUpdate {
+                trip = tripDescriptor {
+                    routeId = "1"
+                    startTime = "invalid"
+                }
+            },
+        )
+        ineligibleUpdates.forEach { update ->
+            assertFalse(processTripUpdates(listOf(update)))
+        }
+    }
+
+    @Test
+    fun test_processRDTripUpdates_direct_match_loads_schedules() {
+        var scheduleLoads = 0
+        var tripIndexLoads = 0
+        val result = processTripUpdates(
+            listOf(tripUpdate { trip = tripDescriptor { tripId = TRIP_ID } }),
+            getSchedules = {
+                scheduleLoads++
+                mapOf("target" to mkSchedule(targetUuid = "target"))
+            },
+            getTripIndex = {
+                tripIndexLoads++
+                emptyMap()
+            },
+        )
+        assertEquals(!IGNORE_TRIP_ID, result)
+        assertEquals(if (IGNORE_TRIP_ID) 0 else 1, scheduleLoads)
+        assertEquals(if (IGNORE_TRIP_ID) 0 else 1, tripIndexLoads)
+    }
+
+    @Test
+    fun test_processRDTripUpdates_eligible_fallback_loads_schedules() {
+        var scheduleLoads = 0
+        var fallbackCalls = 0
+        var tripIndexLoads = 0
+        val schedules by lazy {
+            scheduleLoads++
+            mapOf("target" to mkSchedule(targetUuid = "target"))
+        }
+        val result = processTripUpdates(
+            listOf(
+                tripUpdate {
+                    trip = tripDescriptor {
+                        routeId = "1"
+                        startTime = "10:00:00"
+                    }
+                    stopTimeUpdate.add(stopTimeUpdate { stopId = "1" })
+                }
+            ),
+            findTripId = { _, _ ->
+                fallbackCalls++
+                schedules
+                TRIP_ID
+            },
+            getSchedules = { schedules },
+            getTripIndex = {
+                tripIndexLoads++
+                emptyMap()
+            },
+        )
+        assertTrue(result)
+        assertEquals(1, fallbackCalls)
+        assertEquals(1, scheduleLoads)
+        assertEquals(1, tripIndexLoads)
+    }
+
+    @Test
+    fun test_processRDTripUpdates_unmatched_fallback_does_not_force_schedule_load() {
+        var fallbackCalls = 0
+        val result = processTripUpdates(
+            listOf(
+                tripUpdate {
+                    trip = tripDescriptor {
+                        routeId = "1"
+                        startTime = "10:00:00"
+                    }
+                }
+            ),
+            findTripId = { _, _ ->
+                fallbackCalls++
+                null
+            },
+        )
+        assertFalse(result)
+        assertEquals(1, fallbackCalls)
+    }
+
+    @Test
+    fun test_processRDTripUpdates_no_static_schedules_returns_false() {
+        var scheduleLoads = 0
+        val result = processTripUpdates(
+            listOf(
+                tripUpdate {
+                    trip = tripDescriptor {
+                        routeId = "1"
+                        startTime = "10:00:00"
+                    }
+                }
+            ),
+            findTripId = { _, _ -> TRIP_ID },
+            getSchedules = {
+                scheduleLoads++
+                emptyMap()
+            },
+        )
+        assertFalse(result)
+        assertEquals(1, scheduleLoads)
+    }
+
+    private fun processTripUpdates(
+        updates: List<GTripUpdate>,
+        findTripId: (Instant, List<GTUStopTimeUpdate>?) -> String? = { _, _ -> fail("Unexpected fallback lookup") },
+        getSchedules: () -> Map<String, Schedule> = { fail("Unexpected static schedule load") },
+        getTripIndex: () -> Map<String, Set<String>> = { fail("Unexpected static trip index load") },
+    ): Boolean {
+        val resources: Resources = mock {
+            on { getBoolean(any()) } doReturn false
+        }
+        val context: Context = mock {
+            on { getResources() } doReturn resources
+        }
+        val provider: GTFSRealTimeProvider = mock {
+            on { requireContextCompat() } doReturn context
+        }
+        return provider.processRDTripUpdates(
+            gTripUpdates = updates.map { TRIP_ID to it },
+            nowMs = NOW_IN_MS,
+            targetRouteIdHash = "1".hashCode().toString(),
+            targetDirectionOriginalId = 0,
+            agencyTimeZone = AGENCY_TZ,
+            agencyTZCal = AGENCY_TZ_CAL,
+            staticRDTripIds = setOf(TRIP_ID),
+            getTripIdsMatch = { false },
+            findOutOfSyncTripId = findTripId,
+            getRDSchedulesByUUID = getSchedules,
+            getRDSUUIDsByTripId = getTripIndex,
+            sortedRDS = emptyList(),
+            feedReadFromSourceMs = READ_FROM_MS,
+        )
+    }
+
+    // region applyDelay
+
+    @Test
+    fun test_applyDelay_null() {
+        val departure = DEPARTURE
+        val timestamp = mkTime(departure)
+        val delay: Duration? = null
+
+        val result = applyDelay(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), delay, READ_FROM_MS)
+
+        assertNull(result)
+        assertFalse { timestamp.isRealTime }
+        assertEquals(departure, timestamp.departure)
+    }
+
+    @Test
+    fun test_applyDelay_0_on_time() {
+        val departure = DEPARTURE
+        val timestamp = mkTime(departure)
+        val delay = Duration.ZERO
+
+        val result = applyDelay(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), delay, READ_FROM_MS)
+
+        assertNotNull(result)
+        assertEquals(delay, result) // delay not consumed
+        assertTrue { timestamp.isRealTime }
+        assertEquals(departure, timestamp.departure)
+    }
+
+    @Test
+    fun test_applyDelay_simple_late() {
+        val departure = DEPARTURE
+        val timestamp = mkTime(departure)
+        val delay = 10.minutes
+
+        val result = applyDelay(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), delay, READ_FROM_MS)
+
+        assertNotNull(result)
+        assertEquals(delay, result) // delay not consumed
+        assertTrue { timestamp.isRealTime }
+        assertEquals(departure + delay, timestamp.departure)
+    }
+
+    @Test
+    fun test_applyDelay_differentArrival_late() {
+        val departure = DEPARTURE
+        val arrival = departure - 1.minutes
+        val timestamp = mkTime(departure, arrival = arrival)
+        val delay = 10.minutes
+
+        val result = applyDelay(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), delay, READ_FROM_MS)
+
+        assertNotNull(result)
+        assertEquals(9.minutes, result) // delay partially consumed
+        assertTrue { timestamp.isRealTime }
+        assertEquals(arrival + delay, timestamp.arrival)
+        assertEquals(departure + result, timestamp.departure)
+    }
+
+    @Test
+    fun test_applyDelay_consumed_late() {
+        val departure = DEPARTURE
+        val arrival = departure - 15.minutes
+        val timestamp = mkTime(departure, arrival = arrival)
+        val delay = 10.minutes
+
+        val result = applyDelay(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), delay, READ_FROM_MS)
+
+        assertNotNull(result)
+        assertEquals(Duration.ZERO, result) // delay consumed
+        assertTrue { timestamp.isRealTime }
+        assertEquals(arrival + delay, timestamp.arrival)
+        assertEquals(departure, timestamp.departure)
+    }
+
+    @Test
+    fun test_applyDelay_simple_early() {
+        val departure = DEPARTURE
+        val arrival = departure - 1.minutes
+        val timestamp = mkTime(departure, arrival = arrival)
+        val delay = (-5).minutes
+
+        val result = applyDelay(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), delay, READ_FROM_MS)
+
+        assertNotNull(result)
+        assertEquals(delay, result) // delay not consumed
+        assertTrue { timestamp.isRealTime }
+        assertEquals(arrival - 5.minutes, timestamp.arrival)
+        assertEquals(departure - 5.minutes, timestamp.departure)
+    }
+
+    // endregion
+
+    // region applyDelaySTU
+
+    @Test
+    fun test_applyDelaySTU_simple() {
+        val departure = DEPARTURE
+        val timestamp = mkTime(departure)
+        val stopTimeUpdate = stopTimeUpdate {
+            this.departure = stopTimeEvent {
+                time = (departure + 1.minutes).toSecs()
+            }
+        }
+
+        val result = applyDelaySTU(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), stopTimeUpdate, READ_FROM_MS)
+
+        assertNotNull(result)
+        assertEquals(1.minutes, result)
+        assertTrue { timestamp.isRealTime }
+        assertEquals(departure + 1.minutes, timestamp.departure)
+    }
+
+    @Test
+    fun test_applyDelaySTU_preferTimeOverDelay() {
+        val departure = DEPARTURE
+        val arrival = departure - 5.minutes
+        // val updatedArrival =
+        val timestamp = mkTime(departure, arrival = arrival)
+        val stopTimeUpdate = stopTimeUpdate {
+            this.arrival = stopTimeEvent {
+                delayDuration = (-1).minutes
+                time = (arrival - 63.seconds).toSecs()
+            }
+            this.departure = stopTimeEvent {
+                delayDuration = 2.minutes
+                time = (departure + 124.seconds).toSecs()
+            }
+        }
+
+        val result = applyDelaySTU(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), stopTimeUpdate, READ_FROM_MS)
+
+        assertNotNull(result)
+        assertEquals(2.minutes, result)
+        assertTrue { timestamp.isRealTime }
+        assertEquals(arrival - 63.seconds, timestamp.arrival)
+        assertEquals(departure + 124.seconds, timestamp.departure)
+    }
+
+    @Test
+    fun test_applyDelaySTU_2() {
+        val departure = DEPARTURE
+        val arrival = departure - 5.minutes
+        val timestamp = mkTime(departure, arrival = arrival)
+        val stopTimeUpdate = stopTimeUpdate {
+            this.arrival = stopTimeEvent {
+                time = (arrival - 1.minutes).toSecs()
+            }
+            this.departure = stopTimeEvent {
+                time = (departure + 2.minutes).toSecs()
+            }
+        }
+
+        val result = applyDelaySTU(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), stopTimeUpdate, READ_FROM_MS)
+
+        assertNotNull(result)
+        assertEquals(2.minutes, result)
+        assertTrue { timestamp.isRealTime }
+        assertEquals(arrival - 1.minutes, timestamp.arrival)
+        assertEquals(departure + 2.minutes, timestamp.departure)
+    }
+
+    @Test
+    fun test_applyDelaySTU_3() {
+        val departure = DEPARTURE
+        val arrival = departure - 5.minutes
+        val delay = 1.minutes
+        val timestamp = mkTime(departure, arrival = arrival)
+        val stopTimeUpdate = stopTimeUpdate {
+            this.departure = stopTimeEvent {
+                time = (departure + 2.minutes).toSecs()
+            }
+        }
+
+        val result = applyDelaySTU(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), stopTimeUpdate, READ_FROM_MS, delay)
+
+        assertNotNull(result)
+        assertEquals(2.minutes, result)
+        assertTrue { timestamp.isRealTime }
+        assertEquals(arrival + 1.minutes, timestamp.arrival)
+        assertEquals(departure + 2.minutes, timestamp.departure)
+    }
+
+    @Test
+    fun test_applyDelaySTU_4() {
+        val departure = DEPARTURE
+        val arrival = departure - 1.minutes
+        val delay = 15.minutes // should be ignored
+        val timestamp = mkTime(departure, arrival = arrival)
+        val stopTimeUpdate = stopTimeUpdate {
+            this.arrival = stopTimeEvent {
+                time = (arrival + 3.minutes).toSecs()
+            }
+        }
+
+        val result = applyDelaySTU(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), stopTimeUpdate, READ_FROM_MS, delay)
+
+        assertNotNull(result)
+        assertEquals(2.minutes, result)
+        assertTrue { timestamp.isRealTime }
+        assertEquals(arrival + 3.minutes, timestamp.arrival)
+        assertEquals(departure + 2.minutes, timestamp.departure)
+    }
+
+    // endregion
+
+    // region makeDelay
+
+    @Test
+    fun test_makeDelay_1() {
+        val originalTime = DEPARTURE
+        val stopTimeEvent = stopTimeEvent {
+            delay = 10
+        }
+
+        val result = stopTimeEvent.makeDelay(originalTime)
+
+        assertNotNull(result)
+        assertEquals(10.seconds, result)
+    }
+
+    @Test
+    fun test_makeDelay_2() {
+        val originalTime = DEPARTURE
+        val stopTimeEvent = stopTimeEvent {
+            time = (originalTime + 10.seconds).toSecs()
+        }
+
+        val result = stopTimeEvent.makeDelay(originalTime)
+
+        assertNotNull(result)
+        assertEquals(10.seconds, result)
+    }
+
+    @Test
+    fun test_makeDelay_3() {
+        val departure = DEPARTURE
+        val arrival = departure - 3.minutes
+        val timestamp = mkTime(departure, arrival = arrival)
+        val previousDelay = 10.minutes
+        val stopTimeEvent: GTUStopTimeEvent? = null
+
+        val result = stopTimeEvent.makeDelay(
+            originalTime = timestamp.departure,
+            previousSTEDelay = previousDelay,
+            previousCurrentDiff = timestamp.departureArrivalDiff
+        )
+
+        assertNotNull(result)
+        assertEquals(7.minutes, result)
+    }
+
+    // endregion
+
+    // region trip update
+
+    private val isSameStop: ((GTUStopTimeUpdate?, RouteDirectionStop?, Int) -> Boolean) =
+        { stu, rds, stopSeq ->
+            stu?.isSameStop(rds, stopSeq, parseStopId = { it }) == true
+        }
+
+    @Test
+    fun test_processRDTripUpdate_singleTUDelay() {
+        val tripStart = DEPARTURE
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+            }
+            delayDuration = 1.minutes
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+            add(makeRDS(stopId = 3000))
+        }
+        val tripSchedulesByUUID = buildMap {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(tripStart)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(tripStart + 10.minutes)))) }
+            rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(tripStart + 20.minutes)))) }
+        }
+        val sortedTargetUuidAndSequence = buildList {
+            rdsList.forEachIndexed { index, rds ->
+                add(rds.uuid to index + 1)
+            }
+        }
+
+        processRDTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripSchedulesByUUID, isSameStop, READ_FROM_MS)
+
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[0].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(tripStart + 1.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[1].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(tripStart + 11.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[2].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(tripStart + 21.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+    }
+
+    @Test
+    fun test_processRDTripUpdate_combined_complex_stop_id() {
+        val startsAt = DEPARTURE
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopId = "2000"
+                departure = stopTimeEvent {
+                    delayDuration = 3.minutes
+                }
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopId = "4000"
+                arrival = stopTimeEvent {
+                    time = ((startsAt + 30.minutes) + 5.minutes).toSecs()
+                }
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopId = "7000"
+                scheduleRelationship = GTUSTUScheduleRelationship.SKIPPED
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopId = "9000"
+                scheduleRelationship = GTUSTUScheduleRelationship.NO_DATA
+            }
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+            add(makeRDS(stopId = 3000))
+            add(makeRDS(stopId = 4000))
+            add(makeRDS(stopId = 5000))
+            add(makeRDS(stopId = 6000))
+            add(makeRDS(stopId = 7000))
+            add(makeRDS(stopId = 8000))
+            add(makeRDS(stopId = 9000))
+            add(makeRDS(stopId = 10000))
+        }
+        val tripSchedulesByUUID = buildMap {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes)))) }
+            rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 20.minutes)))) }
+            rdsList[3].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 30.minutes)))) }
+            rdsList[4].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 43.minutes, arrival = startsAt + 37.minutes)))) }
+            rdsList[5].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 50.minutes)))) }
+            rdsList[6].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 60.minutes)))) }
+            rdsList[7].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 70.minutes)))) }
+            rdsList[8].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 80.minutes)))) }
+            rdsList[9].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 90.minutes)))) }
+        }
+        val sortedTargetUuidAndSequence = buildList {
+            rdsList.forEachIndexed { index, rds ->
+                add(rds.uuid to index + 1)
+            }
+        }
+
+        processRDTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripSchedulesByUUID, isSameStop, READ_FROM_MS)
+
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[0].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt, timestamp.arrival)
+                assertEquals(startsAt, timestamp.departure)
+                assertFalse { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[1].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 10.minutes, timestamp.arrival)
+                assertEquals(startsAt + 10.minutes + 3.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[2].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 20.minutes + 3.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[3].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 30.minutes + 5.minutes, timestamp.arrival)
+                assertEquals(startsAt + 30.minutes + 5.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[4].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 37.minutes + 5.minutes, timestamp.arrival)
+                assertEquals(startsAt + 43.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[5].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 50.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[6].uuid }) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[7].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 70.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[8].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 80.minutes, timestamp.departure)
+                assertFalse { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[9].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 90.minutes, timestamp.departure)
+                assertFalse { timestamp.isRealTime }
+            }
+        }
+    }
+
+    @Test
+    fun test_processRDTripUpdate_combined_complex_stop_sequence() {
+        val startsAt = DEPARTURE
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+            }
+            delayDuration = 1.minutes
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 2
+                departure = stopTimeEvent {
+                    delayDuration = 3.minutes
+                }
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 4
+                arrival = stopTimeEvent {
+                    time = ((startsAt + 30.minutes) + 5.minutes).toSecs()
+                }
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 7
+                scheduleRelationship = GTUSTUScheduleRelationship.SKIPPED
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 9
+                scheduleRelationship = GTUSTUScheduleRelationship.NO_DATA
+            }
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+            add(makeRDS(stopId = 3000))
+            add(makeRDS(stopId = 4000))
+            add(makeRDS(stopId = 5000))
+            add(makeRDS(stopId = 6000))
+            add(makeRDS(stopId = 7000))
+            add(makeRDS(stopId = 8000))
+            add(makeRDS(stopId = 9000))
+            add(makeRDS(stopId = 10000))
+        }
+        var stopSeq = 0
+        val tripSchedulesByUUID = buildMap {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt, stopSeq = ++stopSeq)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 20.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[3].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 30.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[4].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 43.minutes, stopSeq = ++stopSeq, arrival = startsAt + 37.minutes)))) }
+            rdsList[5].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 50.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[6].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 60.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[7].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 70.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[8].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 80.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[9].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 90.minutes, stopSeq = ++stopSeq)))) }
+        }
+        val sortedTargetUuidAndSequence = buildList {
+            tripSchedulesByUUID.values.forEach { schedule ->
+                schedule.timestamps.forEach { timestamp ->
+                    add(schedule.targetUUID to assertNotNull(timestamp.stopSequenceOrNull))
+                }
+            }
+        }
+
+        processRDTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripSchedulesByUUID, isSameStop, READ_FROM_MS)
+
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[0].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 1.minutes, timestamp.arrival)
+                assertEquals(startsAt + 1.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[1].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 10.minutes + 1.minutes, timestamp.arrival)
+                assertEquals(startsAt + 10.minutes + 3.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[2].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 20.minutes + 3.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[3].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 30.minutes + 5.minutes, timestamp.arrival)
+                assertEquals(startsAt + 30.minutes + 5.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[4].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 37.minutes + 5.minutes, timestamp.arrival)
+                assertEquals(startsAt + 43.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[5].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 50.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[6].uuid }) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[7].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 70.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[8].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 80.minutes, timestamp.departure)
+                assertFalse { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[9].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 90.minutes, timestamp.departure)
+                assertFalse { timestamp.isRealTime }
+            }
+        }
+    }
+
+    @Test
+    fun test_processRDTripUpdate_combined_complex_stop_sequence_repeated_stop() {
+        val startsAt = DEPARTURE
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+            }
+            delayDuration = 1.minutes
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 2
+                departure = stopTimeEvent {
+                    delayDuration = 3.minutes
+                }
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 4
+                arrival = stopTimeEvent {
+                    time = ((startsAt + 30.minutes) + 5.minutes).toSecs()
+                }
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 7
+                scheduleRelationship = GTUSTUScheduleRelationship.SKIPPED
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 9
+                scheduleRelationship = GTUSTUScheduleRelationship.NO_DATA
+            }
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+            add(makeRDS(stopId = 3000))
+            add(makeRDS(stopId = 4000))
+            add(makeRDS(stopId = 5000))
+            add(makeRDS(stopId = 6000))
+            add(makeRDS(stopId = 7000))
+            add(makeRDS(stopId = 9000))
+            add(makeRDS(stopId = 10000))
+        }
+        var stopSeq = 0
+        val tripSchedulesByUUID = buildMap {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt, stopSeq = ++stopSeq)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 20.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[3].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 30.minutes, stopSeq = ++stopSeq)))) } // repeated
+            rdsList[4].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 43.minutes, stopSeq = ++stopSeq, arrival = startsAt + 37.minutes)))) }
+            rdsList[5].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 50.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[6].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 60.minutes, stopSeq = ++stopSeq)))) }
+            get(rdsList[3].uuid)?.apply { // repeated
+                addTimestampWithoutSort(mkTime(startsAt + 70.minutes, stopSeq = ++stopSeq))
+                sortTimestamps()
+            }
+            rdsList[7].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 80.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[8].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 90.minutes, stopSeq = ++stopSeq)))) }
+        }
+        val sortedTargetUuidAndSequence = buildList {
+            tripSchedulesByUUID.values.forEach { schedule ->
+                schedule.timestamps.forEach { timestamp ->
+                    add(schedule.targetUUID to assertNotNull(timestamp.stopSequenceOrNull))
+                }
+            }
+        }.sortedBy { (_, stopSequence) -> stopSequence }
+
+        processRDTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripSchedulesByUUID, isSameStop, READ_FROM_MS)
+
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[0].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 1.minutes, timestamp.arrival)
+                assertEquals(startsAt + 1.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[1].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 10.minutes + 1.minutes, timestamp.arrival)
+                assertEquals(startsAt + 10.minutes + 3.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[2].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 20.minutes + 3.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[3].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.getOrNull(0)) { timestamp ->
+                assertEquals(startsAt + 30.minutes + 5.minutes, timestamp.arrival)
+                assertEquals(startsAt + 30.minutes + 5.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[4].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 37.minutes + 5.minutes, timestamp.arrival)
+                assertEquals(startsAt + 43.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[5].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 50.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[6].uuid }) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[3].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.getOrNull(1)) { timestamp ->
+                assertEquals(startsAt + 70.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[7].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 80.minutes, timestamp.departure)
+                assertFalse { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[8].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 90.minutes, timestamp.departure)
+                assertFalse { timestamp.isRealTime }
+            }
+        }
+    }
+
+    @Test
+    fun test_processRDTripUpdate_trip_cancelled() {
+        val startsAt = DEPARTURE
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+                this.scheduleRelationship = GTDScheduleRelationship.CANCELED
+            }
+            delayDuration = 1.minutes
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+            add(makeRDS(stopId = 3000))
+        }
+        val tripSchedulesByUUID = buildMap {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes)))) }
+            rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 20.minutes)))) }
+        }
+        val sortedTargetUuidAndSequence = buildList {
+            rdsList.forEachIndexed { index, rds ->
+                add(rds.uuid to index + 1)
+            }
+        }
+
+        processRDTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripSchedulesByUUID, isSameStop, READ_FROM_MS)
+
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[0].uuid }) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[1].uuid }) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[2].uuid }) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+    }
+
+    @Test
+    fun test_processRDTripUpdate_trip_deleted() {
+        val startsAt = DEPARTURE
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+                this.scheduleRelationship = GTDScheduleRelationship.DELETED
+            }
+            delayDuration = 1.minutes
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+            add(makeRDS(stopId = 3000))
+        }
+        val tripSchedulesByUUID = buildMap {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes)))) }
+            rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 20.minutes)))) }
+        }
+        val sortedTargetUuidAndSequence = buildList {
+            rdsList.forEachIndexed { index, rds ->
+                add(rds.uuid to index + 1)
+            }
+        }
+
+        processRDTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripSchedulesByUUID, isSameStop, READ_FROM_MS)
+
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[0].uuid }) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[1].uuid }) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[2].uuid }) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+    }
+
+    // end region
+
+    // region cancelled timestamps
+
+    @Test
+    fun test_processRDTripUpdate_trip_cancelled_includeCancelledTimestamps_true() {
+        val startsAt = DEPARTURE
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+                this.scheduleRelationship = GTDScheduleRelationship.CANCELED
+            }
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+            add(makeRDS(stopId = 3000))
+        }
+        val tripSchedulesByUUID = buildMap {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes)))) }
+            rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 20.minutes)))) }
+        }
+        val sortedTargetUuidAndSequence = buildList {
+            rdsList.forEachIndexed { index, rds ->
+                add(rds.uuid to index + 1)
+            }
+        }
+
+        processRDTripUpdate(
+            TRIP_ID,
+            gTripUpdate,
+            rdsList,
+            sortedTargetUuidAndSequence,
+            tripSchedulesByUUID,
+            isSameStop,
+            READ_FROM_MS,
+            includeCancelledTimestamps = true
+        )
+
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[0].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertTrue { timestamp.isCancelled }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[1].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertTrue { timestamp.isCancelled }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[2].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertTrue { timestamp.isCancelled }
+            }
+        }
+    }
+
+    @Test
+    fun test_processRDTripUpdate_trip_cancelled_includeCancelledTimestamps_false() {
+        val startsAt = DEPARTURE
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+                this.scheduleRelationship = GTDScheduleRelationship.CANCELED
+            }
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+        }
+        val tripSchedulesByUUID = buildMap {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes)))) }
+        }
+        val sortedTargetUuidAndSequence = buildList {
+            rdsList.forEachIndexed { index, rds ->
+                add(rds.uuid to index + 1)
+            }
+        }
+
+        processRDTripUpdate(
+            TRIP_ID,
+            gTripUpdate,
+            rdsList,
+            sortedTargetUuidAndSequence,
+            tripSchedulesByUUID,
+            isSameStop,
+            READ_FROM_MS,
+            includeCancelledTimestamps = false
+        )
+
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[0].uuid }) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[1].uuid }) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+    }
+
+    @Test
+    fun test_processRDTripUpdate_trip_deleted_includeCancelledTimestamps_true() {
+        val startsAt = DEPARTURE
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+                this.scheduleRelationship = GTDScheduleRelationship.DELETED
+            }
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+        }
+        val tripSchedulesByUUID = buildMap {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes)))) }
+        }
+        val sortedTargetUuidAndSequence = buildList {
+            rdsList.forEachIndexed { index, rds ->
+                add(rds.uuid to index + 1)
+            }
+        }
+
+        processRDTripUpdate(
+            TRIP_ID,
+            gTripUpdate,
+            rdsList,
+            sortedTargetUuidAndSequence,
+            tripSchedulesByUUID,
+            isSameStop,
+            READ_FROM_MS,
+            includeCancelledTimestamps = true
+        )
+
+        // DELETED trips are always removed even when includeCancelledTimestamps = true
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[0].uuid }) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[1].uuid }) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+    }
+
+    @Test
+    fun test_processRDTripUpdate_stop_skipped_includeCancelledTimestamps_true() {
+        val startsAt = DEPARTURE
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopId = "2000"
+                scheduleRelationship = GTUSTUScheduleRelationship.SKIPPED
+            }
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+            add(makeRDS(stopId = 3000))
+        }
+        val tripSchedulesByUUID = buildMap {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes)))) }
+            rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 20.minutes)))) }
+        }
+        val sortedTargetUuidAndSequence = buildList {
+            rdsList.forEachIndexed { index, rds ->
+                add(rds.uuid to index + 1)
+            }
+        }
+
+        processRDTripUpdate(
+            TRIP_ID,
+            gTripUpdate,
+            rdsList,
+            sortedTargetUuidAndSequence,
+            tripSchedulesByUUID,
+            isSameStop,
+            READ_FROM_MS,
+            includeCancelledTimestamps = true
+        )
+
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[0].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertFalse { timestamp.isCancelled }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[1].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertTrue { timestamp.isCancelled }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[2].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertFalse { timestamp.isCancelled }
+            }
+        }
+    }
+
+    @Test
+    fun test_processRDTripUpdate_stop_skipped_includeCancelledTimestamps_false() {
+        val startsAt = DEPARTURE
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopId = "2000"
+                scheduleRelationship = GTUSTUScheduleRelationship.SKIPPED
+            }
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+            add(makeRDS(stopId = 3000))
+        }
+        val tripSchedulesByUUID = buildMap {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes)))) }
+            rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 20.minutes)))) }
+        }
+        val sortedTargetUuidAndSequence = buildList {
+            rdsList.forEachIndexed { index, rds ->
+                add(rds.uuid to index + 1)
+            }
+        }
+
+        processRDTripUpdate(
+            TRIP_ID,
+            gTripUpdate,
+            rdsList,
+            sortedTargetUuidAndSequence,
+            tripSchedulesByUUID,
+            isSameStop,
+            READ_FROM_MS,
+            includeCancelledTimestamps = false
+        )
+
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[0].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertFalse { timestamp.isCancelled }
+            }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[1].uuid }) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+        assertNotNull(tripSchedulesByUUID.values.singleOrNull { it.targetUUID == rdsList[2].uuid }) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertFalse { timestamp.isCancelled }
+            }
+        }
+    }
+
+    // end region
+
+    // region fixStopSequence
+
+    @Test
+    fun test_fixStopSequence_candidate_matching_checks_unmatched_updates_in_either_order() {
+        val rdsList = (1..3).map { makeRDS(stopId = it) }
+        val shortTrip = rdsList.take(2).mapIndexed { index, rds -> rds.uuid to index + 1 }
+        val longTrip = rdsList.mapIndexed { index, rds -> rds.uuid to index + 1 }
+        val updates = (1..3).map { sequence -> stopTimeUpdate { stopSequence = sequence } }
+
+        fun matches(sequences: List<Pair<String, Int>>, stuList: List<GTUStopTimeUpdate>): Boolean {
+            val repaired = stuList.fixStopSequence(
+                tripId = TRIP_ID,
+                tripSortedRDS = rdsList.filter { rds -> sequences.any { it.first == rds.uuid } },
+                sortedTargetUuidAndSequence = sequences,
+                isSameStop = isSameStop,
+                parseStopId = { it },
+                removeUnmatched = false,
+            )
+            return repaired.isNotEmpty() && repaired.all { stu ->
+                stu.scheduleRelationship == GTUSTUScheduleRelationship.SKIPPED || stu.match(
+                    rdsCandidates = rdsList,
+                    findStopTimestamp = { uuid, sequence -> (uuid to sequence) in sequences },
+                    parseStopId = { it },
+                )
+            }
+        }
+
+        val candidates = listOf("A" to shortTrip, "B" to longTrip)
+        listOf(candidates, candidates.reversed()).forEach { ordered ->
+            assertEquals("B", ordered.firstOrNull { matches(it.second, updates) }?.first)
+        }
+        val skippedLast = updates.take(2) + stopTimeUpdate {
+            stopSequence = 3
+            scheduleRelationship = GTUSTUScheduleRelationship.SKIPPED
+        }
+        assertTrue(matches(shortTrip, skippedLast))
+        val correctedLast = updates.take(2) + stopTimeUpdate {
+            stopSequence = 999
+            stopId = "3"
+        }
+        assertTrue(matches(longTrip, correctedLast))
+        assertFalse(matches(shortTrip, correctedLast))
+    }
+
+    @Test
+    fun test_fixStopSequence_rejects_repaired_stop_order_reversal() {
+        val rdsList = listOf(makeRDS(stopId = 77), makeRDS(stopId = 88), makeRDS(stopId = 99))
+        val sequenceA = listOf(rdsList[0].uuid to 1, rdsList[1].uuid to 2, rdsList[2].uuid to 3)
+        val sequenceB = listOf(rdsList[0].uuid to 1, rdsList[2].uuid to 2, rdsList[1].uuid to 3)
+        val updatesForB = listOf(
+            stopTimeUpdate {
+                stopSequence = 1
+                stopId = "77"
+            },
+            stopTimeUpdate {
+                stopSequence = 2
+                stopId = "99"
+            },
+            stopTimeUpdate {
+                stopSequence = 3
+                stopId = "88"
+            },
+        )
+
+        fun repaired(sequences: List<Pair<String, Int>>, updates: List<GTUStopTimeUpdate>) =
+            updates.fixStopSequence(
+                tripId = TRIP_ID,
+                tripSortedRDS = rdsList,
+                sortedTargetUuidAndSequence = sequences,
+                isSameStop = isSameStop,
+                parseStopId = { it },
+                removeUnmatched = false,
+            )
+
+        val repairedForA = repaired(sequenceA, updatesForB)
+        assertEquals(listOf(1, 3, 2), repairedForA.map { it.stopSequence })
+        assertFalse(repairedForA.isInStopSequenceOrder())
+
+        val repairedForB = repaired(sequenceB, updatesForB)
+        assertEquals(listOf(1, 2, 3), repairedForB.map { it.stopSequence })
+        assertTrue(repairedForB.isInStopSequenceOrder())
+
+        val matchingCandidate = listOf("A" to sequenceA, "B" to sequenceB).firstOrNull { (_, sequences) ->
+            repaired(sequences, updatesForB).let { candidate ->
+                candidate.isInStopSequenceOrder() && candidate.all { stu ->
+                    stu.match(
+                        rdsCandidates = rdsList,
+                        findStopTimestamp = { uuid, sequence -> (uuid to sequence) in sequences },
+                        parseStopId = { it },
+                    )
+                }
+            }
+        }
+        assertEquals("B", matchingCandidate?.first)
+
+        val orderPreservingCorrection = repaired(
+            sequenceA,
+            listOf(
+                stopTimeUpdate {
+                    stopSequence = 1
+                    stopId = "77"
+                },
+                stopTimeUpdate {
+                    stopSequence = 666
+                    stopId = "88"
+                },
+                stopTimeUpdate {
+                    stopSequence = 3
+                    stopId = "99"
+                },
+            ),
+        )
+        assertEquals(listOf(1, 2, 3), orderPreservingCorrection.map { it.stopSequence })
+        assertTrue(orderPreservingCorrection.isInStopSequenceOrder())
+    }
+
+    @Test
+    fun test_fixStopSequence_fix_wrong_and_ignore_repeated() {
+        val startsAt = DEPARTURE
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 1111 // wrong stop sequence
+                stopId = "6000"
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 2222 // wrong stop sequence
+                stopId = "4000" // repeated
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 2
+                stopId = "2000"
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 4
+                stopId = "4000" // repeated
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 7
+                stopId = "7000"
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopSequence = 9
+                stopId = "9000"
+            }
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+            add(makeRDS(stopId = 3000))
+            add(makeRDS(stopId = 4000)) // repeated
+            add(makeRDS(stopId = 5000))
+            add(makeRDS(stopId = 6000))
+            add(makeRDS(stopId = 7000))
+            add(makeRDS(stopId = 9000))
+            add(makeRDS(stopId = 10000))
+        }
+        var stopSeq = 0
+        val tripSchedulesByUUID = buildMap {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt, stopSeq = ++stopSeq)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 20.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[3].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 30.minutes, stopSeq = ++stopSeq)))) } // repeated
+            rdsList[4].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 43.minutes, stopSeq = ++stopSeq, arrival = startsAt + 37.minutes)))) }
+            rdsList[5].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 50.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[6].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 60.minutes, stopSeq = ++stopSeq)))) }
+            get(rdsList[3].uuid)?.apply { // repeated
+                addTimestampWithoutSort(mkTime(startsAt + 70.minutes, stopSeq = ++stopSeq))
+                sortTimestamps()
+            }
+            rdsList[7].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 80.minutes, stopSeq = ++stopSeq)))) }
+            rdsList[8].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 90.minutes, stopSeq = ++stopSeq)))) }
+        }
+        val sortedTargetUuidAndSequence = buildList {
+            tripSchedulesByUUID.values.forEach { schedule ->
+                schedule.timestamps.forEach { timestamp ->
+                    add(schedule.targetUUID to assertNotNull(timestamp.stopSequenceOrNull))
+                }
+            }
+        }.sortedBy { (_, stopSequence) -> stopSequence }
+
+        val result = gTripUpdate.optStopTimeUpdateList?.fixStopSequence(
+            tripId = TRIP_ID,
+            tripSortedRDS = rdsList,
+            sortedTargetUuidAndSequence = sortedTargetUuidAndSequence,
+            isSameStop = isSameStop,
+            parseStopId = { it },
+        )?.sortedBy { it.stopSequence }
+
+        assertNotNull(result)
+        assertEquals(5, result.size)
+        assertNotNull(result[0]) { stu ->
+            assertEquals(2, stu.stopSequence)
+            assertEquals("2000", stu.stopId)
+        }
+        assertNotNull(result[1]) { stu ->
+            assertEquals(4, stu.stopSequence)
+            assertEquals("4000", stu.stopId)
+        }
+        assertNotNull(result[2]) { stu ->
+            assertEquals(6, stu.stopSequence)
+            assertEquals("6000", stu.stopId)
+        }
+        assertNotNull(result[3]) { stu ->
+            assertEquals(7, stu.stopSequence)
+            assertEquals("7000", stu.stopId)
+        }
+        assertNotNull(result[4]) { stu ->
+            assertEquals(9, stu.stopSequence)
+            assertEquals("9000", stu.stopId)
+        }
+
+        val forMatching = assertNotNull(gTripUpdate.optStopTimeUpdateList).fixStopSequence(
+            tripId = TRIP_ID,
+            tripSortedRDS = rdsList,
+            sortedTargetUuidAndSequence = sortedTargetUuidAndSequence,
+            isSameStop = isSameStop,
+            parseStopId = { it },
+            removeUnmatched = false,
+        )
+        assertEquals(6, forMatching.size)
+        assertEquals(6, forMatching.first { it.stopId == "6000" }.stopSequence)
+        assertEquals(2222, forMatching.first { it.stopSequence == 2222 }.stopSequence)
+        // An ambiguous repeated-stop update is tolerated during processing, but cannot identify a fallback trip.
+        assertFalse(
+            forMatching.all { stu ->
+                stu.match(
+                    rdsCandidates = rdsList,
+                    findStopTimestamp = { uuid, sequence -> (uuid to sequence) in sortedTargetUuidAndSequence },
+                    parseStopId = { it },
+                )
+            }
+        )
+    }
+
+    // endregion
+
+    private fun Schedule.Timestamp.toSchedule() = mkSchedule(
+        timestamps = listOf(this),
+    )
+
+    @Suppress("SameParameterValue")
+    private fun mkTime(time: Instant, tripId: String? = TRIP_ID, stopSeq: Int? = null, arrival: Instant? = null) =
+        time.toScheduleTimestamp(AGENCY_TZ_ID, arrival, tripId, stopSeq)
+
+    private fun mkSchedule(
+        targetUuid: String = makeRDS().uuid,
+        timestamps: List<Schedule.Timestamp> = emptyList(),
+        nowInMs: Long = NOW_IN_MS,
+    ) = makeSchedule(
+        targetUUID = targetUuid,
+        lastUpdateInMs = nowInMs,
+        maxValidityInMs = nowInMs,
+        readFromSourceAtInMs = nowInMs,
+        providerPrecisionInMs = GTFSStatusProvider.PROVIDER_PRECISION_IN_MS,
+        localTimeZoneId = AGENCY_TZ_ID,
+    ).apply {
+        setTimestampsAndSort(timestamps)
+    }
+
+    private fun makeRDS(stopId: Int = 1) = RouteDirectionStop(
+        DataSourceTypeId.BUS,
+        Route(
+            "authority",
+            1,
+            "1",
+            "route 1",
+            "color"
+        ),
+        Direction(
+            "authority",
+            1,
+            1,
+            "headsign",
+            1
+        ),
+        makeStop(
+            stopId = stopId,
+            stopOriginalIdHash = stopId, // "$stopId".hashCode()
+            stopTimeZoneId = AGENCY_TZ_ID
+        ),
+        false,
+        false,
+    )
+}

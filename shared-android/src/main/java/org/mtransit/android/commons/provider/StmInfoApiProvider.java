@@ -1,0 +1,2020 @@
+package org.mtransit.android.commons.provider;
+
+import static org.mtransit.android.commons.data.ServiceUpdateKtxKt.makeServiceUpdateNone;
+import static org.mtransit.android.commons.data.ServiceUpdateKtxKt.makeServiceUpdateNoneList;
+import static org.mtransit.commons.RegexUtils.DIGIT_CAR;
+import static org.mtransit.commons.RegexUtils.END;
+import static org.mtransit.commons.RegexUtils.except;
+import static org.mtransit.commons.RegexUtils.group;
+import static org.mtransit.commons.RegexUtils.oneOrMore;
+import static org.mtransit.commons.RegexUtils.zeroOrMore;
+
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
+import android.content.UriMatcher;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+
+import androidx.annotation.Discouraged;
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.google.android.gms.security.ProviderInstaller;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.mtransit.android.commons.FileUtils;
+import org.mtransit.android.commons.HtmlUtils;
+import org.mtransit.android.commons.LocaleUtils;
+import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.NetworkUtils;
+import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
+import org.mtransit.android.commons.ThreadSafeDateFormatter;
+import org.mtransit.android.commons.TimeUtils;
+import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.data.Accessibility;
+import org.mtransit.android.commons.data.Direction;
+import org.mtransit.android.commons.data.POI;
+import org.mtransit.android.commons.data.POIStatus;
+import org.mtransit.android.commons.data.Route;
+import org.mtransit.android.commons.data.RouteDirection;
+import org.mtransit.android.commons.data.RouteDirectionStop;
+import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.ScheduleStatusFilter;
+import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
+import org.mtransit.android.commons.data.ServiceUpdates;
+import org.mtransit.android.commons.data.Stop;
+import org.mtransit.android.commons.provider.ca.info.stm.StmInfoServiceUpdateProvider;
+import org.mtransit.android.commons.provider.common.MTContentProvider;
+import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
+import org.mtransit.android.commons.provider.gtfs.GTFSRDSProvider;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateCleaner;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateDbHelper;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProvider;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderExtKt;
+import org.mtransit.android.commons.provider.status.StatusProvider;
+import org.mtransit.android.commons.provider.status.StatusProviderContract;
+import org.mtransit.commons.Cleaner;
+import org.mtransit.commons.CollectionUtils;
+import org.mtransit.commons.SourceUtils;
+
+import java.net.HttpURLConnection;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
+// DO NOT MOVE: referenced in modules AndroidManifest.xml
+@SuppressLint({"Registered", "DiscouragedApi"})
+public class StmInfoApiProvider extends MTContentProvider implements
+		StatusProviderContract, // @Discouraged(message = "Using GTFS-RT Trip Updates instead")
+		ServiceUpdateProviderContract, // using StmInfoServiceUpdateProvider #USE_NEW_API
+		ProviderInstaller.ProviderInstallListener {
+
+	private static final String LOG_TAG = StmInfoApiProvider.class.getSimpleName();
+
+	// private static final boolean USE_NEW_API = false;
+	private static final boolean USE_NEW_API = true; // WIP
+
+	private static final boolean STORE_EMPTY_SERVICE_MESSAGE = false;
+
+	@NonNull
+	@Override
+	public String getLogTag() {
+		return LOG_TAG;
+	}
+
+	@NonNull
+	private static UriMatcher getNewUriMatcher(@NonNull String authority) {
+		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
+		ServiceUpdateProvider.append(URI_MATCHER, authority);
+		StatusProvider.append(URI_MATCHER, authority); // @Discouraged(message = "Using GTFS-RT Trip Updates instead")
+		return URI_MATCHER;
+	}
+
+	@Nullable
+	private static UriMatcher uriMatcher = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@NonNull
+	private static UriMatcher getURIMATCHER(@NonNull Context context) {
+		if (uriMatcher == null) {
+			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
+		}
+		return uriMatcher;
+	}
+
+	@Nullable
+	private static String authority = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@NonNull
+	private static String getAUTHORITY(@NonNull Context context) {
+		if (authority == null) {
+			authority = context.getResources().getString(R.string.stm_info_api_authority);
+		}
+		return authority;
+	}
+
+	@Nullable
+	private static Uri authorityUri = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@NonNull
+	private static Uri getAUTHORITY_URI(@NonNull Context context) {
+		if (authorityUri == null) {
+			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
+		}
+		return authorityUri;
+	}
+
+	@Nullable
+	private static String rdsAgencyId = null;
+
+	/**
+	 * Override if multiple {@link GTFSRDSProvider} implementations in same app.
+	 */
+	@NonNull
+	private static String getRDS_AGENCY_ID(@NonNull Context context) {
+		if (rdsAgencyId == null) {
+			rdsAgencyId = context.getResources().getString(R.string.gtfs_rts_agency_id); // do not change to avoid breaking compat w/ old modules
+		}
+		return rdsAgencyId;
+	}
+
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
+	@Override
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
+		StatusProvider.cacheStatusS(this, newStatusToCache);
+	}
+
+	@Override
+	public void cacheServiceUpdates(@Nullable ServiceUpdates newServiceUpdates) {
+		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
+	}
+
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
+	@Nullable
+	@Override
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
+		if (!(statusFilter instanceof ScheduleStatusFilter)) {
+			MTLog.w(this, "getCachedStatus() > Can't find new schedule without schedule filter!");
+			return null;
+		}
+		final ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
+		final RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		if (rds.getStop().getCode().isEmpty() //
+				|| rds.getDirection().getHeadsignValue().isEmpty() //
+				|| rds.getRoute().getShortName().isEmpty()) {
+			return null;
+		}
+		final Context context = requireContextCompat();
+		final POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, getStopStatusTargetUUID(context, rds));
+		if (cachedStatus != null) {
+			cachedStatus.setTargetUUID(rds.getUUID()); // target RDS UUID instead of custom tag
+			if (rds.isNoPickup()) {
+				if (cachedStatus instanceof Schedule) {
+					((Schedule) cachedStatus).setNoPickup(true); // API doesn't know about "descent only" & doesn't return drop off time for last stop
+				}
+			}
+		}
+		// MTLog.d(this, "getCachedStatus() > %s", cachedStatus);
+		return cachedStatus;
+	}
+
+	@Nullable
+	@Override
+	public ServiceUpdates getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+		if (USE_NEW_API) return StmInfoServiceUpdateProvider.getCached(this, serviceUpdateFilter);
+		return getCachedServiceUpdatesOldApi(serviceUpdateFilter);
+	}
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	@Nullable
+	private ServiceUpdates getCachedServiceUpdatesOldApi(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+		final Context context = requireContextCompat();
+		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			return getCachedServiceUpdates(context, (RouteDirectionStop) serviceUpdateFilter.getPoi());
+		} else if (serviceUpdateFilter.getRouteDirection() != null) {
+			return getCachedServiceUpdates(context, serviceUpdateFilter.getRouteDirection());
+		} else if ((serviceUpdateFilter.getRoute() != null)) { // NOT SUPPORTED
+			return makeServiceUpdateNoneList(this, serviceUpdateFilter.getRoute(), SERVICE_UPDATE_SOURCE_ID);
+		} else {
+			MTLog.w(this, "getCachedServiceUpdatesOldApi() > no service update (poi null or not RDS or no route)");
+			return null;
+		}
+	}
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	@NonNull
+	private ServiceUpdates getCachedServiceUpdates(@NonNull Context context, @NonNull RouteDirectionStop rds) {
+		if (STORE_EMPTY_SERVICE_MESSAGE) {
+			final ServiceUpdates stopOnlyUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(context, rds));
+			if (stopOnlyUpdates == null || stopOnlyUpdates.isEmpty()) {
+				return new ServiceUpdates(); // need to get NEW service update from WWW for this STOP
+			}
+		}
+		final ServiceUpdates cachedServiceUpdates = new ServiceUpdates();
+		final Map<String, String> targetUUIDs = getProviderTargetUUIDs(context, rds);
+		CollectionUtils.addAllN(cachedServiceUpdates, ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet()));
+		enhanceRDServiceUpdatesForStop(context, cachedServiceUpdates, targetUUIDs, rds.getStop(), rds.getUUID());
+		// if (org.mtransit.android.commons.Constants.DEBUG) {
+		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rds.getUUID());
+		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
+		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate);
+		// }
+		// }
+		return cachedServiceUpdates;
+	}
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	@NonNull
+	private ServiceUpdates getCachedServiceUpdates(@NonNull Context context, @NonNull RouteDirection rd) {
+		final ServiceUpdates cachedServiceUpdates = new ServiceUpdates();
+		final Map<String, String> targetUUIDs = getProviderTargetUUIDs(context, rd);
+		final ServiceUpdates routeCachedServiceUpdatesS = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		if (routeCachedServiceUpdatesS != null) {
+			cachedServiceUpdates.addAll(routeCachedServiceUpdatesS);
+		}
+		enhanceRDServiceUpdatesForStop(context, cachedServiceUpdates, targetUUIDs, null, null);
+		// if (org.mtransit.android.commons.Constants.DEBUG) {
+		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rd.getUUID());
+		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
+		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate);
+		// }
+		// }
+		return cachedServiceUpdates;
+	}
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	private void enhanceRDServiceUpdatesForStop(
+			@NonNull Context context,
+			ServiceUpdates serviceUpdates,
+			Map<String, String> targetUUIDs, // different UUID from provider target UUID
+			@Nullable Stop stop,
+			@Nullable String stopTargetUUID
+	) {
+		try {
+			if (CollectionUtils.getSize(serviceUpdates) > 0) {
+				final Cleaner stopCleaner = LocaleUtils.isFR() ? STOP_FR : STOP;
+				final boolean isSeverityAlreadyWarning = serviceUpdates.isSeverityWarning();
+				for (ServiceUpdate serviceUpdate : serviceUpdates) {
+					ServiceUpdateKtxKt.syncTargetUUID(serviceUpdate, targetUUIDs);
+					enhanceRDServiceUpdateForStop(context, serviceUpdate, isSeverityAlreadyWarning, stop, stopTargetUUID, stopCleaner);
+				}
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while trying to enhance route direction service update for stop!");
+		}
+	}
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	private void enhanceRDServiceUpdateForStop(
+			@NonNull Context context,
+			ServiceUpdate serviceUpdate,
+			boolean isSeverityAlreadyWarning,
+			@Nullable Stop stop,
+			@Nullable String stopTargetUUID,
+			Cleaner stopCleaner
+	) {
+		try {
+			if (stop != null && serviceUpdate.getSeverity() > ServiceUpdate.SEVERITY_NONE) {
+				String originalHtml = serviceUpdate.getTextHTML();
+				if (!isSeverityAlreadyWarning && !STORE_EMPTY_SERVICE_MESSAGE) { // DO increase severity for stop code because stop service update might not have been loaded/returned to UI yet
+					final int severity = findRDSSeverity(serviceUpdate.getText(), stop, stopCleaner);
+					if (severity > serviceUpdate.getSeverity()) {
+						serviceUpdate.setSeverity(severity);
+					}
+				}
+				if (serviceUpdate.getSeverity() == ServiceUpdate.SEVERITY_WARNING_POI) {
+					if (stopTargetUUID != null) {
+						serviceUpdate.setTargetUUID(stopTargetUUID); // actually targeting RouteDirectionStop instead of just Route[Direction]
+					}
+				}
+				serviceUpdate.setTextHTML(
+						enhanceRTTextForStop(context, originalHtml, stop, serviceUpdate.getSeverity())
+				);
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while trying to enhance route direction service update '%s' for stop!", serviceUpdate);
+		}
+	}
+
+	private String enhanceRTTextForStop(@NonNull Context context, String originalHtml, @Nullable Stop stop, int severity) {
+		if (originalHtml == null || originalHtml.isEmpty()) {
+			return originalHtml;
+		}
+		try {
+			String html = originalHtml;
+			html = enhanceHtmlRds(stop, html, severity);
+			html = enhanceHtmlSeverity(severity, html);
+			html = enhanceHtmlDateTime(context, html);
+			return html;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while trying to enhance route direction service update HTML '%s' for stop!", originalHtml);
+			return originalHtml;
+		}
+	}
+
+	private static final Cleaner CLEAN_TIME = new Cleaner("([\\d]{1,2})[\\s]*[:|h][\\s]*([\\d]{2})([\\s]*([a|p]m))?", true);
+
+	private static final Cleaner CLEAN_DATE = new Cleaner("(\\d{1,2}\\s*[a-zA-Z]+\\s*\\d{4})");
+
+	private static final ThreadSafeDateFormatter PARSE_TIME = new ThreadSafeDateFormatter("HH:mm", Locale.ENGLISH);
+
+	private static final ThreadSafeDateFormatter PARSE_TIME_AM_PM = new ThreadSafeDateFormatter("hh:mm a", Locale.ENGLISH);
+
+	private static final ThreadSafeDateFormatter FORMAT_DATE = ThreadSafeDateFormatter.getDateInstance(ThreadSafeDateFormatter.MEDIUM);
+
+	private static final String PARSE_DATE_REGEX = "dd MMMM yyyy";
+
+	private static final TimeZone TZ = TimeZone.getTimeZone("America/Montreal");
+
+	private String enhanceHtmlDateTime(@NonNull Context context, String html) throws ParseException {
+		if (html == null || html.isEmpty()) {
+			return html;
+		}
+		Matcher timeMatcher = CLEAN_TIME.matcher(html);
+		while (timeMatcher.find()) {
+			String time = timeMatcher.group(0);
+			if (time == null) {
+				continue;
+			}
+			String hours = timeMatcher.group(1);
+			String minutes = timeMatcher.group(2);
+			String amPm = StringUtils.trim(timeMatcher.group(3));
+			Date timeD;
+			if (amPm == null || amPm.isEmpty()) {
+				PARSE_TIME.setTimeZone(TZ);
+				timeD = PARSE_TIME.parseThreadSafe(hours + ":" + minutes);
+			} else {
+				PARSE_TIME_AM_PM.setTimeZone(TZ);
+				timeD = PARSE_TIME_AM_PM.parseThreadSafe(hours + ":" + minutes + " " + amPm);
+			}
+			if (timeD == null) {
+				continue;
+			}
+			String fTime = TimeUtils.formatTime(false, context, timeD);
+			html = html.replace(time, fTime);
+		}
+		Matcher dateMatcher = CLEAN_DATE.matcher(html);
+		ThreadSafeDateFormatter parseDate = new ThreadSafeDateFormatter(PARSE_DATE_REGEX, LocaleUtils.isFR() ? Locale.FRENCH : Locale.ENGLISH);
+		while (dateMatcher.find()) {
+			String date = dateMatcher.group(0);
+			if (date == null) {
+				continue;
+			}
+			Date dateD = parseDate.parseThreadSafe(date);
+			if (dateD == null) {
+				continue;
+			}
+			String fDate = FORMAT_DATE.formatThreadSafe(dateD);
+			html = html.replace(date, fDate);
+		}
+		return html;
+	}
+
+	@NonNull
+	private static String getAgencyTag(@NonNull Context context) {
+		return getRDS_AGENCY_ID(context);
+	}
+
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
+	private static String getStopStatusTargetUUID(@NonNull Context context, @NonNull RouteDirectionStop rds) {
+		return getStopStatusTargetUUID(
+				getAgencyTag(context),
+				rds.getRoute().getShortName(),
+				rds.getDirection().getHeadsignValue(),
+				rds.getStop().getCode()
+		);
+	}
+
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
+	private static String getStopStatusTargetUUID(String agency, String routeShortName, String directionHeadsign, String stopCode) {
+		return POI.POIUtils.makeUUID(agency, routeShortName, directionHeadsign, stopCode);
+	}
+
+	// region Service Update Target UUID
+
+	// region Route Direction
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	@NonNull
+	private Map<String, String> getProviderTargetUUIDs(@NonNull Context context, @NonNull RouteDirection rd) {
+		final HashMap<String, String> targetUUIDs = new HashMap<>();
+		targetUUIDs.put(getRouteDirectionServiceUpdateTargetUUID(context, rd.getRoute(), rd.getDirection()), rd.getUUID());
+		return targetUUIDs;
+	}
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	private String getRouteDirectionServiceUpdateTargetUUID(@NonNull Context context, @NonNull Route route, @NonNull Direction direction) {
+		return getRouteDirectionServiceUpdateTargetUUID(
+				getAgencyTag(context),
+				route.getShortName(),
+				direction.getHeadsignValue()
+		);
+	}
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	@NonNull
+	protected static String getRouteDirectionServiceUpdateTargetUUID(@NonNull String agency, @NonNull String routeShortName, @NonNull String directionHeadsignValue) {
+		return POI.POIUtils.makeUUID(agency, routeShortName, directionHeadsignValue);
+	}
+
+	// endregion Route Direction
+
+	// region Route Direction Stop
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	@NonNull
+	private Map<String, String> getProviderTargetUUIDs(@NonNull Context context, @NonNull RouteDirectionStop rds) {
+		final HashMap<String, String> targetUUIDs = new HashMap<>();
+		targetUUIDs.put(getRouteDirectionServiceUpdateTargetUUID(context, rds.getRoute(), rds.getDirection()), rds.getRouteDirectionUUID());
+		targetUUIDs.put(getStopServiceUpdateTargetUUID(context, rds), rds.getUUID());
+		return targetUUIDs;
+	}
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	private String getStopServiceUpdateTargetUUID(@NonNull Context context, @NonNull RouteDirectionStop rds) {
+		return getStopServiceUpdateTargetUUID(
+				getAgencyTag(context),
+				rds.getRoute().getShortName(),
+				rds.getDirection().getHeadsignValue(),
+				rds.getStop().getCode()
+		);
+	}
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	@NonNull
+	private static String getStopServiceUpdateTargetUUID(@NonNull String agency, @NonNull String routeShortName, @NonNull String directionHeadsignValue, @NonNull String stopCode) {
+		return POI.POIUtils.makeUUID(agency, routeShortName, directionHeadsignValue, stopCode);
+	}
+
+	// endregion Route Direction Stop
+
+	// endregion Service Update Target UUID
+
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
+	@Override
+	public boolean purgeUselessCachedStatuses() {
+		return StatusProvider.purgeUselessCachedStatuses(this);
+	}
+
+	@Override
+	public boolean purgeUselessCachedServiceUpdates() {
+		return ServiceUpdateProvider.purgeUselessCachedServiceUpdates(this);
+	}
+
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
+	@Override
+	public boolean deleteCachedStatus(int cachedStatusId) {
+		return StatusProvider.deleteCachedStatus(this, cachedStatusId);
+	}
+
+	@Override
+	public boolean deleteCachedServiceUpdate(int serviceUpdateId) {
+		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, serviceUpdateId);
+	}
+
+	@Override
+	public boolean deleteCachedServiceUpdate(@NonNull String targetUUID, @NonNull String sourceId) {
+		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, targetUUID, sourceId);
+	}
+
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
+	@NonNull
+	@Override
+	public String getStatusDbTableName() {
+		return StmInfoApiDbHelper.T_STM_INFO_API_STATUS;
+	}
+
+	@NonNull
+	@Override
+	public String getServiceUpdateDbTableName() {
+		return StmInfoApiDbHelper.T_STM_INFO_API_SERVICE_UPDATE;
+	}
+
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
+	@Override
+	public int getStatusType() {
+		return POI.ITEM_STATUS_TYPE_SCHEDULE;
+	}
+
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
+	@Nullable
+	@Override
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
+		if (!(statusFilter instanceof ScheduleStatusFilter)) {
+			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
+			return null;
+		}
+		final ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) statusFilter;
+		final RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		if (rds.getStop().getCode().isEmpty()
+				|| rds.getRoute().getShortName().isEmpty()) {
+			return null;
+		}
+		loadRealTimeStatusFromWWW(requireContextCompat(), rds, true, false);
+		return getCachedStatus(statusFilter);
+	}
+
+	@Nullable
+	@Override
+	public ServiceUpdates getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+		if (USE_NEW_API) return StmInfoServiceUpdateProvider.getNew(this, serviceUpdateFilter);
+		final Context context = requireContextCompat();
+		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			return getNewServiceUpdates(context, (RouteDirectionStop) serviceUpdateFilter.getPoi());
+		} else if (serviceUpdateFilter.getRouteDirection() != null) {
+			return getNewServiceUpdates(context, serviceUpdateFilter.getRouteDirection());
+		} else if ((serviceUpdateFilter.getRoute() != null)) { // NOT SUPPORTED
+			return makeServiceUpdateNoneList(this, serviceUpdateFilter.getRoute(), SERVICE_UPDATE_SOURCE_ID);
+		} else {
+			MTLog.w(this, "getNewServiceUpdates() > no service update (poi null or not RDS or no route)");
+			return null;
+		}
+	}
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	@Nullable
+	private ServiceUpdates getNewServiceUpdates(@NonNull Context context, @NonNull RouteDirectionStop rds) {
+		if (rds.getDirection().getHeadsignValue().isEmpty()
+				|| rds.getRoute().getShortName().isEmpty()) {
+			MTLog.d(this, "getNewServiceUpdates() > skip (stop w/o code OR route w/o short name: %s)", rds);
+			return null;
+		}
+		// USING same feed as real-time POI status schedule
+		loadRealTimeStatusFromWWW(context, rds, false, true);
+		return getCachedServiceUpdates(context, rds);
+	}
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	@SuppressWarnings("SameReturnValue")
+	@Nullable
+	private ServiceUpdates getNewServiceUpdates(@SuppressWarnings("unused") @NonNull Context context, @NonNull RouteDirection rd) {
+		if (rd.getDirection().getHeadsignValue().isEmpty()
+				|| rd.getRoute().getShortName().isEmpty()) {
+			MTLog.d(this, "getNewServiceUpdates() > skip (stop w/o code OR route w/o short name: %s)", rd);
+			return null;
+		}
+		// USING same feed as real-time POI status schedule
+		// -> can't load status without stop code
+		return null;
+	}
+
+	@NonNull
+	@Override
+	public String getServiceUpdateLanguage() {
+		if (USE_NEW_API) return StmInfoServiceUpdateProvider.getServiceUpdateLanguage();
+		return LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
+	}
+
+	private OkHttpClient okHttpClient = null;
+
+	@NonNull
+	private OkHttpClient getOkHttpClient(@NonNull Context context) {
+		if (this.okHttpClient == null) {
+			this.okHttpClient = NetworkUtils.makeNewOkHttpClientWithInterceptor(context);
+		}
+		return this.okHttpClient;
+	}
+
+	private static final String NORTH = "N";
+	private static final String SOUTH = "S";
+	private static final String EAST = "E";
+	private static final String WEST = "W";
+	private static final String WEST_FR = "O";
+
+	private static final String REAL_TIME_URL_PART_1_BEFORE_LANG = "https://api.stm.info/pub/i3/v1c/api/";
+	private static final String REAL_TIME_URL_PART_2_BEFORE_ROUTE_SHORT_NAME = "/lines/";
+	private static final String REAL_TIME_URL_PART_3_BEFORE_STOP_CODE = "/stops/";
+	private static final String REAL_TIME_URL_PART_4_BEFORE_DIRECTION = "/arrivals?direction=";
+	private static final String REAL_TIME_URL_PART_5_BEFORE_LIMIT = "&wheelchair=0&web_mips=1&limit=";
+
+	@NonNull
+	private static String getRealTimeStatusUrlString(@NonNull RouteDirectionStop rds, @NonNull String language) {
+		return REAL_TIME_URL_PART_1_BEFORE_LANG + //
+				language + //
+				REAL_TIME_URL_PART_2_BEFORE_ROUTE_SHORT_NAME + //
+				rds.getRoute().getShortName() + //
+				REAL_TIME_URL_PART_3_BEFORE_STOP_CODE + //
+				rds.getStop().getCode() + //
+				REAL_TIME_URL_PART_4_BEFORE_DIRECTION + //
+				getApiDirection(rds.getDirection()) + //
+				REAL_TIME_URL_PART_5_BEFORE_LIMIT + //
+				20;
+	}
+
+	private static final Map<String, String> DIRECTION_HEADSIGN_TO_STM_API_DIRECTION;
+
+	static {
+		final Map<String, String> map = new HashMap<>();
+		map.put(Direction.HEADING_EAST, EAST);
+		map.put(Direction.HEADING_WEST, WEST);
+		map.put(Direction.HEADING_NORTH, NORTH);
+		map.put(Direction.HEADING_SOUTH, SOUTH);
+		DIRECTION_HEADSIGN_TO_STM_API_DIRECTION = map;
+	}
+
+	@NonNull
+	private static String getApiDirection(@NonNull Direction direction) {
+		if (direction.getHeadsignType() == Direction.HEADSIGN_TYPE_DIRECTION) {
+			final String apiDirection = DIRECTION_HEADSIGN_TO_STM_API_DIRECTION.get(direction.getHeadsignValue());
+			if (apiDirection != null) {
+				return apiDirection;
+			}
+		}
+		MTLog.w(LOG_TAG, "Unexpected direction for direction '%s'!", direction);
+		return StringUtils.EMPTY;
+	}
+
+	public static final String SERVICE_UPDATE_SOURCE_ID = "api_stm_info_arrivals_messages";
+
+	private static final String APPLICATION_JSON = "application/JSON";
+	private static final String ACCEPT = "accept";
+
+	private static final ConcurrentHashMap<String, Object> synchronizedLock = new ConcurrentHashMap<>();
+
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
+	private void loadRealTimeStatusFromWWW(
+			@NonNull Context context,
+			@NonNull RouteDirectionStop rds,
+			boolean hasStatusFilter,
+			boolean hasServiceUpdateFilter
+	) {
+		final String uuid = rds.getUUID();
+		synchronizedLock.putIfAbsent(uuid, uuid);
+		synchronized (CollectionUtils.getOrDefault(synchronizedLock, uuid, uuid)) {
+			if (hasStatusFilter || !STORE_EMPTY_SERVICE_MESSAGE) { // IF it is loading status OR empty service update not stored
+				final POIStatus cachedStopStatus = StatusProvider.getCachedStatusS(this, getStopStatusTargetUUID(context, rds));
+				if (cachedStopStatus != null) { // DO check status update
+					MTLog.d(this, "loadRealTimeStatusFromWWW() > SKIP (status already in cache for %s)", uuid);
+					return;
+				}
+			}
+			if (hasServiceUpdateFilter && STORE_EMPTY_SERVICE_MESSAGE) { // IF loading service update AND storing empty service update
+				final ServiceUpdates cachedStopServiceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(context, rds));
+				if (cachedStopServiceUpdates != null && !cachedStopServiceUpdates.isEmpty()) { // DO check service update
+					MTLog.d(this, "loadRealTimeStatusFromWWW() > SKIP (service update already in cache for %s)", uuid);
+					return;
+				}
+			}
+			loadRealTimeStatusFromWWW(context, rds);
+		}
+	}
+
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
+	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteDirectionStop rds) {
+		try {
+			final String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
+			final String urlString = getRealTimeStatusUrlString(rds, language);
+			MTLog.i(this, "Loading from '%s'...", urlString);
+			final String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_LANG);
+			final Request urlRequest = new Request.Builder()
+					.url(urlString)
+					.addHeader(ACCEPT, APPLICATION_JSON)
+					.addHeader("Origin", "https://stm.info")
+					.build();
+			try (Response response = getOkHttpClient(context).newCall(urlRequest).execute()) {
+				switch (response.code()) {
+				case HttpURLConnection.HTTP_OK:
+					final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+					final String jsonString = FileUtils.getString(response.body().byteStream());
+					MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
+					final JArrivals jArrivals = parseAgencyJSONArrivals(jsonString);
+					final ArrayList<POIStatus> statuses = parseAgencyJSONArrivalsStatuses(
+							context,
+							jArrivals.getResults(),
+							rds,
+							sourceLabel,
+							newLastUpdateInMs
+					);
+					StatusProvider.deleteCachedStatus(this, Collections.singleton(getStopStatusTargetUUID(context, rds)));
+					if (statuses != null) {
+						for (POIStatus status : statuses) {
+							StatusProvider.cacheStatusS(this, status);
+						}
+					}
+					MTLog.i(this, "Found %d schedule statuses for '%s'.", (statuses == null ? 0 : statuses.size()), rds.toStringShort());
+					// if (org.mtransit.android.commons.Constants.DEBUG) {
+					// if (statuses != null) {
+					// for (POIStatus status : statuses) {
+					// MTLog.d(this, "- %s", status.toString());
+					// }
+					// }
+					// }
+					final ServiceUpdates serviceUpdates = parseAgencyJSONArrivalsServiceUpdates(
+							context,
+							jArrivals.getMessages(),
+							rds,
+							sourceLabel,
+							language,
+							newLastUpdateInMs
+					);
+					MTLog.i(this, "Found %d service updates for '%s'.", serviceUpdates == null ? null : serviceUpdates.size(), rds.toStringShort());
+					// if (org.mtransit.android.commons.Constants.DEBUG) {
+					// if (serviceUpdates != null) {
+					// for (ServiceUpdate serviceUpdate : serviceUpdates) {
+					// MTLog.d(this, "- %s", serviceUpdate.toString());
+					// }
+					// }
+					// }
+					deleteOldAndCacheNewServiceUpdates(serviceUpdates);
+					return;
+				default:
+					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
+							response.message());
+				}
+			}
+		} catch (UnknownHostException uhe) {
+			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
+				MTLog.w(this, uhe, "No Internet Connection!");
+			} else {
+				MTLog.w(this, "No Internet Connection!");
+			}
+		} catch (SocketException se) {
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
+		} catch (Exception e) { // Unknown error
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
+		}
+	}
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	@Nullable
+	private ServiceUpdates parseAgencyJSONArrivalsServiceUpdates(
+			@NonNull Context context,
+			@NonNull JArrivals.JMessages jMessages,
+			@NonNull RouteDirectionStop rds,
+			@NonNull String sourceLabel,
+			@NonNull String language,
+			long newLastUpdateInMs
+	) {
+		try {
+			final long maxValidityInMs = getServiceUpdateMaxValidityInMs();
+			final ServiceUpdates serviceUpdates = new ServiceUpdates();
+			final String rdTargetUUID = getRouteDirectionServiceUpdateTargetUUID(context, rds.getRoute(), rds.getDirection());
+			final String rdsTargetUUID = getStopServiceUpdateTargetUUID(context, rds);
+			int rdsServiceUpdateAdded = 0;
+			// ROUTE DIRECTION messages
+			for (JArrivals.JMessages.JMessage jLine : jMessages.getLines()) {
+				final int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI; // service updates target this route stops
+				final String routeLink = makeRouteServiceUpdateLink(rds.getRoute());
+				final String routeTitle = rds.getRoute().getShortName() + " " + rds.getDirection().getHeading(context);
+				String text = jLine.text;
+				text = HtmlUtils.fixTextViewBR(text); // remove <div/>
+				//noinspection ConstantValue
+				serviceUpdates.add(new ServiceUpdate(
+						null,
+						rdTargetUUID,
+						null,
+						newLastUpdateInMs,
+						maxValidityInMs,
+						ServiceUpdateCleaner.makeText(
+								routeTitle,
+								HtmlUtils.fromHtmlLegacy(text)
+						),
+						ServiceUpdateCleaner.makeTextHTML(
+								routeTitle,
+								enhanceHtml(text, null, null), // no severity|stop based enhancement here,
+								routeLink
+						),
+						severity,
+						null,
+						SERVICE_UPDATE_SOURCE_ID,
+						sourceLabel,
+						null, // no original ID
+						language
+				));
+				// NOT adding duplicates for route since UI cannot fetch from routes screen
+			}
+			// STOPS messages
+			for (JArrivals.JMessages.JMessage stopPoint : jMessages.getStopPoints()) {
+				final int severity = ServiceUpdate.SEVERITY_WARNING_POI;
+				final String stopLink = null;
+				final String stopTitle = rds.getStop().getCode() + " (" + rds.getStop().getName() + ")";
+				String text = stopPoint.text;
+				text = HtmlUtils.fixTextViewBR(text); // remove <div/>
+				//noinspection ConstantValue
+				serviceUpdates.add(new ServiceUpdate(
+						null,
+						rdsTargetUUID,
+						null,
+						newLastUpdateInMs,
+						maxValidityInMs,
+						ServiceUpdateCleaner.makeText(
+								stopTitle,
+								text
+						),
+						ServiceUpdateCleaner.makeTextHTML(
+								stopTitle,
+								enhanceHtml(text, null, null), // no severity|stop based enhancement here,
+								stopLink
+						),
+						severity,
+						null,
+						SERVICE_UPDATE_SOURCE_ID,
+						sourceLabel,
+						null, // no original ID
+						language
+				));
+				rdsServiceUpdateAdded++;
+			}
+			if (STORE_EMPTY_SERVICE_MESSAGE && rdsServiceUpdateAdded == 0) {
+				MTLog.d(this, "No messages found, return empty severity none message #ServiceUpdate");
+				serviceUpdates.add(
+						makeServiceUpdateNone(
+								this,
+								rdsTargetUUID, // mark service update for RDS as loaded
+								SERVICE_UPDATE_SOURCE_ID
+						)
+				);
+			}
+			return serviceUpdates;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON results '%s'!", jMessages);
+			return null;
+		}
+	}
+
+	private static final String ROUTE_SERVICE_UPDATE_FORMAT_EN = "https://www.stm.info/en/info/service-updates/bus?bus_line=%s#status-bus-result-title";
+	private static final String ROUTE_SERVICE_UPDATE_FORMAT_FR = "https://www.stm.info/fr/infos/etat-du-service/bus?bus_line=%s#status-bus-result-title";
+
+	@Nullable
+	private String makeRouteServiceUpdateLink(@NonNull Route route) {
+		//noinspection ConstantValue
+		if (true) {
+			return null; // IGNORE: desktop links
+		}
+		try {
+			if (LocaleUtils.isFR()) {
+				return String.format(Locale.FRENCH, ROUTE_SERVICE_UPDATE_FORMAT_FR, route.getShortName());
+			}
+			return String.format(Locale.ENGLISH, ROUTE_SERVICE_UPDATE_FORMAT_EN, route.getShortName());
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while formatting link for route %s!", route);
+			return null;
+		}
+	}
+
+	private static final String REAL_TIME_SERVICE_UPDATE_URL_PART_1_BEFORE_LANG = "https://api.stm.info/pub/i3/v1c/api/";
+	private static final String REAL_TIME_SERVICE_UPDATE_URL_PART_2_BEFORE_ROUTE_SHORT_NAME = "/lines/";
+	private static final String REAL_TIME_SERVICE_UPDATE_URL_PART_3 = "/messages?type=Bus&web_mips=1";
+
+	@Deprecated
+	private static String getRealTimeServiceUpdateUrlString(@NonNull RouteDirectionStop rds, @NonNull String language) {
+		return REAL_TIME_SERVICE_UPDATE_URL_PART_1_BEFORE_LANG + //
+				language + //
+				REAL_TIME_SERVICE_UPDATE_URL_PART_2_BEFORE_ROUTE_SHORT_NAME + //
+				rds.getRoute().getShortName() + //
+				REAL_TIME_SERVICE_UPDATE_URL_PART_3;
+	}
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	// USING same feed as real-time POI status schedule
+	@SuppressWarnings({"deprecation", "unused"})
+	@Deprecated
+	private void loadRealTimeServiceUpdateFromWWW(@NonNull Context context, RouteDirectionStop rds) {
+		try {
+			final String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
+			String urlString = getRealTimeServiceUpdateUrlString(rds, language);
+			MTLog.i(this, "Loading from '%s'...", urlString);
+			final String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_SERVICE_UPDATE_URL_PART_1_BEFORE_LANG);
+			final Request urlRequest = new Request.Builder()
+					.url(urlString)
+					.addHeader(ACCEPT, APPLICATION_JSON)
+					.addHeader("Origin", "https://stm.info")
+					.build();
+			try (Response response = getOkHttpClient(context).newCall(urlRequest).execute()) {
+				switch (response.code()) {
+				case HttpURLConnection.HTTP_OK:
+					long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+					String jsonString = FileUtils.getString(response.body().byteStream());
+					MTLog.d(this, "loadRealTimeServiceUpdateFromWWW() > jsonString: %s.", jsonString);
+					JMessages jMessages = parseAgencyJSONMessages(jsonString);
+					List<JMessages.JResult> jResults = jMessages.getResults();
+					ServiceUpdates serviceUpdates = parseAgencyJSONMessageResults(
+							jResults,
+							rds, sourceLabel, language, newLastUpdateInMs);
+					MTLog.i(this, "Found %d service updates.", serviceUpdates == null ? null : serviceUpdates.size());
+					deleteOldAndCacheNewServiceUpdates(serviceUpdates);
+					return;
+				default:
+					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
+							response.message());
+				}
+			}
+		} catch (UnknownHostException uhe) {
+			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
+				MTLog.w(this, uhe, "No Internet Connection!");
+			} else {
+				MTLog.w(this, "No Internet Connection!");
+			}
+		} catch (SocketException se) {
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
+		} catch (Exception e) { // Unknown error
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
+		}
+	}
+
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
+	private synchronized void deleteOldAndCacheNewServiceUpdates(ServiceUpdates serviceUpdates) { // SYNC because may have multiple concurrent same route call
+		if (serviceUpdates != null) {
+			for (ServiceUpdate serviceUpdate : serviceUpdates) {
+				deleteCachedServiceUpdate(serviceUpdate.getTargetUUID(), SERVICE_UPDATE_SOURCE_ID);
+			}
+		}
+		cacheServiceUpdates(serviceUpdates);
+	}
+
+	@Nullable
+	private static java.util.List<String> urlHeaderName = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@NonNull
+	public static java.util.List<String> getURL_HEADER_NAMES(@NonNull Context context) {
+		if (urlHeaderName == null) {
+			urlHeaderName = Arrays.asList(context.getResources().getStringArray(R.array.stm_info_api_url_header_names));
+		}
+		return urlHeaderName;
+	}
+
+	@Nullable
+	private static java.util.List<String> urlHeaderValue = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@NonNull
+	public static java.util.List<String> getURL_HEADER_VALUES(@NonNull Context context) {
+		if (urlHeaderValue == null) {
+			urlHeaderValue = Arrays.asList(context.getResources().getStringArray(R.array.stm_info_api_agency_url_header_values));
+		}
+		return urlHeaderValue;
+	}
+
+	@Nullable
+	private static Boolean statusEnabled = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@SuppressWarnings("unused") // used in shell
+	public static boolean getSTATUS_ENABLED(@NonNull Context context) {
+		if (statusEnabled == null) {
+			statusEnabled = context.getResources().getBoolean(R.bool.stm_info_api_status_provider);
+		}
+		return statusEnabled;
+	}
+
+	@Nullable
+	private static Boolean serviceUpdatesEnabled = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@SuppressWarnings("unused") // used in shell
+	public static boolean getSERVICE_UPDATES_ENABLED(@NonNull Context context) {
+		if (serviceUpdatesEnabled == null) {
+			serviceUpdatesEnabled = context.getResources().getBoolean(R.bool.stm_info_api_service_update_provider);
+		}
+		return serviceUpdatesEnabled;
+	}
+
+	@Nullable
+	private static String serviceUpdatesUrlCached = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@NonNull
+	public static String getSERVICE_UPDATES_URL_CACHED(@NonNull Context context) {
+		if (serviceUpdatesUrlCached == null) {
+			serviceUpdatesUrlCached = context.getResources().getString(R.string.stm_info_api_service_alerts_url_cached);
+		}
+		return serviceUpdatesUrlCached;
+	}
+
+	@Nullable
+	private static java.util.List<String> serviceUpdateDescNoneRegexes = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@NonNull
+	public static java.util.List<String> getSERVICE_UPDATE_DESC_NONE_REGEXES(@NonNull Context context) {
+		if (serviceUpdateDescNoneRegexes == null) {
+			serviceUpdateDescNoneRegexes = Arrays.asList(context.getResources().getStringArray(R.array.stm_info_api_service_update_description_severity_none));
+		}
+		return serviceUpdateDescNoneRegexes;
+	}
+
+	@Nullable
+	private static java.util.List<String> serviceUpdateDescInfoRegexes = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@NonNull
+	public static java.util.List<String> getSERVICE_UPDATE_DESC_INFO_REGEXES(@NonNull Context context) {
+		if (serviceUpdateDescInfoRegexes == null) {
+			serviceUpdateDescInfoRegexes = Arrays.asList(context.getResources().getStringArray(R.array.stm_info_api_service_update_description_severity_info));
+		}
+		return serviceUpdateDescInfoRegexes;
+	}
+
+	@Nullable
+	private static java.util.List<String> serviceUpdateDescWarningRegexes = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@NonNull
+	public static java.util.List<String> getSERVICE_UPDATE_DESC_WARNING_REGEXES(@NonNull Context context) {
+		if (serviceUpdateDescWarningRegexes == null) {
+			serviceUpdateDescWarningRegexes = Arrays.asList(context.getResources().getStringArray(R.array.stm_info_api_service_update_description_severity_warning));
+		}
+		return serviceUpdateDescWarningRegexes;
+	}
+
+	@SuppressWarnings("UnusedReturnValue")
+	public int deleteAllAgencyServiceUpdateData() {
+		int affectedRows = 0;
+		try {
+			String selection = SqlUtils.getWhereEqualsString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID, SERVICE_UPDATE_SOURCE_ID);
+			affectedRows = getWriteDB().delete(getServiceUpdateDbTableName(), selection, null);
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while deleting all agency service update data!");
+		}
+		return affectedRows;
+	}
+
+	@Deprecated
+	private JMessages parseAgencyJSONMessages(String jsonString) {
+		List<JMessages.JResult> results = new ArrayList<>();
+		try {
+			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
+			if (json != null && json.has(JSON_RESULT)) {
+				JSONArray jResults = json.getJSONArray(JSON_RESULT);
+				List<Map<String, List<JMessages.JResult.JResultRoute>>> shortNameResultRouteList = new ArrayList<>();
+				for (int r = 0; r < jResults.length(); r++) {
+					Map<String, List<JMessages.JResult.JResultRoute>> shortNameResultRoutes = new HashMap<>();
+					JSONObject jResult = jResults.getJSONObject(r);
+					Iterator<String> it = jResult.keys();
+					while (it.hasNext()) {
+						String jResultKey = it.next();
+						ArrayList<JMessages.JResult.JResultRoute> resultRoutes = new ArrayList<>();
+						if (jResult.has(jResultKey)) {
+							JSONArray jResultRoutes = jResult.getJSONArray(jResultKey);
+							for (int rr = 0; rr < jResultRoutes.length(); rr++) {
+								JSONObject jResultRoute = jResultRoutes.getJSONObject(rr);
+								String direction = jResultRoute.getString(JSON_DIRECTION);
+								String directionName = jResultRoute.getString(JSON_DIRECTION_NAME);
+								String text = jResultRoute.getString(JSON_TEXT);
+								String code = jResultRoute.getString(JSON_CODE);
+								String date = jResultRoute.getString(JSON_DATE);
+								resultRoutes.add(new JMessages.JResult.JResultRoute(direction, directionName, text, code, date));
+							}
+						}
+						shortNameResultRoutes.put(jResultKey, resultRoutes);
+					}
+					shortNameResultRouteList.add(shortNameResultRoutes);
+				}
+				results.add(new JMessages.JResult(shortNameResultRouteList));
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
+		}
+		return new JMessages(results);
+	}
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	@SuppressWarnings("DeprecatedIsStillUsed")
+	@Deprecated
+	@Nullable
+	protected ServiceUpdates parseAgencyJSONMessageResults(
+			@NonNull List<JMessages.JResult> jResults,
+			@NonNull RouteDirectionStop rds,
+			@NonNull String sourceLabel,
+			@NonNull String language,
+			long newLastUpdateInMs
+	) {
+		try {
+			ServiceUpdates serviceUpdates = new ServiceUpdates();
+			long maxValidityInMs = getServiceUpdateMaxValidityInMs();
+			int index = 0;
+			for (JMessages.JResult jResult : jResults) {
+				List<Map<String, List<JMessages.JResult.JResultRoute>>> jShortNameResultRouteList = jResult.getShortNameResultRoutes();
+				for (Map<String, List<JMessages.JResult.JResultRoute>> jShortNameResultRoutes : jShortNameResultRouteList) {
+					for (Map.Entry<String, List<JMessages.JResult.JResultRoute>> jShortNameResultRoute : jShortNameResultRoutes.entrySet()) {
+						String routeShortName = jShortNameResultRoute.getKey();
+						if (routeShortName == null || routeShortName.isEmpty()) {
+							routeShortName = rds.getRoute().getShortName(); // default to RDS short name
+						}
+						for (JMessages.JResult.JResultRoute jResultRoute : jShortNameResultRoute.getValue()) {
+							index++;
+							String directionName = jResultRoute.getDirectionName();
+							String direction = jResultRoute.getDirection();
+							String text = jResultRoute.getText();
+							String code = jResultRoute.getCode();
+							String directionHeadsignValue = parseAgencyDirectionHeadsignValue(direction);
+							if (directionHeadsignValue == null) {
+								directionHeadsignValue = parseAgencyDirectionHeadsignValue(directionName);
+							}
+							if (directionHeadsignValue == null) {
+								MTLog.d(this, "Skip because not usable direction head-sign from '%s' or '%s'.", direction, directionName);
+								continue;
+							}
+							if (text.isEmpty()) {
+								continue;
+							}
+							int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI; // service updates target this route stops
+							if (JMessages.JResult.JResultRoute.CODE_NORMAL.equals(code)) {
+								severity = ServiceUpdate.SEVERITY_NONE; // Normal service
+							}
+							String title = routeShortName + " " + directionName;
+							String targetUUID = getRouteDirectionServiceUpdateTargetUUID(rds.getAuthority(), routeShortName, directionHeadsignValue);
+							String fText = ServiceUpdateCleaner.makeText(
+									title,
+									text
+							);
+							String textHtml = ServiceUpdateCleaner.makeTextHTML(
+									title,
+									enhanceHtml(text, null, null) // no severity|stop based enhancement here
+							);
+							//noinspection UnnecessaryLocalVariable
+							final String originalId = routeShortName + "-" + directionName + "-" + index; // TODO original ID?
+							serviceUpdates.add(new ServiceUpdate(
+									null,
+									targetUUID,
+									null,
+									newLastUpdateInMs,
+									maxValidityInMs,
+									fText,
+									textHtml,
+									severity,
+									null,
+									SERVICE_UPDATE_SOURCE_ID,
+									sourceLabel,
+									originalId,
+									language
+							));
+							// NOT adding duplicates for route since UI cannot fetch from routes screen
+						}
+					}
+				}
+			}
+			if (serviceUpdates.isEmpty()) {
+				if (CollectionUtils.getSize(serviceUpdates) == 0) {
+					MTLog.d(this, "No messages found, return empty severity none message  #ServiceUpdate");
+					String targetUUID = getRouteDirectionServiceUpdateTargetUUID(rds.getAuthority(), rds.getRoute().getShortName(), rds.getDirection().getHeadsignValue());
+					serviceUpdates.add(makeServiceUpdateNone(this, targetUUID, SERVICE_UPDATE_SOURCE_ID));
+				}
+			}
+			return serviceUpdates;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON results '%s'!", jResults);
+			return null;
+		}
+	}
+
+	private static final Map<String, String> DIRECTION_NAME_TO_HEADSIGN;
+
+	static {
+		final Map<String, String> map = new HashMap<>();
+		map.put(NORTH, Direction.HEADING_NORTH); // North / Nord
+		map.put(SOUTH, Direction.HEADING_SOUTH); // South / Sud
+		map.put(EAST, Direction.HEADING_EAST); // Est / East
+		map.put(WEST, Direction.HEADING_WEST); // West
+		map.put(WEST_FR, Direction.HEADING_WEST); // Ouest
+		DIRECTION_NAME_TO_HEADSIGN = map;
+	}
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	@Nullable
+	private String parseAgencyDirectionHeadsignValue(String directionName) {
+		if (directionName != null && !directionName.isEmpty()) {
+			final String headSignValue = DIRECTION_NAME_TO_HEADSIGN.get(String.valueOf(directionName.charAt(0)));
+			if (headSignValue != null) {
+				return headSignValue;
+			}
+		}
+		MTLog.w(this, "parseAgencyTripHeadsignValue() > unexpected direction '%s'!", directionName);
+		return null;
+	}
+
+	private static final TimeZone MONTREAL_TZ = TimeZone.getTimeZone("America/Montreal");
+
+	private Calendar getNewBeginningOfTodayCal(Calendar nowCal) {
+		Calendar beginningOfTodayCal = Calendar.getInstance(nowCal.getTimeZone());
+		beginningOfTodayCal.setTimeInMillis(nowCal.getTimeInMillis());
+		beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);
+		beginningOfTodayCal.set(Calendar.MINUTE, 0);
+		beginningOfTodayCal.set(Calendar.SECOND, 0);
+		beginningOfTodayCal.set(Calendar.MILLISECOND, 0);
+		return beginningOfTodayCal;
+	}
+
+	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(60L);
+
+	private static final String BUS_STOP = "bus stop\\S*";
+	private static final String BUS_STOP_FR = "arr[ê|e]t\\S*";
+
+	protected static final Cleaner STOP = new Cleaner("(" + BUS_STOP + ")", true);
+	protected static final Cleaner STOP_FR = new Cleaner("(" + BUS_STOP_FR + ")", true);
+
+	private static final String POINT = "\\.";
+	private static final String PARENTHESES1 = "\\(";
+	private static final String PARENTHESES2 = "\\)";
+	private static final String SLASH = "/";
+	private static final String ANY_STOP_CODE = oneOrMore(DIGIT_CAR);
+
+	// this old complex regex does NOT work with:
+	// 61611 (Station Berri-UQAM (1621 Berri))
+	// 50110 (Gare Montréal-Ouest (Elmhurst / Sherbrooke))
+	@SuppressWarnings("ConstantConditionalExpression") // DISABLED for now, default text display is good enough
+	private static final Cleaner CLEAN_STOP_CODE_AND_NAME = new Cleaner(
+			true ? group(ANY_STOP_CODE + zeroOrMore(except("<" + END)))
+					: "(" + ANY_STOP_CODE + ")[\\s]*" + PARENTHESES1 + "([^" + SLASH + "]*)" + SLASH
+					  + "([^" + PARENTHESES2 + "]*)" + PARENTHESES2 + "([" + PARENTHESES2 + "]*)" + "([,]*)([.]*)",
+			true ? "- $1"
+					: "- $2" + SLASH + "$3$4 " + PARENTHESES1 + "$1" + PARENTHESES2 + "$5$6",
+			false
+	);
+
+	private static final Cleaner CLEAN_BR = new Cleaner(
+			"(" + PARENTHESES2 + ",|" + POINT + "|:)\\s+",
+			"$1" + HtmlUtils.BR,
+			false
+	);
+
+	@SuppressWarnings("ConstantConditionalExpression") // DISABLED for now, default text display is good enough
+	private static final String CLEAN_THAT_STOP_CODE_FORMAT =
+			true ? group("%s" + zeroOrMore(except("<" + END)))
+					: "(\\-[\\s]+)" + "([^" + SLASH + "]*" + SLASH + "[^" + PARENTHESES1 + "]*" + PARENTHESES1 + "%s" + PARENTHESES2 + ")";
+
+	@Nullable
+	@SuppressWarnings("SameParameterValue")
+	private static String enhanceHtml(@Nullable String originalHtml, @Nullable Stop stop, @Nullable Integer severity) {
+		if (originalHtml == null || originalHtml.isEmpty()) {
+			return originalHtml;
+		}
+		try {
+			String html = originalHtml;
+			html = CLEAN_BR.clean(html);
+			html = CLEAN_STOP_CODE_AND_NAME.clean(html);
+			if (stop != null) {
+				html = enhanceHtmlRds(stop, html, severity);
+			}
+			if (severity != null) {
+				html = enhanceHtmlSeverity(severity, html);
+			}
+			return html;
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Error while trying to enhance HTML '%s' (using original)!", originalHtml);
+			return originalHtml;
+		}
+	}
+
+	private static String enhanceHtmlRds(@Nullable Stop stop, String html, @Nullable Integer severity) {
+		if (html == null || html.isEmpty() || stop == null) {
+			return html;
+		}
+		String replacement = "$1" + HtmlUtils.applyBold("$2");
+		//noinspection ConstantValue // DISABLED for now, default text display is good enough
+		if (true) {
+			replacement = ServiceUpdateCleaner.getReplacement(severity);
+		}
+		if (replacement == null) {
+			return html;
+		}
+		return new Cleaner(
+				String.format(CLEAN_THAT_STOP_CODE_FORMAT, stop.getCode()),
+				replacement
+		).clean(html);
+	}
+
+	private static final Cleaner CLEAN_BOLD = ServiceUpdateCleaner.make(BUS_STOP);
+	private static final Cleaner CLEAN_BOLD_FR = ServiceUpdateCleaner.make(BUS_STOP_FR);
+
+	private static String enhanceHtmlSeverity(int severity, String html) {
+		if (html == null || html.isEmpty()) {
+			return html;
+		}
+		final String replacement = ServiceUpdateCleaner.getReplacement(severity);
+		if (replacement != null) {
+			html = ServiceUpdateCleaner.clean(html, replacement);
+			return (LocaleUtils.isFR() ? CLEAN_BOLD_FR : CLEAN_BOLD).clean(html, replacement);
+		}
+		return html;
+	}
+
+	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
+	protected int findRDSSeverity(@Nullable String text, @NonNull Stop stop, @NonNull Cleaner stopCleaner) {
+		if (text != null && !text.isEmpty()) {
+			if (text.contains(stop.getCode())) {
+				return ServiceUpdate.SEVERITY_WARNING_POI;
+			} else if (stopCleaner.find(text)) {
+				return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
+			}
+		}
+		MTLog.d(this, "findRDSSeverity() > Cannot find RDS severity for '%s'. (%s)", text, stop);
+		return ServiceUpdate.SEVERITY_INFO_UNKNOWN;
+	}
+
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
+	@Nullable
+	protected ArrayList<POIStatus> parseAgencyJSONArrivalsStatuses(
+			@NonNull Context context,
+			@NonNull List<JArrivals.JResult> jResults,
+			@NonNull RouteDirectionStop rds,
+			@Nullable String sourceLabel,
+			long newLastUpdateInMs
+	) {
+		try {
+			final ArrayList<POIStatus> statuses = new ArrayList<>();
+			Calendar nowCal = Calendar.getInstance(MONTREAL_TZ);
+			nowCal.setTimeInMillis(newLastUpdateInMs);
+			nowCal.add(Calendar.HOUR_OF_DAY, -1);
+			boolean hasRealTime = false;
+			boolean hasCongestion = false;
+			boolean hasOnRequestedDay = false;
+			final Schedule newSchedule = new Schedule(
+					null,
+					getStopStatusTargetUUID(context, rds),
+					newLastUpdateInMs,
+					getStatusMaxValidityInMs(),
+					newLastUpdateInMs,
+					PROVIDER_PRECISION_IN_MS,
+					false,
+					MONTREAL_TZ.getID(),
+					sourceLabel
+			);
+			for (int r = 0; r < jResults.size(); r++) {
+				JArrivals.JResult jResult = jResults.get(r);
+				if (jResult != null && !jResult.getTime().isEmpty()) {
+					String jTime = jResult.getTime();
+					boolean isReal = jResult.isReal();
+					long t;
+					if (jTime.length() != 4) {
+						hasRealTime = true;
+						long countdownInMs = TimeUnit.MINUTES.toMillis(Long.parseLong(jTime));
+						t = newLastUpdateInMs + countdownInMs;
+					} else {
+						Calendar beginningOfTodayCal = getNewBeginningOfTodayCal(nowCal);
+						int hour = Integer.parseInt(jTime.substring(0, 2));
+						beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, hour);
+						int minutes = Integer.parseInt(jTime.substring(2, 4));
+						beginningOfTodayCal.set(Calendar.MINUTE, minutes);
+						if (beginningOfTodayCal.before(nowCal)) {
+							beginningOfTodayCal.add(Calendar.DATE, 1);
+						}
+						t = beginningOfTodayCal.getTimeInMillis();
+					}
+					nowCal.setTimeInMillis(t);
+					Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheMinuteMillis(t), MONTREAL_TZ);
+					if (jResult.isCongestion()) {
+						hasCongestion = true;
+						if (!timestamp.hasHeadsign()) {
+							timestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, //
+									context.getString(R.string.unknown_delay_short)
+											+ StringUtils.SPACE_STRING
+											+ context.getString(R.string.traffic_congestion)
+							);
+						}
+					}
+					timestamp.setAccessible(jResult.isRampCancelled ? Accessibility.NOT_POSSIBLE : Accessibility.POSSIBLE);
+					if (jResult.isOnRequestedDay()) {
+						hasOnRequestedDay = true;
+					}
+					timestamp.setRealTime(isReal);
+					newSchedule.addTimestampWithoutSort(timestamp);
+				}
+			}
+			newSchedule.sortTimestamps();
+			if (hasRealTime || hasCongestion || hasOnRequestedDay) {
+				statuses.add(newSchedule);
+			} // ELSE => dismissed because only returned planned schedule data which isn't trustworthy #767
+			return statuses;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON results '%s'!", jResults);
+			return null;
+		}
+	}
+
+	private static final String JSON_DIRECTION = "direction";
+	private static final String JSON_DIRECTION_NAME = "direction_name";
+	private static final String JSON_DATE = "date";
+	private static final String JSON_MESSAGES = "messages";
+	private static final String JSON_LINE = "line";
+	private static final String JSON_STOP_POINT = "stopPoint";
+	private static final String JSON_START_DATE = "start_date";
+	private static final String JSON_TEXT = "text";
+	private static final String JSON_CODE = "code";
+	private static final String JSON_RESULT = "result";
+	private static final String JSON_TIME = "time";
+	private static final String JSON_IS_REAL = "is_real";
+	private static final String JSON_IS_CONGESTION = "is_congestion";
+	private static final String JSON_IS_RAMP_CANCELLED = "is_ramp_cancelled";
+	private static final String JSON_IS_ON_REQUESTED_DAY = "is_on_requested_day";
+
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
+	@NonNull
+	private JArrivals parseAgencyJSONArrivals(@Nullable String jsonString) {
+		List<JArrivals.JMessages.JMessage> lines = new ArrayList<>();
+		List<JArrivals.JMessages.JMessage> stopPoints = new ArrayList<>();
+		List<JArrivals.JResult> results = new ArrayList<>();
+		try {
+			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
+			parseAgencyJSONArrivalsMessages(lines, stopPoints, json);
+			parseAgencyJSONArrivalsResults(results, json);
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
+		}
+		return new JArrivals(new JArrivals.JMessages(lines, stopPoints), results);
+	}
+
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
+	private void parseAgencyJSONArrivalsResults(@NonNull List<JArrivals.JResult> results, @Nullable JSONObject json) {
+		try {
+			if (json != null && json.has(JSON_RESULT)) {
+				JSONArray jResults = json.getJSONArray(JSON_RESULT);
+				if (jResults.length() > 0) {
+					for (int r = 0; r < jResults.length(); r++) {
+						JSONObject jResult = jResults.getJSONObject(r);
+						if (jResult != null && jResult.has(JSON_TIME)) {
+							String jTime = jResult.getString(JSON_TIME);
+							boolean isReal;
+							if (jResult.has(JSON_IS_REAL)) {
+								isReal = jResult.getBoolean(JSON_IS_REAL);
+							} else {
+								isReal = jTime.length() != 4;
+							}
+							boolean isCongestion = false;
+							if (jResult.has(JSON_IS_CONGESTION)) {
+								isCongestion = jResult.getBoolean(JSON_IS_CONGESTION);
+							}
+							boolean isRampCancelled = false;
+							if (jResult.has(JSON_IS_RAMP_CANCELLED)) {
+								isRampCancelled = jResult.getBoolean(JSON_IS_RAMP_CANCELLED);
+							}
+							boolean isOnRequestedDay = true;
+							if (jResult.has(JSON_IS_ON_REQUESTED_DAY)) {
+								isOnRequestedDay = jResult.getBoolean(JSON_IS_ON_REQUESTED_DAY);
+							}
+							results.add(new JArrivals.JResult(jTime, isReal, isCongestion, isRampCancelled, isOnRequestedDay));
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", json);
+		}
+	}
+
+	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
+	private void parseAgencyJSONArrivalsMessages(
+			@NonNull List<JArrivals.JMessages.JMessage> lines,
+			@NonNull List<JArrivals.JMessages.JMessage> stopPoints,
+			@Nullable JSONObject json) {
+		try {
+			if (json != null && json.has(JSON_MESSAGES)) {
+				JSONObject jMessages = json.optJSONObject(JSON_MESSAGES); // returns an array[] when no messages!
+				if (jMessages != null && jMessages.has(JSON_LINE)) {
+					JSONArray jLines = jMessages.getJSONArray(JSON_LINE);
+					for (int l = 0; l < jLines.length(); l++) {
+						JSONObject jLine = jLines.getJSONObject(l);
+						if (jLine != null && jLine.has(JSON_TEXT)) {
+							String jText = jLine.getString(JSON_TEXT);
+							if (!jText.isEmpty()) {
+								String jStartDate = jLine.optString(JSON_START_DATE);
+								lines.add(new JArrivals.JMessages.JMessage(jText, jStartDate));
+							}
+						}
+					}
+				}
+				if (jMessages != null && jMessages.has(JSON_STOP_POINT)) {
+					JSONArray jStopPoints = jMessages.getJSONArray(JSON_STOP_POINT);
+					for (int l = 0; l < jStopPoints.length(); l++) {
+						JSONObject jStopPoint = jStopPoints.getJSONObject(l);
+						if (jStopPoint != null && jStopPoint.has(JSON_TEXT)) {
+							String jText = jStopPoint.getString(JSON_TEXT);
+							if (!jText.isEmpty()) {
+								String jStartDate = jStopPoint.optString(JSON_START_DATE);
+								stopPoints.add(new JArrivals.JMessages.JMessage(jText, jStartDate));
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", json);
+		}
+	}
+
+	@MainThread
+	@Override
+	public boolean onCreateMT() {
+		updateSecurityProviderIfNeeded(getContext()); // cannot call requireContext() in onCreate()
+		return true;
+	}
+
+	@MainThread
+	private void updateSecurityProviderIfNeeded(@Nullable Context context) {
+		try {
+			if (context != null) {
+				ProviderInstaller.installIfNeededAsync(context, this);
+			} else {
+				MTLog.i(this, "Cannot update security provider (no context).");
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Unexpected error while updating security provider!");
+		}
+	}
+
+	@Override
+	public void onProviderInstalled() {
+		MTLog.d(this, "Security provider is up-to-date.");
+	}
+
+	@Override
+	public void onProviderInstallFailed(int i, @Nullable Intent intent) {
+		MTLog.w(this, "Unexpected error while updating security provider (%s,%s)!", i, intent);
+	}
+
+	@Nullable
+	private StmInfoApiDbHelper dbHelper;
+
+	private static int currentDbVersion = -1;
+
+	@NonNull
+	private StmInfoApiDbHelper getDBHelper(@NonNull Context context) {
+		if (dbHelper == null) { // initialize
+			dbHelper = getNewDbHelper(context);
+			currentDbVersion = getCurrentDbVersion();
+		} else { // reset
+			try {
+				if (currentDbVersion != getCurrentDbVersion()) {
+					dbHelper.close();
+					dbHelper = null;
+					return getDBHelper(context);
+				}
+			} catch (Exception e) { // fail if locked, will try again later
+				MTLog.w(this, e, "Can't check DB version!");
+			}
+		}
+		return dbHelper;
+	}
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	public int getCurrentDbVersion() {
+		return StmInfoApiDbHelper.getDbVersion(requireContextCompat());
+	}
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@NonNull
+	public StmInfoApiDbHelper getNewDbHelper(@NonNull Context context) {
+		return new StmInfoApiDbHelper(context.getApplicationContext());
+	}
+
+	@NonNull
+	@Override
+	public UriMatcher getURI_MATCHER() {
+		return getURIMATCHER(requireContextCompat());
+	}
+
+	@NonNull
+	@Override
+	public String getAuthority() {
+		return getAUTHORITY(requireContextCompat());
+	}
+
+	@NonNull
+	@Override
+	public Uri getAuthorityUri() {
+		return getAUTHORITY_URI(requireContextCompat());
+	}
+
+	@NonNull
+	private SQLiteOpenHelper getDBHelper() {
+		return getDBHelper(requireContextCompat());
+	}
+
+	@NonNull
+	@Override
+	public SQLiteDatabase getReadDB() {
+		return getDBHelper().getReadableDatabase();
+	}
+
+	@NonNull
+	@Override
+	public SQLiteDatabase getWriteDB() {
+		return getDBHelper().getWritableDatabase();
+	}
+
+	@Nullable
+	@Override
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
+		Cursor cursor = ServiceUpdateProvider.queryS(this, uri, selection);
+		if (cursor != null) {
+			return cursor;
+		}
+		cursor = StatusProvider.queryS(this, uri, selection); // @Discouraged(message = "Using GTFS-RT Trip Updates instead")
+		if (cursor != null) {
+			return cursor;
+		}
+		throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
+	}
+
+	@Nullable
+	@Override
+	public String getTypeMT(@NonNull Uri uri) {
+		String type = ServiceUpdateProvider.getTypeS(this, uri);
+		if (type != null) {
+			return type;
+		}
+		type = StatusProvider.getTypeS(this, uri); // @Discouraged(message = "Using GTFS-RT Trip Updates instead")
+		if (type != null) {
+			return type;
+		}
+		throw new IllegalArgumentException(String.format("Unknown URI (type): '%s'", uri));
+	}
+
+	@Override
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
+		MTLog.w(this, "The delete method is not available.");
+		return 0;
+	}
+
+	@Override
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
+		MTLog.w(this, "The update method is not available.");
+		return 0;
+	}
+
+	@Nullable
+	@Override
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
+		MTLog.w(this, "The insert method is not available.");
+		return null;
+	}
+
+	public static class StmInfoApiDbHelper extends MTSQLiteOpenHelper { // stores service updates & statuses
+
+		private static final String LOG_TAG = StmInfoApiDbHelper.class.getSimpleName();
+
+		@NonNull
+		@Override
+		public String getLogTag() {
+			return LOG_TAG;
+		}
+
+		/**
+		 * Override if multiple {@link StmInfoApiDbHelper} implementations in same app.
+		 */
+		protected static final String DB_NAME = "stm_info_api.db";
+
+		static final String T_STM_INFO_API_SERVICE_UPDATE = ServiceUpdateDbHelper.T_SERVICE_UPDATE;
+
+		private static final String T_STM_INFO_API_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateDbHelper.getSqlCreateBuilder(
+				T_STM_INFO_API_SERVICE_UPDATE).build();
+
+		private static final String T_STM_INFO_API_SERVICE_UPDATE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_STM_INFO_API_SERVICE_UPDATE);
+
+		static final String T_STM_INFO_API_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
+
+		private static final String T_STM_INFO_API_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_STM_INFO_API_STATUS).build();
+
+		private static final String T_STM_INFO_API_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_STM_INFO_API_STATUS);
+
+		private static int dbVersion = -1;
+
+		/**
+		 * Override if multiple {@link StmInfoApiDbHelper} in same app.
+		 */
+		public static int getDbVersion(@NonNull Context context) {
+			if (dbVersion < 0) {
+				dbVersion = context.getResources().getInteger(R.integer.stm_info_api_db_version);
+				dbVersion = ServiceUpdateDbHelper.bumpDBVersion(dbVersion);
+				dbVersion += 1; // "service_update" > brand new stm.info API (GTFS-RT like)
+				dbVersion += 1; // "service_update" > source ID change
+			}
+			return dbVersion;
+		}
+
+		StmInfoApiDbHelper(@NonNull Context context) {
+			super(context, DB_NAME, null, getDbVersion(context));
+		}
+
+		@Override
+		public void onCreateMT(@NonNull SQLiteDatabase db) {
+			initAllDbTables(db);
+		}
+
+		@Override
+		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
+			db.execSQL(T_STM_INFO_API_SERVICE_UPDATE_SQL_DROP);
+			db.execSQL(T_STM_INFO_API_STATUS_SQL_DROP);
+			initAllDbTables(db);
+		}
+
+		public boolean isDbExist(@NonNull Context context) {
+			return SqlUtils.isDbExist(context, DB_NAME);
+		}
+
+		private void initAllDbTables(@NonNull SQLiteDatabase db) {
+			db.execSQL(T_STM_INFO_API_SERVICE_UPDATE_SQL_CREATE);
+			db.execSQL(T_STM_INFO_API_STATUS_SQL_CREATE);
+		}
+	}
+
+	@SuppressWarnings({"unused", "WeakerAccess"})
+	public static class JArrivals {
+		@NonNull
+		private final JMessages messages;
+		@NonNull
+		private final List<JResult> results;
+
+		public JArrivals(@NonNull JMessages messages, @NonNull List<JResult> results) {
+			this.messages = messages;
+			this.results = results;
+		}
+
+		@NonNull
+		public JMessages getMessages() {
+			return messages;
+		}
+
+		@NonNull
+		public List<JResult> getResults() {
+			return results;
+		}
+
+		@NonNull
+		@Override
+		public String toString() {
+			return "JArrivals{" +
+					"messages=" + messages +
+					", results=" + results +
+					'}';
+		}
+
+		public static class JResult {
+			@NonNull
+			private final String time;
+			private final boolean isReal;
+			private final boolean isCongestion;
+			private final boolean isRampCancelled;
+			private final boolean isOnRequestedDay;
+
+			public JResult(@NonNull String time, boolean isReal, boolean isCongestion, boolean isRampCancelled, boolean isOnRequestedDay) {
+				this.time = time;
+				this.isReal = isReal;
+				this.isCongestion = isCongestion;
+				this.isRampCancelled = isRampCancelled;
+				this.isOnRequestedDay = isOnRequestedDay;
+			}
+
+			@NonNull
+			public String getTime() {
+				return time;
+			}
+
+			public boolean isReal() {
+				return isReal;
+			}
+
+			public boolean isCongestion() {
+				return isCongestion;
+			}
+
+			public boolean isRampCancelled() {
+				return isRampCancelled;
+			}
+
+			public boolean isOnRequestedDay() {
+				return isOnRequestedDay;
+			}
+
+			@NonNull
+			@Override
+			public String toString() {
+				return JResult.class.getSimpleName() + "{" +
+						"time='" + time + '\'' + "," +
+						"isReal=" + isReal + "," +
+						"isCongestion=" + isCongestion + "," +
+						"isRampCancelled=" + isRampCancelled + "," +
+						"isOnRequestedDay=" + isOnRequestedDay + "," +
+						'}';
+			}
+		}
+
+		public static class JMessages {
+			@NonNull
+			private final List<JMessage> lines;
+
+			@NonNull
+			private final List<JMessage> stopPoints;
+
+			public JMessages(@NonNull List<JMessage> lines, @NonNull List<JMessage> stopPoints) {
+				this.lines = lines;
+				this.stopPoints = stopPoints;
+			}
+
+			@NonNull
+			public List<JMessage> getLines() {
+				return lines;
+			}
+
+			@NonNull
+			public List<JMessage> getStopPoints() {
+				return stopPoints;
+			}
+
+			@NonNull
+			@Override
+			public String toString() {
+				return "JMessages{" +
+						"lines=" + lines +
+						", stopPoints=" + stopPoints +
+						'}';
+			}
+
+			public static class JMessage {
+				@NonNull
+				private final String text;
+				@NonNull
+				private final String startDate;
+
+				public JMessage(@NonNull String text, @NonNull String startDate) {
+					this.text = text;
+					this.startDate = startDate;
+				}
+
+				@NonNull
+				public String getText() {
+					return text;
+				}
+
+				@NonNull
+				public String getStartDate() {
+					return startDate;
+				}
+
+				@NonNull
+				@Override
+				public String toString() {
+					return "JMessage{" +
+							"text='" + text + '\'' + "," +
+							"startDate='" + startDate + '\'' +
+							'}';
+				}
+			}
+		}
+	}
+
+	@SuppressWarnings({"unused", "WeakerAccess"})
+	public static class JMessages {
+
+		@NonNull
+		private final List<JResult> results;
+
+		public JMessages(@NonNull List<JResult> results) {
+			this.results = results;
+		}
+
+		@NonNull
+		public List<JResult> getResults() {
+			return results;
+		}
+
+		@NonNull
+		@Override
+		public String toString() {
+			return "JMessages{" +
+					"results=" + results +
+					'}';
+		}
+
+		public static class JResult {
+			@NonNull
+			private final List<Map<String, List<JResultRoute>>> shortNameResultRoutes;
+
+			public JResult(@NonNull List<Map<String, List<JResultRoute>>> shortNameResultRoutes) {
+				this.shortNameResultRoutes = shortNameResultRoutes;
+			}
+
+			@NonNull
+			public List<Map<String, List<JResultRoute>>> getShortNameResultRoutes() {
+				return shortNameResultRoutes;
+			}
+
+			@NonNull
+			@Override
+			public String toString() {
+				return "JResult{" +
+						"shortNameResultRoutes=" + shortNameResultRoutes +
+						'}';
+			}
+
+			public static class JResultRoute {
+
+				public static final String CODE_NORMAL = "Normal";
+				public static final String CODE_MESSAGE = "Message";
+
+				@NonNull
+				private final String direction;
+				@NonNull
+				private final String directionName;
+				@NonNull
+				private final String text;
+				@NonNull
+				private final String code;
+				@NonNull
+				private final String date;
+
+				public JResultRoute(@NonNull String direction, @NonNull String directionName, @NonNull String text, @NonNull String code, @NonNull String date) {
+					this.direction = direction;
+					this.directionName = directionName;
+					this.text = text;
+					this.code = code;
+					this.date = date;
+				}
+
+				@NonNull
+				public String getDirection() {
+					return direction;
+				}
+
+				@NonNull
+				public String getDirectionName() {
+					return directionName;
+				}
+
+				@NonNull
+				public String getText() {
+					return text;
+				}
+
+				@NonNull
+				public String getCode() {
+					return code;
+				}
+
+				@NonNull
+				public String getDate() {
+					return date;
+				}
+
+				@NonNull
+				@Override
+				public String toString() {
+					return "JResultRoute{" +
+							"direction='" + direction + '\'' +
+							", directionName='" + directionName + '\'' +
+							", text='" + text + '\'' +
+							", code='" + code + '\'' +
+							", date='" + date + '\'' +
+							'}';
+				}
+			}
+		}
+	}
+}

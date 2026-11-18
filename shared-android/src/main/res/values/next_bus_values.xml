@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,UnusedResources">
+    <!-- HAVE TO BE SET IN MODULE APP -->
+    <integer name="next_bus_db_version">22</integer> <!-- default works, incremented in code for SQL DB changes -->
+    <string name="next_bus_agency_tag" /> <!-- empty: set in module app -->
+    <string name="next_bus_authority" /> <!-- empty: set in module app (generated) -->
+    <string name="next_bus_for_poi_authority">@string/poi_agency_authority</string> <!-- default works -->
+    <bool name="next_bus_use_stop_code_as_stop_id">false</bool> <!-- false: set in module app -->
+    <bool name="next_bus_use_stop_id_as_stop_tag">false</bool> <!-- false: set in module app -->
+    <string name="next_bus_messages_text_language_code" /> <!-- empty: set in module app -->
+    <string name="next_bus_messages_text_secondary_language_code" /> <!-- empty: set in module app -->
+    <string name="next_bus_messages_text_bold_words" /> <!-- empty: set in module app -->
+    <string name="next_bus_messages_text_secondary_bold_words" /> <!-- empty: set in module app -->
+    <bool name="next_bus_route_tag_append_headsign_value">false</bool> <!-- false: set in module app -->
+    <string-array name="next_bus_route_tag_headsign_values_replace_from" /> <!-- empty: set in module app -->
+    <string-array name="next_bus_route_tag_headsign_values_replace_to" /> <!-- empty: set in module app -->
+    <string-array name="next_bus_stop_tag_clean_regex" /> <!-- empty: set in module app -->
+    <string-array name="next_bus_stop_tag_clean_replacement" /> <!-- empty: set in module app -->
+    <bool name="next_bus_schedule_head_sign_clean_street_types">false</bool> <!-- false: set in module app -->
+    <bool name="next_bus_schedule_head_sign_clean_street_types_fr_ca">false</bool> <!-- false: set in module app -->
+    <string-array name="next_bus_schedule_head_sign_clean_regex" /> <!-- empty: set in module app -->
+    <string-array name="next_bus_schedule_head_sign_clean_replacement" /> <!-- empty: set in module app -->
+    <integer name="next_bus_schedule_head_sign_use_predictions_route_title">-1</integer> <!-- -1: set in module app -->
+    <string-array name="next_bus_schedule_head_sign_predictions_route_title_regex" /> <!-- empty: set in module app -->
+    <string-array name="next_bus_schedule_head_sign_predictions_route_title_replacement" /> <!-- empty: set in module app -->
+    <integer name="next_bus_schedule_head_sign_use_direction_title">-1</integer> <!-- -1: set in module app -->
+    <string-array name="next_bus_schedule_head_sign_direction_title_regex" /> <!-- empty: set in module app -->
+    <string-array name="next_bus_schedule_head_sign_direction_title_replacement" /> <!-- empty: set in module app -->
+    <integer name="next_bus_schedule_head_sign_use_predictions_dir_title_because_no_predictions">-1</integer> <!-- -1: set in module app -->
+    <string-array name="next_bus_schedule_head_sign_predictions_dir_title_because_no_predictions_regex" /> <!-- empty: set in module app -->
+    <string-array name="next_bus_schedule_head_sign_predictions_dir_title_because_no_predictions_replacement" /> <!-- empty: set in module app -->
+</resources>

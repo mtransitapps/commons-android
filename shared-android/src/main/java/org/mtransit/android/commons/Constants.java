@@ -1,0 +1,66 @@
+package org.mtransit.android.commons;
+
+import java.util.concurrent.TimeUnit;
+
+@SuppressWarnings({"unused"})
+public final class Constants {
+
+	public static boolean DEBUG;
+	static {
+		// DEBUG = false;
+		DEBUG = org.mtransit.commons.Constants.getDEBUG(); // DEBUG
+		//  DEBUG = true; // DEBUG
+	}
+
+	public static boolean FORCE_NEARBY_POI_LIST_OFF = false;
+	// public static boolean FORCE_NEARBY_POI_LIST_OFF = true; // DEBUG
+
+	public static boolean FORCE_FRAGMENT_USE_ARGS = false;
+	// public static boolean FORCE_FRAGMENT_USE_ARGS = true; // DEBUG
+
+	public static final boolean LOG_MT_QUERY = false;
+	// public static final boolean LOG_MT_QUERY = true; // DEBUG
+
+	public static final boolean LOG_LIVE_DATA_MEDIATOR = false;
+	// public static final boolean LOG_LIVE_DATA_MEDIATOR = true; // DEBUG
+
+	public static final boolean LOG_VIEW_LIFECYCLE = false;
+
+	public static final boolean LOG_DATA_PARSING = false;
+	// public static final boolean LOG_DATA_PARSING = true; // DEBUG
+
+	public static final boolean LOG_LIFECYCLE = false;
+	// public static final boolean LOG_LIFECYCLE = true; // DEBUG
+
+	public static final boolean LOG_PROVIDER_LIFECYCLE = false;
+	// public static final boolean LOG_PROVIDER_LIFECYCLE = true; // DEBUG
+
+	public static final boolean LOG_ADAPTER_LIFECYCLE = false;
+	// public static final boolean LOG_ADAPTER_LIFECYCLE = true; // DEBUG
+
+	public static final boolean LOG_TASK_LIFECYCLE = false;
+	// public static final boolean LOG_TASK_LIFECYCLE = true; // DEBUG
+
+	public static final boolean LOG_LOCATION = false;
+	// public static final boolean LOG_LOCATION = true; // DEBUG
+
+	public static final boolean LOG_TIME_GENERATION = false;
+
+	private static final String BUILD_TYPE_DEBUG = "debug";
+
+	@SuppressWarnings("ConstantValue")
+	public static final boolean IS_DEBUG_BUILD = BUILD_TYPE_DEBUG.equals(BuildConfig.BUILD_TYPE);
+
+	public static final String MAIN_APP_PACKAGE_NAME_RELEASE = "org.mtransit.android";
+	public static final String MAIN_APP_PACKAGE_NAME_DEBUG = "org.mtransit.android.debug";
+
+	@SuppressWarnings("ConstantValue")
+	public static final String MAIN_APP_PACKAGE_NAME = IS_DEBUG_BUILD ?
+			MAIN_APP_PACKAGE_NAME_DEBUG :
+			MAIN_APP_PACKAGE_NAME_RELEASE;
+
+	public static final long ADAPTER_NOTIFY_THRESHOLD_IN_MS = TimeUnit.MILLISECONDS.toMillis(250L);
+
+	private Constants() {
+	}
+}

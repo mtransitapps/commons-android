@@ -1,0 +1,260 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>AbstractClassCanBeInterface:GBFSCommonApiModel.kt:GBFSCommonApiModel$GBFSCommonApiModel</ID>
+    <ID>BackingPropertyNaming:AppUpdateUtils.kt:AppUpdateUtils$@Volatile private var _storage: SharedPreferences? = null</ID>
+    <ID>BackingPropertyNaming:AppUpdateUtils.kt:AppUpdateUtils$private var _appUpdateManager: AppUpdateManager? = null</ID>
+    <ID>BackingPropertyNaming:GTFSRealTimeServiceAlertsProvider.kt:GTFSRealTimeServiceAlertsProvider$private var _tripIdsOutOfSync: Boolean? = null</ID>
+    <ID>BackingPropertyNaming:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$@Volatile private var _gTripUpdates: List&lt;GTripUpdate&gt;? = null</ID>
+    <ID>BackingPropertyNaming:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private var _tripIdsOutOfSync: Boolean? = null</ID>
+    <ID>BackingPropertyNaming:InstagramNewsProvider.kt:InstagramNewsProvider$@Volatile private var _storage: SharedPreferences? = null</ID>
+    <ID>BackingPropertyNaming:InstagramNewsProvider.kt:InstagramNewsProvider$@get:IntegerRes private val _userNamesSeverityDefaultResId: Int get() = R.integer.news_provider_severity_info_agency</ID>
+    <ID>BackingPropertyNaming:InstagramNewsProvider.kt:InstagramNewsProvider$@get:StringRes private val _userNamesNoteworthyDefaultResId: Int get() = R.string.news_provider_noteworthy_info</ID>
+    <ID>BackingPropertyNaming:InstagramNewsProvider.kt:InstagramNewsProvider$private val _color: String by lazy { ContentProviderCompat.requireContext(this).getString( R.string.instagram_color ) }</ID>
+    <ID>BackingPropertyNaming:InstagramNewsProvider.kt:InstagramNewsProvider$private val _languages: List&lt;String&gt; by lazy { listOf&lt;String&gt;( if (LocaleUtils.isFR()) Locale.FRENCH.language else Locale.ENGLISH.language, LocaleUtils.UNKNOWN ) }</ID>
+    <ID>BackingPropertyNaming:InstagramNewsProvider.kt:InstagramNewsProvider$private val _targetAuthority: String by lazy { ContentProviderCompat.requireContext(this).getString( R.string.instagram_target_for_poi_authority ) }</ID>
+    <ID>BackingPropertyNaming:InstagramNewsProvider.kt:InstagramNewsProvider$private val _uriMatcher: UriMatcher by lazy { getNewUriMatcher(_authority) }</ID>
+    <ID>BackingPropertyNaming:InstagramNewsProvider.kt:InstagramNewsProvider$private val _userNames: List&lt;String&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.instagram_user_names ).toList() }</ID>
+    <ID>BackingPropertyNaming:InstagramNewsProvider.kt:InstagramNewsProvider$private val _userNamesColors: List&lt;String&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.instagram_user_names_colors ).toList() }</ID>
+    <ID>BackingPropertyNaming:InstagramNewsProvider.kt:InstagramNewsProvider$private val _userNamesLang: List&lt;String&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.instagram_user_names_lang ).toList() }</ID>
+    <ID>BackingPropertyNaming:InstagramNewsProvider.kt:InstagramNewsProvider$private val _userNamesNoteworthy: List&lt;Long&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.instagram_user_names_noteworthy ).toList().map { it.toLong() } }</ID>
+    <ID>BackingPropertyNaming:InstagramNewsProvider.kt:InstagramNewsProvider$private val _userNamesSeverity: List&lt;Int&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getIntArray( R.array.instagram_user_names_severity ).toList() }</ID>
+    <ID>BackingPropertyNaming:InstagramNewsProvider.kt:InstagramNewsProvider$private val _userNamesTarget: List&lt;String&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.instagram_user_names_target ).toList() }</ID>
+    <ID>BackingPropertyNaming:InstagramNewsProvider.kt:InstagramNewsProvider$private var _dbHelper: InstagramNewsDbHelper? = null</ID>
+    <ID>BackingPropertyNaming:InstagramNewsProvider.kt:InstagramNewsProvider$private var _instagramApi: InstagramApi? = null</ID>
+    <ID>BackingPropertyNaming:NetworkComponents.kt:NetworkComponents$private var _okHttpClient: OkHttpClient? = null</ID>
+    <ID>BackingPropertyNaming:RssNewProviderUtils.kt:RssNewProviderUtils$private var _color: String? = null</ID>
+    <ID>BackingPropertyNaming:RssNewProviderUtils.kt:RssNewProviderUtils$private var _encoding: String? = null</ID>
+    <ID>BackingPropertyNaming:RssNewProviderUtils.kt:RssNewProviderUtils$private var _feedsAuthorName: List&lt;String&gt;? = null</ID>
+    <ID>BackingPropertyNaming:RssNewProviderUtils.kt:RssNewProviderUtils$private var _feedsColors: List&lt;String&gt;? = null</ID>
+    <ID>BackingPropertyNaming:RssNewProviderUtils.kt:RssNewProviderUtils$private var _feedsDateLinkFallback: List&lt;Pair&lt;String, String&gt;&gt;? = null</ID>
+    <ID>BackingPropertyNaming:RssNewProviderUtils.kt:RssNewProviderUtils$private var _feedsIgnoreGUID: List&lt;Boolean&gt;? = null</ID>
+    <ID>BackingPropertyNaming:RssNewProviderUtils.kt:RssNewProviderUtils$private var _feedsIgnoreLink: List&lt;Boolean&gt;? = null</ID>
+    <ID>BackingPropertyNaming:RssNewProviderUtils.kt:RssNewProviderUtils$private var _feedsLang: List&lt;String&gt;? = null</ID>
+    <ID>BackingPropertyNaming:RssNewProviderUtils.kt:RssNewProviderUtils$private var _feedsNoteworthy: List&lt;Long&gt;? = null</ID>
+    <ID>BackingPropertyNaming:RssNewProviderUtils.kt:RssNewProviderUtils$private var _feedsSeverity: List&lt;Int&gt;? = null</ID>
+    <ID>BackingPropertyNaming:RssNewProviderUtils.kt:RssNewProviderUtils$private var _feedsTarget: List&lt;String&gt;? = null</ID>
+    <ID>BackingPropertyNaming:RssNewProviderUtils.kt:RssNewProviderUtils$private var _targetAuthority: String? = null</ID>
+    <ID>BackingPropertyNaming:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$@Volatile private var _storage: StmInfoServiceUpdateStorage? = null</ID>
+    <ID>BackingPropertyNaming:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private var _stmInfoApi: StmInfoApi? = null</ID>
+    <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$@Volatile private var _storage: TwitterStorage? = null</ID>
+    <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$@get:IntegerRes private val _userNamesSeverityDefaultResId: Int get() = R.integer.news_provider_severity_info_agency</ID>
+    <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$@get:StringRes private val _userNamesNoteworthyDefaultResId: Int get() = R.string.news_provider_noteworthy_warning</ID>
+    <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$private val _bearerToken: String by lazy { ContentProviderCompat.requireContext(this).getString( R.string.twitter_bearer_token ) }</ID>
+    <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$private val _color: String by lazy { ContentProviderCompat.requireContext(this).getString( R.string.twitter_color ) }</ID>
+    <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$private val _languages: List&lt;String&gt; by lazy { listOf&lt;String&gt;( if (LocaleUtils.isFR()) Locale.FRENCH.language else Locale.ENGLISH.language, LocaleUtils.UNKNOWN ) }</ID>
+    <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$private val _targetAuthority: String by lazy { ContentProviderCompat.requireContext(this).getString( R.string.twitter_target_for_poi_authority ) }</ID>
+    <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$private val _uriMatcher: UriMatcher by lazy { getNewUriMatcher(_authority) }</ID>
+    <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$private val _userNames: List&lt;String&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.twitter_screen_names ).toList() }</ID>
+    <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$private val _userNamesColors: List&lt;String&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.twitter_screen_names_colors ).toList() }</ID>
+    <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$private val _userNamesId: List&lt;String&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.twitter_screen_names_id ).toList() }</ID>
+    <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$private val _userNamesLang: List&lt;String&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.twitter_screen_names_lang ).toList() }</ID>
+    <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$private val _userNamesNoteworthy: List&lt;Long&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.twitter_screen_names_noteworthy ).toList().map { it.toLong() } }</ID>
+    <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$private val _userNamesSeverity: List&lt;Int&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getIntArray( R.array.twitter_screen_names_severity ).toList() }</ID>
+    <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$private val _userNamesTarget: List&lt;String&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.twitter_screen_names_target ).toList() }</ID>
+    <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$private var _dbHelper: TwitterNewsDbHelper? = null</ID>
+    <ID>BackingPropertyNaming:TwitterNewsProvider.kt:TwitterNewsProvider$private var _twitterApi: TwitterV2Api? = null</ID>
+    <ID>BackingPropertyNaming:VehicleLocationProviderContract.kt:VehicleLocationProviderContract.Filter$private val _direction: Direction? get() = rds?.direction ?: routeDirection?.direction</ID>
+    <ID>BackingPropertyNaming:VehicleLocationProviderContract.kt:VehicleLocationProviderContract.Filter$private val _route: Route? get() = rds?.route ?: route ?: routeDirection?.route</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$@Volatile private var _storage: YouTubeStorage? = null</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$@get:IntegerRes private val _userNamesSeverityDefaultResId: Int get() = R.integer.news_provider_severity_info_agency</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$@get:StringRes private val _userNamesNoteworthyDefaultResId: Int get() = R.string.news_provider_noteworthy_long_term</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private val _apiKey: String by lazy { ContentProviderCompat.requireContext(this).getString( R.string.youtube_api_key ) }</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private val _authorUrls: List&lt;String&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.youtube_channels_author_url ).toList() }</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private val _color: String by lazy { ContentProviderCompat.requireContext(this).getString( R.string.youtube_color ) }</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private val _languages: List&lt;String&gt; by lazy { listOf&lt;String&gt;( if (LocaleUtils.isFR()) Locale.FRENCH.language else Locale.ENGLISH.language, LocaleUtils.UNKNOWN ) }</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private val _targetAuthority: String by lazy { ContentProviderCompat.requireContext(this).getString( R.string.youtube_target_for_poi_authority ) }</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private val _uriMatcher: UriMatcher by lazy { getNewUriMatcher(_authority) }</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private val _userNames: List&lt;String&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.youtube_channels_username ).toList() }</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private val _userNamesChannelsId: List&lt;String&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.youtube_channels_id ).toList() }</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private val _userNamesColors: List&lt;String&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.youtube_channels_colors ).toList() }</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private val _userNamesHandles: List&lt;String&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.youtube_channels_handle ).toList() }</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private val _userNamesLang: List&lt;String&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.youtube_channels_lang ).toList() }</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private val _userNamesNoteworthy: List&lt;Long&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.youtube_channels_noteworthy ).toList().map { it.toLong() } }</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private val _userNamesSeverity: List&lt;Int&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getIntArray( R.array.youtube_channels_severity ).toList() }</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private val _userNamesTarget: List&lt;String&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.youtube_channels_target ).toList() }</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private var _dbHelper: YouTubeNewsDbHelper? = null</ID>
+    <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private var _youtubeApi: YouTubeV3Api? = null</ID>
+    <ID>CyclomaticComplexMethod:AppUpdateUtils.kt:AppUpdateUtils$private fun triggerRefreshIfNecessary</ID>
+    <ID>CyclomaticComplexMethod:BatteryUtils.kt:BatteryUtils$@JvmStatic fun shouldUseBatteryForOptionalWork: Boolean</ID>
+    <ID>CyclomaticComplexMethod:GTFSRealTimeTripUpdatesFilter.kt:internal fun GTripUpdate.isUseful: Boolean</ID>
+    <ID>CyclomaticComplexMethod:GTFSRealTimeTripUpdatesFilter.kt:internal fun GTripUpdate.match: String?</ID>
+    <ID>CyclomaticComplexMethod:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: Boolean</ID>
+    <ID>CyclomaticComplexMethod:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData: POIStatus?</ID>
+    <ID>CyclomaticComplexMethod:GTFSRealTimeTripUpdatesProviderExt.kt:@VisibleForTesting internal fun processRDTripUpdate</ID>
+    <ID>CyclomaticComplexMethod:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
+    <ID>CyclomaticComplexMethod:InstagramNewsProvider.kt:InstagramNewsProvider$private fun loadUserTimeline</ID>
+    <ID>CyclomaticComplexMethod:POIProviderContract.kt:POIProviderContract.Filter$fun getSqlSelection: String?</ID>
+    <ID>CyclomaticComplexMethod:POIProviderContract.kt:POIProviderContract.Filter.Companion$@JvmStatic fun toJSON: JSONObject?</ID>
+    <ID>CyclomaticComplexMethod:POIProviderContract.kt:POIProviderContract.Filter.Companion$private fun fromJSON: Filter?</ID>
+    <ID>CyclomaticComplexMethod:RouteShortNameComparator.kt:RouteShortNameComparator$override fun compare: Int</ID>
+    <ID>CyclomaticComplexMethod:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$@VisibleForTesting internal fun EtatServiceResponse?.toServiceUpdates: ServiceUpdates</ID>
+    <ID>CyclomaticComplexMethod:TwitterNewsProvider.kt:TwitterNewsProvider$private fun loadUserTimeline</ID>
+    <ID>CyclomaticComplexMethod:VehicleLocationProvider.kt:VehicleLocationProvider.Companion$private fun &lt;P : VehicleLocationProviderContract&gt; P.getVehicleLocations: Cursor</ID>
+    <ID>CyclomaticComplexMethod:YouTubeNewsProvider.kt:YouTubeNewsProvider$private fun loadUserUploadsPlaylist</ID>
+    <ID>ImplicitDefaultLocale:GTFSProviderDBHelperUtils.kt:GTFSProviderDBHelperUtils$String.format(sqlInsert, line)</ID>
+    <ID>ImplicitDefaultLocale:InstagramNewsProvider.kt:InstagramNewsProvider$String.format(MENTION_AND_SCREEN_NAME, user.username ?: username)</ID>
+    <ID>ImplicitDefaultLocale:YouTubeNewsProvider.kt:YouTubeNewsProvider$YOUTUBE_VIDEO_LINK_AND_VIDEO_ID.format(videoId)</ID>
+    <ID>InjectDispatcher:AgencyProviderDeployWorker.kt:AgencyProviderDeployWorker$IO</ID>
+    <ID>LongMethod:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: Boolean</ID>
+    <ID>LongMethod:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData: POIStatus?</ID>
+    <ID>LongMethod:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
+    <ID>LongMethod:POIProviderContract.kt:POIProviderContract.Filter.Companion$private fun fromJSON: Filter?</ID>
+    <ID>LongMethod:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$@VisibleForTesting internal fun EtatServiceResponse?.toServiceUpdates: ServiceUpdates</ID>
+    <ID>LongMethod:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun StmInfoApiProvider.loadAgencyDataFromWWW: ServiceUpdates?</ID>
+    <ID>LongMethod:TwitterNewsProvider.kt:TwitterNewsProvider$private fun loadUserTimeline</ID>
+    <ID>LongMethod:YouTubeNewsProvider.kt:YouTubeNewsProvider$private fun loadUserUploadsPlaylist</ID>
+    <ID>LongParameterList:GTFSProviderDBHelperUtils.kt:GTFSProviderDBHelperUtils$@JvmStatic @JvmOverloads fun initDbTableWithRetry</ID>
+    <ID>LongParameterList:GTFSProviderDBHelperUtils.kt:GTFSProviderDBHelperUtils$private fun SQLiteDatabase.initDbTable: Boolean</ID>
+    <ID>LongParameterList:GTFSRealTimeTripUpdatesFilter.kt:internal fun GTripUpdate.match: String?</ID>
+    <ID>LongParameterList:GTFSRealTimeTripUpdatesFilter.kt:internal fun List&lt;GTripUpdate&gt;.selectRouteDirectionTripUpdates</ID>
+    <ID>LongParameterList:GTFSRealTimeTripUpdatesProviderExt.kt:@VisibleForTesting internal fun processRDTripUpdate</ID>
+    <ID>LongParameterList:GTFSRealTimeTripUpdatesProviderExt.kt:fun GTFSRealTimeProvider.processRDTripUpdates: Boolean</ID>
+    <ID>LongParameterList:InstagramNewsProvider.kt:InstagramNewsProvider$private fun loadUserTimeline</ID>
+    <ID>LongParameterList:InstagramNewsProvider.kt:InstagramNewsProvider$private fun readNews: News</ID>
+    <ID>LongParameterList:POIProviderContract.kt:POIProviderContract.Filter.Companion$@SuppressLint("DiscouragedApi") fun getNewAreaFilter</ID>
+    <ID>LongParameterList:ScheduleExt.kt:fun RouteDirectionStop.makeSchedule</ID>
+    <ID>LongParameterList:ServiceUpdateKtx.kt:fun makeServiceUpdate</ID>
+    <ID>LongParameterList:TwitterNewsProvider.kt:TwitterNewsProvider$private fun loadUserTimeline</ID>
+    <ID>LongParameterList:TwitterNewsProvider.kt:TwitterNewsProvider$private fun readNews: News?</ID>
+    <ID>LongParameterList:VehicleLocationProviderUtils.kt:VehicleLocationProviderUtils$@VisibleForTesting internal fun vehicleNearbyAgencyLocation: Boolean?</ID>
+    <ID>LongParameterList:YouTubeNewsProvider.kt:YouTubeNewsProvider$private fun loadUserUploadsPlaylist</ID>
+    <ID>LoopWithTooManyJumpStatements:GTFSRealTimeTripUpdatesProviderExt.kt:while</ID>
+    <ID>MagicNumber:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$567</ID>
+    <ID>MagicNumber:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$9</ID>
+    <ID>MagicNumber:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$567</ID>
+    <ID>MagicNumber:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$3.6</ID>
+    <ID>MagicNumber:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$567</ID>
+    <ID>MagicNumber:RssNewProviderUtils.kt:RssNewProviderUtils$3</ID>
+    <ID>MagicNumber:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$567</ID>
+    <ID>MagicNumber:VehicleLocationProviderUtils.kt:VehicleLocationProviderUtils$1000</ID>
+    <ID>MagicNumber:YouTubeNewsProvider.kt:YouTubeNewsProvider$10L</ID>
+    <ID>NestedBlockDepth:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: Boolean</ID>
+    <ID>NestedBlockDepth:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
+    <ID>NestedBlockDepth:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun NextBusProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
+    <ID>NoNameShadowing:GTFSRealTimeServiceAlertsProvider.kt:GTFSRealTimeServiceAlertsProvider$tripIdsOutOfSync</ID>
+    <ID>NoNameShadowing:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$inFocus</ID>
+    <ID>NoNameShadowing:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$inFocus</ID>
+    <ID>NoNameShadowing:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$tripIdsOutOfSync</ID>
+    <ID>NoNameShadowing:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$inFocus</ID>
+    <ID>NoNameShadowing:POIProviderContract.kt:POIProviderContract.Filter.Companion$c</ID>
+    <ID>NoNameShadowing:ServiceUpdateDbHelper.kt:ServiceUpdateDbHelper.Companion$dbVersion</ID>
+    <ID>NoNameShadowing:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$inFocus</ID>
+    <ID>NoNameShadowing:VehicleLocationDbHelper.kt:VehicleLocationDbHelper.Companion$dbVersion</ID>
+    <ID>ReturnCount:Accessibility.kt:Accessibility$@JvmStatic fun combine: Int</ID>
+    <ID>ReturnCount:AppUpdateUtils.kt:AppUpdateUtils$private fun triggerRefreshIfNecessary</ID>
+    <ID>ReturnCount:Area.kt:Area$fun isEntirelyInside: Boolean</ID>
+    <ID>ReturnCount:Area.kt:Area.Companion$fun areOverlapping: Boolean</ID>
+    <ID>ReturnCount:BatteryUtils.kt:BatteryUtils$@JvmStatic fun shouldUseBatteryForOptionalWork: Boolean</ID>
+    <ID>ReturnCount:GBFSStorage.kt:GBFSStorage$@WorkerThread fun getArea: Area?</ID>
+    <ID>ReturnCount:GTFSDateTimeUtils.kt:GTFSDateTimeUtils$fun parseToDateTime: Instant?</ID>
+    <ID>ReturnCount:GTFSRTAlertsManager.kt:GTFSRTAlertsManager$@JvmStatic fun parseSeverity: Int</ID>
+    <ID>ReturnCount:GTFSRealTimeServiceAlertsProvider.kt:GTFSRealTimeServiceAlertsProvider$@JvmStatic fun GTFSRealTimeProvider.parseProviderTargetUUID: String?</ID>
+    <ID>ReturnCount:GTFSRealTimeTripUpdatesFilter.kt:internal fun GTripUpdate.isUseful: Boolean</ID>
+    <ID>ReturnCount:GTFSRealTimeTripUpdatesFilter.kt:internal fun GTripUpdate.match: String?</ID>
+    <ID>ReturnCount:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: Boolean</ID>
+    <ID>ReturnCount:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData: POIStatus?</ID>
+    <ID>ReturnCount:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyDataLock: POIStatus?</ID>
+    <ID>ReturnCount:GTFSRealTimeTripUpdatesProviderExt.kt:@VisibleForTesting internal fun processRDTripUpdate</ID>
+    <ID>ReturnCount:GTFSRealTimeTripUpdatesProviderExt.kt:fun GTFSRealTimeProvider.processRDTripUpdates: Boolean</ID>
+    <ID>ReturnCount:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$@VisibleForTesting internal fun GTFSRealTimeProvider.parseProviderTargetUUID: String?</ID>
+    <ID>ReturnCount:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
+    <ID>ReturnCount:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.processVehiclePositions: Set&lt;VehicleLocation&gt;?</ID>
+    <ID>ReturnCount:GtfsRealtimeTripUpdateExt.kt:fun GTUStopTimeUpdate.isSameStop: Boolean</ID>
+    <ID>ReturnCount:ModuleReceiver.kt:ModuleReceiver$override fun onReceive</ID>
+    <ID>ReturnCount:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun NextBusProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
+    <ID>ReturnCount:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun NextBusProvider.processVehiclePositions: Set&lt;VehicleLocation&gt;?</ID>
+    <ID>ReturnCount:POIProviderContract.kt:POIProviderContract.Filter$fun getSqlSelection: String?</ID>
+    <ID>ReturnCount:RouteShortNameComparator.kt:RouteShortNameComparator$override fun compare: Int</ID>
+    <ID>ReturnCount:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun StmInfoApiProvider.loadAgencyDataFromWWW: ServiceUpdates?</ID>
+    <ID>ReturnCount:TwitterDateAdapter.kt:TwitterDateAdapter$override fun deserialize: Date?</ID>
+    <ID>ReturnCount:TwitterDateAdapter.kt:TwitterDateAdapter$override fun serialize: JsonElement?</ID>
+    <ID>ReturnCount:TwitterNewsProvider.kt:TwitterNewsProvider$private fun loadAgencyNewsDataFromWWW: ArrayList&lt;News&gt;?</ID>
+    <ID>ReturnCount:TwitterNewsProvider.kt:TwitterNewsProvider$private fun loadUserTimeline</ID>
+    <ID>ReturnCount:VehicleLocationProvider.kt:VehicleLocationProvider.Companion$private fun &lt;P : VehicleLocationProviderContract&gt; P.getVehicleLocations: Cursor</ID>
+    <ID>ReturnCount:VehicleLocationProviderUtils.kt:VehicleLocationProviderUtils$@VisibleForTesting internal fun vehicleNearbyAgencyLocation: Boolean?</ID>
+    <ID>ReturnCount:YouTubeDateAdapter.kt:YouTubeDateAdapter$override fun deserialize: Date?</ID>
+    <ID>ReturnCount:YouTubeNewsProvider.kt:YouTubeNewsProvider$private fun loadAgencyNewsDataFromWWW: ArrayList&lt;News&gt;?</ID>
+    <ID>ReturnCount:YouTubeNewsProvider.kt:YouTubeNewsProvider$private fun loadUserUploadsPlaylist</ID>
+    <ID>ReturnCount:YouTubeUtils.kt:YouTubeUtils$fun pickChannelIdFromAuthorUrl: Quadruple&lt;String?, String?, String?, String?&gt;</ID>
+    <ID>TooGenericExceptionCaught:AgencyProviderDeployWorker.kt:AgencyProviderDeployWorker$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AppUpdateUtils.kt:AppUpdateUtils.AppUpdateFilter.Companion$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:Area.kt:Area.Companion$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:BatteryUtils.kt:BatteryUtils$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:GTFSDateTimeUtils.kt:GTFSDateTimeUtils$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:GTFSProviderDBHelperUtils.kt:GTFSProviderDBHelperUtils$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:GTFSRDSProviderExt.kt:e: Exception</ID>
+    <ID>TooGenericExceptionCaught:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:GTFSStringsUtils.kt:GTFSStringsUtils$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:GTFSTripIdsUtils.kt:GTFSTripIdsUtils$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:GtfsStatusProviderExt.kt:e: Exception</ID>
+    <ID>TooGenericExceptionCaught:HtmlExt.kt:e: Exception</ID>
+    <ID>TooGenericExceptionCaught:InstagramNewsProvider.kt:InstagramNewsProvider$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ModuleReceiver.kt:ModuleReceiver$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:PackageManagerExt.kt:e: Exception</ID>
+    <ID>TooGenericExceptionCaught:RouteShortNameComparator.kt:RouteShortNameComparator$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:RssNewProviderUtils.kt:RssNewProviderUtils$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SecureStringUtils.kt:SecureStringUtils$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ServiceUpdateProviderExt.kt:e: Exception</ID>
+    <ID>TooGenericExceptionCaught:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:TwitterNewsProvider.kt:TwitterNewsProvider$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:VehicleLocationProvider.kt:VehicleLocationProvider.Companion$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:VehicleLocationProviderUtils.kt:VehicleLocationProviderUtils$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:YouTubeNewsProvider.kt:YouTubeNewsProvider$e: Exception</ID>
+    <ID>TooGenericExceptionThrown:PreferencesExt.kt:throw RuntimeException("Not support type: ${T::class} for SharedPreferences.liveData")</ID>
+    <ID>TooManyFunctions:AppUpdateUtils.kt:AppUpdateUtils : Loggable</ID>
+    <ID>TooManyFunctions:CursorExt.kt:org.mtransit.android.commons.CursorExt.kt</ID>
+    <ID>TooManyFunctions:GBFSStorage.kt:GBFSStorage</ID>
+    <ID>TooManyFunctions:GTFSRealTimeProviderExt.kt:org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderExt.kt</ID>
+    <ID>TooManyFunctions:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider : Loggable</ID>
+    <ID>TooManyFunctions:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider : Loggable</ID>
+    <ID>TooManyFunctions:GtfsRealTimeStorage.kt:GtfsRealTimeStorage</ID>
+    <ID>TooManyFunctions:GtfsRealtimeExt.kt:GtfsRealtimeExt</ID>
+    <ID>TooManyFunctions:InstagramNewsProvider.kt:InstagramNewsProvider : NewsProvider</ID>
+    <ID>TooManyFunctions:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider</ID>
+    <ID>TooManyFunctions:POIProviderContract.kt:POIProviderContract.Filter$Companion</ID>
+    <ID>TooManyFunctions:PackageManagerExt.kt:org.mtransit.android.commons.PackageManagerExt.kt</ID>
+    <ID>TooManyFunctions:RssNewProviderUtils.kt:RssNewProviderUtils : Loggable</ID>
+    <ID>TooManyFunctions:ScheduleExt.kt:org.mtransit.android.commons.data.ScheduleExt.kt</ID>
+    <ID>TooManyFunctions:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider : Loggable</ID>
+    <ID>TooManyFunctions:TwitterNewsProvider.kt:TwitterNewsProvider : NewsProvider</ID>
+    <ID>TooManyFunctions:YouTubeNewsProvider.kt:YouTubeNewsProvider : NewsProvider</ID>
+    <ID>UnreachableCode:AppUpdateLauncher.kt:AppUpdateLauncher$intent.resolveActivity(context.packageManager) != null</ID>
+    <ID>UnreachableCode:GTFSRealTimeProviderExt.kt:parseAgencyId(it)</ID>
+    <ID>UnreachableCode:GTFSRealTimeServiceAlertsProvider.kt:GTFSRealTimeServiceAlertsProvider$return getAgencyRouteTypeTagTargetUUID(agencyTag, routeType)</ID>
+    <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$gVehiclePosition.optTimestampMs?.let { vpTimestamp -&gt; if (vpTimestamp + VEHICLE_POSITIONS_MAX_AGE_MS &lt; lastUpdateInMs) { MTLog.d(LOG_TAG, "processVehiclePositions() &gt; IGNORE ${(lastUpdateInMs - vpTimestamp).toDurationLog()} old: ${gVehiclePosition.toStringExt()}") return null } }</ID>
+    <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$return null</ID>
+    <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$return setOf( VehicleLocation( authority = this.authority, targetUUID = targetUUIDs, targetTripId = gVehiclePosition.optTrip?.let { parseTripId(it) }, lastUpdateInMs = lastUpdateInMs, maxValidityInMs = this@processVehiclePositions.vehicleLocationMaxValidityInMs, // vehicleId = gVehiclePosition.optVehicle?.optId, vehicleLabel = gVehiclePosition.optVehicle?.optLabel, reportTimestamp = gVehiclePosition.optTimestamp?.secsToInstant(), latitude = vehicleLat, longitude = vehicleLng, bearingDegrees = gVehiclePosition.optPosition?.optBearing?.toInt(), // in degrees speedMetersPerSecond = gVehiclePosition.optPosition?.optSpeed?.toInt(), // in meters per second ) )</ID>
+    <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$val targetUUIDs = parseProviderTargetUUID(gVehiclePosition, ignoreDirection)?.takeIf { it.isNotBlank() } ?: return null</ID>
+    <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$val vehicleLat = gVehiclePosition.optPosition?.optLatitude ?: return null</ID>
+    <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$val vehicleLng = gVehiclePosition.optPosition?.optLongitude ?: return null</ID>
+    <ID>UnreachableCode:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$vehicleNearbyAgencyLocation(context, vehicleLat, vehicleLng) == false</ID>
+    <ID>UnreachableCode:GtfsRealtimeTripUpdateExt.kt:gStuStopSeq ?: return@any true</ID>
+    <ID>UnreachableCode:GtfsRealtimeTripUpdateExt.kt:it == stopSequence</ID>
+    <ID>UnreachableCode:GtfsRealtimeTripUpdateExt.kt:return@any findStopTimestamp(rds.uuid, gStuStopSeq)</ID>
+    <ID>UnreachableCode:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$(filter.poi as? RouteDirectionStop)?.getTargetUUIDs(includeStopTags = true) ?: filter.routeDirection?.getTargetUUIDs() ?: filter.route?.getTargetUUIDs()</ID>
+    <ID>UnreachableCode:TwitterNewsProvider.kt:TwitterNewsProvider$!deleteAllDone</ID>
+    <ID>UnreachableCode:VehicleLocationProviderContract.kt:VehicleLocationProviderContract.Filter.Companion$json.optString(JSON_AUTHORITY, fallback = null) ?: poi?.authority ?: return null</ID>
+    <ID>UnusedPrivateFunction:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun Route.getRouteTag</ID>
+    <ID>UnusedPrivateFunction:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun Route.getTargetUUIDs</ID>
+    <ID>UnusedPrivateFunction:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun RouteDirection.getRouteTag</ID>
+    <ID>UnusedPrivateFunction:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun RouteDirection.getTargetUUIDs</ID>
+    <ID>UnusedPrivateFunction:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun RouteDirectionStop.getRouteTag</ID>
+    <ID>UnusedPrivateFunction:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider$private fun RouteDirectionStop.getTargetUUIDs</ID>
+    <ID>UnusedPrivateFunction:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun Route.getRouteTag</ID>
+    <ID>UnusedPrivateFunction:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun Route.getTargetUUIDs: Map&lt;String, String&gt;</ID>
+    <ID>UnusedPrivateFunction:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun RouteDirection.getDirectionTag</ID>
+    <ID>UnusedPrivateFunction:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun RouteDirection.getRouteTag</ID>
+    <ID>UnusedPrivateFunction:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun RouteDirection.getTargetUUIDs: Map&lt;String, String&gt;</ID>
+    <ID>UnusedPrivateFunction:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun RouteDirectionStop.getDirectionTag</ID>
+    <ID>UnusedPrivateFunction:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun RouteDirectionStop.getRouteTag</ID>
+    <ID>UnusedPrivateProperty:StatusProviderExt.kt:private val StatusProviderContract.dbTableName: String get() = this.statusDbTableName</ID>
+    <ID>UseOrEmpty:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$gFeedMessage.takeIf { !outdated }?.entityList?.toVehicles() ?: emptyList()</ID>
+    <ID>UseOrEmpty:PreferencesExt.kt:defaultValue as? Set&lt;String&gt; ?: emptySet()</ID>
+    <ID>UseOrEmpty:PreferencesExt.kt:defaultValue as? String ?: ""</ID>
+    <ID>UseOrEmpty:TwitterNewsProvider.kt:TwitterNewsProvider$author?.profileImageUrl ?: ""</ID>
+  </CurrentIssues>
+</SmellBaseline>

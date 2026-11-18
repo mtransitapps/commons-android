@@ -1,0 +1,115 @@
+package org.mtransit.android.commons;
+
+import static org.mtransit.android.commons.StoreUtilsExtKt.appendReferrer;
+import static org.mtransit.android.commons.StoreUtilsExtKt.buildReferrer;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+public final class StoreUtils implements MTLog.Loggable {
+
+	private static final String LOG_TAG = StoreUtils.class.getSimpleName();
+
+	@NonNull
+	@Override
+	public String getLogTag() {
+		return LOG_TAG;
+	}
+
+	private static final String HTTP_SCHEME = "http";
+	private static final String HTTPS_SCHEME = "https";
+	private static final String MARKET_SCHEME = "market";
+	private static final String ANDROID_MARKET_WWW_AUTHORITY = "market.android.com"; // old
+	private static final String GOOGLE_PLAY_STORE_WWW_AUTHORITY = "play.google.com";
+	private static final String GOOGLE_PLAY_STORE_BASE_URI_AND_PKG = MARKET_SCHEME + "://details?id=%s";
+	private static final String GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG = HTTPS_SCHEME + "://" + GOOGLE_PLAY_STORE_WWW_AUTHORITY + "/store/apps/details?id=%s";
+	private static final String GOOGLE_PLAY_STORE_BASE_WWW_SHORT_URI_AND_PKG = HTTPS_SCHEME + "://" + GOOGLE_PLAY_STORE_WWW_AUTHORITY + "/d?id=%s";
+	@SuppressWarnings("unused")
+	private static final String GOOGLE_PLAY_STORE_SUBSCRIPTION_URL = HTTPS_SCHEME + "://" + GOOGLE_PLAY_STORE_WWW_AUTHORITY + "/store/account/subscriptions";
+	private static final String GOOGLE_PLAY_STORE_SUBSCRIPTION_DEEPLINK_URL = HTTPS_SCHEME + "://" + GOOGLE_PLAY_STORE_WWW_AUTHORITY + "/store/account/subscriptions?sku=%s&package=%s";
+
+	private static final String GOOGLE_PLAY_PKG = "com.android.vending";
+
+	public static boolean viewAppPage(@NonNull Context context, @NonNull String pkg, @Nullable String label) {
+		return viewAppPage(context, pkg, label, null, null, null, null, null);
+	}
+
+	public static boolean viewAppPage(
+			@NonNull Context context, @NonNull String pkg, @Nullable String label,
+			@Nullable String campaignSource, @Nullable String campaignMedium, @Nullable String campaignTerm, @Nullable String campaignContent, @Nullable String campaignName
+	) {
+		boolean success;
+		final Bundle extras = new Bundle();
+		extras.putBoolean("overlay", true);
+		extras.putString("callerId", context.getPackageName());
+		final String referrer = buildReferrer(campaignSource, campaignMedium, campaignTerm, campaignContent, campaignName);
+		// tries inline install 1st (https://developer.android.com/distribute/marketing-tools/inline-installs)
+		final Uri urlWwwShort = appendReferrer(String.format(GOOGLE_PLAY_STORE_BASE_WWW_SHORT_URI_AND_PKG, pkg), referrer);
+		success = LinkUtils.open(context, urlWwwShort, label, GOOGLE_PLAY_PKG, extras);
+		if (success) {
+			return true;
+		}
+		extras.putBoolean("inline", true);
+		// tries to force Play Store package 1st and extras (no flags)
+		final Uri urlMarket = appendReferrer(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg), referrer);
+		success = LinkUtils.open(context, urlMarket, label, GOOGLE_PLAY_PKG, extras);
+		if (success) {
+			return true;
+		}
+		final Uri urlWww = appendReferrer(String.format(GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG, pkg), referrer);
+		success = LinkUtils.open(context, urlWww, label, GOOGLE_PLAY_PKG, extras);
+		if (success) {
+			return true;
+		}
+		final int[] flags = new int[]{ //
+				Intent.FLAG_ACTIVITY_NEW_TASK, // make sure it does NOT open in the stack of your activity
+				Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED, // task re-parenting if needed
+				Intent.FLAG_ACTIVITY_CLEAR_TOP, // make sure it opens on app page even if already open in search result
+		};
+		// tries to force Play Store package 1st
+		success = LinkUtils.open(context, urlMarket, label, GOOGLE_PLAY_PKG, flags);
+		if (success) {
+			return true;
+		}
+		success = LinkUtils.open(context, urlWww, label, GOOGLE_PLAY_PKG, flags);
+		if (success) {
+			return true;
+		}
+		// tries w/o Play Store package
+		success = LinkUtils.open(context, urlMarket, label, flags);
+		if (success) {
+			return true;
+		}
+		return LinkUtils.open(context, urlWww, label, flags);
+	}
+
+	public static void viewSubscriptionPage(@NonNull Activity activity, @NonNull String productId, @NonNull String pkg, @Nullable String label) {
+		final boolean success = LinkUtils.open(activity, Uri.parse(String.format(GOOGLE_PLAY_STORE_SUBSCRIPTION_DEEPLINK_URL, productId, pkg)), label, GOOGLE_PLAY_PKG);
+		if (success) return;
+		LinkUtils.open(activity, Uri.parse(String.format(GOOGLE_PLAY_STORE_SUBSCRIPTION_DEEPLINK_URL, productId, pkg)), label);
+	}
+
+	public static boolean isStoreIntent(@NonNull String url) {
+		return isStoreIntent(Uri.parse(url));
+	}
+
+	@SuppressWarnings("WeakerAccess")
+	public static boolean isStoreIntent(@Nullable Uri uri) {
+		if (uri == null) return false;
+		final String scheme = uri.getScheme();
+		if (MARKET_SCHEME.equals(scheme)) {
+			return true;
+		}
+		if (HTTPS_SCHEME.equals(scheme) || HTTP_SCHEME.equals(scheme)) {
+			final String authority = uri.getAuthority();
+			return GOOGLE_PLAY_STORE_WWW_AUTHORITY.equals(authority) || ANDROID_MARKET_WWW_AUTHORITY.equals(authority);
+		}
+		return false;
+	}
+}
