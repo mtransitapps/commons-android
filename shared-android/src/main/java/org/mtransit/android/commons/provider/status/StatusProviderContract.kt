@@ -2,9 +2,14 @@ package org.mtransit.android.commons.provider.status
 
 import android.net.Uri
 import android.provider.BaseColumns
-import org.json.JSONException
-import org.json.JSONObject
-import org.mtransit.android.commons.MTLog
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonObjectBuilder
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.AppStatusFilter
 import org.mtransit.android.commons.data.AvailabilityPercentStatusFilter
 import org.mtransit.android.commons.data.POI
@@ -12,6 +17,7 @@ import org.mtransit.android.commons.data.POIStatus
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.ScheduleStatusFilter
 import org.mtransit.android.commons.provider.common.ProviderContract
+import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.commons.model.Secret
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
@@ -91,7 +97,7 @@ interface StatusProviderContract : ProviderContract {
     abstract class Filter(
         val type: Int,
         open val targetUUID: String,
-    ) : ProviderContract.Filter(), MTLog.Loggable {
+    ) : ProviderContract.Filter(), MTLogK.Loggable {
 
         companion object {
             private val LOG_TAG: String = StatusProviderContract::class.java.getSimpleName() + ">" + Filter::class.java.getSimpleName()
@@ -119,7 +125,7 @@ interface StatusProviderContract : ProviderContract {
                             includeCancelledTimestamps = scheduleIncludeCancelledTimestamps
                         )
                     } ?: run {
-                        MTLog.w(LOG_TAG, "Schedule filter w/o RDS '${poi.uuid}'!")
+                        MTLogK.w(LOG_TAG, "Schedule filter w/o RDS '${poi.uuid}'!")
                         null
                     }
                 }
@@ -133,39 +139,41 @@ interface StatusProviderContract : ProviderContract {
                     getAppPkg()?.let { pkg ->
                         AppStatusFilter(inFocus = inFocus, targetUUID = poi.uuid, pkg = pkg)
                     } ?: run {
-                        MTLog.w(LOG_TAG, "App status filter w/o module '${poi.uuid}'!")
+                        MTLogK.w(LOG_TAG, "App status filter w/o module '${poi.uuid}'!")
                         null
                     }
                 }
 
                 else -> {
-                    MTLog.w(LOG_TAG, "Unexpected status type '${poi.statusType}' for filter!")
+                    MTLogK.w(LOG_TAG, "Unexpected status type '${poi.statusType}' for filter!")
                     null
                 }
             }
 
+            @POI.ItemStatusType
             @JvmStatic
-            fun getTypeFromJSONString(jsonString: String?): Int {
-                try {
-                    return if (jsonString == null) -1 else getTypeFromJSON(JSONObject(jsonString))
-                } catch (jsone: JSONException) {
-                    MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '$jsonString'")
-                    return -1
-                }
+            fun String?.getTypeFromJsonStringN() = this?.getTypeFromJsonString() ?: POI.ITEM_STATUS_TYPE_NONE
+
+            @POI.ItemStatusType
+            fun String.getTypeFromJsonString() = try {
+                sharedJson.parseToJsonElement(this).jsonObject.getTypeFromJson()
+            } catch (se: SerializationException) {
+                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", se)
+                POI.ITEM_STATUS_TYPE_NONE
             }
 
-            @Throws(JSONException::class)
-            fun getTypeFromJSON(json: JSONObject) = json.getInt(JSON_TYPE)
+            @Throws(SerializationException::class)
+            fun JsonObject.getTypeFromJson() = getValue(JSON_TYPE).jsonPrimitive.int
 
-            @JvmStatic
-            @Throws(JSONException::class)
-            fun getTargetUUIDFromJSON(json: JSONObject): String = json.getString(JSON_TARGET_UUID)
+            fun JsonObject.getTargetUUIDFromJson() = getValue(JSON_TARGET_UUID).jsonPrimitive.content
 
-            @Throws(JSONException::class)
-            fun toJSON(statusFilter: Filter, json: JSONObject) {
-                ProviderContract.Filter.toJSON(statusFilter, json)
-                json.put(JSON_TYPE, statusFilter.type)
-                json.put(JSON_TARGET_UUID, statusFilter.targetUUID)
+            fun toJson(statusFilter: Filter, json: JsonObjectBuilder) = json.toJson(statusFilter)
+
+            @Throws(SerializationException::class)
+            fun JsonObjectBuilder.toJson(statusFilter: Filter) {
+                toJsonCommon(statusFilter)
+                put(JSON_TYPE, statusFilter.type)
+                put(JSON_TARGET_UUID, statusFilter.targetUUID)
             }
         }
 
@@ -174,12 +182,6 @@ interface StatusProviderContract : ProviderContract {
         abstract fun copyWithProvidedEncryptKeysMap(providedEncryptKeysMap: Secret<Map<String, String>>?): Filter
 
         abstract fun copyWithCacheOnly(cacheOnly: Boolean): Filter
-
-        @Suppress("unused")
-        abstract fun fromJSONStringStatic(jsonString: String?): Filter?
-
-        @Suppress("unused")
-        abstract fun toJSONStringStatic(statusFilter: Filter): String?
 
         override fun toString(): String {
             return Filter::class.java.getSimpleName() + "{" +

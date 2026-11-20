@@ -1,8 +1,14 @@
 package org.mtransit.android.commons.data
 
-import org.json.JSONException
-import org.json.JSONObject
-import org.mtransit.android.commons.MTLog
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import org.mtransit.android.commons.MTLogK
+import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.provider.status.StatusProviderContract
 import org.mtransit.commons.model.Secret
 
@@ -25,47 +31,41 @@ data class AppStatusFilter(
         )
 
         @JvmStatic
-        fun fromJSONString(jsonString: String?): StatusProviderContract.Filter? {
-            try {
-                return jsonString?.let { fromJSON(JSONObject(it)) }
-            } catch (jsone: JSONException) {
-                MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '$jsonString'")
-                return null
-            }
+        fun String?.toFilterN() = this?.toFilter()
+
+        fun String.toFilter() = try {
+            sharedJson.parseToJsonElement(this).jsonObject.toFilter()
+        } catch (se: SerializationException) {
+            MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", se)
+            throw se
         }
 
         private const val JSON_PKG = "pkg"
 
-        fun fromJSON(json: JSONObject): StatusProviderContract.Filter? {
-            try {
-                return AppStatusFilter(
-                    cacheOnly = getCacheOnlyFromJSON(json),
-                    cacheValidityInMs = getCacheValidityInMsFromJSON(json),
-                    inFocus = getInFocusFromJSON(json),
-                    providedEncryptKeysMap = getProvidedEncryptKeysMapFromJSON(json),
-                    targetUUID = getTargetUUIDFromJSON(json),
-                    pkg = json.getString(JSON_PKG)
-                )
-            } catch (jsone: JSONException) {
-                MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '$json'")
-                return null
-            }
+        fun JsonObject.toFilter() = try {
+            AppStatusFilter(
+                cacheOnly = getCacheOnlyFromJson(),
+                cacheValidityInMs = getCacheValidityInMsFromJson(),
+                inFocus = getInFocusFromJson(),
+                providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
+                targetUUID = getTargetUUIDFromJson(),
+                pkg = this[JSON_PKG]?.jsonPrimitive?.contentOrNull ?: throw SerializationException("Missing key '$JSON_PKG'!"),
+            )
+        } catch (se: SerializationException) {
+            MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
+            throw se
         }
 
-        private fun toJSONString(statusFilter: StatusProviderContract.Filter) = toJSON(statusFilter)?.toString()
-
-        private fun toJSON(statusFilter: StatusProviderContract.Filter): JSONObject? {
-            try {
-                return JSONObject().apply {
-                    toJSON(statusFilter, this)
-                    if (statusFilter is AppStatusFilter) {
-                        put(JSON_PKG, statusFilter.pkg)
-                    }
+        private fun StatusProviderContract.Filter.toJson() = try {
+            buildJsonObject {
+                toJson(this@toJson)
+                if (this@toJson is AppStatusFilter) {
+                    put(JSON_PKG, this@toJson.pkg)
                 }
-            } catch (jsone: JSONException) {
-                MTLog.w(LOG_TAG, jsone, "Error while making JSON object '%s'", statusFilter)
-                return null
             }
+        } catch (se: SerializationException) {
+            MTLogK.w(this, "Error while making JSON object '$this'", se)
+            throw se
         }
     }
 
@@ -77,9 +77,5 @@ data class AppStatusFilter(
     override fun copyWithCacheOnly(cacheOnly: Boolean) =
         this.copy(cacheOnly = cacheOnly)
 
-    override fun fromJSONStringStatic(jsonString: String?) = fromJSONString(jsonString)
-
-    override fun toJSONString() = toJSONString(this)
-
-    override fun toJSONStringStatic(statusFilter: StatusProviderContract.Filter) = toJSONString(statusFilter)
+    override fun toJsonString() = sharedJson.encodeToString(this.toJson())
 }

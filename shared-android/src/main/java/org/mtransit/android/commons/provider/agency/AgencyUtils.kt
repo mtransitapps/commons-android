@@ -2,11 +2,11 @@ package org.mtransit.android.commons.provider.agency
 
 import android.content.Context
 import org.mtransit.android.commons.BuildConfig
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.R
 import java.util.TimeZone
 
-object AgencyUtils : MTLog.Loggable {
+object AgencyUtils : MTLogK.Loggable {
 
     private val LOG_TAG: String = AgencyUtils::class.java.simpleName
 
@@ -48,7 +48,7 @@ object AgencyUtils : MTLog.Loggable {
             if (BuildConfig.DEBUG) {
                 error("No agency timezone configured!")
             }
-            MTLog.w(LOG_TAG, "No agency timezone configured (using device TZ)!")
+            MTLogK.w(LOG_TAG, "No agency timezone configured (using device TZ)!")
             TimeZone.getDefault().id
         }
 }

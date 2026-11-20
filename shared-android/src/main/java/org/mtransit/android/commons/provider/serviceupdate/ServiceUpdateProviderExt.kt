@@ -2,7 +2,7 @@ package org.mtransit.android.commons.provider.serviceupdate
 
 import android.database.sqlite.SQLiteQueryBuilder
 import android.net.Uri
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.data.ServiceUpdate
 import org.mtransit.android.commons.data.ServiceUpdates
@@ -67,7 +67,7 @@ private fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
                 }
             }
     } catch (e: Exception) {
-        MTLog.w(LOG_TAG, e, "Error!")
+        MTLogK.w(LOG_TAG, "Error!", e)
         null
     }
 }

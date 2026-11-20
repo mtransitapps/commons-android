@@ -8,7 +8,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.ThreadSafeDateFormatter
 import org.mtransit.commons.CommonsApp
 import java.lang.reflect.Type
@@ -25,7 +25,7 @@ import java.util.TimeZone
 class TwitterDateAdapter :
     JsonDeserializer<Date?>,
     JsonSerializer<Date?>,
-    MTLog.Loggable {
+    MTLogK.Loggable {
 
     override fun getLogTag() = LOG_TAG
 
@@ -75,27 +75,27 @@ class TwitterDateAdapter :
             try {
                 return Date.from(Instant.parse(json.asString))
             } catch (e: DateTimeParseException) {
-                MTLog.d(this, e, "Error while parsing ${json.asString} with java.time.Instant!")
+                MTLogK.d(this, "Error while parsing ${json.asString} with java.time.Instant!", e)
             }
             try {
                 return Date.from(Instant.from(DateTimeFormatter.ISO_INSTANT.parse(json.asString)))
             } catch (e: DateTimeParseException) {
-                MTLog.d(this, e, "Error while parsing ${json.asString} with DateTimeFormatter.ISO_INSTANT!")
+                MTLogK.d(this, "Error while parsing ${json.asString} with DateTimeFormatter.ISO_INSTANT!", e)
             }
             try {
                 return Date.from(Instant.from(DateTimeFormatter.ISO_DATE_TIME.parse(json.asString)))
             } catch (e: DateTimeParseException) {
-                MTLog.d(this, e, "Error while parsing ${json.asString} with DateTimeFormatter.ISO_DATE_TIME!")
+                MTLogK.d(this, "Error while parsing ${json.asString} with DateTimeFormatter.ISO_DATE_TIME!", e)
             }
         }
         for ((dateTimeFormat, dateTimeFormatter) in DATE_TIME_FORMATTERS) {
             try {
                 return dateTimeFormatter.parseThreadSafe(json.asString)
             } catch (e: ParseException) {
-                MTLog.d(this, e, "Error while parsing ${json.asString} with '$dateTimeFormat'!")
+                MTLogK.d(this, "Error while parsing ${json.asString} with '$dateTimeFormat'!", e)
             }
         }
-        MTLog.w(this, "Error while parsing $json!")
+        MTLogK.w(this, "Error while parsing $json!")
         return null
     }
 
@@ -109,20 +109,20 @@ class TwitterDateAdapter :
             try {
                 return JsonPrimitive(DateTimeFormatter.ISO_INSTANT.format(src.toInstant()))
             } catch (e: DateTimeParseException) {
-                MTLog.d(this, e, "Error while formatting $src with DateTimeFormatter.ISO_INSTANT!")
+                MTLogK.d(this, "Error while formatting $src with DateTimeFormatter.ISO_INSTANT!", e)
             }
             try {
                 return JsonPrimitive(DateTimeFormatter.ISO_DATE_TIME.format(src.toInstant()))
             } catch (e: DateTimeParseException) {
-                MTLog.d(this, e, "Error while formatting $src with DateTimeFormatter.ISO_DATE_TIME!")
+                MTLogK.d(this, "Error while formatting $src with DateTimeFormatter.ISO_DATE_TIME!", e)
             }
         }
         try {
             return JsonPrimitive(DATE_TIME_FORMATTER.formatThreadSafe(src))
         } catch (e: ParseException) {
-            MTLog.d(this, e, "Error while formatting $src with '$DATE_TIME_FORMAT'!")
+            MTLogK.d(this, "Error while formatting $src with '$DATE_TIME_FORMAT'!", e)
         }
-        MTLog.w(this, "Error while formatting $src!")
+        MTLogK.w(this, "Error while formatting $src!")
         return null
     }
 }

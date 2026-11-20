@@ -2,10 +2,6 @@ package org.mtransit.android.commons.provider;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.UriMatcher;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
@@ -18,7 +14,6 @@ import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
-import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SecurityUtils;
 import org.mtransit.android.commons.SqlUtils;
@@ -30,9 +25,15 @@ import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
+import org.mtransit.android.commons.provider.common.ProviderConfig;
+import org.mtransit.android.commons.provider.news.ConfigurableNewsProvider;
 import org.mtransit.android.commons.provider.news.NewsProvider;
+import org.mtransit.android.commons.provider.news.NewsProviderContract;
 import org.mtransit.android.commons.provider.news.NewsTextFormatter;
+import org.mtransit.android.commons.provider.news.rss.RSSNewsDbHelper;
 import org.mtransit.android.commons.provider.news.rss.RssNewProviderUtils;
+import org.mtransit.android.commons.provider.news.rss.RssNewsConfig;
+import org.mtransit.android.commons.provider.news.rss.RssStorage;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.CommonsApp;
@@ -41,6 +42,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
 import java.net.URL;
@@ -72,7 +74,7 @@ import okhttp3.Response;
 
 // DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressLint("Registered")
-public class RSSNewsProvider extends NewsProvider {
+public class RSSNewsProvider extends ConfigurableNewsProvider {
 
 	private static final String LOG_TAG = RSSNewsProvider.class.getSimpleName();
 
@@ -82,38 +84,45 @@ public class RSSNewsProvider extends NewsProvider {
 		return LOG_TAG;
 	}
 
-	/**
-	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
-	 */
-	private static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = RSSNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_MS;
-
-	/**
-	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
-	 */
-	private static final String PREF_KEY_AGENCY_LAST_UPDATE_LANG = RSSNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_LANG;
-
 	@Nullable
-	private static UriMatcher uriMatcher = null;
+	private volatile RssNewsConfig importedRssConfig = null;
 
-	/**
-	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
-	 */
+	@Override
+	protected void configureNewsConfig(@NonNull ProviderConfig config) {
+		importedRssConfig = RssNewsConfig.fromProviderConfig(config);
+	}
+
 	@NonNull
-	private static UriMatcher getURIMATCHER(@NonNull Context context) {
-		if (uriMatcher == null) {
-			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
+	@Override
+	public ProviderConfig getProviderConfig() {
+		ProviderConfig imported = getImportedProviderConfig();
+		if (imported != null) {
+			return imported;
 		}
-		return uriMatcher;
+		Context context = requireContextCompat();
+		String target = RssNewProviderUtils.pickTarget(context, -1);
+		return RssNewsConfig.fromResources(context).toProviderConfig(getAuthority(), target == null ? StringUtils.EMPTY : target);
+	}
+
+	@Override
+	public void closeConfiguredRuntime() {
+		super.closeConfiguredRuntime();
+		storage = null;
+		okHttpClient = null;
 	}
 
 	@Nullable
-	private static String authority = null;
+	private String authority = null;
 
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
 	@NonNull
-	private static String getAUTHORITY(@NonNull Context context) {
+	private String getAUTHORITY(@NonNull Context context) {
+		ProviderConfig imported = getImportedProviderConfig();
+		if (imported != null) {
+			return imported.getAuthority();
+		}
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.rss_authority);
 		}
@@ -121,13 +130,13 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
-	private static Uri authorityUri = null;
+	private Uri authorityUri = null;
 
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
 	@NonNull
-	private static Uri getAUTHORITY_URI(@NonNull Context context) {
+	private Uri getAUTHORITY_URI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
@@ -135,12 +144,15 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
-	private static Boolean copyToFileInsteadOfStreaming = null;
+	private Boolean copyToFileInsteadOfStreaming = null;
 
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
-	private static boolean isCOPY_TO_FILE_INSTEAD_OF_STREAMING(@NonNull Context context) {
+	private boolean isCOPY_TO_FILE_INSTEAD_OF_STREAMING(@NonNull Context context) {
+		if (importedRssConfig != null) {
+			return importedRssConfig.getCopyToFileInsteadOfStreaming();
+		}
 		if (copyToFileInsteadOfStreaming == null) {
 			copyToFileInsteadOfStreaming = context.getResources().getBoolean(R.bool.rss_copy_to_file_instead_of_streaming);
 		}
@@ -148,12 +160,15 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
-	private static Boolean useCustomSSLCertificate = null;
+	private Boolean useCustomSSLCertificate = null;
 
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
-	private static boolean isUSE_CUSTOM_SSL_CERTIFICATE(@NonNull Context context) {
+	private boolean isUSE_CUSTOM_SSL_CERTIFICATE(@NonNull Context context) {
+		if (importedRssConfig != null) {
+			return importedRssConfig.getUseCustomSslCertificate();
+		}
 		if (useCustomSSLCertificate == null) {
 			useCustomSSLCertificate = context.getResources().getBoolean(R.bool.rss_use_custom_ssl_certificate);
 		}
@@ -161,13 +176,16 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
-	private static java.util.List<String> fileCleaningRegex = null;
+	private java.util.List<String> fileCleaningRegex = null;
 
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
 	@NonNull
-	private static java.util.List<String> getFILE_CLEANING_REGEX(@NonNull Context context) {
+	private java.util.List<String> getFILE_CLEANING_REGEX(@NonNull Context context) {
+		if (importedRssConfig != null) {
+			return importedRssConfig.getFileCleaningRegex();
+		}
 		if (fileCleaningRegex == null) {
 			fileCleaningRegex = Arrays.asList(context.getResources().getStringArray(R.array.rss_file_cleaning_regex));
 		}
@@ -175,13 +193,16 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
-	private static java.util.List<String> fileCleaningReplacement = null;
+	private java.util.List<String> fileCleaningReplacement = null;
 
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
 	@NonNull
-	private static java.util.List<String> getFILE_CLEANING_REPLACEMENT(@NonNull Context context) {
+	private java.util.List<String> getFILE_CLEANING_REPLACEMENT(@NonNull Context context) {
+		if (importedRssConfig != null) {
+			return importedRssConfig.getFileCleaningReplacement();
+		}
 		if (fileCleaningReplacement == null) {
 			fileCleaningReplacement = Arrays.asList(context.getResources().getStringArray(R.array.rss_file_cleaning_replacement));
 		}
@@ -189,13 +210,16 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
-	private static java.util.List<String> feeds = null;
+	private java.util.List<String> feeds = null;
 
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
 	@NonNull
-	private static java.util.List<String> getFEEDS(@NonNull Context context) {
+	private java.util.List<String> getFEEDS(@NonNull Context context) {
+		if (importedRssConfig != null) {
+			return importedRssConfig.getFeeds();
+		}
 		if (feeds == null) {
 			feeds = Arrays.asList(context.getResources().getStringArray(R.array.rss_feeds));
 		}
@@ -203,13 +227,16 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
-	private static java.util.List<String> feedsAuthorIcon = null;
+	private java.util.List<String> feedsAuthorIcon = null;
 
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
 	@NonNull
-	private static java.util.List<String> getFEEDS_AUTHOR_ICON(@NonNull Context context) {
+	private java.util.List<String> getFEEDS_AUTHOR_ICON(@NonNull Context context) {
+		if (importedRssConfig != null) {
+			return importedRssConfig.getFeedsAuthorIcon();
+		}
 		if (feedsAuthorIcon == null) {
 			feedsAuthorIcon = Arrays.asList(context.getResources().getStringArray(R.array.rss_feeds_author_icon));
 		}
@@ -217,13 +244,16 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
-	private static java.util.List<String> feedsAuthorUrl = null;
+	private java.util.List<String> feedsAuthorUrl = null;
 
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
 	@NonNull
-	private static java.util.List<String> getFEEDS_AUTHOR_URL(@NonNull Context context) {
+	private java.util.List<String> getFEEDS_AUTHOR_URL(@NonNull Context context) {
+		if (importedRssConfig != null) {
+			return importedRssConfig.getFeedsAuthorUrl();
+		}
 		if (feedsAuthorUrl == null) {
 			feedsAuthorUrl = Arrays.asList(context.getResources().getStringArray(R.array.rss_feeds_author_url));
 		}
@@ -231,47 +261,21 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
-	private static java.util.List<String> feedsLabel = null;
+	private java.util.List<String> feedsLabel = null;
 
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
 	// TODO remove rss_feeds_label after MTfull-description.txt.MT.sh migrated
 	@NonNull
-	private static java.util.List<String> getFEEDS_LABEL(@NonNull Context context) {
+	private java.util.List<String> getFEEDS_LABEL(@NonNull Context context) {
+		if (importedRssConfig != null) {
+			return importedRssConfig.getFeedsLabel();
+		}
 		if (feedsLabel == null) {
 			feedsLabel = Arrays.asList(context.getResources().getStringArray(R.array.rss_feeds_label));
 		}
 		return feedsLabel;
-	}
-
-	@NonNull
-	@Override
-	public UriMatcher getURI_MATCHER() {
-		return getURIMATCHER(requireContextCompat());
-	}
-
-	@Nullable
-	private NewsDbHelper dbHelper;
-	private static int currentDbVersion = -1;
-
-	@NonNull
-	private NewsDbHelper getDBHelper(@NonNull Context context) {
-		if (dbHelper == null) { // initialize
-			dbHelper = getNewDbHelper(context);
-			currentDbVersion = getCurrentDbVersion();
-		} else { // reset
-			try {
-				if (currentDbVersion != getCurrentDbVersion()) {
-					dbHelper.close();
-					dbHelper = null;
-					return getDBHelper(context);
-				}
-			} catch (Exception e) { // fail if locked, will try again later
-				MTLog.w(this, e, "Can't check DB version!");
-			}
-		}
-		return dbHelper;
 	}
 
 	/**
@@ -279,7 +283,7 @@ public class RSSNewsProvider extends NewsProvider {
 	 */
 	@Override
 	public int getCurrentDbVersion() {
-		return RSSNewsDbHelper.getDbVersion(requireContextCompat());
+		return RSSNewsDbHelper.Companion.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -288,24 +292,9 @@ public class RSSNewsProvider extends NewsProvider {
 	@NonNull
 	@Override
 	public NewsDbHelper getNewDbHelper(@NonNull Context context) {
-		return new RSSNewsDbHelper(context.getApplicationContext(), getStorage(context));
-	}
-
-	@NonNull
-	private SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(requireContextCompat());
-	}
-
-	@NonNull
-	@Override
-	public SQLiteDatabase getReadDB() {
-		return getDBHelper().getReadableDatabase();
-	}
-
-	@NonNull
-	@Override
-	public SQLiteDatabase getWriteDB() {
-		return getDBHelper().getWritableDatabase();
+		ProviderConfig imported = getImportedProviderConfig();
+		return new RSSNewsDbHelper(context.getApplicationContext(), getStorage(context),
+				imported == null ? null : imported.getAuthorityStoragePrefix());
 	}
 
 	@Override
@@ -335,6 +324,10 @@ public class RSSNewsProvider extends NewsProvider {
 	@NonNull
 	@Override
 	public String getAuthority() {
+		ProviderConfig imported = getImportedProviderConfig();
+		if (imported != null) {
+			return imported.getAuthority();
+		}
 		return getAUTHORITY(requireContextCompat());
 	}
 
@@ -351,12 +344,12 @@ public class RSSNewsProvider extends NewsProvider {
 
 	@Nullable
 	@Override
-	public ArrayList<News> getCachedNews(@NonNull Filter newsFilter) {
+	public ArrayList<News> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		return NewsProvider.getCachedNewsS(this, newsFilter);
 	}
 
 	@Nullable
-	private static Collection<String> languages = null;
+	private Collection<String> languages = null;
 
 	@NonNull
 	@Override
@@ -375,21 +368,22 @@ public class RSSNewsProvider extends NewsProvider {
 
 	@Nullable
 	@Override
-	public ArrayList<News> getNewNews(@NonNull Filter newsFilter) {
+	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault());
 		return getCachedNews(newsFilter);
 	}
 
-	private volatile SharedPreferences storage = null;
+	private volatile RssStorage storage = null;
 
 	@NonNull
-	public SharedPreferences getStorage(@NonNull Context context) {
-		SharedPreferences storage = this.storage;
+	public RssStorage getStorage(@NonNull Context context) {
+		RssStorage storage = this.storage;
 		if (storage == null) {
 			synchronized (this) {
 				storage = this.storage;
 				if (storage == null) {
-					storage = PreferenceUtils.getPrefLcl(context.getApplicationContext());
+					ProviderConfig imported = getImportedProviderConfig();
+					storage = new RssStorage(context.getApplicationContext(), imported == null ? null : imported.getAuthorityStoragePrefix());
 					this.storage = storage;
 				}
 			}
@@ -398,8 +392,8 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	private void updateAgencyNewsDataIfRequired(@NonNull Context context, boolean inFocus) {
-		final long lastUpdateInMs = getStorage(context).getLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
-		final String lastUpdateLang = getStorage(context).getString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
+		final long lastUpdateInMs = getStorage(context).getLastUpdateMs(0L);
+		final String lastUpdateLang = getStorage(context).getLastUpdateLang(StringUtils.EMPTY);
 		final long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		final long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs
@@ -410,8 +404,8 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	private synchronized void updateAgencyNewsDataIfRequiredSync(@NonNull Context context, final long lastLastUpdateInMs, boolean inFocus) {
-		final long lastUpdateInMs = getStorage(context).getLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
-		final String lastUpdateLang = getStorage(context).getString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
+		final long lastUpdateInMs = getStorage(context).getLastUpdateMs(0L);
+		final String lastUpdateLang = getStorage(context).getLastUpdateLang(StringUtils.EMPTY);
 		if (lastUpdateInMs > lastLastUpdateInMs // IF new more recent last update DO
 				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return; // too late, another thread already updated
@@ -443,10 +437,7 @@ public class RSSNewsProvider extends NewsProvider {
 				deleteAllAgencyNewsData();
 			}
 			cacheNews(newNews);
-			final SharedPreferences.Editor editStorage = getStorage(context).edit();
-			editStorage.putLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs);
-			editStorage.putString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, LocaleUtils.getDefaultLanguage());
-			editStorage.apply();
+			getStorage(context).saveLastUpdate(nowInMs, LocaleUtils.getDefaultLanguage());
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -456,7 +447,7 @@ public class RSSNewsProvider extends NewsProvider {
 			ArrayList<News> newNews = null;
 			int i = 0;
 			for (String urlString : getFEEDS(context)) {
-				String language = RssNewProviderUtils.pickLang(context, i);
+				String language = RssNewProviderUtils.pickLang(context, i, importedRssConfig);
 				if (!LocaleUtils.MULTIPLE.equals(language)
 						&& !LocaleUtils.UNKNOWN.equals(language)
 						&& !LocaleUtils.getDefaultLanguage().equals(language)) {
@@ -519,11 +510,19 @@ public class RSSNewsProvider extends NewsProvider {
 
 	private static final String PRIVATE_FILE_NAME = "rss.xml";
 
+	@NonNull
+	private String getPrivateFileName() {
+		ProviderConfig imported = getImportedProviderConfig();
+		return imported == null ? PRIVATE_FILE_NAME : imported.getAuthorityStoragePrefix() + "_" + PRIVATE_FILE_NAME;
+	}
+
 	@Nullable
 	private ArrayList<News> loadAgencyNewsDataFromWWW(@NonNull Context context, String urlString, int i) {
 		try {
 			MTLog.i(this, "Loading from '%s'...", urlString);
-			final String target = RssNewProviderUtils.pickTarget(context, i);
+			ProviderConfig imported = getImportedProviderConfig();
+			final String target = RssNewProviderUtils.pickTarget(context, i, importedRssConfig,
+					imported == null ? null : imported.getTargetAuthority());
 			if (target == null) {
 				MTLog.w(this, "SKIP loading '%s': no target UUID!", urlString);
 				return null;
@@ -535,7 +534,14 @@ public class RSSNewsProvider extends NewsProvider {
 			SSLSocketFactory sslSocketFactory = null;
 			TrustManagerFactory trustManagerFactory = null;
 			if (isUSE_CUSTOM_SSL_CERTIFICATE(context)) {
-				final Pair<SSLSocketFactory, TrustManagerFactory> factories = SecurityUtils.getSSLSocketFactory(context, R.raw.rss_custom_ssl_certificate);
+				final Pair<SSLSocketFactory, TrustManagerFactory> factories;
+				if (importedRssConfig == null) {
+					factories = SecurityUtils.getSSLSocketFactory(context, R.raw.rss_custom_ssl_certificate);
+				} else {
+					try (InputStream certificate = importedRssConfig.openCustomSslCertificate()) {
+						factories = SecurityUtils.getSSLSocketFactory(certificate);
+					}
+				}
 				if (factories != null) {
 					sslSocketFactory = factories.getFirst();
 					trustManagerFactory = factories.getSecond();
@@ -549,22 +555,22 @@ public class RSSNewsProvider extends NewsProvider {
 					SAXParser sp = spf.newSAXParser();
 					XMLReader xr = sp.getXMLReader();
 					String authority = getAUTHORITY(context);
-					final int severity = RssNewProviderUtils.pickSeverity(context, i);
-					final long noteworthyInMs = RssNewProviderUtils.pickNoteworthy(context, i);
+					final int severity = RssNewProviderUtils.pickSeverity(context, i, importedRssConfig);
+					final long noteworthyInMs = RssNewProviderUtils.pickNoteworthy(context, i, importedRssConfig);
 					long maxValidityInMs = getNewsMaxValidityInMs();
-					final String color = RssNewProviderUtils.pickColor(context, i);
+					final String color = RssNewProviderUtils.pickColor(context, i, importedRssConfig);
 					String authorIcon = CollectionUtils.getOrNull(getFEEDS_AUTHOR_ICON(context), i);
-					final String authorName = RssNewProviderUtils.pickAuthorName(context, i);
+					final String authorName = RssNewProviderUtils.pickAuthorName(context, i, importedRssConfig);
 					String authorUrl = getFEEDS_AUTHOR_URL(context).get(i);
 					String label = RssNewProviderUtils.pickLabel(url);
 					if (TextUtils.isEmpty(label)) { // nice to have
 						label = getFEEDS_LABEL(context).get(i);
 					}
-					final String language = RssNewProviderUtils.pickLang(context, i);
-					final boolean ignoreGUID = RssNewProviderUtils.pickIgnoreGUID(context, i);
-					final boolean ignoreLink = RssNewProviderUtils.pickIgnoreLink(context, i);
-					final Pair<String, String> dateLinkFallback = RssNewProviderUtils.pickDateLinkFallback(context, i);
-					final String localTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context);
+					final String language = RssNewProviderUtils.pickLang(context, i, importedRssConfig);
+					final boolean ignoreGUID = RssNewProviderUtils.pickIgnoreGUID(context, i, importedRssConfig);
+					final boolean ignoreLink = RssNewProviderUtils.pickIgnoreLink(context, i, importedRssConfig);
+					final Pair<String, String> dateLinkFallback = RssNewProviderUtils.pickDateLinkFallback(context, i, importedRssConfig);
+					final String localTimeZoneId = importedRssConfig == null ? AgencyUtils.getAgencyTimeZoneId(context) : importedRssConfig.getTimeZone();
 					final RSSDataHandler handler = new RSSDataHandler(
 							url,
 							authority,
@@ -586,9 +592,11 @@ public class RSSNewsProvider extends NewsProvider {
 					);
 					xr.setContentHandler(handler);
 					if (isCOPY_TO_FILE_INSTEAD_OF_STREAMING(context)) { // fix leading space (invalid!) #BIXI #Montreal
-						FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, response.body().byteStream(), RssNewProviderUtils.pickEncoding(context));
+						FileUtils.copyToPrivateFile(context, getPrivateFileName(), response.body().byteStream(), RssNewProviderUtils.pickEncoding(context, importedRssConfig));
 						cleaningFile(context);
-						xr.parse(new InputSource(context.openFileInput(PRIVATE_FILE_NAME)));
+						try (InputStream feedFile = context.openFileInput(getPrivateFileName())) {
+							xr.parse(new InputSource(feedFile));
+						}
 					} else {
 						xr.parse(new InputSource(response.body().byteStream()));
 					}
@@ -632,7 +640,7 @@ public class RSSNewsProvider extends NewsProvider {
 					MTLog.w(this, "Invalid number for file cleaning regex [%s] & replacement [%s] !", regexCount, replacementCount);
 					return;
 				}
-				String fileContent = FileUtils.getString(context.openFileInput(PRIVATE_FILE_NAME));
+				String fileContent = FileUtils.getString(context.openFileInput(getPrivateFileName()));
 				for (int i = 0; i < regexCount; i++) {
 					String regex = fileCleaningRegex.get(i);
 					if (TextUtils.isEmpty(regex)) {
@@ -642,7 +650,7 @@ public class RSSNewsProvider extends NewsProvider {
 					String replacement = fileCleaningReplacement.get(i);
 					fileContent = fileContent.replaceAll(regex, replacement);
 				}
-				FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, fileContent);
+				FileUtils.copyToPrivateFile(context, getPrivateFileName(), fileContent);
 			}
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while cleaning file!");
@@ -1125,88 +1133,6 @@ public class RSSNewsProvider extends NewsProvider {
 			}
 			MTLog.w(this, "Created fake date for news item!");
 			return getLastItemPublicationDateInMs() - TimeUnit.HOURS.toMillis(6L);
-		}
-	}
-
-	private static class RSSNewsDbHelper extends NewsProvider.NewsDbHelper {
-
-		private static final String LOG_TAG = RSSNewsDbHelper.class.getSimpleName();
-
-		@NonNull
-		@Override
-		public String getLogTag() {
-			return LOG_TAG;
-		}
-
-		/**
-		 * Override if multiple {@link RSSNewsDbHelper} implementations in same app.
-		 */
-		static final String DB_NAME = "rss.db";
-
-		/**
-		 * Override if multiple {@link RSSNewsDbHelper} implementations in same app.
-		 */
-		static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = "pRSSNewsLastUpdate";
-
-		/**
-		 * Override if multiple {@link RSSNewsDbHelper} implementations in same app.
-		 */
-		static final String PREF_KEY_AGENCY_LAST_UPDATE_LANG = "pRSSNewsLastUpdateLang";
-
-		static final String T_RSS_NEWS = NewsProvider.NewsDbHelper.T_NEWS;
-
-		private static final String T_RSS_NEWS_SQL_CREATE = NewsProvider.NewsDbHelper.getSqlCreateBuilder(T_RSS_NEWS).build();
-
-		private static final String T_RSS_NEWS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_RSS_NEWS);
-
-		private static int dbVersion = -1;
-
-		/**
-		 * Override if multiple {@link RSSNewsDbHelper} in same app.
-		 */
-		public static int getDbVersion(@NonNull Context context) {
-			if (dbVersion < 0) {
-				dbVersion = context.getResources().getInteger(R.integer.rss_db_version);
-				dbVersion++; // add news articles images URLs do DB -> FORCE DB update
-			}
-			return dbVersion;
-		}
-
-		@NonNull
-		private final SharedPreferences storage;
-
-		RSSNewsDbHelper(@NonNull Context context, @NonNull SharedPreferences storage) {
-			this(context, DB_NAME, getDbVersion(context), storage);
-		}
-
-		RSSNewsDbHelper(@NonNull Context context, String dbName, int dbVersion, @NonNull SharedPreferences storage) {
-			super(context, dbName, dbVersion);
-			this.storage = storage;
-		}
-
-		@NonNull
-		@Override
-		public String getDbName() {
-			return DB_NAME;
-		}
-
-		@Override
-		public void onCreateMT(@NonNull SQLiteDatabase db) {
-			initAllDbTables(db);
-		}
-
-		@Override
-		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
-			db.execSQL(T_RSS_NEWS_SQL_DROP);
-			initAllDbTables(db);
-		}
-
-		private void initAllDbTables(@NonNull SQLiteDatabase db) {
-			db.execSQL(T_RSS_NEWS_SQL_CREATE);
-			final SharedPreferences.Editor editStorage = storage.edit();
-			editStorage.remove(PREF_KEY_AGENCY_LAST_UPDATE_MS);
-			editStorage.remove(PREF_KEY_AGENCY_LAST_UPDATE_LANG);
-			editStorage.apply();
 		}
 	}
 }

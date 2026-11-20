@@ -1,6 +1,6 @@
 package org.mtransit.android.commons
 
-object KeysIds : MTLog.Loggable {
+object KeysIds : MTLogK.Loggable {
 
     private val LOG_TAG: String = KeysIds::class.java.simpleName
 
@@ -12,6 +12,8 @@ object KeysIds : MTLog.Loggable {
     const val TWITTER_CACHED_API_URL = "twitter_cached_api_url" // news
     const val TWITTER_BEARER_TOKEN = "twitter_bearer_token" // news
     const val YOUTUBE_API_KEY = "youtube_api_key" // news
+    const val INSTAGRAM_CONSUMER_KEY = "instagram_consumer_key" // news
+    const val INSTAGRAM_CONSUMER_SECRET = "instagram_consumer_secret" // news
 
     const val GTFS_REAL_TIME_URL_TOKEN = "gtfs_real_time_agency_url_token" // status
     const val GTFS_REAL_TIME_URL_SECRET = "gtfs_real_time_agency_url_secret" // status

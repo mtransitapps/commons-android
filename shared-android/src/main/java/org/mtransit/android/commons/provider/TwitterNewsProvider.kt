@@ -2,18 +2,20 @@ package org.mtransit.android.commons.provider
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.UriMatcher
 import android.net.Uri
 import androidx.annotation.IntegerRes
 import androidx.annotation.StringRes
 import androidx.core.content.ContentProviderCompat
 import com.google.gson.GsonBuilder
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
 import org.mtransit.android.commons.ColorUtils
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.KeysIds
 import org.mtransit.android.commons.LocaleUtils
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.NetworkUtils
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SecureStringUtils
@@ -24,10 +26,13 @@ import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.provider.agency.AgencyUtils
-import org.mtransit.android.commons.provider.news.NewsProvider
+import org.mtransit.android.commons.provider.common.ProviderConfig
+import org.mtransit.android.commons.provider.common.sharedJson
+import org.mtransit.android.commons.provider.news.ConfigurableNewsProvider
 import org.mtransit.android.commons.provider.news.NewsProviderContract
 import org.mtransit.android.commons.provider.news.NewsTextFormatter
 import org.mtransit.android.commons.provider.news.twitter.TwitterDateAdapter
+import org.mtransit.android.commons.provider.news.twitter.TwitterNewsConfig
 import org.mtransit.android.commons.provider.news.twitter.TwitterNewsDbHelper
 import org.mtransit.android.commons.provider.news.twitter.TwitterStorage
 import org.mtransit.android.commons.provider.news.twitter.TwitterV2Api
@@ -43,7 +48,7 @@ import kotlin.time.Duration.Companion.minutes
 
 // DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressLint("Registered")
-class TwitterNewsProvider : NewsProvider() {
+class TwitterNewsProvider : ConfigurableNewsProvider() {
 
     companion object {
         private val LOG_TAG: String = TwitterNewsProvider::class.java.simpleName
@@ -135,14 +140,9 @@ class TwitterNewsProvider : NewsProvider() {
         }
     }
 
-    private val _uriMatcher: UriMatcher by lazy {
-        getNewUriMatcher(_authority)
-    }
-
     private val _authority: String by lazy {
-        ContentProviderCompat.requireContext(this).getString(
-            R.string.twitter_authority
-        )
+        importedProviderConfig?.authority
+            ?: ContentProviderCompat.requireContext(this).getString(R.string.twitter_authority)
     }
 
     private val _authorityUri: Uri by lazy {
@@ -159,65 +159,57 @@ class TwitterNewsProvider : NewsProvider() {
 
     private var providedBearerToken: String? = null
 
-    private val _color: String by lazy {
-        ContentProviderCompat.requireContext(this).getString(
-            R.string.twitter_color
-        )
+    private val color: String by lazy {
+        importedTwitterConfig?.color.orEmpty().ifEmpty {
+            ContentProviderCompat.requireContext(this).getString(R.string.twitter_color)
+        }
     }
 
-    private val _userNames: List<String> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.twitter_screen_names
-        ).toList()
+    private val userNames: List<String> by lazy {
+        importedTwitterConfig?.screenNames
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.twitter_screen_names).toList()
     }
 
-    private val _userNamesId: List<String> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.twitter_screen_names_id
-        ).toList()
+    private val userNamesId: List<String> by lazy {
+        importedTwitterConfig?.screenNamesId
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.twitter_screen_names_id).toList()
     }
 
-    private val _userNamesLang: List<String> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.twitter_screen_names_lang
-        ).toList()
+    private val userNamesLang: List<String> by lazy {
+        importedTwitterConfig?.screenNamesLang
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.twitter_screen_names_lang).toList()
     }
 
-    private val _userNamesColors: List<String> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.twitter_screen_names_colors
-        ).toList()
+    private val userNamesColors: List<String> by lazy {
+        importedTwitterConfig?.screenNamesColors
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.twitter_screen_names_colors).toList()
     }
 
-    private val _targetAuthority: String by lazy {
-        ContentProviderCompat.requireContext(this).getString(
-            R.string.twitter_target_for_poi_authority
-        )
+    private val targetAuthority: String by lazy {
+        importedProviderConfig?.targetAuthority
+            ?: ContentProviderCompat.requireContext(this).getString(R.string.twitter_target_for_poi_authority)
     }
 
-    private val _userNamesTarget: List<String> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.twitter_screen_names_target
-        ).toList()
+    private val userNamesTarget: List<String> by lazy {
+        importedTwitterConfig?.screenNamesTarget
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.twitter_screen_names_target).toList()
     }
 
-    private val _userNamesSeverity: List<Int> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getIntArray(
-            R.array.twitter_screen_names_severity
-        ).toList()
+    private val userNamesSeverity: List<Int> by lazy {
+        importedTwitterConfig?.screenNamesSeverity
+            ?: ContentProviderCompat.requireContext(this).resources.getIntArray(R.array.twitter_screen_names_severity).toList()
     }
 
     @get:IntegerRes
-    private val _userNamesSeverityDefaultResId: Int get() = R.integer.news_provider_severity_info_agency
+    private val userNamesSeverityDefaultResId: Int get() = R.integer.news_provider_severity_info_agency
 
-    private val _userNamesNoteworthy: List<Long> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.twitter_screen_names_noteworthy
-        ).toList().map { it.toLong() }
+    private val userNamesNoteworthy: List<Long> by lazy {
+        importedTwitterConfig?.screenNamesNoteworthy
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.twitter_screen_names_noteworthy).toList().map { it.toLong() }
     }
 
     @get:StringRes
-    private val _userNamesNoteworthyDefaultResId: Int get() = R.string.news_provider_noteworthy_warning
+    private val userNamesNoteworthyDefaultResId: Int get() = R.string.news_provider_noteworthy_warning
 
     private val _languages: List<String> by lazy {
         listOf<String>(
@@ -228,47 +220,51 @@ class TwitterNewsProvider : NewsProvider() {
 
     override fun getLogTag() = LOG_TAG
 
-    override val URI_MATCHER: UriMatcher get() = _uriMatcher
+    @Volatile
+    private var importedTwitterConfig: TwitterNewsConfig? = null
 
-    private var _dbHelper: TwitterNewsDbHelper? = null
-    private var _currentDbVersion: Int = -1
-
-    private fun getDBHelper(context: Context): TwitterNewsDbHelper {
-        when (val currentDbHelper: TwitterNewsDbHelper? = _dbHelper) {
-            null -> { // initialize
-                val newDbHelper = getNewDbHelper(context)
-                _dbHelper = newDbHelper
-                _currentDbVersion = currentDbVersion
-                return newDbHelper
-            }
-
-            else -> {
-                return try {
-                    if (_currentDbVersion == currentDbVersion) {
-                        _dbHelper?.close()
-                        _dbHelper = null
-                        getDBHelper(context)
-                    } else {
-                        currentDbHelper
-                    }
-                } catch (e: Exception) { // fail if locked, will try again later
-                    MTLog.w(this, e, "Can't check DB version!")
-                    currentDbHelper
-                }
-            }
-        }
+    override fun configureNewsConfig(config: ProviderConfig) {
+        require(config.type == ProviderConfig.TYPE_NEWS_TWITTER) { "Unsupported Twitter config type" }
+        importedTwitterConfig = sharedJson.decodeFromJsonElement<TwitterNewsConfig>(config.params)
     }
 
-    /**
-     * Override if multiple [TwitterNewsDbHelper] implementations in same app.
-     */
-    override fun getCurrentDbVersion() = _currentDbVersion
-
-    override fun getNewDbHelper(context: Context): TwitterNewsDbHelper {
-        return TwitterNewsDbHelper(context.applicationContext, getStorage(context))
+    override fun closeConfiguredRuntime() {
+        super.closeConfiguredRuntime()
+        _storage = null
     }
 
-    fun getDBHelper() = getDBHelper(ContentProviderCompat.requireContext(this))
+    override fun getProviderConfig(): ProviderConfig {
+        importedProviderConfig?.let { return it }
+        val context = requireContextCompat()
+        return ProviderConfig.create(
+            type = ProviderConfig.TYPE_NEWS_TWITTER,
+            authority = _authority,
+            targetAuthority = targetAuthority.takeIf { it.isNotBlank() } ?: AgencyUtils.getAgencyAuthority(context).orEmpty(),
+            params = sharedJson.encodeToJsonElement(
+                TwitterNewsConfig(
+                    color = color.takeIf { it.isNotBlank() } ?: AgencyUtils.getAgencyColor(context),
+                    screenNames = userNames,
+                    screenNamesId = userNamesId,
+                    screenNamesLang = userNamesLang,
+                    screenNamesColors = userNamesColors,
+                    screenNamesTarget = userNamesTarget,
+                    screenNamesSeverity = userNamesSeverity,
+                    screenNamesNoteworthy = userNamesNoteworthy,
+                    defaultSeverity = context.resources.getInteger(userNamesSeverityDefaultResId),
+                    defaultNoteworthy = context.getString(userNamesNoteworthyDefaultResId).toLong(),
+                )
+            ).jsonObject,
+            secrets = mapOf(KeysIds.TWITTER_BEARER_TOKEN to _bearerToken),
+        )
+    }
+
+    override fun getCurrentDbVersion() = TwitterNewsDbHelper.getDbVersion(requireContextCompat())
+
+    override fun getNewDbHelper(context: Context) = TwitterNewsDbHelper(
+        context.applicationContext,
+        getStorage(context),
+        dbNamePrefix = importedProviderConfig?.authorityStoragePrefix,
+    )
 
     override fun getMinDurationBetweenNewsRefreshInMs(inFocusOrDefault: Boolean) =
         super.getMinDurationBetweenNewsRefreshInMs(inFocusOrDefault)
@@ -299,7 +295,7 @@ class TwitterNewsProvider : NewsProvider() {
             )
             affectedRows = this.getDBHelper().writableDatabase.delete(newsDbTableName, selection, null)
         } catch (e: Exception) {
-            MTLog.w(this, e, "Error while deleting all agency news data!")
+            MTLogK.w(this, "Error while deleting all agency news data!", e)
         }
         return affectedRows
     }
@@ -319,14 +315,18 @@ class TwitterNewsProvider : NewsProvider() {
     override fun getNewNews(newsFilter: NewsProviderContract.Filter): ArrayList<News>? {
         this.providedBearerToken = SecureStringUtils.dec(newsFilter.getProvidedEncryptKey(KeysIds.TWITTER_BEARER_TOKEN))
         this.providedCachedApiUrl = SecureStringUtils.dec(newsFilter.getProvidedEncryptKey(KeysIds.TWITTER_CACHED_API_URL))
-        updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault)
-        return getCachedNews(newsFilter)
+        try {
+            updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault)
+            return getCachedNews(newsFilter)
+        } finally {
+            this.providedBearerToken = null
+            this.providedCachedApiUrl = null
+        }
     }
 
     private fun updateAgencyNewsDataIfRequired(context: Context, inFocus: Boolean) {
         if (FORCE_REFRESH) {
-            getStorage(context).saveLastUpdateMs(0L) // force refresh
-            getStorage(context).saveLastUpdateLang(EMPTY) // force refresh
+            getStorage(context).saveLastUpdate(null, null) // force refresh
         }
         val lastUpdateInMs = getStorage(context).getLastUpdateMs(0L)
         val lastUpdateLang = getStorage(context).getLastUpdateLang(EMPTY)
@@ -380,8 +380,7 @@ class TwitterNewsProvider : NewsProvider() {
                 deleteAllAgencyNewsData()
             }
             cacheNews(newNews)
-            getStorage(context).saveLastUpdateMs(nowInMs) // sync
-            getStorage(context).saveLastUpdateLang(LocaleUtils.getDefaultLanguage()) // sync
+            getStorage(context).saveLastUpdate(nowInMs, LocaleUtils.getDefaultLanguage()) // sync
         } // else keep whatever we have until max validity reached
     }
 
@@ -389,7 +388,10 @@ class TwitterNewsProvider : NewsProvider() {
     private var _storage: TwitterStorage? = null
 
     private fun getStorage(context: Context) = _storage ?: synchronized(this) {
-        _storage ?: TwitterStorage(context.applicationContext).also { _storage = it }
+        _storage ?: TwitterStorage(
+            context.applicationContext,
+            prefix = importedProviderConfig?.authorityStoragePrefix,
+        ).also { _storage = it }
     }
 
     private var _twitterApi: TwitterV2Api? = null
@@ -416,7 +418,7 @@ class TwitterNewsProvider : NewsProvider() {
             val newNews = ArrayList<News>()
             val maxValidityInMs = newsMaxValidityInMs
             val authority = _authority
-            for ((i, userName) in _userNames.withIndex()) {
+            for ((i, userName) in userNames.withIndex()) {
                 loadUserTimeline(
                     context,
                     twitterApi,
@@ -428,13 +430,13 @@ class TwitterNewsProvider : NewsProvider() {
                     userName
                 )
             }
-            MTLog.i(this, "Loaded ${newNews.size} news.")
+            MTLogK.i(this, "Loaded ${newNews.size} news.")
             return newNews
         } catch (ioe: IOException) {
-            MTLog.e(LOG_TAG, ioe, "I/O ERROR: Unknown Exception")
+            MTLogK.e(LOG_TAG, "I/O ERROR: Unknown Exception", ioe)
             return null
         } catch (e: Exception) {
-            MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception")
+            MTLogK.e(LOG_TAG, "INTERNAL ERROR: Unknown Exception", e)
             return null
         }
     }
@@ -459,16 +461,16 @@ class TwitterNewsProvider : NewsProvider() {
         i: Int,
         username: String,
     ) {
-        val userLang = _userNamesLang.getOrNull(i) ?: LocaleUtils.UNKNOWN
+        val userLang = userNamesLang.getOrNull(i) ?: LocaleUtils.UNKNOWN
         if (LocaleUtils.MULTIPLE != userLang
             && LocaleUtils.UNKNOWN != userLang
             && LocaleUtils.getDefaultLanguage() != userLang
         ) {
-            MTLog.d(this, "SKIP loading '$username': different language ($userLang).")
+            MTLogK.d(this, "SKIP loading '$username': different language ($userLang).")
             return
         }
         // 1- load user ID
-        val userId = _userNamesId.getOrNull(i)?.takeIf { it.isNotBlank() } // provided (optional)
+        val userId = userNamesId.getOrNull(i)?.takeIf { it.isNotBlank() } // provided (optional)
             ?: getStorage(context).getUserNameId(username, EMPTY)
                 .takeIf { it.isNotBlank() }
             ?: loadUserNameIdFromApi(twitterApi, token, username)
@@ -478,12 +480,12 @@ class TwitterNewsProvider : NewsProvider() {
                     getStorage(context).saveUserNameId(username, userId)
                 }
         if (userId.isNullOrBlank()) {
-            MTLog.d(this, "SKIP loading '$username': no user ID.")
+            MTLogK.d(this, "SKIP loading '$username': no user ID.")
             return
         }
         // 2 - load user timeline
         val newLastUpdateInMs = TimeUtils.currentTimeMillis()
-        MTLog.i(this, "Loading '@$username' posts from '$AGENCY_SOURCE_LABEL'...")
+        MTLogK.i(this, "Loading '@$username' posts from '$AGENCY_SOURCE_LABEL'...")
         if (FORCE_REFRESH) {
             getStorage(context).saveUserNameSinceId(username, EMPTY) // reset
         }
@@ -505,26 +507,28 @@ class TwitterNewsProvider : NewsProvider() {
             userFields = USER_FIELDS.joinToString(separator = ","),
         ).execute().apply {
             if (!isSuccessful) {
-                MTLog.w(this, "SKIP loading '$username' tweets: API error ${code()} (${errorBody()?.string()})")
+                MTLogK.w(this, "SKIP loading '$username' tweets: API error ${code()} (${errorBody()?.string()})")
                 return
             }
         }.body()
             ?: run {
-                MTLog.w(this, "SKIP loading '$username': no response!")
+                MTLogK.w(this, "SKIP loading '$username': no response!")
                 return
             }
-        val targetUUID = _userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
-            ?: _targetAuthority.takeIf { it.isNotBlank() }
+        val targetUUID = userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
+            ?: targetAuthority.takeIf { it.isNotBlank() }
             ?: AgencyUtils.getAgencyAuthority(context)
             ?: EMPTY.takeIf { context.packageName == Constants.MAIN_APP_PACKAGE_NAME } // target all allowed for main app
             ?: run {
-                MTLog.w(this, "SKIP loading '$username': no target UUID!")
+                MTLogK.w(this, "SKIP loading '$username': no target UUID!")
                 return
             }
-        val severity = _userNamesSeverity.getOrNull(i)
-            ?: context.resources.getInteger(_userNamesSeverityDefaultResId)
-        val noteworthyInMs = _userNamesNoteworthy.getOrNull(i)
-            ?: context.resources.getString(_userNamesNoteworthyDefaultResId).toLong()
+        val severity = userNamesSeverity.getOrNull(i)
+            ?: importedTwitterConfig?.defaultSeverity
+            ?: context.resources.getInteger(userNamesSeverityDefaultResId)
+        val noteworthyInMs = userNamesNoteworthy.getOrNull(i)
+            ?: importedTwitterConfig?.defaultNoteworthy
+            ?: context.resources.getString(userNamesNoteworthyDefaultResId).toLong()
         var loadedNewsCount = 0
         val tweetsResp = response.data
         val tweetsRespIncludedExpansions = response.includes
@@ -553,7 +557,7 @@ class TwitterNewsProvider : NewsProvider() {
                 }
             }
         newSinceId?.let { getStorage(context).saveUserNameSinceId(username, it) }
-        MTLog.i(this, "Loaded $loadedNewsCount news for '@$username'.")
+        MTLogK.i(this, "Loaded $loadedNewsCount news for '@$username'.")
     }
 
     // https://developer.x.com/en/docs/x-api/users/lookup/api-reference/get-users-by-username-username
@@ -564,7 +568,7 @@ class TwitterNewsProvider : NewsProvider() {
             username = username,
         ).execute().apply {
             if (!isSuccessful) {
-                MTLog.w(this, "SKIP loading '$username' ID: API error ${code()} (${errorBody()?.string()})")
+                MTLogK.w(this, "SKIP loading '$username' ID: API error ${code()} (${errorBody()?.string()})")
                 return null
             }
         }.body()
@@ -586,7 +590,7 @@ class TwitterNewsProvider : NewsProvider() {
         userLang: String,
     ): News? {
         if (tweet.inReplyToUserId != null && tweet.inReplyToUserId != userId) {
-            MTLog.d(this, "readNews() > SKIP (in reply to screen name: '%s').", tweet.inReplyToUserId)
+            MTLogK.d(this, "readNews() > SKIP (in reply to screen name: '${tweet.inReplyToUserId}').")
             return null
         }
         val author = includedExpansions?.users?.find { it.id == tweet.authorId }
@@ -594,7 +598,7 @@ class TwitterNewsProvider : NewsProvider() {
         @Suppress("SpellCheckingInspection")
         val authorUserName = author?.username ?: userName // "montransit"
         val authorName = author?.name ?: authorUserName // "MonTransit"
-        val userProfileImageUrl = author?.profileImageUrl ?: ""
+        val userProfileImageUrl = author?.profileImageUrl.orEmpty()
 
         val link = getNewsWebURL(tweet, authorUserName)
         val text = buildString {
@@ -618,12 +622,12 @@ class TwitterNewsProvider : NewsProvider() {
         val lang: String = getLang(tweet, userLang)
         val createdAtInMs = tweet.createdAt?.time
             ?: newLastUpdateInMs // should never happen
-        val colorString = _userNamesColors.getOrNull(_userNames.indexOf(authorUserName))?.takeIf { it.isNotBlank() }
-            ?: _color.takeIf { it.isNotBlank() }
+        val colorString = userNamesColors.getOrNull(userNames.indexOf(authorUserName))?.takeIf { it.isNotBlank() }
+            ?: color.takeIf { it.isNotBlank() }
             ?: AgencyUtils.getAgencyColor(context)
             ?: ColorUtils.BLACK
                 .also {
-                    MTLog.w(this, "No color found for '$userName'! (used fallback)")
+                    MTLogK.w(this, "No color found for '$userName'! (used fallback)")
                 }
         return News(
             null,
@@ -660,7 +664,7 @@ class TwitterNewsProvider : NewsProvider() {
                     TweetMediaType.VIDEO.type -> media.previewImageUrl
                     TweetMediaType.ANIMATED_GIF.type -> media.previewImageUrl
                     else -> {
-                        MTLog.w(this, "Unexpected media type '${media.type}'!")
+                        MTLogK.w(this, "Unexpected media type '${media.type}'!")
                         null
                     }
                 }
@@ -703,7 +707,7 @@ class TwitterNewsProvider : NewsProvider() {
             textHTML = HtmlUtils.toHTML(textHTML)
             return textHTML
         } catch (e: Exception) {
-            MTLog.w(this, e, "Error while generating HTML text for status '%s'!", status)
+            MTLogK.w(this, "Error while generating HTML text for status '$status'!", e)
             return status.text
         }
     }

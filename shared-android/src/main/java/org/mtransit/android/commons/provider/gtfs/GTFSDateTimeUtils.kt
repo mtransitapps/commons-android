@@ -5,7 +5,7 @@ import kotlinx.datetime.number
 import kotlinx.datetime.toJavaLocalDate
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.millisToInstant
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
@@ -19,7 +19,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone as KtTimeZone
 
-object GTFSDateTimeUtils : MTLog.Loggable {
+object GTFSDateTimeUtils : MTLogK.Loggable {
 
     private val LOG_TAG: String = GTFSDateTimeUtils::class.java.simpleName
 
@@ -89,7 +89,7 @@ object GTFSDateTimeUtils : MTLog.Loggable {
                 todayService
             }
         } catch (e: Exception) {
-            MTLog.w(this, e, "Error while parsing GTFS time '$gtfsTimeStr'!")
+            MTLogK.w(this, "Error while parsing GTFS time '$gtfsTimeStr'!", e)
             return null
         }
     }
@@ -98,7 +98,7 @@ object GTFSDateTimeUtils : MTLog.Loggable {
         try {
             val cleanedDate = gtfsDateStr?.trim() ?: return null
             if (cleanedDate.length != DATE_FORMAT_LENGTH || cleanedDate.any { !it.isDigit() }) {
-                MTLog.w(this, "Invalid GTFS date format '$cleanedDate'! Must be YYYYMMDD")
+                MTLogK.w(this, "Invalid GTFS date format '$cleanedDate'! Must be YYYYMMDD")
                 return null
             }
             val parts = gtfsTimeStr?.trim()
@@ -114,7 +114,7 @@ object GTFSDateTimeUtils : MTLog.Loggable {
 
             return agencyTZCal.toLocalInstant(LocalDate(year, month, day), hoursCount, minutesCount, secondsCount, agencyTimeZone)
         } catch (e: Exception) {
-            MTLog.w(this, e, "Error while parsing GTFS date '$gtfsDateStr' & time '$gtfsTimeStr'!")
+            MTLogK.w(this, "Error while parsing GTFS date '$gtfsDateStr' & time '$gtfsTimeStr'!", e)
             return null
         }
     }

@@ -4,14 +4,14 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SqlUtils
-import org.mtransit.android.commons.StringUtils
 import org.mtransit.android.commons.provider.news.NewsProvider.NewsDbHelper
 
 class TwitterNewsDbHelper(
     private val context: Context,
     private val storage: TwitterStorage,
-    dbName: String = DB_NAME,
-    dbVersion: Int = getDbVersion(context)
+    private val dbNamePrefix: String? = null,
+    private val dbName: String = dbNamePrefix?.let { "${it}_$DB_NAME" } ?: DB_NAME,
+    dbVersion: Int = getDbVersion(context),
 ) : NewsDbHelper(context, dbName, dbVersion) {
 
     companion object {
@@ -26,8 +26,7 @@ class TwitterNewsDbHelper(
 
         private val T_TWITTER_NEWS_SQL_CREATE = getSqlCreateBuilder(T_TWITTER_NEWS).build()
 
-        private val T_TWITTER_NEWS_SQL_DROP =
-            SqlUtils.getSQLDropIfExistsQuery(T_TWITTER_NEWS)
+        private val T_TWITTER_NEWS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_TWITTER_NEWS)
 
         private var dbVersion = -1
 
@@ -45,9 +44,7 @@ class TwitterNewsDbHelper(
 
     override fun getLogTag() = LOG_TAG
 
-    override fun getDbName(): String {
-        return DB_NAME
-    }
+    override fun getDbName() = dbName
 
     override fun onCreateMT(db: SQLiteDatabase) {
         initAllDbTables(db)
@@ -60,7 +57,6 @@ class TwitterNewsDbHelper(
 
     private fun initAllDbTables(db: SQLiteDatabase) {
         db.execSQL(T_TWITTER_NEWS_SQL_CREATE)
-        storage.saveLastUpdateMs(0L)
-        storage.saveLastUpdateLang(StringUtils.EMPTY)
+        storage.saveLastUpdate(null, null)
     }
 }

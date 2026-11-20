@@ -6,12 +6,13 @@ import android.database.MatrixCursor
 import android.database.sqlite.SQLiteQueryBuilder
 import android.net.Uri
 import androidx.core.database.sqlite.transaction
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.StringUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.provider.common.ContentProviderConstants
 import org.mtransit.android.commons.provider.common.MTContentProvider
+import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProviderContract.Filter.Companion.toFilter
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 
 abstract class VehicleLocationProvider :
@@ -43,8 +44,8 @@ abstract class VehicleLocationProvider :
         private const val LOG_NO_CACHE_OR_DATA_FROM_PROVIDER = false
 
         private fun <P : VehicleLocationProviderContract> P.getVehicleLocations(selection: String?): Cursor {
-            val filter = VehicleLocationProviderContract.Filter.fromJSONString(selection) ?: run {
-                MTLog.w(this, "Error while parsing vehicle location filter! (%s)", selection)
+            val filter = selection?.toFilter() ?: run {
+                MTLogK.w(this, "Error while parsing vehicle location filter! ($selection)")
                 return getVehicleLocationCursor(null)
             }
             val nowInMs = TimeUtils.currentTimeMillis()
@@ -77,7 +78,7 @@ abstract class VehicleLocationProvider :
             }
             if (filter.isCacheOnlyOrDefault) {
                 if (cachedVehicleLocations.isNullOrEmpty()) {
-                    MTLog.w(this, "getVehicleLocations() > No useful cache found!")
+                    MTLogK.w(this, "getVehicleLocations() > No useful cache found!")
                 }
                 return getVehicleLocationCursor(cachedVehicleLocations)
             }
@@ -102,7 +103,7 @@ abstract class VehicleLocationProvider :
             }
             if (cachedVehicleLocations.isNullOrEmpty()) {
                 if (LOG_NO_CACHE_OR_DATA_FROM_PROVIDER) {
-                    MTLog.d(this, "getVehicleLocations() > no cache & no data from provider for %s.", filter.targetUuid)
+                    MTLogK.d(this, "getVehicleLocations() > no cache & no data from provider for ${filter.targetUuid}.")
                 }
             }
             return getVehicleLocationCursor(cachedVehicleLocations)
@@ -191,7 +192,7 @@ abstract class VehicleLocationProvider :
                         }
                     }
             } catch (e: Exception) {
-                MTLog.w(LOG_TAG, e, "Error!")
+                MTLogK.w(LOG_TAG, "Error!", e)
                 null
             }
 
@@ -212,7 +213,7 @@ abstract class VehicleLocationProvider :
                     }
                 }
             } catch (e: Exception) {
-                MTLog.w(LOG_TAG, e, "ERROR while applying batch update to the database!")
+                MTLogK.w(LOG_TAG, "ERROR while applying batch update to the database!", e)
             }
             return affectedRows
         }
@@ -223,7 +224,7 @@ abstract class VehicleLocationProvider :
             try {
                 deletedRows = provider.writeDB.delete(provider.dbTableName, null, null)
             } catch (e: Exception) {
-                MTLog.w(LOG_TAG, e, "Error while deleting ALL cached vehicle locations!")
+                MTLogK.w(LOG_TAG, "Error while deleting ALL cached vehicle locations!", e)
             }
             return deletedRows > 0
         }
@@ -236,7 +237,7 @@ abstract class VehicleLocationProvider :
             try {
                 deletedRows = provider.writeDB.delete(provider.dbTableName, selection, null)
             } catch (e: Exception) {
-                MTLog.w(LOG_TAG, e, "Error while deleting cached vehicle location '%s'!", vehicleLocationId)
+                MTLogK.w(LOG_TAG, "Error while deleting cached vehicle location '$vehicleLocationId'!", e)
             }
             return deletedRows > 0
         }
@@ -249,7 +250,7 @@ abstract class VehicleLocationProvider :
             try {
                 deletedRows = provider.writeDB.delete(provider.dbTableName, selection, null)
             } catch (e: Exception) {
-                MTLog.w(LOG_TAG, e, "Error while deleting cached vehicle locations!")
+                MTLogK.w(LOG_TAG, "Error while deleting cached vehicle locations!", e)
             }
             return deletedRows > 0
         }

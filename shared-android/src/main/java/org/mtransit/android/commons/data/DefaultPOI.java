@@ -6,8 +6,6 @@ import android.database.Cursor;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.HtmlUtils;
@@ -20,9 +18,11 @@ import java.text.Normalizer;
 import java.util.Locale;
 import java.util.Objects;
 
+import kotlinx.serialization.json.JsonObject;
+
 public class DefaultPOI implements POI {
 
-	private static final String LOG_TAG = DefaultPOI.class.getSimpleName();
+	protected static final String LOG_TAG = DefaultPOI.class.getSimpleName();
 
 	@NonNull
 	@Override
@@ -250,7 +250,7 @@ public class DefaultPOI implements POI {
 	@NonNull
 	@Override
 	public ContentValues toContentValues() {
-		ContentValues values = new ContentValues();
+		final ContentValues values = new ContentValues();
 		values.put(POIProviderContract.Columns.T_POI_K_ID, getId());
 		values.put(POIProviderContract.Columns.T_POI_K_NAME, getName());
 		values.put(POIProviderContract.Columns.T_POI_K_LAT, getLat());
@@ -330,146 +330,9 @@ public class DefaultPOI implements POI {
 		}
 	}
 
-	@Nullable
-	public static POI fromJSONStatic(@NonNull JSONObject json) {
-		final int type = getTypeFromJSON(json);
-		switch (type) {
-		case POI.ITEM_VIEW_TYPE_BASIC_POI:
-			return fromBasicJSONStatic(json, type);
-		case POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP:
-			return RouteDirectionStop.fromJSONStatic(json);
-		case POI.ITEM_VIEW_TYPE_MODULE:
-		case POI.ITEM_VIEW_TYPE_TEXT_MESSAGE:
-		default:
-			MTLog.w(LOG_TAG, "Unexpected POI type '%s'! (using default) (json: %s)", type, json);
-			return fromBasicJSONStatic(json, type);
-		}
-	}
-
-	@ItemViewType
-	private static int getTypeFromJSON(@NonNull JSONObject json) {
-		try {
-			return json.getInt(JSON_TYPE);
-		} catch (Exception e) {
-			MTLog.w(LOG_TAG, e, "Error while retrieving POI type from '%s'!", json);
-			return POI.ITEM_VIEW_TYPE_BASIC_POI; // default
-		}
-	}
-
-	@Nullable
-	private static POI fromBasicJSONStatic(@NonNull JSONObject json, @ItemViewType int type) {
-		try {
-			final DefaultPOI defaultPOI = new DefaultPOI(
-					getAuthorityFromJSON(json),
-					getIdFromJSON(json),
-					getDSTypeIdFromJSON(json),
-					type,
-					json.getInt(JSON_STATUS_TYPE),
-					json.optInt(JSON_ACTION_TYPE, -1),
-					getLatFromJSON(json),
-					getLngFromJSON(json),
-					getNameFromJSON(json)
-			);
-			fromJSON(json, defaultPOI);
-			return defaultPOI;
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", json);
-			return null;
-		}
-	}
-
-	@Nullable
-	@Override
-	public POI fromJSON(@NonNull JSONObject json) {
-		try {
-			final DefaultPOI defaultPOI = new DefaultPOI(
-					getAuthority(),
-					getIdFromJSON(json),
-					getDataSourceTypeId(),
-					json.getInt(JSON_TYPE),
-					json.getInt(JSON_STATUS_TYPE),
-					json.optInt(JSON_ACTION_TYPE, -1),
-					getLatFromJSON(json),
-					getLngFromJSON(json),
-					getNameFromJSON(json)
-			);
-			fromJSON(json, defaultPOI);
-			return defaultPOI;
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", json);
-			return null;
-		}
-	}
-
-	private static final String JSON_AUTHORITY = "authority";
-	private static final String JSON_ID = "id";
-	private static final String JSON_NAME = "name";
-	private static final String JSON_LAT = "lat";
-	private static final String JSON_LNG = "lng";
-	private static final String JSON_DATA_SOURCE_TYPE_ID = "dst";
-	private static final String JSON_TYPE = "type";
-	private static final String JSON_STATUS_TYPE = "statusType";
-	private static final String JSON_ACTION_TYPE = "actionsType";
-	private static final String JSON_SCORE_OPT = "scoreOpt";
-
-	public static void fromJSON(@NonNull JSONObject json, @NonNull POI defaultPOI) throws JSONException {
-		if (json.has(JSON_SCORE_OPT)) {
-			defaultPOI.setScore(json.getInt(JSON_SCORE_OPT));
-		}
-	}
-
-	public static int getIdFromJSON(@NonNull JSONObject json) throws JSONException {
-		return json.getInt(JSON_ID);
-	}
-
 	@NonNull
-	public static String getAuthorityFromJSON(@NonNull JSONObject json) throws JSONException {
-		return json.getString(JSON_AUTHORITY);
-	}
-
-	@DataSourceType
-	public static int getDSTypeIdFromJSON(@NonNull JSONObject json) throws JSONException {
-		return json.getInt(JSON_DATA_SOURCE_TYPE_ID);
-	}
-
-	public static double getLatFromJSON(@NonNull JSONObject json) throws JSONException {
-		return json.getDouble(JSON_LAT);
-	}
-
-	public static double getLngFromJSON(@NonNull JSONObject json) throws JSONException {
-		return json.getDouble(JSON_LNG);
-	}
-
-	@NonNull
-	public static String getNameFromJSON(@NonNull JSONObject json) throws JSONException {
-		return json.getString(JSON_NAME);
-	}
-
-	@Nullable
 	@Override
-	public JSONObject toJSON() {
-		try {
-			final JSONObject json = new JSONObject();
-			toJSON(this, json);
-			return json;
-		} catch (JSONException jsone) {
-			MTLog.w(this, jsone, "Error while converting to JSON (%s)!", this);
-			return null;
-		}
-	}
-
-	public static void toJSON(@NonNull DefaultPOI defaultPOI, @NonNull JSONObject json) throws JSONException {
-		json.put(JSON_AUTHORITY, defaultPOI.getAuthority());
-		json.put(JSON_ID, defaultPOI.getId());
-		json.put(JSON_NAME, defaultPOI.getName());
-		json.put(JSON_LAT, defaultPOI.getLat());
-		json.put(JSON_LNG, defaultPOI.getLng());
-		json.put(JSON_DATA_SOURCE_TYPE_ID, defaultPOI.getDataSourceTypeId());
-		json.put(JSON_TYPE, defaultPOI.getType());
-		json.put(JSON_STATUS_TYPE, defaultPOI.getStatusType());
-		json.put(JSON_ACTION_TYPE, defaultPOI.getActionsType());
-		if (defaultPOI.getScore() != null) {
-			json.put(JSON_SCORE_OPT, defaultPOI.getScore());
-		}
+	public JsonObject toJson() {
+		return DefaultPOIExtKt.toJsonK(this);
 	}
 }

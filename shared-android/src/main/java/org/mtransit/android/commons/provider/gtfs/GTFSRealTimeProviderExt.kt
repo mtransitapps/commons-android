@@ -2,7 +2,7 @@ package org.mtransit.android.commons.provider.gtfs
 
 import android.content.Context
 import okhttp3.Request
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.Direction
 import org.mtransit.android.commons.data.Route
 import org.mtransit.android.commons.data.RouteDirection
@@ -176,19 +176,19 @@ fun GTFSRealTimeProvider.setTripIdsOutOfSync(
 }
 
 fun GTFSRealTimeProvider.makeRequest(
-    loggable: MTLog.Loggable,
+    loggable: MTLogK.Loggable,
     context: Context,
     urlCachedString: String = "",
     getUrlString: (token: String) -> String,
 ): Request? {
     if (urlCachedString.isNotBlank()) {
-        MTLog.i(loggable, "Loading from cached API (length: %d) '***'...", urlCachedString.length)
+        MTLogK.i(loggable, "Loading from cached API (length: ${urlCachedString.length}) '***'...")
         return Request.Builder().url(URL(urlCachedString)).build()
     }
     val token = getAGENCY_URL_TOKEN(context) // use local token 1st for new/updated API URL & tokens
         .takeIf { it.isNotBlank() }
         ?: this.providedAgencyUrlToken
-        ?: "" // compat w/ API w/o token
+            .orEmpty() // compat w/ API w/o token
     var urlString = getUrlString(token)
     if (isUSE_URL_HASH_SECRET_AND_DATE(context)) {
         getHashSecretAndDate(context)?.let { hash ->
@@ -196,12 +196,12 @@ fun GTFSRealTimeProvider.makeRequest(
         }
     }
     if (urlString.isBlank()) {
-        MTLog.w(loggable, "No valid URL!")
+        MTLogK.w(loggable, "No valid URL!")
         return null
     }
     val url = URL(urlString)
-    MTLog.i(loggable, "Loading from '%s'...", url.host)
-    MTLog.d(loggable, "Using token '%s' (length: %d)", if (token.isEmpty()) "(none)" else "***", token.length)
+    MTLogK.i(loggable, "Loading from '${url.host}'...")
+    MTLogK.d(loggable, "Using token '${if (token.isEmpty()) "(none)" else "***"}' (length: ${token.length})")
     return Request.Builder()
         .url(url)
         .apply {

@@ -152,10 +152,8 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 
 	@Nullable
 	private static Cursor getNews(@NonNull NewsProviderContract provider, @Nullable String selection) {
-		final NewsProviderContract.Filter newsFilter = NewsProviderContract.Filter.fromJSONString(selection);
-		if (newsFilter == null) {
-			return getNewsCursor(null);
-		}
+		final NewsProviderContract.Filter newsFilter = NewsProviderContract.Filter.toFilterN(selection);
+		if (newsFilter == null) return getNewsCursor(null);
 		if (newsFilter.isArticlesUUIDFilter()) {
 			return provider.getNewsFromDB(newsFilter);
 		}
@@ -243,10 +241,8 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	private static Cursor getNewsCursor(ArrayList<News> news) {
-		if (news == null) {
-			return ContentProviderConstants.EMPTY_CURSOR;
-		}
-		MatrixCursor matrixCursor = new MatrixCursor(NewsProviderContract.getPROJECTION_NEWS());
+		if (news == null) return ContentProviderConstants.EMPTY_CURSOR;
+		final MatrixCursor matrixCursor = new MatrixCursor(NewsProviderContract.getPROJECTION_NEWS());
 		for (News oneNews : news) {
 			matrixCursor.addRow(oneNews.getCursorRow());
 		}

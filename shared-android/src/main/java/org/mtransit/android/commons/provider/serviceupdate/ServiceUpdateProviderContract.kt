@@ -4,10 +4,14 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import android.provider.BaseColumns
 import androidx.annotation.Discouraged
-import org.json.JSONException
-import org.json.JSONObject
-import org.mtransit.android.commons.MTLog
-import org.mtransit.android.commons.data.DefaultPOI
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.Direction
 import org.mtransit.android.commons.data.POI
 import org.mtransit.android.commons.data.Route
@@ -15,13 +19,17 @@ import org.mtransit.android.commons.data.RouteDirection
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.ServiceUpdates
 import org.mtransit.android.commons.data.Targetable
-import org.mtransit.android.commons.optString
+import org.mtransit.android.commons.data.toPOI
+import org.mtransit.android.commons.data.toRoute
+import org.mtransit.android.commons.data.toRouteDirection
 import org.mtransit.android.commons.provider.common.ProviderContract
+import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderFilter
 import org.mtransit.commons.model.Secret
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
+import org.mtransit.android.commons.data.toJson as toJsonK
 
 interface ServiceUpdateProviderContract : ProviderContract {
 
@@ -109,7 +117,7 @@ interface ServiceUpdateProviderContract : ProviderContract {
         override val poi: POI? = null, // RouteDirectionStop or DefaultPOI
         override val route: Route? = null,
         override val routeDirection: RouteDirection? = null,
-    ) : ProviderContract.Filter(), GTFSRealTimeProviderFilter, MTLog.Loggable {
+    ) : ProviderContract.Filter(), GTFSRealTimeProviderFilter, MTLogK.Loggable {
 
         companion object {
             private val LOG_TAG = ServiceUpdateProviderContract::class.java.getSimpleName() + ">" + Filter::class.java.getSimpleName()
@@ -119,13 +127,12 @@ interface ServiceUpdateProviderContract : ProviderContract {
             fun from(poi: POI, inFocus: Boolean? = null) = Filter(poi).copy(inFocus = inFocus)
 
             @JvmStatic
-            fun fromJSONString(jsonString: String?): Filter? {
-                try {
-                    return jsonString?.let { fromJSON(JSONObject(it)) }
-                } catch (jsone: JSONException) {
-                    MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '%s'", jsonString)
-                    return null
-                }
+            fun String?.toFilterN() = this?.toFilter()
+            fun String.toFilter() = try {
+                sharedJson.parseToJsonElement(this).jsonObject.toFilter()
+            } catch (se: SerializationException) {
+                MTLogK.w(this@Companion, "Error while parsing JSON string '$this'", se)
+                throw se
             }
 
             private const val JSON_POI = "poi"
@@ -133,22 +140,22 @@ interface ServiceUpdateProviderContract : ProviderContract {
             private const val JSON_ROUTE_DIRECTION = "routeDirection"
             private const val JSON_AUTHORITY = "authority"
 
-            fun fromJSON(json: JSONObject): Filter? {
+            fun JsonObject.toFilter() =
                 try {
-                    val poi = json.optJSONObject(JSON_POI)?.let { DefaultPOI.fromJSONStatic(it) }
-                    val authority = json.optString(JSON_AUTHORITY, fallback = null) ?: poi?.authority
+                    val poi = this[JSON_POI]?.jsonObject?.toPOI()
+                    val authority = this[JSON_AUTHORITY]?.jsonPrimitive?.contentOrNull ?: poi?.authority
                     val route = authority?.let { authority ->
-                        json.optJSONObject(JSON_ROUTE)?.let { Route.fromJSON(it, authority) }
+                        this[JSON_ROUTE]?.jsonObject?.toRoute(authority)
                     }
                     val routeDirection = authority?.let { authority ->
-                        json.optJSONObject(JSON_ROUTE_DIRECTION)?.let { RouteDirection.fromJSON(it, authority) }
+                        this[JSON_ROUTE_DIRECTION]?.jsonObject?.toRouteDirection(authority)
                     }
                     //noinspection DiscouragedApi
-                    return Filter(
-                        cacheOnly = getCacheOnlyFromJSON(json),
-                        cacheValidityInMs = getCacheValidityInMsFromJSON(json),
-                        inFocus = getInFocusFromJSON(json),
-                        providedEncryptKeysMap = getProvidedEncryptKeysMapFromJSON(json),
+                    Filter(
+                        cacheOnly = getCacheOnlyFromJson(),
+                        cacheValidityInMs = getCacheValidityInMsFromJson(),
+                        inFocus = getInFocusFromJson(),
+                        providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
                         authority = authority,
                         poi = poi,
                         route = route,
@@ -156,36 +163,24 @@ interface ServiceUpdateProviderContract : ProviderContract {
                     ).takeIf {
                         (it.poi != null) || (it.route != null) || (it.routeDirection != null)
                     }
-                } catch (jsone: JSONException) {
-                    MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '$json'")
-                    return null
+                } catch (se: SerializationException) {
+                    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
+                    throw se
                 }
-            }
 
-            fun toJSONString(serviceUpdateFilter: Filter) = toJSON(serviceUpdateFilter)?.toString()
-
-            fun toJSON(serviceUpdateFilter: Filter): JSONObject? {
+            fun Filter.toJson() =
                 try {
-                    return JSONObject().apply {
-                        toJSON(serviceUpdateFilter, this)
-                        if (serviceUpdateFilter.poi != null) {
-                            put(JSON_POI, serviceUpdateFilter.poi.toJSON())
-                        }
-                        if (serviceUpdateFilter.route != null) {
-                            put(JSON_ROUTE, Route.toJSON(serviceUpdateFilter.route))
-                        }
-                        if (serviceUpdateFilter.routeDirection != null) {
-                            put(JSON_ROUTE_DIRECTION, RouteDirection.toJSON(serviceUpdateFilter.routeDirection))
-                        }
-                        if (serviceUpdateFilter.authority != null) {
-                            put(JSON_AUTHORITY, serviceUpdateFilter.authority)
-                        }
+                    buildJsonObject {
+                        toJsonCommon(this@toJson)
+                        poi?.let { put(JSON_POI, it.toJson()) }
+                        route?.let { put(JSON_ROUTE, it.toJsonK()) }
+                        routeDirection?.let { put(JSON_ROUTE_DIRECTION, it.toJsonK()) }
+                        authority?.let { put(JSON_AUTHORITY, it) }
                     }
-                } catch (jsone: JSONException) {
-                    MTLog.w(LOG_TAG, jsone, "Error while making JSON object '$serviceUpdateFilter'")
-                    return null
+                } catch (se: SerializationException) {
+                    MTLogK.w(LOG_TAG, "Error while making JSON object '$this'", se)
+                    throw se
                 }
-            }
         }
 
         override fun getLogTag() = LOG_TAG
@@ -238,6 +233,6 @@ interface ServiceUpdateProviderContract : ProviderContract {
             cacheOnly = cacheOnly,
         )
 
-        override fun toJSONString() = toJSONString(this)
+        override fun toJsonString() = sharedJson.encodeToString(this.toJson())
     }
 }

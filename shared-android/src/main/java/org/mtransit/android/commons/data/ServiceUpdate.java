@@ -20,7 +20,7 @@ import java.util.Objects;
 
 public class ServiceUpdate implements MTLog.Loggable {
 
-	private static final String LOG_TAG = ServiceUpdate.class.getSimpleName();
+	protected static final String LOG_TAG = ServiceUpdate.class.getSimpleName();
 
 	@NonNull
 	@Override

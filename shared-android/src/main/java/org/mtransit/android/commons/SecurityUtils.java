@@ -7,7 +7,9 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RawRes;
 
 import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.cert.CertPathValidatorException;
 import java.security.cert.Certificate;
@@ -55,31 +57,29 @@ public final class SecurityUtils implements MTLog.Loggable {
 
 	@Nullable
 	public static Pair<SSLSocketFactory, TrustManagerFactory> getSSLSocketFactory(@NonNull Context context, @RawRes int certRawId) {
-		try {
-			// Load CAs from an InputStream
-			CertificateFactory cf = CertificateFactory.getInstance("X.509");
-			// From a CRT file
-			Certificate ca;
-			try (InputStream caInput = new BufferedInputStream(context.getResources().openRawResource(certRawId))) {
-				ca = cf.generateCertificate(caInput);
-				MTLog.d(LOG_TAG, "ca=" + ((X509Certificate) ca).getSubjectDN());
-			}
-			// Create a KeyStore containing our trusted CAs
-			String keyStoreType = KeyStore.getDefaultType();
-			KeyStore keyStore = KeyStore.getInstance(keyStoreType);
-			keyStore.load(null, null);
-			keyStore.setCertificateEntry("ca", ca);
-			// Create a TrustManager that trusts the CAs in our KeyStore
-			String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
-			TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
-			tmf.init(keyStore);
-			// Create an SSLContext that uses our TrustManager
-			SSLContext sslContext = SSLContext.getInstance("TLS");
-			sslContext.init(null, tmf.getTrustManagers(), null);
-			return new Pair<>(sslContext.getSocketFactory(), tmf);
+		try (InputStream caInput = new BufferedInputStream(context.getResources().openRawResource(certRawId))) {
+			return getSSLSocketFactory(caInput);
 		} catch (Exception e) {
 			MTLog.e(LOG_TAG, e, "Error while loading SSL certificate!");
 			return null;
 		}
+	}
+
+	@NonNull
+	public static Pair<SSLSocketFactory, TrustManagerFactory> getSSLSocketFactory(@NonNull InputStream caInput)
+			throws GeneralSecurityException, IOException {
+		CertificateFactory cf = CertificateFactory.getInstance("X.509");
+		Certificate ca = cf.generateCertificate(caInput);
+		MTLog.d(LOG_TAG, "ca=" + ((X509Certificate) ca).getSubjectDN());
+		String keyStoreType = KeyStore.getDefaultType();
+		KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+		keyStore.load(null, null);
+		keyStore.setCertificateEntry("ca", ca);
+		String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+		TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
+		tmf.init(keyStore);
+		SSLContext sslContext = SSLContext.getInstance("TLS");
+		sslContext.init(null, tmf.getTrustManagers(), null);
+		return new Pair<>(sslContext.getSocketFactory(), tmf);
 	}
 }

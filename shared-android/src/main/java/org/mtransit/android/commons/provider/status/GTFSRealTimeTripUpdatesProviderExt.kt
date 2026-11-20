@@ -1,7 +1,7 @@
 package org.mtransit.android.commons.provider.status
 
 import androidx.annotation.VisibleForTesting
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.TimeUtilsK
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
@@ -165,7 +165,7 @@ internal fun processRDTripUpdate(
         return
     }
     if (gTripUpdate.optDelay == null && gTripUpdate.stopTimeUpdateCount == 0) {
-        MTLog.d(LOG_TAG, "processRDTripUpdate($tripId) > SKIP (useless trip update: ${gTripUpdate.toStringExt()})")
+        MTLogK.d(LOG_TAG, "processRDTripUpdate($tripId) > SKIP (useless trip update: ${gTripUpdate.toStringExt()})")
         return // nothing to do
     }
     var stuIdx = 0
@@ -236,17 +236,17 @@ internal fun List<GTUStopTimeUpdate>.fixStopSequence(
                         // use STU w fixed stop sequence
                         stopSequence = stopSeq
                     }.also {
-                        MTLog.d(LOG_TAG, "fixStopSequence($tripId) > KEEP ${it.toStringExt(short = true)} w/ updated stop sequence (from $wrongStopSeq).")
+                        MTLogK.d(LOG_TAG, "fixStopSequence($tripId) > KEEP ${it.toStringExt(short = true)} w/ updated stop sequence (from $wrongStopSeq).")
                     }
                 }
         }
         if (stu.optScheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) { // skipped stops have often already be removed from GTFS-Static data
-            MTLog.d(LOG_TAG, "fixStopSequence($tripId) > IGNORE skipped (no stop ID/sequence match): ${stu.toStringExt(short = true)}")
+            MTLogK.d(LOG_TAG, "fixStopSequence($tripId) > IGNORE skipped (no stop ID/sequence match): ${stu.toStringExt(short = true)}")
             return@mapNotNull null // remove invalid STU
         }
         // Candidate matching must still check updates that could not be repaired, including ambiguous repeated stops.
         if (!removeUnmatched) return@mapNotNull stu
-        MTLog.w(LOG_TAG, "fixStopSequence($tripId) > IGNORE (no stop ID/sequence match): ${stu.toStringExt(short = true)}")
+        MTLogK.w(LOG_TAG, "fixStopSequence($tripId) > IGNORE (no stop ID/sequence match): ${stu.toStringExt(short = true)}")
         return@mapNotNull null // remove invalid STU
     }
 }

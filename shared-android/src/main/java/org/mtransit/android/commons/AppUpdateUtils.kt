@@ -14,13 +14,20 @@ import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.android.play.core.ktx.installStatus
 import com.google.android.play.core.ktx.isFlexibleUpdateAllowed
-import org.json.JSONObject
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import org.mtransit.android.commons.AppUpdateUtils.AppUpdateFilter.Companion.toFilter
 import org.mtransit.android.commons.provider.GTFSProvider
+import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.receiver.DataChange
-import org.mtransit.commons.StringUtils
 import java.util.concurrent.TimeUnit
 
-object AppUpdateUtils : MTLog.Loggable {
+object AppUpdateUtils : MTLogK.Loggable {
 
     private val LOG_TAG: String = AppUpdateUtils::class.java.simpleName
 
@@ -48,15 +55,20 @@ object AppUpdateUtils : MTLog.Loggable {
         filterS: String? = null,
     ): Int {
         return getLastAvailableVersionCode(context, -1).also { lastAvailableVersionCode ->
-            triggerRefreshIfNecessary(context, lastAvailableVersionCode, AppUpdateFilter.fromJSONString(filterS))
+            triggerRefreshIfNecessary(
+                context = context,
+                lastAvailableVersionCode = lastAvailableVersionCode,
+                filter = filterS?.toFilter()
+                    ?: AppUpdateFilter(), // DEFAULT VALUES
+            )
         }
     }
 
     @Volatile
-    private var _storage: SharedPreferences? = null
+    private var storage: SharedPreferences? = null
 
-    private fun getStorage(context: Context) = _storage ?: synchronized(this) {
-        _storage ?: PreferenceUtils.getPrefLcl(context.applicationContext).also { _storage = it }
+    private fun getStorage(context: Context) = storage ?: synchronized(this) {
+        storage ?: PreferenceUtils.getPrefLcl(context.applicationContext).also { storage = it }
     }
 
     @Suppress("unused")
@@ -75,7 +87,7 @@ object AppUpdateUtils : MTLog.Loggable {
         newVersionCode: Int = PackageManagerUtils.getAppVersionCode(context),
     ) {
         if (lastVersionCode == newVersionCode) {
-            MTLog.d(this, "setAvailableVersionCode() > SKIP (same version code)")
+            MTLogK.d(this, "setAvailableVersionCode() > SKIP (same version code)")
             return
         }
         getStorage(context).edit { putInt(PREF_KEY_AVAILABLE_VERSION_CODE, newVersionCode) }
@@ -111,30 +123,30 @@ object AppUpdateUtils : MTLog.Loggable {
     ) {
         @Suppress("SimplifyBooleanWithConstants")
         if (!FORCE_CHECK_IN_DEBUG && BuildConfig.DEBUG) {
-            MTLog.d(this, "triggerRefreshIfNecessary() > SKIP (DEBUG build)")
+            MTLogK.d(this, "triggerRefreshIfNecessary() > SKIP (DEBUG build)")
             return // NO WORKING FOR DEBUG BUILDS
         }
         val currentVersionCode = PackageManagerUtils.getAppVersionCode(context)
         if (currentVersionCode in 1 until lastAvailableVersionCode) { // IF current valid & current < last DO
-            MTLog.d(this, "triggerRefreshIfNecessary() > SKIP (new version code already available ($lastAvailableVersionCode > $currentVersionCode))")
+            MTLogK.d(this, "triggerRefreshIfNecessary() > SKIP (new version code already available ($lastAvailableVersionCode > $currentVersionCode))")
             return // UPDATE ALREADY AVAILABLE
         }
         val lastCheckInMs = getLastCheckInMs(context)
-        MTLog.d(this, "lastCheckInMs: $lastCheckInMs") // DEBUG
+        MTLogK.d(this, "lastCheckInMs: $lastCheckInMs") // DEBUG
         val shortTimeAgo = TimeUtils.currentTimeMillis() -
             if (filter?.inFocus == true) MIN_DURATION_BETWEEN_APP_VERSION_CHECK_IN_FOCUS_IN_MS else MIN_DURATION_BETWEEN_APP_VERSION_CHECK_IN_MS
-        MTLog.d(this, "shortTimeAgo: $shortTimeAgo") // DEBUG
+        MTLogK.d(this, "shortTimeAgo: $shortTimeAgo") // DEBUG
         if (filter?.forceRefresh != true // not force refresh
             && lastAvailableVersionCode > 0 // last = valid
             && shortTimeAgo < lastCheckInMs // too recent
         ) {
             val timeLapsedInHours = TimeUnit.MILLISECONDS.toHours(TimeUtils.currentTimeMillis() - lastCheckInMs)
-            MTLog.d(this, "triggerRefreshIfNecessary() > SKIP (last successful refresh too recent ($timeLapsedInHours hours)")
+            MTLogK.d(this, "triggerRefreshIfNecessary() > SKIP (last successful refresh too recent ($timeLapsedInHours hours)")
             return // LAST REFRESH TOO RECENT
         }
         if (FORCE_UPDATE_AVAILABLE) {
             val newAvailableVersionCode = 1 + if (lastAvailableVersionCode > 0) lastAvailableVersionCode else currentVersionCode
-            MTLog.d(this, "triggerRefreshIfNecessary() > FORCE_UPDATE_AVAILABLE to $newAvailableVersionCode.")
+            MTLogK.d(this, "triggerRefreshIfNecessary() > FORCE_UPDATE_AVAILABLE to $newAvailableVersionCode.")
             setAvailableVersionCodeAndLastCheckInMs(context, lastAvailableVersionCode, newAvailableVersionCode, TimeUtils.currentTimeMillis())
             broadcastUpdateAvailable(lastAvailableVersionCode, currentVersionCode, newAvailableVersionCode, context)
             return // USE DEBUG FORCE UPDATE++
@@ -142,31 +154,31 @@ object AppUpdateUtils : MTLog.Loggable {
         getAppUpdateManager(context).appUpdateInfo.addOnCompleteListener { task -> // ASYNC
             if (!task.isSuccessful) {
                 if (BuildConfig.DEBUG) {
-                    MTLog.d(this, task.exception, "App update info did NOT complete successfully!")
+                    MTLogK.d(this, "App update info did NOT complete successfully!", task.exception)
                 } else {
-                    MTLog.w(this, task.exception, "App update info did NOT complete successfully!")
+                    MTLogK.w(this, "App update info did NOT complete successfully!", task.exception)
                 }
                 return@addOnCompleteListener
             }
             val appUpdateInfo = task.result ?: return@addOnCompleteListener
             when (appUpdateInfo.updateAvailability()) {
                 UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS -> {
-                    MTLog.d(this, "Update in progress already triggered by developer")
+                    MTLogK.d(this, "Update in progress already triggered by developer")
                 }
 
                 UpdateAvailability.UNKNOWN -> {
-                    MTLog.d(this, "Update status unknown")
+                    MTLogK.d(this, "Update status unknown")
                 }
 
                 UpdateAvailability.UPDATE_NOT_AVAILABLE -> {
-                    MTLog.d(this, "Update NOT available")
+                    MTLogK.d(this, "Update NOT available")
                     if (currentVersionCode > 0) {
                         setAvailableVersionCodeAndLastCheckInMs(context, lastAvailableVersionCode, currentVersionCode, TimeUtils.currentTimeMillis())
                     }
                 }
 
                 UpdateAvailability.UPDATE_AVAILABLE -> {
-                    MTLog.d(this, "Update available")
+                    MTLogK.d(this, "Update available")
                     val newAvailableVersionCode = appUpdateInfo.availableVersionCode()
                     if (newAvailableVersionCode > 0) {
                         setAvailableVersionCodeAndLastCheckInMs(context, lastAvailableVersionCode, newAvailableVersionCode, TimeUtils.currentTimeMillis())
@@ -198,44 +210,41 @@ object AppUpdateUtils : MTLog.Loggable {
             private const val JSON_FORCE_REFRESH = "force_refresh"
             private const val JSON_IN_FOCUS = "in_focus"
 
-            @JvmStatic
-            fun fromJSONString(filterS: String?): AppUpdateFilter {
-                try {
-                    if (!filterS.isNullOrBlank()) {
-                        val json = JSONObject(filterS)
-                        return AppUpdateFilter(
-                            forceRefresh = json.optBoolean(JSON_FORCE_REFRESH, false),
-                            inFocus = json.optBoolean(JSON_IN_FOCUS, false)
-                        )
-                    }
-                } catch (e: Exception) {
-                    MTLog.w(LOG_TAG, e, "Error while parsing app update filter '$filterS'!")
-                }
-                return AppUpdateFilter() // DEFAULT VALUES
+            fun String.toFilter() = try {
+                sharedJson.parseToJsonElement(this).jsonObject.toFilter()
+            } catch (se: SerializationException) {
+                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", se)
+                throw se
             }
 
-            @JvmStatic
-            fun toJSONString(filter: AppUpdateFilter?): String {
-                return try {
-                    JSONObject().apply {
-                        put(JSON_FORCE_REFRESH, filter?.forceRefresh)
-                        put(JSON_IN_FOCUS, filter?.inFocus)
-                    }.toString()
-                } catch (e: Exception) {
-                    MTLog.w(LOG_TAG, e, "Error while serializing app update filter '$filter'!")
-                    StringUtils.EMPTY
+            fun JsonObject.toFilter() = try {
+                AppUpdateFilter(
+                    forceRefresh = this[JSON_FORCE_REFRESH]?.jsonPrimitive?.booleanOrNull ?: false,
+                    inFocus = this[JSON_IN_FOCUS]?.jsonPrimitive?.booleanOrNull ?: false,
+                )
+            } catch (se: SerializationException) {
+                MTLogK.w(LOG_TAG, "Error while parsing app update filter '$this'!", se)
+                throw se
+            }
+
+            fun AppUpdateFilter.toJson() = try {
+                buildJsonObject {
+                    put(JSON_FORCE_REFRESH, this@toJson.forceRefresh)
+                    put(JSON_IN_FOCUS, this@toJson.inFocus)
                 }
+            } catch (se: SerializationException) {
+                MTLogK.w(this, "Error while making JSON object '$this'", se)
+                throw se
             }
         }
 
-        @Suppress("unused")
-        fun toJSONString() = toJSONString(this)
+        fun toJsonString() = sharedJson.encodeToString(this.toJson())
     }
 
     fun getLastAppUpdateInfo(context: Context, onAppUpdateInfoLoaded: (AppUpdateInfo?) -> Unit) {
         @Suppress("SimplifyBooleanWithConstants")
         if (!FORCE_CHECK_IN_DEBUG && BuildConfig.DEBUG) {
-            MTLog.d(this, "getLastAppUpdateInfo() > SKIP (DEBUG build)")
+            MTLogK.d(this, "getLastAppUpdateInfo() > SKIP (DEBUG build)")
             onAppUpdateInfoLoaded(null)
             return // NO WORKING FOR DEBUG BUILDS
         }
@@ -260,20 +269,20 @@ object AppUpdateUtils : MTLog.Loggable {
 
     private val listener: InstallStateUpdatedListener = InstallStateUpdatedListener { state ->
         when (state.installStatus) {
-            InstallStatus.CANCELED -> MTLog.d(this, "Cancelled app update.")
-            InstallStatus.FAILED -> MTLog.d(this, "Failed app update.")
-            InstallStatus.PENDING -> MTLog.d(this, "Pending app update.")
-            InstallStatus.DOWNLOADING -> MTLog.d(this, "Downloading app update... (${state.bytesDownloaded()} / ${state.totalBytesToDownload()})")
+            InstallStatus.CANCELED -> MTLogK.d(this, "Cancelled app update.")
+            InstallStatus.FAILED -> MTLogK.d(this, "Failed app update.")
+            InstallStatus.PENDING -> MTLogK.d(this, "Pending app update.")
+            InstallStatus.DOWNLOADING -> MTLogK.d(this, "Downloading app update... (${state.bytesDownloaded()} / ${state.totalBytesToDownload()})")
 
             InstallStatus.DOWNLOADED -> {
-                MTLog.d(this, "Downloaded app update.")
+                MTLogK.d(this, "Downloaded app update.")
                 _appUpdateManager?.completeUpdate()
             }
 
-            InstallStatus.INSTALLING -> MTLog.d(this, "Installing app update...")
-            InstallStatus.INSTALLED -> MTLog.d(this, "Installed app update.")
-            InstallStatus.UNKNOWN -> MTLog.d(this, "Unknown app update.")
-            else -> MTLog.d(this, "Install status '${state.installStatus}' for app update.")
+            InstallStatus.INSTALLING -> MTLogK.d(this, "Installing app update...")
+            InstallStatus.INSTALLED -> MTLogK.d(this, "Installed app update.")
+            InstallStatus.UNKNOWN -> MTLogK.d(this, "Unknown app update.")
+            else -> MTLogK.d(this, "Install status '${state.installStatus}' for app update.")
         }
     }
 }

@@ -226,7 +226,7 @@ public abstract class POIProvider extends MTContentProvider implements POIProvid
 
 	@Nullable
 	private static Cursor getPOI(@NonNull POIProviderContract provider, @Nullable String selection) {
-		final POIProviderContract.Filter poiFilter = POIProviderContract.Filter.fromJSONString(selection);
+		final POIProviderContract.Filter poiFilter = POIProviderContract.Filter.toFilterN(selection);
 		return provider.getPOI(poiFilter);
 	}
 

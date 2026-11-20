@@ -68,7 +68,7 @@ fun PackageManager.getAppLongVersionCode(context: Context) = getAppLongVersionCo
 fun PackageManager.getAppLongVersionCode(pkg: String, default: Long = -1L) = try {
     PackageInfoCompat.getLongVersionCode(this.getPackageInfoCompat(pkg, 0))
 } catch (e: PackageManager.NameNotFoundException) {
-    MTLog.d(LOG_TAG, e, "Pkg '$pkg' not found while reading long version code!")
+    MTLogK.d(LOG_TAG, "Pkg '$pkg' not found while reading long version code!", e)
     default
 }
 
@@ -77,14 +77,14 @@ fun PackageManager.getAppVersionName(context: Context) = getAppVersionName(conte
 fun PackageManager.getAppVersionName(pkg: String): String? = try {
     this.getPackageInfoCompat(pkg, 0).versionName
 } catch (e: PackageManager.NameNotFoundException) {
-    MTLog.d(LOG_TAG, e, "Pkg '$pkg' not found while reading version name!")
+    MTLogK.d(LOG_TAG, "Pkg '$pkg' not found while reading version name!", e)
     null
 }
 
 fun PackageManager.getPackageProvidersWithMetaData(pkg: String) = try {
     this.getPackageInfoCompat(pkg, PackageManager.GET_PROVIDERS or PackageManager.GET_META_DATA)
 } catch (e: PackageManager.NameNotFoundException) {
-    MTLog.d(LOG_TAG, e, "Pkg '$pkg' not found while reading providers metadata!")
+    MTLogK.d(LOG_TAG, "Pkg '$pkg' not found while reading providers metadata!", e)
     null
 }
 
@@ -94,7 +94,7 @@ fun PackageManager.getPackageProvidersWithMetaData(pkg: String) = try {
 fun PackageManager.getAllInstalledProvidersWithMetaData(): Collection<PackageInfo> = try {
     this.getInstalledPackagesCompat(PackageManager.GET_PROVIDERS or PackageManager.GET_META_DATA)
 } catch (e: Exception) {
-    MTLog.w(LOG_TAG, e, "Error while reading installed providers w/ meta-data!") // #Android5 #Android6
+    MTLogK.w(LOG_TAG, "Error while reading installed providers w/ meta-data!", e) // #Android5 #Android6
     emptySet()
 }
 

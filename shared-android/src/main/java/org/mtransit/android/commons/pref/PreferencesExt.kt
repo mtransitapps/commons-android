@@ -12,10 +12,10 @@ inline fun <reified T> SharedPreferences.get(key: String, defaultValue: T? = nul
             Int::class -> getInt(key, defaultValue as? Int ?: -1)
             Long::class -> getLong(key, defaultValue as? Long ?: -1L)
             Float::class -> getFloat(key, defaultValue as? Float ?: -1f)
-            String::class -> getString(key, defaultValue as? String ?: "")
+            String::class -> getString(key, (defaultValue as? String).orEmpty())
             Set::class -> {
                 @Suppress("UNCHECKED_CAST")
-                val df: Set<String> = defaultValue as? Set<String> ?: emptySet()
+                val df: Set<String> = (defaultValue as? Set<String>).orEmpty()
                 getStringSet(key, df)
             }
 

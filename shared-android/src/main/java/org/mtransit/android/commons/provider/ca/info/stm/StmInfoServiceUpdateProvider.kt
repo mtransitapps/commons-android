@@ -5,7 +5,7 @@ import androidx.annotation.VisibleForTesting
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.LocaleUtils
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.NetworkUtils
 import org.mtransit.android.commons.SecurityUtils
 import org.mtransit.android.commons.TimeUtilsK
@@ -40,7 +40,7 @@ import javax.net.ssl.SSLHandshakeException
 import kotlin.time.Duration
 import kotlin.time.Instant
 
-object StmInfoServiceUpdateProvider : MTLog.Loggable {
+object StmInfoServiceUpdateProvider : MTLogK.Loggable {
 
     internal val LOG_TAG: String = StmInfoServiceUpdateProvider::class.java.simpleName
 
@@ -132,10 +132,10 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
     }
 
     @Volatile
-    private var _storage: StmInfoServiceUpdateStorage? = null
+    private var storage: StmInfoServiceUpdateStorage? = null
 
-    private fun getStorage(context: Context) = _storage ?: synchronized(this) {
-        _storage ?: StmInfoServiceUpdateStorage(context.applicationContext).also { _storage = it }
+    private fun getStorage(context: Context) = storage ?: synchronized(this) {
+        storage ?: StmInfoServiceUpdateStorage(context.applicationContext).also { storage = it }
     }
 
     @JvmStatic
@@ -153,7 +153,7 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
                 val agencyUrlHeaderNames = getURL_HEADER_NAMES(context)
                 val agencyUrlHeaderValues = getURL_HEADER_VALUES(context)
                 if (agencyUrlHeaderNames.size != agencyUrlHeaderValues.size) {
-                    MTLog.w(this@StmInfoServiceUpdateProvider, "ERROR: agencyUrlHeaderNames.size != agencyUrlHeaderValues.size!")
+                    MTLogK.w(this@StmInfoServiceUpdateProvider, "ERROR: agencyUrlHeaderNames.size != agencyUrlHeaderValues.size!")
                     return null
                 }
                 val headers: Map<String, String> = agencyUrlHeaderNames.zip(agencyUrlHeaderValues).associate { (name, value) ->
@@ -188,17 +188,17 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
                             infoDescRegex = infoDescRegex,
                             warningDescRegex = warningDescRegex,
                         )
-                        MTLog.i(this@StmInfoServiceUpdateProvider, "Found %d service updates.", serviceUpdates.size)
+                        MTLogK.i(this@StmInfoServiceUpdateProvider, "Found ${serviceUpdates.size} service updates.")
                         if (Constants.DEBUG) {
                             serviceUpdates.forEach { serviceUpdate ->
-                                MTLog.d(this@StmInfoServiceUpdateProvider, "loadAgencyServiceUpdateDataFromWWW() > service update: %s.", serviceUpdate)
+                                MTLogK.d(this@StmInfoServiceUpdateProvider, "loadAgencyServiceUpdateDataFromWWW() > service update: $serviceUpdate.")
                             }
                         }
                         return serviceUpdates
                     }
 
                     else -> {
-                        MTLog.w(
+                        MTLogK.w(
                             this@StmInfoServiceUpdateProvider,
                             "ERROR: HTTP URL-Connection Response Code ${response.code()} (Message: ${response.message()})"
                         )
@@ -207,23 +207,23 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
                 }
             }
         } catch (sslhe: SSLHandshakeException) {
-            MTLog.w(this, sslhe, "SSL error!")
+            MTLogK.w(this, "SSL error!", sslhe)
             SecurityUtils.logCertPathValidatorException(sslhe)
             getStorage(context).saveServiceUpdateLastUpdateCode(567) // SSL certificate not trusted (on this device)
             getStorage(context).saveServiceUpdateLastUpdate(TimeUtilsK.currentInstant())
             return null
         } catch (uhe: UnknownHostException) {
-            if (MTLog.isLoggable(android.util.Log.DEBUG)) {
-                MTLog.w(this@StmInfoServiceUpdateProvider, uhe, "No Internet Connection!")
+            if (MTLogK.isLoggable(android.util.Log.DEBUG)) {
+                MTLogK.w(this@StmInfoServiceUpdateProvider, "No Internet Connection!", uhe)
             } else {
-                MTLog.w(this@StmInfoServiceUpdateProvider, "No Internet Connection!")
+                MTLogK.w(this@StmInfoServiceUpdateProvider, "No Internet Connection!")
             }
             return null
         } catch (se: SocketException) {
-            MTLog.w(this@StmInfoServiceUpdateProvider, se, "No Internet Connection!")
+            MTLogK.w(this@StmInfoServiceUpdateProvider, "No Internet Connection!", se)
             return null
         } catch (e: Exception) { // Unknown error
-            MTLog.e(this@StmInfoServiceUpdateProvider, e, "INTERNAL ERROR: Unknown Exception")
+            MTLogK.e(this@StmInfoServiceUpdateProvider, "INTERNAL ERROR: Unknown Exception", e)
             return null
         }
     }
@@ -242,17 +242,17 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
         val headerTimestamp = this.header?.timestamp ?: now
         alerts.forEach { alert ->
             if (!alert.isActive()) {
-                MTLog.d(this@StmInfoServiceUpdateProvider, "Ignore inactive alert. ($alert)")
+                MTLogK.d(this@StmInfoServiceUpdateProvider, "Ignore inactive alert. ($alert)")
                 return@forEach
             }
             val informedEntities = alert.informedEntities?.takeIf { it.isNotEmpty() }
                 ?: run {
-                    MTLog.w(this@StmInfoServiceUpdateProvider, "Ignore alert w/o informed entities! ($alert)")
+                    MTLogK.w(this@StmInfoServiceUpdateProvider, "Ignore alert w/o informed entities! ($alert)")
                     return@forEach
                 }
             val routeShortNames = informedEntities.mapNotNull { it.routeShortName }.takeIf { it.isNotEmpty() }
                 ?: run {
-                    MTLog.w(this@StmInfoServiceUpdateProvider, "Ignore alert w/o route short names! ($alert)")
+                    MTLogK.w(this@StmInfoServiceUpdateProvider, "Ignore alert w/o route short names! ($alert)")
                     return@forEach
                 }
             val directionId = informedEntities.singleOrNull { !it.directionId.isNullOrBlank() }?.directionId
@@ -277,7 +277,7 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
             val descriptionTexts = alert.descriptionTexts?.parseTranslations()
             val languages = headerTexts?.keys.orEmpty() + descriptionTexts?.keys.orEmpty()
             if (languages.isEmpty()) {
-                MTLog.w(this@StmInfoServiceUpdateProvider, "Ignore alert w/o translations! ($alert)")
+                MTLogK.w(this@StmInfoServiceUpdateProvider, "Ignore alert w/o translations! ($alert)")
                 return@forEach
             }
             targetUUIDs.forEach { targetUUID ->

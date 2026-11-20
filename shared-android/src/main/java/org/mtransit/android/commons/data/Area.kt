@@ -4,7 +4,7 @@ import android.database.Cursor
 import androidx.annotation.FloatRange
 import androidx.room.Ignore
 import org.mtransit.android.commons.LocationUtils
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.getDouble
 import org.mtransit.android.commons.provider.agency.AgencyProviderContract
 import kotlin.math.abs
@@ -22,7 +22,7 @@ data class Area(
     @FloatRange(from = MIN_LAT, to = MAX_LAT) val maxLat: Double,
     @FloatRange(from = MIN_LNG, to = MAX_LNG) val minLng: Double,
     @FloatRange(from = MIN_LNG, to = MAX_LNG) val maxLng: Double,
-) : MTLog.Loggable {
+) : MTLogK.Loggable {
 
     override fun getLogTag() = LOG_TAG
 
@@ -205,7 +205,7 @@ data class Area(
             return try {
                 fromCursorNN(cursor)
             } catch (e: Exception) {
-                MTLog.w(LOG_TAG, e, "Error while reading cursor!")
+                MTLogK.w(LOG_TAG, "Error while reading cursor!", e)
                 null
             }
         }

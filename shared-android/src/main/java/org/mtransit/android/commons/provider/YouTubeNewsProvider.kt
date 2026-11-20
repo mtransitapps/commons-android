@@ -2,18 +2,20 @@ package org.mtransit.android.commons.provider
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.UriMatcher
 import android.net.Uri
 import androidx.annotation.IntegerRes
 import androidx.annotation.StringRes
 import androidx.core.content.ContentProviderCompat
 import com.google.gson.GsonBuilder
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
 import org.mtransit.android.commons.ColorUtils
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.KeysIds
 import org.mtransit.android.commons.LocaleUtils
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.NetworkUtils
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SecureStringUtils
@@ -24,10 +26,13 @@ import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.linkifyAllURLs
 import org.mtransit.android.commons.provider.agency.AgencyUtils
-import org.mtransit.android.commons.provider.news.NewsProvider
+import org.mtransit.android.commons.provider.common.ProviderConfig
+import org.mtransit.android.commons.provider.common.sharedJson
+import org.mtransit.android.commons.provider.news.ConfigurableNewsProvider
 import org.mtransit.android.commons.provider.news.NewsProviderContract
 import org.mtransit.android.commons.provider.news.NewsTextFormatter
 import org.mtransit.android.commons.provider.news.youtube.YouTubeDateAdapter
+import org.mtransit.android.commons.provider.news.youtube.YouTubeNewsConfig
 import org.mtransit.android.commons.provider.news.youtube.YouTubeNewsDbHelper
 import org.mtransit.android.commons.provider.news.youtube.YouTubeStorage
 import org.mtransit.android.commons.provider.news.youtube.YouTubeUtils
@@ -42,7 +47,7 @@ import java.util.Locale
 // https://developers.google.com/youtube/v3/docs/playlistItems/list
 // DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressLint("Registered")
-class YouTubeNewsProvider : NewsProvider() {
+class YouTubeNewsProvider : ConfigurableNewsProvider() {
 
     companion object {
         private val LOG_TAG: String = YouTubeNewsProvider::class.java.simpleName
@@ -84,14 +89,9 @@ class YouTubeNewsProvider : NewsProvider() {
         }
     }
 
-    private val _uriMatcher: UriMatcher by lazy {
-        getNewUriMatcher(_authority)
-    }
-
     private val _authority: String by lazy {
-        ContentProviderCompat.requireContext(this).getString(
-            R.string.youtube_authority
-        )
+        importedProviderConfig?.authority
+            ?: ContentProviderCompat.requireContext(this).getString(R.string.youtube_authority)
     }
 
     private val _authorityUri: Uri by lazy {
@@ -106,79 +106,69 @@ class YouTubeNewsProvider : NewsProvider() {
 
     private var providedApiKey: String? = null
 
-    private val _color: String by lazy {
-        ContentProviderCompat.requireContext(this).getString(
-            R.string.youtube_color
-        )
+    private val color: String by lazy {
+        importedYouTubeConfig?.color.orEmpty().ifEmpty {
+            ContentProviderCompat.requireContext(this).getString(R.string.youtube_color)
+        }
     }
 
-    private val _userNames: List<String> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.youtube_channels_username
-        ).toList()
+    private val userNames: List<String> by lazy {
+        importedYouTubeConfig?.channelsUsername
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.youtube_channels_username).toList()
     }
 
-    private val _userNamesChannelsId: List<String> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.youtube_channels_id
-        ).toList()
+    private val userNamesChannelsId: List<String> by lazy {
+        importedYouTubeConfig?.channelsId
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.youtube_channels_id).toList()
     }
 
-    private val _userNamesHandles: List<String> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.youtube_channels_handle
-        ).toList()
+    private val userNamesHandles: List<String> by lazy {
+        importedYouTubeConfig?.channelsHandle
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.youtube_channels_handle).toList()
     }
 
-    private val _authorUrls: List<String> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.youtube_channels_author_url
-        ).toList()
+    private val authorUrls: List<String> by lazy {
+        importedYouTubeConfig?.channelsAuthorUrl
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.youtube_channels_author_url).toList()
     }
 
-    private val _userNamesLang: List<String> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.youtube_channels_lang
-        ).toList()
+    private val userNamesLang: List<String> by lazy {
+        importedYouTubeConfig?.channelsLang
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.youtube_channels_lang).toList()
     }
 
-    private val _userNamesColors: List<String> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.youtube_channels_colors
-        ).toList()
+    private val userNamesColors: List<String> by lazy {
+        importedYouTubeConfig?.channelsColors
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.youtube_channels_colors).toList()
     }
 
-    private val _targetAuthority: String by lazy {
-        ContentProviderCompat.requireContext(this).getString(
-            R.string.youtube_target_for_poi_authority
-        )
+    private val targetAuthority: String by lazy {
+        importedProviderConfig?.targetAuthority
+            ?: ContentProviderCompat.requireContext(this).getString(R.string.youtube_target_for_poi_authority)
     }
 
-    private val _userNamesTarget: List<String> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.youtube_channels_target
-        ).toList()
+    private val userNamesTarget: List<String> by lazy {
+        importedYouTubeConfig?.channelsTarget
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.youtube_channels_target).toList()
     }
 
-    private val _userNamesSeverity: List<Int> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getIntArray(
-            R.array.youtube_channels_severity
-        ).toList()
+    private val userNamesSeverity: List<Int> by lazy {
+        importedYouTubeConfig?.channelsSeverity
+            ?: ContentProviderCompat.requireContext(this).resources.getIntArray(R.array.youtube_channels_severity).toList()
     }
 
     @get:IntegerRes
-    private val _userNamesSeverityDefaultResId: Int get() = R.integer.news_provider_severity_info_agency
+    private val userNamesSeverityDefaultResId: Int get() = R.integer.news_provider_severity_info_agency
 
-    private val _userNamesNoteworthy: List<Long> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.youtube_channels_noteworthy
-        ).toList().map { it.toLong() }
+    private val userNamesNoteworthy: List<Long> by lazy {
+        importedYouTubeConfig?.channelsNoteworthy
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.youtube_channels_noteworthy).toList().map { it.toLong() }
     }
 
     @get:StringRes
-    private val _userNamesNoteworthyDefaultResId: Int get() = R.string.news_provider_noteworthy_long_term
+    private val userNamesNoteworthyDefaultResId: Int get() = R.string.news_provider_noteworthy_long_term
 
-    private val _languages: List<String> by lazy {
+    private val languages: List<String> by lazy {
         listOf<String>(
             if (LocaleUtils.isFR()) Locale.FRENCH.language else Locale.ENGLISH.language,
             LocaleUtils.UNKNOWN
@@ -187,47 +177,53 @@ class YouTubeNewsProvider : NewsProvider() {
 
     override fun getLogTag() = LOG_TAG
 
-    override val URI_MATCHER: UriMatcher get() = _uriMatcher
+    @Volatile
+    private var importedYouTubeConfig: YouTubeNewsConfig? = null
 
-    private var _dbHelper: YouTubeNewsDbHelper? = null
-    private var _currentDbVersion: Int = -1
-
-    private fun getDBHelper(context: Context): YouTubeNewsDbHelper {
-        when (val currentDbHelper: YouTubeNewsDbHelper? = _dbHelper) {
-            null -> { // initialize
-                val newDbHelper = getNewDbHelper(context)
-                _dbHelper = newDbHelper
-                _currentDbVersion = currentDbVersion
-                return newDbHelper
-            }
-
-            else -> {
-                return try {
-                    if (_currentDbVersion == currentDbVersion) {
-                        _dbHelper?.close()
-                        _dbHelper = null
-                        getDBHelper(context)
-                    } else {
-                        currentDbHelper
-                    }
-                } catch (e: Exception) { // fail if locked, will try again later
-                    MTLog.w(this, e, "Can't check DB version!")
-                    currentDbHelper
-                }
-            }
-        }
+    override fun configureNewsConfig(config: ProviderConfig) {
+        require(config.type == ProviderConfig.TYPE_NEWS_YOUTUBE) { "Unsupported YouTube config type" }
+        importedYouTubeConfig = sharedJson.decodeFromJsonElement<YouTubeNewsConfig>(config.params)
     }
 
-    /**
-     * Override if multiple [YouTubeNewsDbHelper] implementations in same app.
-     */
-    override fun getCurrentDbVersion() = _currentDbVersion
-
-    override fun getNewDbHelper(context: Context): YouTubeNewsDbHelper {
-        return YouTubeNewsDbHelper(context.applicationContext, getStorage(context))
+    override fun getProviderConfig(): ProviderConfig {
+        importedProviderConfig?.let { return it }
+        val context = requireContextCompat()
+        return ProviderConfig.create(
+            type = ProviderConfig.TYPE_NEWS_YOUTUBE,
+            authority = _authority,
+            targetAuthority = targetAuthority.takeIf { it.isNotBlank() } ?: AgencyUtils.getAgencyAuthority(context).orEmpty(),
+            params = sharedJson.encodeToJsonElement(
+                YouTubeNewsConfig(
+                    color = color.takeIf { it.isNotBlank() } ?: AgencyUtils.getAgencyColor(context),
+                    channelsUsername = userNames,
+                    channelsId = userNamesChannelsId,
+                    channelsHandle = userNamesHandles,
+                    channelsAuthorUrl = authorUrls,
+                    channelsLang = userNamesLang,
+                    channelsColors = userNamesColors,
+                    channelsTarget = userNamesTarget,
+                    channelsSeverity = userNamesSeverity,
+                    channelsNoteworthy = userNamesNoteworthy,
+                    defaultSeverity = context.resources.getInteger(userNamesSeverityDefaultResId),
+                    defaultNoteworthy = context.getString(userNamesNoteworthyDefaultResId).toLong(),
+                )
+            ).jsonObject,
+            secrets = mapOf(KeysIds.YOUTUBE_API_KEY to _apiKey),
+        )
     }
 
-    fun getDBHelper() = getDBHelper(ContentProviderCompat.requireContext(this))
+    override fun closeConfiguredRuntime() {
+        super.closeConfiguredRuntime()
+        _storage = null
+    }
+
+    override fun getCurrentDbVersion() = YouTubeNewsDbHelper.getDbVersion(requireContextCompat())
+
+    override fun getNewDbHelper(context: Context) = YouTubeNewsDbHelper(
+        context.applicationContext,
+        getStorage(context),
+        dbNamePrefix = importedProviderConfig?.authorityStoragePrefix,
+    )
 
     override fun getMinDurationBetweenNewsRefreshInMs(inFocusOrDefault: Boolean) =
         super.getMinDurationBetweenNewsRefreshInMs(inFocusOrDefault)
@@ -258,7 +254,7 @@ class YouTubeNewsProvider : NewsProvider() {
             )
             affectedRows = this.getDBHelper().writableDatabase.delete(newsDbTableName, selection, null)
         } catch (e: Exception) {
-            MTLog.w(this, e, "Error while deleting all agency news data!")
+            MTLogK.w(this, "Error while deleting all agency news data!", e)
         }
         return affectedRows
     }
@@ -277,14 +273,17 @@ class YouTubeNewsProvider : NewsProvider() {
 
     override fun getNewNews(newsFilter: NewsProviderContract.Filter): ArrayList<News>? {
         this.providedApiKey = SecureStringUtils.dec(newsFilter.getProvidedEncryptKey(KeysIds.YOUTUBE_API_KEY))
-        updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault)
-        return getCachedNews(newsFilter)
+        try {
+            updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault)
+            return getCachedNews(newsFilter)
+        } finally {
+            this.providedApiKey = null
+        }
     }
 
     private fun updateAgencyNewsDataIfRequired(context: Context, inFocus: Boolean) {
         if (FORCE_REFRESH) {
-            getStorage(context).saveLastUpdateMs(0L) // force refresh
-            getStorage(context).saveLastUpdateLang(EMPTY) // force refresh
+            getStorage(context).saveLastUpdate(null, null) // force refresh
         }
         val lastUpdateInMs = getStorage(context).getLastUpdateMs(0L)
         val lastUpdateLang = getStorage(context).getLastUpdateLang(EMPTY)
@@ -338,8 +337,7 @@ class YouTubeNewsProvider : NewsProvider() {
                 deleteAllAgencyNewsData()
             }
             cacheNews(newNews)
-            getStorage(context).saveLastUpdateMs(nowInMs) // sync
-            getStorage(context).saveLastUpdateLang(LocaleUtils.getDefaultLanguage()) // sync
+            getStorage(context).saveLastUpdate(nowInMs, LocaleUtils.getDefaultLanguage()) // sync
         } // else keep whatever we have until max validity reached
     }
 
@@ -347,7 +345,10 @@ class YouTubeNewsProvider : NewsProvider() {
     private var _storage: YouTubeStorage? = null
 
     private fun getStorage(context: Context) = _storage ?: synchronized(this) {
-        _storage ?: YouTubeStorage(context.applicationContext).also { _storage = it }
+        _storage ?: YouTubeStorage(
+            context.applicationContext,
+            prefix = importedProviderConfig?.authorityStoragePrefix,
+        ).also { _storage = it }
     }
 
     private var _youtubeApi: YouTubeV3Api? = null
@@ -364,7 +365,7 @@ class YouTubeNewsProvider : NewsProvider() {
             val newNews = ArrayList<News>()
             val maxValidityInMs = newsMaxValidityInMs
             val authority = _authority
-            for ((i, authorUrl) in _authorUrls.withIndex()) {
+            for ((i, authorUrl) in authorUrls.withIndex()) {
                 loadUserUploadsPlaylist(
                     context,
                     youTubeApi,
@@ -376,13 +377,13 @@ class YouTubeNewsProvider : NewsProvider() {
                     authorUrl
                 )
             }
-            MTLog.i(this, "Loaded ${newNews.size} news.")
+            MTLogK.i(this, "Loaded ${newNews.size} news.")
             return newNews
         } catch (ioe: IOException) {
-            MTLog.e(LOG_TAG, ioe, "I/O ERROR: Unknown Exception")
+            MTLogK.e(LOG_TAG, "I/O ERROR: Unknown Exception", ioe)
             return null
         } catch (e: Exception) {
-            MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception")
+            MTLogK.e(LOG_TAG, "INTERNAL ERROR: Unknown Exception", e)
             return null
         }
     }
@@ -400,12 +401,12 @@ class YouTubeNewsProvider : NewsProvider() {
         val (usernameFromAuthorUrl, userHandleFromAuthorUrl, customUrlFromAuthorUrl, channelIdFromAuthorUrl) =
             YouTubeUtils.pickChannelIdFromAuthorUrl(authorUrl)
         val userLog = usernameFromAuthorUrl ?: userHandleFromAuthorUrl ?: customUrlFromAuthorUrl ?: channelIdFromAuthorUrl ?: authorUrl
-        val userLang = _userNamesLang.getOrNull(i) ?: LocaleUtils.UNKNOWN
+        val userLang = userNamesLang.getOrNull(i) ?: LocaleUtils.UNKNOWN
         if (LocaleUtils.MULTIPLE != userLang
             && LocaleUtils.UNKNOWN != userLang
             && LocaleUtils.getDefaultLanguage() != userLang
         ) {
-            MTLog.d(this, "SKIP loading '$userLog': different language ($userLang).")
+            MTLogK.d(this, "SKIP loading '$userLog': different language ($userLang).")
             return
         }
         // 1 - load user channel uploads
@@ -413,17 +414,17 @@ class YouTubeNewsProvider : NewsProvider() {
             usernameFromAuthorUrl?.isNotBlank() == true -> Triple(null, usernameFromAuthorUrl, null)
             userHandleFromAuthorUrl?.isNotBlank() == true -> Triple(null, null, userHandleFromAuthorUrl)
             channelIdFromAuthorUrl?.isNotBlank() == true -> Triple(channelIdFromAuthorUrl, null, null)
-            _userNames.getOrNull(i)?.isNotBlank() == true -> Triple(null, _userNames[i], null)
-            _userNamesHandles.getOrNull(i)?.isNotBlank() == true -> Triple(null, null, _userNamesHandles[i])
-            _userNamesChannelsId.getOrNull(i)?.isNotBlank() == true -> Triple(_userNamesChannelsId[i], null, null)
+            userNames.getOrNull(i)?.isNotBlank() == true -> Triple(null, userNames[i], null)
+            userNamesHandles.getOrNull(i)?.isNotBlank() == true -> Triple(null, null, userNamesHandles[i])
+            userNamesChannelsId.getOrNull(i)?.isNotBlank() == true -> Triple(userNamesChannelsId[i], null, null)
             customUrlFromAuthorUrl?.isNotBlank() == true -> {
-                MTLog.w(this, "SKIP loading '$userLog': custom URL '$authorUrl' not supported!")
+                MTLogK.w(this, "SKIP loading '$userLog': custom URL '$authorUrl' not supported!")
                 return
             }
             else -> Triple(null, null, null)
         }
         if (id == null && username == null && handle == null) {
-            MTLog.w(this, "SKIP loading '$userLog': no channel ID/username/handle found for '$authorUrl'.")
+            MTLogK.w(this, "SKIP loading '$userLog': no channel ID/username/handle found for '$authorUrl'.")
             return
         }
         val channelListResp = youTubeApi.getChannels(
@@ -437,27 +438,27 @@ class YouTubeNewsProvider : NewsProvider() {
             },
             key = apiKey,
         ).execute().body()
-        MTLog.d(this, "Found ${channelListResp?.items?.size} channel for '$userLog'.")
+        MTLogK.d(this, "Found ${channelListResp?.items?.size} channel for '$userLog'.")
         val channel = channelListResp?.items?.firstOrNull() ?: run {
-            MTLog.d(this, "SKIP loading '$userLog': no channel found.")
+            MTLogK.d(this, "SKIP loading '$userLog': no channel found.")
             return
         }
         val uploadsPlaylistId = channel.contentDetails?.relatedPlaylists?.uploads
         if (uploadsPlaylistId.isNullOrEmpty()) {
-            MTLog.d(this, "SKIP loading '$userLog': no uploads playlist found.")
+            MTLogK.d(this, "SKIP loading '$userLog': no uploads playlist found.")
             return
         }
-        MTLog.i(this, "Found uploads playlist '$uploadsPlaylistId' for '$userLog'.")
+        MTLogK.i(this, "Found uploads playlist '$uploadsPlaylistId' for '$userLog'.")
         val channelSnippet = channel.snippet
         val authorUsername = channelSnippet?.customUrl
         val authorName = channelSnippet?.localized?.title
             ?: channelSnippet?.title
             ?: usernameFromAuthorUrl
             ?: userHandleFromAuthorUrl
-            ?: _userNames.getOrNull(i)?.takeIf { it.isNotBlank() }
-            ?: _userNamesHandles.getOrNull(i)?.takeIf { it.isNotBlank() }
+            ?: userNames.getOrNull(i)?.takeIf { it.isNotBlank() }
+            ?: userNamesHandles.getOrNull(i)?.takeIf { it.isNotBlank() }
             ?: run {
-                MTLog.w(this, "SKIP loading '$userLog': no author name found!")
+                MTLogK.w(this, "SKIP loading '$userLog': no author name found!")
                 return
             }
         // https://developers.google.com/youtube/v3/docs/thumbnails
@@ -478,7 +479,7 @@ class YouTubeNewsProvider : NewsProvider() {
             hl = if (LocaleUtils.isFR()) Locale.FRENCH.language else Locale.ENGLISH.language,
             key = apiKey,
         ).execute().body()
-        MTLog.i(this, "Found ${playlistItemsListResp?.items?.size} videos for '$userLog'.")
+        MTLogK.i(this, "Found ${playlistItemsListResp?.items?.size} videos for '$userLog'.")
         playlistItemsListResp?.items
             ?.filter { it?.status?.privacyStatus != "private" }
             ?.forEach { playlistItem ->
@@ -516,7 +517,7 @@ class YouTubeNewsProvider : NewsProvider() {
                     }
                 }
                 if (text.isEmpty() || textHtml.isEmpty()) {
-                    MTLog.w(this, "loadUserUploadsPlaylist() > skip (no text)")
+                    MTLogK.w(this, "loadUserUploadsPlaylist() > skip (no text)")
                     return
                 }
                 // https://developers.google.com/youtube/v3/docs/thumbnails
@@ -527,25 +528,27 @@ class YouTubeNewsProvider : NewsProvider() {
                         ?: thumbnails.high?.url // 480x360 with black bars
                         ?: thumbnails.default?.url // 120x90 with black bars
                 }
-                val colorString = _userNamesColors.getOrNull(i)
-                    ?: _color.takeIf { it.isNotBlank() }
+                val colorString = userNamesColors.getOrNull(i)
+                    ?: color.takeIf { it.isNotBlank() }
                     ?: AgencyUtils.getAgencyColor(context)
                     ?: ColorUtils.BLACK
                         .also {
-                            MTLog.w(this, "No color found for '$userLog'! (used fallback)")
+                            MTLogK.w(this, "No color found for '$userLog'! (used fallback)")
                         }
-                val targetUUID = _userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
-                    ?: _targetAuthority.takeIf { it.isNotBlank() }
+                val targetUUID = userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
+                    ?: targetAuthority.takeIf { it.isNotBlank() }
                     ?: AgencyUtils.getAgencyAuthority(context)
                     ?: EMPTY.takeIf { context.packageName == Constants.MAIN_APP_PACKAGE_NAME } // target all allowed for main app
                     ?: run {
-                        MTLog.w(this, "SKIP loading '$userLog': no target UUID!")
+                        MTLogK.w(this, "SKIP loading '$userLog': no target UUID!")
                         return
                     }
-                val severity = _userNamesSeverity.getOrNull(i)
-                    ?: context.resources.getInteger(_userNamesSeverityDefaultResId)
-                val noteworthyInMs = _userNamesNoteworthy.getOrNull(i)
-                    ?: context.resources.getString(_userNamesNoteworthyDefaultResId).toLong()
+                val severity = userNamesSeverity.getOrNull(i)
+                    ?: importedYouTubeConfig?.defaultSeverity
+                    ?: context.resources.getInteger(userNamesSeverityDefaultResId)
+                val noteworthyInMs = userNamesNoteworthy.getOrNull(i)
+                    ?: importedYouTubeConfig?.defaultNoteworthy
+                    ?: context.resources.getString(userNamesNoteworthyDefaultResId).toLong()
                 newNews.add(
                     News(
                         null,
@@ -565,7 +568,7 @@ class YouTubeNewsProvider : NewsProvider() {
                         text,
                         textHtml,
                         link,
-                        _languages.firstOrNull() ?: LocaleUtils.UNKNOWN,
+                        languages.firstOrNull() ?: LocaleUtils.UNKNOWN,
                         AGENCY_SOURCE_ID,
                         AGENCY_SOURCE_LABEL,
                         listOf(thumbnail),
@@ -574,5 +577,5 @@ class YouTubeNewsProvider : NewsProvider() {
             }
     }
 
-    override val newsLanguages: Collection<String> get() = _languages
+    override val newsLanguages: Collection<String> get() = languages
 }

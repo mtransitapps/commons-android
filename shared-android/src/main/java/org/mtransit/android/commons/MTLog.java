@@ -244,10 +244,6 @@ public final class MTLog {
 
 	// WARNING
 
-	public static void w(@NonNull Loggable loggable, @NonNull String msg) {
-		w(loggable.getLogTag(), msg);
-	}
-
 	public static void w(@NonNull Loggable loggable, @NonNull String msg, @NonNull Object... args) {
 		w(loggable.getLogTag(), msg, args);
 	}
