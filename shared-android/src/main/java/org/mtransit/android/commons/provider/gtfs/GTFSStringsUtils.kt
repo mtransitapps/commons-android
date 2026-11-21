@@ -1,7 +1,7 @@
 package org.mtransit.android.commons.provider.gtfs
 
 import android.database.Cursor
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.provider.GTFSProvider
 import org.mtransit.commons.FeatureFlags
@@ -11,7 +11,7 @@ import org.mtransit.commons.sql.SQLUtils.quotes
 import org.mtransit.commons.sql.SQLUtils.unquotes
 import kotlin.collections.get
 
-object GTFSStringsUtils : MTLog.Loggable {
+object GTFSStringsUtils : MTLogK.Loggable {
 
     private val LOG_TAG: String = GTFSStringsUtils::class.java.simpleName
 
@@ -64,7 +64,7 @@ object GTFSStringsUtils : MTLog.Loggable {
                     cursor.getString(cursor.getColumnIndexOrThrow(GTFSProviderDbHelper.T_STRINGS_K_STRING)) ?: continue
                 )
             } catch (e: Exception) {
-                MTLog.w(this@GTFSStringsUtils, e, "Cannot parse strings cursor: '$cursor'!")
+                MTLogK.w(this@GTFSStringsUtils, "Cannot parse strings cursor: '$cursor'!", e)
             }
         }
     }
@@ -77,7 +77,7 @@ object GTFSStringsUtils : MTLog.Loggable {
                 columns[0].toIntOrNull()?.let { it to columns[1].unquotes() }
             }
             ?: run {
-                MTLog.w(this@GTFSStringsUtils, "Invalid string line: '$line'!")
+                MTLogK.w(this@GTFSStringsUtils, "Invalid string line: '$line'!")
                 null
             }
 

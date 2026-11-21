@@ -2,9 +2,9 @@ package org.mtransit.android.commons.data
 
 import androidx.core.text.isDigitsOnly
 import org.mtransit.android.commons.ComparatorUtils
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 
-class RouteShortNameComparator : Comparator<Route>, MTLog.Loggable {
+class RouteShortNameComparator : Comparator<Route>, MTLogK.Loggable {
 
     companion object {
         private val LOG_TAG: String = RouteShortNameComparator::class.java.simpleName
@@ -76,7 +76,7 @@ class RouteShortNameComparator : Comparator<Route>, MTLog.Loggable {
                 return digitsCompare
             }
         } catch (e: Exception) {
-            MTLog.w(this, e, "Error while sorting routes!")
+            MTLogK.w(this, "Error while sorting routes!", e)
         }
         return shortName1.compareTo(shortName2)
     }

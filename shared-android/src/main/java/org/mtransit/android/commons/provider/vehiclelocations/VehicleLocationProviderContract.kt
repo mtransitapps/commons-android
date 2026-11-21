@@ -6,7 +6,7 @@ import android.provider.BaseColumns
 import androidx.annotation.Discouraged
 import org.json.JSONException
 import org.json.JSONObject
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.DefaultPOI
 import org.mtransit.android.commons.data.Direction
 import org.mtransit.android.commons.data.POI
@@ -113,7 +113,7 @@ interface VehicleLocationProviderContract : ProviderContract {
         override val poi: POI? = null, // RouteDirectionStop or DefaultPOI
         override val route: Route? = null,
         override val routeDirection: RouteDirection? = null,
-    ) : ProviderContract.Filter(), GTFSRealTimeProviderFilter, MTLog.Loggable {
+    ) : ProviderContract.Filter(), GTFSRealTimeProviderFilter, MTLogK.Loggable {
 
         @SuppressLint("DiscouragedApi")
         constructor(poi: POI) : this(authority = poi.authority, poi = poi)
@@ -136,7 +136,7 @@ interface VehicleLocationProviderContract : ProviderContract {
                 try {
                     return if (jsonString == null) null else fromJSON(JSONObject(jsonString))
                 } catch (jsone: JSONException) {
-                    MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '$jsonString'")
+                    MTLogK.w(LOG_TAG, "Error while parsing JSON string '$jsonString'", jsone)
                     return null
                 }
             }
@@ -172,7 +172,7 @@ interface VehicleLocationProviderContract : ProviderContract {
                         vehicleLocationFilter.routeDirection?.let { put(JSON_ROUTE_DIRECTION, RouteDirection.toJSON(it)) }
                     }
                 } catch (jsone: JSONException) {
-                    MTLog.w(LOG_TAG, jsone, "Error while making JSON object '$vehicleLocationFilter'!")
+                    MTLogK.w(LOG_TAG, "Error while making JSON object '$vehicleLocationFilter'!", jsone)
                     null
                 }
             }

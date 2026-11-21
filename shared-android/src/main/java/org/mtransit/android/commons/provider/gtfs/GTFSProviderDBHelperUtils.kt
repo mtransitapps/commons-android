@@ -4,7 +4,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import androidx.core.database.sqlite.transaction
 import org.mtransit.android.commons.FileUtils
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.provider.gtfs.GTFSProviderDbHelper.DB_NAME
 import org.mtransit.commons.FeatureFlags
 import org.mtransit.commons.GTFSCommons
@@ -13,7 +13,7 @@ import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
 
-object GTFSProviderDBHelperUtils : MTLog.Loggable {
+object GTFSProviderDBHelperUtils : MTLogK.Loggable {
 
     private val LOG_TAG: String = GTFSProviderDBHelperUtils::class.java.simpleName
 
@@ -46,7 +46,7 @@ object GTFSProviderDBHelperUtils : MTLog.Loggable {
                     table, sqlCreate, sqlInsert, sqlDrop, files, allStrings, stringsColumnIdx, addStrings, sameColumnsCount, otherColumnsCount, openRawResource
                 )
             } catch (e: Exception) {
-                MTLog.w(this, e, "Error while deploying DB table '$table'!")
+                MTLogK.w(this, "Error while deploying DB table '$table'!", e)
                 success = false
             }
             tried++
@@ -90,7 +90,7 @@ object GTFSProviderDBHelperUtils : MTLog.Loggable {
                                         try {
                                             execSQL(sql)
                                         } catch (e: Exception) {
-                                            MTLog.w(this, e, "ERROR while executing '$sql' on database '$DB_NAME' table '$table' file '$file'!")
+                                            MTLogK.w(this, "ERROR while executing '$sql' on database '$DB_NAME' table '$table' file '$file'!", e)
                                             throw e
                                         }
                                     }
@@ -98,14 +98,14 @@ object GTFSProviderDBHelperUtils : MTLog.Loggable {
                             }
                         }
                     } catch (e: Exception) {
-                        MTLog.w(this, e, "ERROR while copying the database '$DB_NAME' table '$table' file '$file'!")
+                        MTLogK.w(this, "ERROR while copying the database '$DB_NAME' table '$table' file '$file'!", e)
                         return false
                     }
                 }
             }
             return true
         } catch (e: Exception) {
-            MTLog.w(this, e, "ERROR while copying the database '$DB_NAME' table '$table' file!")
+            MTLogK.w(this, "ERROR while copying the database '$DB_NAME' table '$table' file!", e)
             return false
         }
     }

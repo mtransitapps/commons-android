@@ -1,12 +1,12 @@
 package org.mtransit.android.commons.provider.gtfs
 
 import android.database.Cursor
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.provider.GTFSProvider
 import org.mtransit.commons.FeatureFlags
 
-object GTFSTripIdsUtils : MTLog.Loggable {
+object GTFSTripIdsUtils : MTLogK.Loggable {
 
     private val LOG_TAG: String = GTFSTripIdsUtils::class.java.simpleName
 
@@ -54,7 +54,7 @@ object GTFSTripIdsUtils : MTLog.Loggable {
                     cursor.getString(cursor.getColumnIndexOrThrow(GTFSProviderDbHelper.T_TRIP_IDS_K_ID)) ?: continue
                 )
             } catch (e: Exception) {
-                MTLog.w(this@GTFSTripIdsUtils, e, "Cannot parse trip ID cursor: '$cursor'!")
+                MTLogK.w(this@GTFSTripIdsUtils, "Cannot parse trip ID cursor: '$cursor'!", e)
             }
         }
     }

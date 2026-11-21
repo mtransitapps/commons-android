@@ -1,8 +1,8 @@
 package org.mtransit.android.commons.data
 
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 
-class DirectionHeadSignComparator : Comparator<Direction>, MTLog.Loggable {
+class DirectionHeadSignComparator : Comparator<Direction>, MTLogK.Loggable {
 
     companion object {
         private val LOG_TAG: String = DirectionHeadSignComparator::class.java.simpleName

@@ -2,12 +2,12 @@ package org.mtransit.android.commons.task
 
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 
 @Suppress("DEPRECATION")
 @Deprecated(message = "Deprecated in Android SDK")
 abstract class MTCancellableAsyncTask<Params, Progress, Result> :
-    MTAsyncTask<Params, Progress, Result>(), MTLog.Loggable {
+    MTAsyncTask<Params, Progress, Result>(), MTLogK.Loggable {
 
     @WorkerThread
     override fun doInBackgroundMT(vararg params: Params?): Result? {

@@ -2,11 +2,11 @@ package org.mtransit.android.commons.ui
 
 import android.app.Application
 import androidx.annotation.CallSuper
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.di.TimeProvider
 import org.mtransit.commons.CommonsApp
 
-open class MTCommonApp : Application(), MTLog.Loggable {
+open class MTCommonApp : Application(), MTLogK.Loggable {
 
     companion object {
         private val LOG_TAG: String = MTCommonApp::class.java.simpleName

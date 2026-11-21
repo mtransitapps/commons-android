@@ -5,12 +5,12 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import org.mtransit.android.commons.BuildConfig
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.R
 
 class InvisibleActivity :
     Activity(),
-    MTLog.Loggable {
+    MTLogK.Loggable {
 
     companion object {
         private val LOG_TAG: String = InvisibleActivity::class.java.simpleName

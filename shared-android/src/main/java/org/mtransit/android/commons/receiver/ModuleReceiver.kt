@@ -9,7 +9,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import org.mtransit.android.commons.BatteryUtils
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.PackageManagerUtils
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SqlUtils
@@ -19,7 +19,7 @@ import org.mtransit.android.commons.provider.GTFSProvider
 import org.mtransit.android.commons.provider.agency.AgencyProviderContract
 import org.mtransit.commons.FeatureFlags
 
-class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
+class ModuleReceiver : BroadcastReceiver(), MTLogK.Loggable {
 
     companion object {
 
@@ -58,24 +58,24 @@ class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
 
     override fun onReceive(context: Context?, intent: Intent?) {
         if (context == null) {
-            MTLog.w(this, "Module broadcast receiver with null context ignored!")
+            MTLogK.w(this, "Module broadcast receiver with null context ignored!")
             return
         }
         if (intent == null) {
-            MTLog.w(this, "Module broadcast receiver with null intent ignored!")
+            MTLogK.w(this, "Module broadcast receiver with null intent ignored!")
             return
         }
         val action = intent.action
         if (!ACTIONS_SUPPORTED.contains(action)) {
-            MTLog.w(this, "Module broadcast receiver with unexpected action '$action' ignored!")
+            MTLogK.w(this, "Module broadcast receiver with unexpected action '$action' ignored!")
             return
         }
         val isMyPackage: Boolean = isMyPackage(context, intent)
         if (!isMyPackage) {
-            MTLog.d(this, "Module broadcast receiver for another package '$intent' ignored.")
+            MTLogK.d(this, "Module broadcast receiver for another package '$intent' ignored.")
             return
         }
-        MTLog.i(this, "Received broadcast $action for ${context.packageName}.")
+        MTLogK.i(this, "Received broadcast $action for ${context.packageName}.")
         if (intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) {
             DataChange.broadcastDataChange(context, GTFSProvider.getAUTHORITY(context), context.packageName, true) // trigger update in MT
         }
@@ -99,7 +99,7 @@ class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
                 return
             }
         }
-        MTLog.i(this, "Ping: ${agencyProvider.authority}")
+        MTLogK.i(this, "Ping: ${agencyProvider.authority}")
         ping(context, agencyProvider)
     }
 
@@ -113,7 +113,7 @@ class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
             val pingUri = Uri.withAppendedPath(authorityUri, AgencyProviderContract.PING_PATH)
             cursor = context.contentResolver.query(pingUri, null, null, null, null)
         } catch (e: Exception) {
-            MTLog.w(this, e, "Error!")
+            MTLogK.w(this, "Error!", e)
         } finally {
             SqlUtils.closeQuietly(cursor)
         }
@@ -126,7 +126,7 @@ class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
         if (ACTIONS_PACKAGE.contains(intent.action)) {
             return context.packageName == intent.data?.schemeSpecificPart
         }
-        MTLog.w(this, "Unexpected intent '$intent'!")
+        MTLogK.w(this, "Unexpected intent '$intent'!")
         return false
     }
 }

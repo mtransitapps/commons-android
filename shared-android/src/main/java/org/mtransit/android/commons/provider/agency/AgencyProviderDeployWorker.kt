@@ -10,7 +10,7 @@ import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkerParameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.PackageManagerUtils
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.UriUtils
@@ -19,7 +19,7 @@ class AgencyProviderDeployWorker(
     private val context: Context,
     params: WorkerParameters,
 ) : CoroutineWorker(context, params),
-    MTLog.Loggable {
+    MTLogK.Loggable {
 
     companion object {
         @JvmStatic
@@ -57,12 +57,12 @@ class AgencyProviderDeployWorker(
         try {
             val pingUri = Uri.withAppendedPath(authorityUri, AgencyProviderContract.PING_PATH)
             val selection = FROM_WORKER
-            MTLog.i(this, "Ping: ${agencyProvider.authority} ($selection)")
+            MTLogK.i(this, "Ping: ${agencyProvider.authority} ($selection)")
             context.contentResolver.query(pingUri, null, selection, null, null).use {
                 // do nothing
             }
         } catch (e: Exception) {
-            MTLog.w(this, e, "Error!")
+            MTLogK.w(this, "Error!", e)
         }
     }
 }

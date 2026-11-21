@@ -17,7 +17,7 @@ import org.mtransit.android.commons.ColorUtils
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.LocaleUtils
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.NetworkUtils
 import org.mtransit.android.commons.PreferenceUtils
 import org.mtransit.android.commons.R
@@ -175,7 +175,7 @@ class InstagramNewsProvider : NewsProvider() {
                         currentDbHelper
                     }
                 } catch (e: Exception) { // fail if locked, will try again later
-                    MTLog.w(this, e, "Can't check DB version!")
+                    MTLogK.w(this, "Can't check DB version!", e)
                     currentDbHelper
                 }
             }
@@ -210,7 +210,7 @@ class InstagramNewsProvider : NewsProvider() {
             )
             affectedRows = this.getDBHelper().writableDatabase.delete(newsDbTableName, selection, null)
         } catch (e: Exception) {
-            MTLog.w(this, e, "Error while deleting all agency news data!")
+            MTLogK.w(this, "Error while deleting all agency news data!", e)
         }
         return affectedRows
     }
@@ -319,13 +319,13 @@ class InstagramNewsProvider : NewsProvider() {
                     userName
                 )
             }
-            MTLog.i(this, "Loaded ${newNews.size} news.")
+            MTLogK.i(this, "Loaded ${newNews.size} news.")
             return newNews
         } catch (ioe: IOException) {
-            MTLog.e(LOG_TAG, ioe, "I/O ERROR: Unknown Exception")
+            MTLogK.e(LOG_TAG, "I/O ERROR: Unknown Exception", ioe)
             return null
         } catch (e: Exception) {
-            MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception")
+            MTLogK.e(LOG_TAG, "INTERNAL ERROR: Unknown Exception", e)
             return null
         }
     }
@@ -344,18 +344,18 @@ class InstagramNewsProvider : NewsProvider() {
             && LocaleUtils.UNKNOWN != userLang
             && LocaleUtils.getDefaultLanguage() != userLang
         ) {
-            MTLog.d(this, "SKIP loading '$username': different language ($userLang).")
+            MTLogK.d(this, "SKIP loading '$username': different language ($userLang).")
             return
         }
         val newLastUpdateInMs = TimeUtils.currentTimeMillis()
-        MTLog.i(this, "Loading '@$username' posts from '$BASE_HOST'...")
+        MTLogK.i(this, "Loading '@$username' posts from '$BASE_HOST'...")
         val response = instagramApi.userProfile(username).execute()
         val targetUUID = _userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
             ?: _targetAuthority.takeIf { it.isNotBlank() }
             ?: AgencyUtils.getAgencyAuthority(context)
             ?: EMPTY.takeIf { context.packageName == Constants.MAIN_APP_PACKAGE_NAME } // target all allowed for main app
             ?: run {
-                MTLog.w(this, "SKIP loading '$username': no target UUID!")
+                MTLogK.w(this, "SKIP loading '$username': no target UUID!")
                 return
             }
         val severity = _userNamesSeverity.getOrNull(i)
@@ -374,7 +374,7 @@ class InstagramNewsProvider : NewsProvider() {
             ?: AgencyUtils.getAgencyColor(context)
             ?: ColorUtils.BLACK
                 .also {
-                    MTLog.w(this, "No color found for '$username'! (used fallback)")
+                    MTLogK.w(this, "No color found for '$username'! (used fallback)")
                 }
         timelineMediaEdges
             ?.mapNotNull { it?.node }
@@ -396,7 +396,7 @@ class InstagramNewsProvider : NewsProvider() {
                     loadedNewsCount++
                 }
             }
-        MTLog.i(this, "Loaded $loadedNewsCount news for '@$username'.")
+        MTLogK.i(this, "Loaded $loadedNewsCount news for '@$username'.")
     }
 
     private fun readNews(

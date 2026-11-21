@@ -2,7 +2,7 @@ package org.mtransit.android.commons.provider.gtfs
 
 import android.content.Context
 import android.net.Uri
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
@@ -58,6 +58,6 @@ private fun Context.getRDSSchedule(
         }
     }
 } catch (e: Exception) {
-    MTLog.w(this, e, "Error!")
+    MTLogK.w(this, "Error!", e)
     null
 }

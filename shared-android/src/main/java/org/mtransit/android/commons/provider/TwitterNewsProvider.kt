@@ -13,7 +13,7 @@ import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.KeysIds
 import org.mtransit.android.commons.LocaleUtils
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.NetworkUtils
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SecureStringUtils
@@ -252,7 +252,7 @@ class TwitterNewsProvider : NewsProvider() {
                         currentDbHelper
                     }
                 } catch (e: Exception) { // fail if locked, will try again later
-                    MTLog.w(this, e, "Can't check DB version!")
+                    MTLogK.w(this, "Can't check DB version!", e)
                     currentDbHelper
                 }
             }
@@ -299,7 +299,7 @@ class TwitterNewsProvider : NewsProvider() {
             )
             affectedRows = this.getDBHelper().writableDatabase.delete(newsDbTableName, selection, null)
         } catch (e: Exception) {
-            MTLog.w(this, e, "Error while deleting all agency news data!")
+            MTLogK.w(this, "Error while deleting all agency news data!", e)
         }
         return affectedRows
     }
@@ -428,13 +428,13 @@ class TwitterNewsProvider : NewsProvider() {
                     userName
                 )
             }
-            MTLog.i(this, "Loaded ${newNews.size} news.")
+            MTLogK.i(this, "Loaded ${newNews.size} news.")
             return newNews
         } catch (ioe: IOException) {
-            MTLog.e(LOG_TAG, ioe, "I/O ERROR: Unknown Exception")
+            MTLogK.e(LOG_TAG, "I/O ERROR: Unknown Exception", ioe)
             return null
         } catch (e: Exception) {
-            MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception")
+            MTLogK.e(LOG_TAG, "INTERNAL ERROR: Unknown Exception", e)
             return null
         }
     }
@@ -464,7 +464,7 @@ class TwitterNewsProvider : NewsProvider() {
             && LocaleUtils.UNKNOWN != userLang
             && LocaleUtils.getDefaultLanguage() != userLang
         ) {
-            MTLog.d(this, "SKIP loading '$username': different language ($userLang).")
+            MTLogK.d(this, "SKIP loading '$username': different language ($userLang).")
             return
         }
         // 1- load user ID
@@ -478,12 +478,12 @@ class TwitterNewsProvider : NewsProvider() {
                     getStorage(context).saveUserNameId(username, userId)
                 }
         if (userId.isNullOrBlank()) {
-            MTLog.d(this, "SKIP loading '$username': no user ID.")
+            MTLogK.d(this, "SKIP loading '$username': no user ID.")
             return
         }
         // 2 - load user timeline
         val newLastUpdateInMs = TimeUtils.currentTimeMillis()
-        MTLog.i(this, "Loading '@$username' posts from '$AGENCY_SOURCE_LABEL'...")
+        MTLogK.i(this, "Loading '@$username' posts from '$AGENCY_SOURCE_LABEL'...")
         if (FORCE_REFRESH) {
             getStorage(context).saveUserNameSinceId(username, EMPTY) // reset
         }
@@ -505,12 +505,12 @@ class TwitterNewsProvider : NewsProvider() {
             userFields = USER_FIELDS.joinToString(separator = ","),
         ).execute().apply {
             if (!isSuccessful) {
-                MTLog.w(this, "SKIP loading '$username' tweets: API error ${code()} (${errorBody()?.string()})")
+                MTLogK.w(this, "SKIP loading '$username' tweets: API error ${code()} (${errorBody()?.string()})")
                 return
             }
         }.body()
             ?: run {
-                MTLog.w(this, "SKIP loading '$username': no response!")
+                MTLogK.w(this, "SKIP loading '$username': no response!")
                 return
             }
         val targetUUID = _userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
@@ -518,7 +518,7 @@ class TwitterNewsProvider : NewsProvider() {
             ?: AgencyUtils.getAgencyAuthority(context)
             ?: EMPTY.takeIf { context.packageName == Constants.MAIN_APP_PACKAGE_NAME } // target all allowed for main app
             ?: run {
-                MTLog.w(this, "SKIP loading '$username': no target UUID!")
+                MTLogK.w(this, "SKIP loading '$username': no target UUID!")
                 return
             }
         val severity = _userNamesSeverity.getOrNull(i)
@@ -553,7 +553,7 @@ class TwitterNewsProvider : NewsProvider() {
                 }
             }
         newSinceId?.let { getStorage(context).saveUserNameSinceId(username, it) }
-        MTLog.i(this, "Loaded $loadedNewsCount news for '@$username'.")
+        MTLogK.i(this, "Loaded $loadedNewsCount news for '@$username'.")
     }
 
     // https://developer.x.com/en/docs/x-api/users/lookup/api-reference/get-users-by-username-username
@@ -564,7 +564,7 @@ class TwitterNewsProvider : NewsProvider() {
             username = username,
         ).execute().apply {
             if (!isSuccessful) {
-                MTLog.w(this, "SKIP loading '$username' ID: API error ${code()} (${errorBody()?.string()})")
+                MTLogK.w(this, "SKIP loading '$username' ID: API error ${code()} (${errorBody()?.string()})")
                 return null
             }
         }.body()
@@ -586,7 +586,7 @@ class TwitterNewsProvider : NewsProvider() {
         userLang: String,
     ): News? {
         if (tweet.inReplyToUserId != null && tweet.inReplyToUserId != userId) {
-            MTLog.d(this, "readNews() > SKIP (in reply to screen name: '%s').", tweet.inReplyToUserId)
+            MTLogK.d(this, "readNews() > SKIP (in reply to screen name: '${tweet.inReplyToUserId}').")
             return null
         }
         val author = includedExpansions?.users?.find { it.id == tweet.authorId }
@@ -623,7 +623,7 @@ class TwitterNewsProvider : NewsProvider() {
             ?: AgencyUtils.getAgencyColor(context)
             ?: ColorUtils.BLACK
                 .also {
-                    MTLog.w(this, "No color found for '$userName'! (used fallback)")
+                    MTLogK.w(this, "No color found for '$userName'! (used fallback)")
                 }
         return News(
             null,
@@ -660,7 +660,7 @@ class TwitterNewsProvider : NewsProvider() {
                     TweetMediaType.VIDEO.type -> media.previewImageUrl
                     TweetMediaType.ANIMATED_GIF.type -> media.previewImageUrl
                     else -> {
-                        MTLog.w(this, "Unexpected media type '${media.type}'!")
+                        MTLogK.w(this, "Unexpected media type '${media.type}'!")
                         null
                     }
                 }
@@ -703,7 +703,7 @@ class TwitterNewsProvider : NewsProvider() {
             textHTML = HtmlUtils.toHTML(textHTML)
             return textHTML
         } catch (e: Exception) {
-            MTLog.w(this, e, "Error while generating HTML text for status '%s'!", status)
+            MTLogK.w(this, "Error while generating HTML text for status '$status'!", e)
             return status.text
         }
     }

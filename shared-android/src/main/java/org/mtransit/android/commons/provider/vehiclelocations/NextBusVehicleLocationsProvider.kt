@@ -2,7 +2,7 @@ package org.mtransit.android.commons.provider.vehiclelocations
 
 import android.content.Context
 import org.mtransit.android.commons.Constants
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.SecurityUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.TimeUtilsK
@@ -121,7 +121,7 @@ object NextBusVehicleLocationsProvider {
 
     private fun NextBusProvider.loadAgencyDataFromWWW(context: Context): List<VehicleLocation>? {
         try {
-            MTLog.i(this, "Loading from '%s' for agency '%s'...", NextBusApi.BASE_HOST_URL, agencyTag)
+            MTLogK.i(this, "Loading from '${NextBusApi.BASE_HOST_URL}' for agency '$agencyTag'...")
             val response = getNextBusApi(context)
                 .getVehicleLocations(agencyTag = agencyTag)
                 .execute()
@@ -135,7 +135,7 @@ object NextBusVehicleLocationsProvider {
                         response.body()?.let { vehicleLocationsResponse ->
                             vehicleLocationsResponse.vehicle?.forEach { nVehicle ->
                                 if (Constants.DEBUG) {
-                                    MTLog.d(
+                                    MTLogK.d(
                                         this@NextBusVehicleLocationsProvider,
                                         "loadAgencyDataFromWWW() > NextBus nVehicle: $nVehicle."
                                     )
@@ -148,19 +148,19 @@ object NextBusVehicleLocationsProvider {
                             }
                         }
                     } catch (e: Exception) {
-                        MTLog.w(this@NextBusVehicleLocationsProvider, e, "loadAgencyDataFromWWW() > error while parsing NextBus Real Time data!")
+                        MTLogK.w(this@NextBusVehicleLocationsProvider, "loadAgencyDataFromWWW() > error while parsing NextBus Real Time data!", e)
                     }
-                    MTLog.i(this@NextBusVehicleLocationsProvider, "Found %d vehicle locations.", vehicleLocations.size)
+                    MTLogK.i(this@NextBusVehicleLocationsProvider, "Found ${vehicleLocations.size} vehicle locations.")
                     if (Constants.DEBUG) {
                         for (vehicleLocation in vehicleLocations) {
-                            MTLog.d(this@NextBusVehicleLocationsProvider, "loadAgencyDataFromWWW() > - new ${vehicleLocation.toStringShort()}.")
+                            MTLogK.d(this@NextBusVehicleLocationsProvider, "loadAgencyDataFromWWW() > - new ${vehicleLocation.toStringShort()}.")
                         }
                     }
                     return vehicleLocations
                 }
 
                 else -> {
-                    MTLog.w(
+                    MTLogK.w(
                         this@NextBusVehicleLocationsProvider,
                         "ERROR: HTTP URL-Connection Response Code ${response.code()} (Message: ${response.message()})"
                     )
@@ -168,23 +168,23 @@ object NextBusVehicleLocationsProvider {
                 }
             }
         } catch (sslhe: SSLHandshakeException) {
-            MTLog.w(this, sslhe, "SSL error!")
+            MTLogK.w(this, "SSL error!", sslhe)
             SecurityUtils.logCertPathValidatorException(sslhe)
             getStorage(context).saveVehicleLocationLastUpdateCode(567) // SSL certificate not trusted (on this device)
             getStorage(context).saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
             return null
         } catch (uhe: UnknownHostException) {
-            if (MTLog.isLoggable(android.util.Log.DEBUG)) {
-                MTLog.w(this@NextBusVehicleLocationsProvider, uhe, "No Internet Connection!")
+            if (MTLogK.isLoggable(android.util.Log.DEBUG)) {
+                MTLogK.w(this@NextBusVehicleLocationsProvider, "No Internet Connection!", uhe)
             } else {
-                MTLog.w(this@NextBusVehicleLocationsProvider, "No Internet Connection!")
+                MTLogK.w(this@NextBusVehicleLocationsProvider, "No Internet Connection!")
             }
             return null
         } catch (se: SocketException) {
-            MTLog.w(this@NextBusVehicleLocationsProvider, se, "No Internet Connection!")
+            MTLogK.w(this@NextBusVehicleLocationsProvider, "No Internet Connection!", se)
             return null
         } catch (e: Exception) { // Unknown error
-            MTLog.e(this@NextBusVehicleLocationsProvider, e, "INTERNAL ERROR: Unknown Exception")
+            MTLogK.e(this@NextBusVehicleLocationsProvider, "INTERNAL ERROR: Unknown Exception", e)
             return null
         }
     }

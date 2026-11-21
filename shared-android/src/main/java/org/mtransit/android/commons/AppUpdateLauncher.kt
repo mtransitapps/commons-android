@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import org.mtransit.android.commons.ui.AppUpdateActivity
 
-object AppUpdateLauncher : MTLog.Loggable {
+object AppUpdateLauncher : MTLogK.Loggable {
 
     private val LOG_TAG: String = AppUpdateLauncher::class.java.simpleName
 
@@ -27,7 +27,7 @@ object AppUpdateLauncher : MTLog.Loggable {
                 false
             }
         } catch (e: ActivityNotFoundException) {
-            MTLog.d(this, e, "App update activity not found!")
+            MTLogK.d(this, "App update activity not found!", e)
             false
         }
         if (!activityOpened) {

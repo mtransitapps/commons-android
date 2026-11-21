@@ -3,9 +3,9 @@ package org.mtransit.android.commons.di
 import android.app.Application
 import com.google.android.gms.time.TrustedTime
 import com.google.android.gms.time.TrustedTimeClient
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 
-object TimeProvider : MTLog.Loggable {
+object TimeProvider : MTLogK.Loggable {
 
     private val LOG_TAG: String = TimeProvider::class.java.simpleName
 
@@ -19,7 +19,7 @@ object TimeProvider : MTLog.Loggable {
                 trustedTimeClient = client
             }
             .addOnFailureListener { exception ->
-                MTLog.w(LOG_TAG, exception, "Error while initializing TrustedTimeClient!")
+                MTLogK.w(LOG_TAG, "Error while initializing TrustedTimeClient!", exception)
             }
     }
 

@@ -4,7 +4,7 @@ import android.net.Uri
 import android.provider.BaseColumns
 import org.json.JSONException
 import org.json.JSONObject
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.AppStatusFilter
 import org.mtransit.android.commons.data.AvailabilityPercentStatusFilter
 import org.mtransit.android.commons.data.POI
@@ -91,7 +91,7 @@ interface StatusProviderContract : ProviderContract {
     abstract class Filter(
         val type: Int,
         open val targetUUID: String,
-    ) : ProviderContract.Filter(), MTLog.Loggable {
+    ) : ProviderContract.Filter(), MTLogK.Loggable {
 
         companion object {
             private val LOG_TAG: String = StatusProviderContract::class.java.getSimpleName() + ">" + Filter::class.java.getSimpleName()
@@ -119,7 +119,7 @@ interface StatusProviderContract : ProviderContract {
                             includeCancelledTimestamps = scheduleIncludeCancelledTimestamps
                         )
                     } ?: run {
-                        MTLog.w(LOG_TAG, "Schedule filter w/o RDS '${poi.uuid}'!")
+                        MTLogK.w(LOG_TAG, "Schedule filter w/o RDS '${poi.uuid}'!")
                         null
                     }
                 }
@@ -133,13 +133,13 @@ interface StatusProviderContract : ProviderContract {
                     getAppPkg()?.let { pkg ->
                         AppStatusFilter(inFocus = inFocus, targetUUID = poi.uuid, pkg = pkg)
                     } ?: run {
-                        MTLog.w(LOG_TAG, "App status filter w/o module '${poi.uuid}'!")
+                        MTLogK.w(LOG_TAG, "App status filter w/o module '${poi.uuid}'!")
                         null
                     }
                 }
 
                 else -> {
-                    MTLog.w(LOG_TAG, "Unexpected status type '${poi.statusType}' for filter!")
+                    MTLogK.w(LOG_TAG, "Unexpected status type '${poi.statusType}' for filter!")
                     null
                 }
             }
@@ -149,7 +149,7 @@ interface StatusProviderContract : ProviderContract {
                 try {
                     return if (jsonString == null) -1 else getTypeFromJSON(JSONObject(jsonString))
                 } catch (jsone: JSONException) {
-                    MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '$jsonString'")
+                    MTLogK.w(LOG_TAG, "Error while parsing JSON string '$jsonString'", jsone)
                     return -1
                 }
             }

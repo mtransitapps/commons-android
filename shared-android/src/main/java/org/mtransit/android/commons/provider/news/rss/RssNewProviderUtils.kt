@@ -4,14 +4,14 @@ import android.content.Context
 import org.mtransit.android.commons.ColorUtils
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.LocaleUtils
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.StringUtils.EMPTY
 import org.mtransit.android.commons.provider.agency.AgencyUtils
 import org.mtransit.commons.dropWhile
 import java.net.URL
 
-object RssNewProviderUtils : MTLog.Loggable {
+object RssNewProviderUtils : MTLogK.Loggable {
 
     private val LOG_TAG: String = RssNewProviderUtils::class.java.simpleName
 
@@ -38,7 +38,7 @@ object RssNewProviderUtils : MTLog.Loggable {
             ?: AgencyUtils.getAgencyColor(context)
             ?: ColorUtils.BLACK
                 .also {
-                    MTLog.w(this, "No color found for '$i'! (used fallback)")
+                    MTLogK.w(this, "No color found for '$i'! (used fallback)")
                 }
 
     private var _feedsAuthorName: List<String>? = null
@@ -71,7 +71,7 @@ object RssNewProviderUtils : MTLog.Loggable {
             val url = URL(urlString)
             return pickLabel(url)
         } catch (e: Exception) {
-            MTLog.w(this, e, "Error while parsing rss label from URL '$urlString'!")
+            MTLogK.w(this, "Error while parsing rss label from URL '$urlString'!", e)
             return ""
         }
     }
@@ -85,7 +85,7 @@ object RssNewProviderUtils : MTLog.Loggable {
                 ?.joinToString(separator = ".")
                 .orEmpty()
         } catch (e: Exception) {
-            MTLog.w(this, e, "Error while parsing rss label from URL $url!")
+            MTLogK.w(this, "Error while parsing rss label from URL $url!", e)
             return ""
         }
     }

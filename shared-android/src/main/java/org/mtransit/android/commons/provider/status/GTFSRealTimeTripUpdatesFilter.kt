@@ -1,7 +1,7 @@
 package org.mtransit.android.commons.provider.status
 
 import androidx.annotation.VisibleForTesting
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.millisToInstant
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.ALLOW_IGNORE_TRIP_DESCRIPTOR_DIRECTION_ID
 import org.mtransit.android.commons.provider.gtfs.DEFAULT_LOOK_BEHIND
@@ -86,7 +86,7 @@ internal fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone, agenc
     }
     optTimestampMs?.let { tuTimestamp ->
         if (tuTimestamp + TRIP_UPDATE_MAX_AGE_MS < nowMs) {
-            MTLog.d(LOG_TAG, "isUseful() > IGNORE ${(nowMs - tuTimestamp).toDurationLog()} old: ${td.toStringExt(true)}")
+            MTLogK.d(LOG_TAG, "isUseful() > IGNORE ${(nowMs - tuTimestamp).toDurationLog()} old: ${td.toStringExt(true)}")
             return false // not useful (too old to display)
         }
     }
@@ -104,12 +104,12 @@ internal fun GTripUpdate.isUseful(nowMs: Long, agencyTimeZone: KtTimeZone, agenc
     }
     startDateTimeOrFirstTimeMs?.let { timeMs ->
         if (nowMs + FUTURE_TRIP_UPDATE_MAX_DIFF_MS < timeMs) {
-            MTLog.d(LOG_TAG, "isUseful() > IGNORE ${((timeMs - nowMs)).toDurationLog()} in the future: ${td.toStringExt(true)}")
+            MTLogK.d(LOG_TAG, "isUseful() > IGNORE ${((timeMs - nowMs)).toDurationLog()} in the future: ${td.toStringExt(true)}")
             return false // not useful (too far in advance to display)
         }
     }
     if (!hasDelay() && !hasStopTimeUpdateList() && td.scheduleRelationshipOrDefault == GTDScheduleRelationship.SCHEDULED) {
-        // MTLog.d(LOG_TAG, "isUseful() > IGNORE (no delay, stop time update & scheduled): ${this.toStringExt()}") // too noisy
+        // MTLogK.d(LOG_TAG, "isUseful() > IGNORE (no delay, stop time update & scheduled): ${this.toStringExt()}") // too noisy
         return false // not useful
     }
     return true // useful (contains delay or STUs or not a SCHEDULED trip)
@@ -142,10 +142,10 @@ internal fun GTripUpdate.match(
         val tripId = parseTripId(this)
         if (tripId in staticRDTripIds) {
             if (IGNORE_TRIP_ID) {
-                MTLog.d(LOG_TAG, "match() > IGNORE FOUND trip ID '$tripId' for ${toStringExt(short = true)}")
+                MTLogK.d(LOG_TAG, "match() > IGNORE FOUND trip ID '$tripId' for ${toStringExt(short = true)}")
             } else {
                 // if (DEBUG_STATIC_RT_MATCH) { // too much log
-                // MTLog.d(LOG_TAG, "match() > FOUND: trip ID '$tripId' for ${toStringExt(short = true)}")
+                // MTLogK.d(LOG_TAG, "match() > FOUND: trip ID '$tripId' for ${toStringExt(short = true)}")
                 // }
                 return tripId // MATCH
             }
@@ -153,7 +153,7 @@ internal fun GTripUpdate.match(
         parseRouteId(this).let { rtRouteIdHash ->
             if (rtRouteIdHash != targetRouteIdHash) {
                 // if (DEBUG_STATIC_RT_MATCH) { // too much log
-                // MTLog.d(LOG_TAG, "match() > IGNORE: wrong route ID '$rtRouteIdHash' (t:$targetRouteIdHash)")
+                // MTLogK.d(LOG_TAG, "match() > IGNORE: wrong route ID '$rtRouteIdHash' (t:$targetRouteIdHash)")
                 // }
                 return null // NOT A MATCH
             }
@@ -165,7 +165,7 @@ internal fun GTripUpdate.match(
             optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
                 if (directionId != targetDirectionOriginalId) {
                     if (DEBUG_STATIC_RT_MATCH) {
-                        MTLog.d(LOG_TAG, "match() > IGNORE: wrong direction ID '$directionId' for ${toStringExt(short = true)}")
+                        MTLogK.d(LOG_TAG, "match() > IGNORE: wrong direction ID '$directionId' for ${toStringExt(short = true)}")
                     }
                     return null // NOT A MATCH
                 }
@@ -180,14 +180,14 @@ internal fun GTripUpdate.match(
             tuDeparture?.let { tuDeparture ->
                 findOutOfSyncTripId(tuDeparture, this@match.optStopTimeUpdateList)?.let { staticTripId ->
                     // if (DEBUG_STATIC_RT_MATCH) {
-                    MTLog.i(
+                    MTLogK.i(
                         LOG_TAG,
                         "match() > FOUND: outdated static trip ID '$staticTripId' match at ${tuDeparture.toDateTimeLog()} for ${toStringExt(short = true)}"
                     )
                     // }
                     @Suppress("SimplifyBooleanWithConstants")
                     if (IGNORE_TRIP_ID && staticTripId != tripId) {
-                        MTLog.w(
+                        MTLogK.w(
                             LOG_TAG,
                             "match() > WARNING: found outdated static trip ID '$staticTripId' different than \"not really out-of-sync\" '$tripId'! " +
                                 "(${this@match.toStringExt()})"
@@ -197,13 +197,13 @@ internal fun GTripUpdate.match(
                 }
                 @Suppress("SimplifyBooleanWithConstants")
                 if (IGNORE_TRIP_ID && tripId in staticRDTripIds && tuDeparture > nowMs.millisToInstant() - DEFAULT_LOOK_BEHIND) {
-                    MTLog.w(LOG_TAG, "match() > WARNING: dit NOT found trip ID '$tripId' that was not really out-of-sync! (${this@match.toStringExt()})")
+                    MTLogK.w(LOG_TAG, "match() > WARNING: dit NOT found trip ID '$tripId' that was not really out-of-sync! (${this@match.toStringExt()})")
                 }
             }
         }
     }
     // if (DEBUG_STATIC_RT_MATCH) { // too much log
-    // MTLog.d(LOG_TAG, "match() > IGNORE (NOT A MATCH): ${this.optTrip?.toStringExt(short = true)}")
+    // MTLogK.d(LOG_TAG, "match() > IGNORE (NOT A MATCH): ${this.optTrip?.toStringExt(short = true)}")
     // }
     return null // NOT A MATCH
 }
@@ -234,7 +234,7 @@ internal fun List<Pair<String, GTripUpdate>>.filterDuplicatesTrips() = buildList
                 .takeIf { it.isNotEmpty() }
                 ?.let { woModifiedTripAndWVehicle ->
                     val picked = woModifiedTripAndWVehicle.first()
-                    MTLog.d(
+                    MTLogK.d(
                         LOG_TAG,
                         "filterDuplicatesTrips() > pick 1st out of ${woModifiedTripAndWVehicle.size} w/o ModifiedTrip and w/ Vehicle: " +
                             "[${picked.first}] ${picked.second.toStringExt()}"
@@ -248,7 +248,7 @@ internal fun List<Pair<String, GTripUpdate>>.filterDuplicatesTrips() = buildList
                 .takeIf { it.isNotEmpty() }
                 ?.let { woModifiedTrip ->
                     val picked = woModifiedTrip.first()
-                    MTLog.d(
+                    MTLogK.d(
                         LOG_TAG,
                         "filterDuplicatesTrips() > pick 1st out of ${woModifiedTrip.size} w/o ModifiedTrip: " +
                             "[${picked.first}] ${picked.second.toStringExt()}"
@@ -262,7 +262,7 @@ internal fun List<Pair<String, GTripUpdate>>.filterDuplicatesTrips() = buildList
                 .takeIf { it.isNotEmpty() }
                 ?.let { wVehicle ->
                     val picked = wVehicle.first()
-                    MTLog.d(
+                    MTLogK.d(
                         LOG_TAG,
                         "filterDuplicatesTrips() > pick 1st out of ${wVehicle.size} w/ Vehicle: " +
                             "[${picked.first}] ${picked.second.toStringExt()}"
@@ -272,7 +272,7 @@ internal fun List<Pair<String, GTripUpdate>>.filterDuplicatesTrips() = buildList
                 }
             // ELSE -> pick 1st one in the list
             val gTripUpdate1 = tripIdAndTripUpdates.firstOrNull() ?: return@forEach
-            MTLog.d(
+            MTLogK.d(
                 LOG_TAG,
                 "filterDuplicatesTrips() > use 1st one out of ${tripIdAndTripUpdates.size}: " +
                     "[${gTripUpdate1.first}] ${gTripUpdate1.second.toStringExt()}"

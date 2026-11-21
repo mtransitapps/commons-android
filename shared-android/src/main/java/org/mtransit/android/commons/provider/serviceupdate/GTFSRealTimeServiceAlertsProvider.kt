@@ -1,7 +1,7 @@
 package org.mtransit.android.commons.provider.serviceupdate
 
 import androidx.annotation.VisibleForTesting
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.ServiceUpdates
 import org.mtransit.android.commons.data.buildServiceUpdates
 import org.mtransit.android.commons.data.makeServiceUpdateNoneList
@@ -32,7 +32,7 @@ import org.mtransit.android.commons.provider.gtfs.storage
 import kotlin.time.Duration.Companion.minutes
 import com.google.transit.realtime.GtfsRealtime.EntitySelector as GEntitySelector
 
-object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
+object GTFSRealTimeServiceAlertsProvider : MTLogK.Loggable {
 
     @JvmStatic
     val LOG_TAG: String = GTFSRealTimeServiceAlertsProvider::class.java.simpleName
@@ -156,7 +156,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
         gEntitySelector.optAgencyIdNotEmpty?.let { _ ->
             return getAgencyTagTargetUUID(agencyTag)
         }
-        MTLog.w(LOG_TAG, "parseTargetUUID() > unexpected entity selector: %s (IGNORED)", gEntitySelector.toStringExt())
+        MTLogK.w(LOG_TAG, "parseTargetUUID() > unexpected entity selector: ${gEntitySelector.toStringExt()} (IGNORED)")
         return null
     }
 
@@ -170,7 +170,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
             getOneTripId = { serviceUpdates.firstOrNull { it.targetTripId != null }?.targetTripId },
             saveTripIdsOutOfSync = { tripIdsOutOfSync ->
                 if (tripIdsOutOfSync) {
-                    MTLog.w(LOG_TAG, "Trip IDs out of sync!")
+                    MTLogK.w(LOG_TAG, "Trip IDs out of sync!")
                 }
                 storage.saveServiceUpdateTripIdsOutOfSync(tripIdsOutOfSync)
                 _tripIdsOutOfSync = tripIdsOutOfSync

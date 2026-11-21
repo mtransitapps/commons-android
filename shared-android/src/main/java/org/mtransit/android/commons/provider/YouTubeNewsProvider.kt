@@ -13,7 +13,7 @@ import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.KeysIds
 import org.mtransit.android.commons.LocaleUtils
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.NetworkUtils
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SecureStringUtils
@@ -211,7 +211,7 @@ class YouTubeNewsProvider : NewsProvider() {
                         currentDbHelper
                     }
                 } catch (e: Exception) { // fail if locked, will try again later
-                    MTLog.w(this, e, "Can't check DB version!")
+                    MTLogK.w(this, "Can't check DB version!", e)
                     currentDbHelper
                 }
             }
@@ -258,7 +258,7 @@ class YouTubeNewsProvider : NewsProvider() {
             )
             affectedRows = this.getDBHelper().writableDatabase.delete(newsDbTableName, selection, null)
         } catch (e: Exception) {
-            MTLog.w(this, e, "Error while deleting all agency news data!")
+            MTLogK.w(this, "Error while deleting all agency news data!", e)
         }
         return affectedRows
     }
@@ -376,13 +376,13 @@ class YouTubeNewsProvider : NewsProvider() {
                     authorUrl
                 )
             }
-            MTLog.i(this, "Loaded ${newNews.size} news.")
+            MTLogK.i(this, "Loaded ${newNews.size} news.")
             return newNews
         } catch (ioe: IOException) {
-            MTLog.e(LOG_TAG, ioe, "I/O ERROR: Unknown Exception")
+            MTLogK.e(LOG_TAG, "I/O ERROR: Unknown Exception", ioe)
             return null
         } catch (e: Exception) {
-            MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception")
+            MTLogK.e(LOG_TAG, "INTERNAL ERROR: Unknown Exception", e)
             return null
         }
     }
@@ -405,7 +405,7 @@ class YouTubeNewsProvider : NewsProvider() {
             && LocaleUtils.UNKNOWN != userLang
             && LocaleUtils.getDefaultLanguage() != userLang
         ) {
-            MTLog.d(this, "SKIP loading '$userLog': different language ($userLang).")
+            MTLogK.d(this, "SKIP loading '$userLog': different language ($userLang).")
             return
         }
         // 1 - load user channel uploads
@@ -417,13 +417,13 @@ class YouTubeNewsProvider : NewsProvider() {
             _userNamesHandles.getOrNull(i)?.isNotBlank() == true -> Triple(null, null, _userNamesHandles[i])
             _userNamesChannelsId.getOrNull(i)?.isNotBlank() == true -> Triple(_userNamesChannelsId[i], null, null)
             customUrlFromAuthorUrl?.isNotBlank() == true -> {
-                MTLog.w(this, "SKIP loading '$userLog': custom URL '$authorUrl' not supported!")
+                MTLogK.w(this, "SKIP loading '$userLog': custom URL '$authorUrl' not supported!")
                 return
             }
             else -> Triple(null, null, null)
         }
         if (id == null && username == null && handle == null) {
-            MTLog.w(this, "SKIP loading '$userLog': no channel ID/username/handle found for '$authorUrl'.")
+            MTLogK.w(this, "SKIP loading '$userLog': no channel ID/username/handle found for '$authorUrl'.")
             return
         }
         val channelListResp = youTubeApi.getChannels(
@@ -437,17 +437,17 @@ class YouTubeNewsProvider : NewsProvider() {
             },
             key = apiKey,
         ).execute().body()
-        MTLog.d(this, "Found ${channelListResp?.items?.size} channel for '$userLog'.")
+        MTLogK.d(this, "Found ${channelListResp?.items?.size} channel for '$userLog'.")
         val channel = channelListResp?.items?.firstOrNull() ?: run {
-            MTLog.d(this, "SKIP loading '$userLog': no channel found.")
+            MTLogK.d(this, "SKIP loading '$userLog': no channel found.")
             return
         }
         val uploadsPlaylistId = channel.contentDetails?.relatedPlaylists?.uploads
         if (uploadsPlaylistId.isNullOrEmpty()) {
-            MTLog.d(this, "SKIP loading '$userLog': no uploads playlist found.")
+            MTLogK.d(this, "SKIP loading '$userLog': no uploads playlist found.")
             return
         }
-        MTLog.i(this, "Found uploads playlist '$uploadsPlaylistId' for '$userLog'.")
+        MTLogK.i(this, "Found uploads playlist '$uploadsPlaylistId' for '$userLog'.")
         val channelSnippet = channel.snippet
         val authorUsername = channelSnippet?.customUrl
         val authorName = channelSnippet?.localized?.title
@@ -457,7 +457,7 @@ class YouTubeNewsProvider : NewsProvider() {
             ?: _userNames.getOrNull(i)?.takeIf { it.isNotBlank() }
             ?: _userNamesHandles.getOrNull(i)?.takeIf { it.isNotBlank() }
             ?: run {
-                MTLog.w(this, "SKIP loading '$userLog': no author name found!")
+                MTLogK.w(this, "SKIP loading '$userLog': no author name found!")
                 return
             }
         // https://developers.google.com/youtube/v3/docs/thumbnails
@@ -478,7 +478,7 @@ class YouTubeNewsProvider : NewsProvider() {
             hl = if (LocaleUtils.isFR()) Locale.FRENCH.language else Locale.ENGLISH.language,
             key = apiKey,
         ).execute().body()
-        MTLog.i(this, "Found ${playlistItemsListResp?.items?.size} videos for '$userLog'.")
+        MTLogK.i(this, "Found ${playlistItemsListResp?.items?.size} videos for '$userLog'.")
         playlistItemsListResp?.items
             ?.filter { it?.status?.privacyStatus != "private" }
             ?.forEach { playlistItem ->
@@ -516,7 +516,7 @@ class YouTubeNewsProvider : NewsProvider() {
                     }
                 }
                 if (text.isEmpty() || textHtml.isEmpty()) {
-                    MTLog.w(this, "loadUserUploadsPlaylist() > skip (no text)")
+                    MTLogK.w(this, "loadUserUploadsPlaylist() > skip (no text)")
                     return
                 }
                 // https://developers.google.com/youtube/v3/docs/thumbnails
@@ -532,14 +532,14 @@ class YouTubeNewsProvider : NewsProvider() {
                     ?: AgencyUtils.getAgencyColor(context)
                     ?: ColorUtils.BLACK
                         .also {
-                            MTLog.w(this, "No color found for '$userLog'! (used fallback)")
+                            MTLogK.w(this, "No color found for '$userLog'! (used fallback)")
                         }
                 val targetUUID = _userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
                     ?: _targetAuthority.takeIf { it.isNotBlank() }
                     ?: AgencyUtils.getAgencyAuthority(context)
                     ?: EMPTY.takeIf { context.packageName == Constants.MAIN_APP_PACKAGE_NAME } // target all allowed for main app
                     ?: run {
-                        MTLog.w(this, "SKIP loading '$userLog': no target UUID!")
+                        MTLogK.w(this, "SKIP loading '$userLog': no target UUID!")
                         return
                     }
                 val severity = _userNamesSeverity.getOrNull(i)

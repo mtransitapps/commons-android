@@ -3,11 +3,11 @@ package org.mtransit.android.commons.provider.vehiclelocations
 import android.content.Context
 import androidx.annotation.VisibleForTesting
 import org.mtransit.android.commons.LocationUtils
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.Area
 import org.mtransit.android.commons.provider.GTFSProvider
 
-object VehicleLocationProviderUtils : MTLog.Loggable {
+object VehicleLocationProviderUtils : MTLogK.Loggable {
 
     private val LOG_TAG: String = VehicleLocationProviderUtils::class.java.simpleName
 
@@ -51,11 +51,11 @@ object VehicleLocationProviderUtils : MTLog.Loggable {
             val distanceFromAreaMinMax = distanceToInMeters(agencyArea.minLat, agencyArea.minLng, agencyArea.maxLat, agencyArea.maxLng)
             val nearby = distanceFromAreaInMeters <= distanceFromAreaMinMax.times(MAX_DISTANCE_PCT_ALLOWED)
             if (!nearby) {
-                MTLog.w(LOG_TAG, "Vehicle location IGNORED because it's ${distanceFromAreaInMeters.div(1000)} km away from agency area!")
+                MTLogK.w(LOG_TAG, "Vehicle location IGNORED because it's ${distanceFromAreaInMeters.div(1000)} km away from agency area!")
             }
             return nearby
         } catch (e: Exception) {
-            MTLog.w(LOG_TAG, e, "Error while validating vehicle location is nearby agency area")
+            MTLogK.w(LOG_TAG, "Error while validating vehicle location is nearby agency area", e)
             return null
         }
     }

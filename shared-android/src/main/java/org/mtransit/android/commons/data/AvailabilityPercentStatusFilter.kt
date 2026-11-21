@@ -2,7 +2,7 @@ package org.mtransit.android.commons.data
 
 import org.json.JSONException
 import org.json.JSONObject
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.provider.status.StatusProviderContract
 import org.mtransit.commons.model.Secret
 
@@ -30,7 +30,7 @@ data class AvailabilityPercentStatusFilter(
             try {
                 return jsonString?.let { fromJSON(JSONObject(it)) }
             } catch (jsone: JSONException) {
-                MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '$jsonString'")
+                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$jsonString'", jsone)
                 return null
             }
         }
@@ -45,7 +45,7 @@ data class AvailabilityPercentStatusFilter(
                     targetUUID = getTargetUUIDFromJSON(json),
                 )
             } catch (jsone: JSONException) {
-                MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '$json'")
+                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$json'", jsone)
                 return null
             }
         }
@@ -58,7 +58,7 @@ data class AvailabilityPercentStatusFilter(
                     toJSON(statusFilter, this)
                 }
             } catch (jsone: JSONException) {
-                MTLog.w(LOG_TAG, jsone, "Error while making JSON object '$statusFilter'")
+                MTLogK.w(LOG_TAG, "Error while making JSON object '$statusFilter'", jsone)
                 return null
             }
         }

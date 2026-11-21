@@ -13,7 +13,7 @@ object SecureStringUtils {
                 Base64.encode(it.toByteArray(Charsets.UTF_8), Base64.DEFAULT)
             }?.toString(Charsets.UTF_8)
         } catch (e: Exception) {
-            MTLog.w(LOG_TAG, e, "Error while encoding string!")
+            MTLogK.w(LOG_TAG, "Error while encoding string!", e)
             null
         }
     }
@@ -25,7 +25,7 @@ object SecureStringUtils {
                 Base64.decode(encString, Base64.DEFAULT)
             }?.toString(Charsets.UTF_8)
         } catch (e: Exception) {
-            MTLog.w(LOG_TAG, e, "Error while decoding string!")
+            MTLogK.w(LOG_TAG, "Error while decoding string!", e)
             null
         }
     }

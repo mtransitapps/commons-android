@@ -1,6 +1,6 @@
 package org.mtransit.android.commons
 
-object KeysIds : MTLog.Loggable {
+object KeysIds : MTLogK.Loggable {
 
     private val LOG_TAG: String = KeysIds::class.java.simpleName
 

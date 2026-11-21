@@ -10,12 +10,12 @@ import androidx.core.view.isVisible
 import org.mtransit.android.commons.AppUpdateUtils
 import org.mtransit.android.commons.AppUpdateUtils.canInstallAppUpdate
 import org.mtransit.android.commons.BuildConfig
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.R
 
 class AppUpdateActivity :
     Activity(),
-    MTLog.Loggable {
+    MTLogK.Loggable {
 
     companion object {
         private val LOG_TAG: String = AppUpdateActivity::class.java.simpleName
@@ -78,9 +78,9 @@ class AppUpdateActivity :
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == AppUpdateUtils.RC_APP_UPDATE) {
             if (resultCode == RESULT_OK) {
-                MTLog.i(this, "Update flow success. Result code: $resultCode")
+                MTLogK.i(this, "Update flow success. Result code: $resultCode")
             } else {
-                MTLog.w(this, "Update flow failed! Result code: $resultCode")
+                MTLogK.w(this, "Update flow failed! Result code: $resultCode")
                 if (resultCode == RESULT_CANCELED) {
                     close()
                 }
