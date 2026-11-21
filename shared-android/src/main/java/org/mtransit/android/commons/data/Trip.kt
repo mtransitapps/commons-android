@@ -1,7 +1,7 @@
 package org.mtransit.android.commons.data
 
 import android.database.Cursor
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.getLong
 import org.mtransit.android.commons.getString
 import org.mtransit.android.commons.provider.GTFSProviderContract
@@ -11,7 +11,7 @@ data class Trip(
     val routeId: Long,
     val directionId: Long,
     val serviceId: String,
-) : MTLog.Loggable {
+) : MTLogK.Loggable {
 
     companion object {
         private val LOG_TAG: String = Trip::class.java.simpleName

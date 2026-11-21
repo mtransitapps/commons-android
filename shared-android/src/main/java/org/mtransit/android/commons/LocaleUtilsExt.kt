@@ -39,10 +39,10 @@ fun fixWebViewLocale(context: Context) {
             appDefaultLocale = getDefaultLocale(),
         )
     ) {
-        MTLog.d(LocaleUtils.LOG_TAG, "fixWebViewLocale() > SKIP (OS and app have same primary language)")
+        MTLogK.d(LocaleUtils.LOG_TAG, "fixWebViewLocale() > SKIP (OS and app have same primary language)")
         return
     }
-    MTLog.d(LocaleUtils.LOG_TAG, "fixWebViewLocale() > OS lang '${osLocales.firstLocale}' != app lang '${getDefaultLocale()}' > launching webview...")
+    MTLogK.d(LocaleUtils.LOG_TAG, "fixWebViewLocale() > OS lang '${osLocales.firstLocale}' != app lang '${getDefaultLocale()}' > launching webview...")
     val backgroundExecutor = Executors.newSingleThreadExecutor()
     try {
         WebViewCompat.startUpWebView(
@@ -68,13 +68,13 @@ fun fixWebViewLocale(context: Context) {
                 }
 
                 private fun restoreLocale() {
-                    MTLog.d(LocaleUtils.LOG_TAG, "restoreLocale() > restoring locale from '${Locale.getDefault()}' to '${getDefaultLocale()}'.")
+                    MTLogK.d(LocaleUtils.LOG_TAG, "restoreLocale() > restoring locale from '${Locale.getDefault()}' to '${getDefaultLocale()}'.")
                     Locale.setDefault(getDefaultLocale())
                 }
             }
         )
     } catch (e: Exception) {
-        MTLog.w(LocaleUtils.LOG_TAG, e, "Crash while fixing web view locale!")
+        MTLogK.w(LocaleUtils.LOG_TAG, "Crash while fixing web view locale!", e)
         backgroundExecutor.shutdown()
     }
 }

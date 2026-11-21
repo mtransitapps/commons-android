@@ -6,7 +6,7 @@ import android.provider.BaseColumns
 import androidx.annotation.Discouraged
 import org.json.JSONException
 import org.json.JSONObject
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.DefaultPOI
 import org.mtransit.android.commons.data.Direction
 import org.mtransit.android.commons.data.POI
@@ -109,7 +109,7 @@ interface ServiceUpdateProviderContract : ProviderContract {
         override val poi: POI? = null, // RouteDirectionStop or DefaultPOI
         override val route: Route? = null,
         override val routeDirection: RouteDirection? = null,
-    ) : ProviderContract.Filter(), GTFSRealTimeProviderFilter, MTLog.Loggable {
+    ) : ProviderContract.Filter(), GTFSRealTimeProviderFilter, MTLogK.Loggable {
 
         companion object {
             private val LOG_TAG = ServiceUpdateProviderContract::class.java.getSimpleName() + ">" + Filter::class.java.getSimpleName()
@@ -123,7 +123,7 @@ interface ServiceUpdateProviderContract : ProviderContract {
                 try {
                     return jsonString?.let { fromJSON(JSONObject(it)) }
                 } catch (jsone: JSONException) {
-                    MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '%s'", jsonString)
+                    MTLogK.w(LOG_TAG, "Error while parsing JSON string '$jsonString'", jsone)
                     return null
                 }
             }
@@ -157,7 +157,7 @@ interface ServiceUpdateProviderContract : ProviderContract {
                         (it.poi != null) || (it.route != null) || (it.routeDirection != null)
                     }
                 } catch (jsone: JSONException) {
-                    MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '$json'")
+                    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$json'", jsone)
                     return null
                 }
             }
@@ -182,7 +182,7 @@ interface ServiceUpdateProviderContract : ProviderContract {
                         }
                     }
                 } catch (jsone: JSONException) {
-                    MTLog.w(LOG_TAG, jsone, "Error while making JSON object '$serviceUpdateFilter'")
+                    MTLogK.w(LOG_TAG, "Error while making JSON object '$serviceUpdateFilter'", jsone)
                     return null
                 }
             }

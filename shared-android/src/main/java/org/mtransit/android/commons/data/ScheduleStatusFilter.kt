@@ -2,7 +2,7 @@ package org.mtransit.android.commons.data
 
 import org.json.JSONException
 import org.json.JSONObject
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.optBoolean
 import org.mtransit.android.commons.optInt
@@ -59,7 +59,7 @@ data class ScheduleStatusFilter(
             try {
                 return jsonString?.let { fromJSON(JSONObject(it)) }
             } catch (jsone: JSONException) {
-                MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '$jsonString'")
+                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$jsonString'", jsone)
                 return null
             }
         }
@@ -87,7 +87,7 @@ data class ScheduleStatusFilter(
                     includeCancelledTimestamps = json.optBoolean(JSON_INCLUDE_CANCELLED_TIMESTAMPS, null)
                 )
             } catch (jsone: JSONException) {
-                MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '$json'")
+                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$json'", jsone)
                 return null
             }
         }
@@ -118,7 +118,7 @@ data class ScheduleStatusFilter(
                 }
                 return json
             } catch (jsone: JSONException) {
-                MTLog.w(LOG_TAG, jsone, "Error while making JSON object '$statusFilter'")
+                MTLogK.w(LOG_TAG, "Error while making JSON object '$statusFilter'", jsone)
                 return null
             }
         }

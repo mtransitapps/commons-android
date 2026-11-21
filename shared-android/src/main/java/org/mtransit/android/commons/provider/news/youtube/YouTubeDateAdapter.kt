@@ -6,7 +6,7 @@ import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import com.google.gson.JsonParseException
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.ThreadSafeDateFormatter
 import org.mtransit.commons.CommonsApp
 import java.lang.reflect.Type
@@ -20,7 +20,7 @@ import java.util.Locale
 import java.util.TimeZone
 
 // 2023-07-17T13:34:13+02:00 | yyyy-MM-dd'T'HH:mm:ss:XXX
-class YouTubeDateAdapter : JsonDeserializer<Date?>, MTLog.Loggable {
+class YouTubeDateAdapter : JsonDeserializer<Date?>, MTLogK.Loggable {
     // TODO JsonSerializer to send start_time
 
     override fun getLogTag() = LOG_TAG
@@ -52,23 +52,23 @@ class YouTubeDateAdapter : JsonDeserializer<Date?>, MTLog.Loggable {
             try {
                 return Date.from(Instant.parse(json.asString))
             } catch (e: DateTimeParseException) {
-                MTLog.d(this, e, "Error while parsing ${json.asString} with java.time.Instant!")
+                MTLogK.d(this, "Error while parsing ${json.asString} with java.time.Instant!", e)
             }
             try {
                 return Date.from(Instant.from(DateTimeFormatter.ISO_INSTANT.parse(json.asString)))
             } catch (e: DateTimeParseException) {
-                MTLog.d(this, e, "Error while parsing ${json.asString} with DateTimeFormatter.ISO_INSTANT!")
+                MTLogK.d(this, "Error while parsing ${json.asString} with DateTimeFormatter.ISO_INSTANT!", e)
             }
             try {
                 return Date.from(Instant.from(DateTimeFormatter.ISO_DATE_TIME.parse(json.asString)))
             } catch (e: DateTimeParseException) {
-                MTLog.d(this, e, "Error while parsing ${json.asString} with DateTimeFormatter.ISO_DATE_TIME!")
+                MTLogK.d(this, "Error while parsing ${json.asString} with DateTimeFormatter.ISO_DATE_TIME!", e)
             }
         }
         try {
             return DATE_TIME_FORMATTER.parseThreadSafe(json.asString)
         } catch (e: ParseException) {
-            MTLog.d(this, e, "Error while parsing ${json.asString} with '$DATE_TIME_FORMAT'!")
+            MTLogK.d(this, "Error while parsing ${json.asString} with '$DATE_TIME_FORMAT'!", e)
         }
         throw JsonParseException("DateParseException: $json")
     }

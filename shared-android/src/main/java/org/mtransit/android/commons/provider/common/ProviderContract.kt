@@ -7,15 +7,15 @@ import androidx.annotation.WorkerThread
 import org.json.JSONException
 import org.json.JSONObject
 import org.mtransit.android.commons.JSONUtils
-import org.mtransit.android.commons.MTLog
-import org.mtransit.android.commons.MTLog.Loggable
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.SecureStringUtils.enc
+import org.mtransit.android.commons.TimeUtilsK
 import org.mtransit.android.commons.optBoolean
 import org.mtransit.android.commons.optLong
 import org.mtransit.commons.model.Secret
 import kotlin.time.Duration.Companion.days
 
-interface ProviderContract : Loggable {
+interface ProviderContract : MTLogK.Loggable {
 
     companion object {
         const val PING_PATH: String = "ping"
@@ -93,7 +93,7 @@ interface ProviderContract : Loggable {
 
         fun toStringParts() = buildString {
             cacheOnly?.let { append("cacheOnly:").append(it).append(",") }
-            cacheValidityInMs?.let { append("cacheValidityInMs:").append(MTLog.formatDuration(it)).append(",") }
+            cacheValidityInMs?.let { append("cacheValidityInMs:").append(TimeUtilsK.formatSimpleDuration(it)).append(",") }
             inFocus?.let { append("inFocus:").append(it).append(",") }
             providedEncryptKeysMap?.let { append("providedEncryptKeysMap:").append(it.data.size).append(",") } // no not print keys
         }

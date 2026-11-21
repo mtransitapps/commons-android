@@ -9,7 +9,7 @@ import androidx.collection.ArrayMap
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.data.POI
@@ -140,7 +140,7 @@ interface NewsProviderContract : ProviderContract {
         private val articlesUUIDs: List<String>? = null,
         private val targetsUUIDs: List<String>? = null,
         private val minCreatedAtInMs: Long? = null,
-    ) : ProviderContract.Filter(), MTLog.Loggable {
+    ) : ProviderContract.Filter(), MTLogK.Loggable {
 
         companion object {
             private val LOG_TAG = NewsProviderContract::class.java.getSimpleName() + ">" + Filter::class.java.getSimpleName()
@@ -176,7 +176,7 @@ interface NewsProviderContract : ProviderContract {
                 try {
                     return jsonString?.let { fromJSON(JSONObject(it)) }
                 } catch (jsone: JSONException) {
-                    MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '%s'", jsonString)
+                    MTLogK.w(LOG_TAG, "Error while parsing JSON string '$jsonString'", jsone)
                     return null
                 }
             }
@@ -210,7 +210,7 @@ interface NewsProviderContract : ProviderContract {
                         minCreatedAtInMs = json.takeIf { it.has(JSON_MIN_CREATED_AT_IN_MS) }?.getLong(JSON_MIN_CREATED_AT_IN_MS)
                     )
                 } catch (jsone: JSONException) {
-                    MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '$json'")
+                    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$json'", jsone)
                     return null
                 }
             }
@@ -239,7 +239,7 @@ interface NewsProviderContract : ProviderContract {
                         }
                     }
                 } catch (jsone: JSONException) {
-                    MTLog.w(LOG_TAG, jsone, "Error while making JSON object '$newsFilter'")
+                    MTLogK.w(LOG_TAG, "Error while making JSON object '$newsFilter'", jsone)
                     return null
                 }
             }

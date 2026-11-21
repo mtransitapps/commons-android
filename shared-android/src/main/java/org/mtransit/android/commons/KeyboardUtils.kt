@@ -6,7 +6,7 @@ import android.view.inputmethod.InputMethodManager
 import androidx.core.content.getSystemService
 
 @Suppress("unused")
-class KeyboardUtils : MTLog.Loggable {
+class KeyboardUtils : MTLogK.Loggable {
 
     override fun getLogTag() = LOG_TAG
 

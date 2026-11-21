@@ -38,7 +38,7 @@ object NetworkUtils {
 
     @JvmStatic
     fun getHttpLoggingInterceptor() =
-        HttpLoggingInterceptor(logger = { MTLog.d(HTTP_LOG_TAG, it) }).apply {
+        HttpLoggingInterceptor(logger = { MTLogK.d(HTTP_LOG_TAG, it) }).apply {
             level = if (BuildConfig.DEBUG) {
                 HttpLoggingInterceptor.Level.BASIC
                 // HttpLoggingInterceptor.Level.HEADERS

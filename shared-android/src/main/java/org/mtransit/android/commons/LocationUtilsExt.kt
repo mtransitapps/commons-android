@@ -26,7 +26,7 @@ fun <POI : LocationPOI> MutableList<POI>.removeTooMuchWhenNotInCoverage(minCover
         sortWithAnd(LocationPOI.DISTANCE_COMPARATOR)
         keepFirst(maxSize) { minCoverageInMeters < it.distance }
     } catch (iae: IllegalArgumentException) { // FIXME POI list not immutable (distance can be updated from another thread)
-        MTLog.w(this, iae, "Error while looking for closest POIs")
+        MTLogK.w(this, "Error while looking for closest POIs", iae)
         this
     }
 }
@@ -70,7 +70,7 @@ fun <POI : LocationPOI> Iterable<POI>.findClosestPOIIdxUuids() = buildList<Pair<
                 }
             }
     } catch (iae: IllegalArgumentException) { // FIXME POI list not immutable (distance can be updated from another thread)
-        MTLog.w(this, iae, "Error while looking for closest POIs")
+        MTLogK.w(this, "Error while looking for closest POIs", iae)
     }
 }
 

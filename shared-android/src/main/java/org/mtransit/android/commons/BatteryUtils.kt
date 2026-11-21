@@ -8,7 +8,7 @@ import android.os.Build
 import android.os.PowerManager
 import androidx.core.content.getSystemService
 
-object BatteryUtils : MTLog.Loggable {
+object BatteryUtils : MTLogK.Loggable {
 
     private val LOG_TAG: String = BatteryUtils::class.java.simpleName
 
@@ -54,7 +54,7 @@ object BatteryUtils : MTLog.Loggable {
             }
             // ELSE -> bad state > save battery
         } catch (e: Exception) {
-            MTLog.w(this, e, "Error while checking battery status!")
+            MTLogK.w(this, "Error while checking battery status!", e)
         }
         return false
     }

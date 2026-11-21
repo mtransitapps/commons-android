@@ -3,9 +3,9 @@ package org.mtransit.android.commons.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 
-class GenericReceiver : BroadcastReceiver(), MTLog.Loggable {
+class GenericReceiver : BroadcastReceiver(), MTLogK.Loggable {
 
     companion object {
         private val LOG_TAG: String = GenericReceiver::class.java.simpleName

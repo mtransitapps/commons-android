@@ -1,6 +1,6 @@
 package org.mtransit.android.commons.provider.gtfs
 
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopIdNotEmpty
@@ -24,7 +24,7 @@ fun GTUStopTimeUpdate.isSameStop(
     val gStuStopId = this.optStopIdNotEmpty
     val gStuStopSeq = this.optStopSequence
     if (gStuStopId == null && gStuStopSeq == null) {
-        MTLog.d(LOG_TAG, "isSameStop() > false (nothing to match on in ${this.toStringExt(short = true)})")
+        MTLogK.d(LOG_TAG, "isSameStop() > false (nothing to match on in ${this.toStringExt(short = true)})")
         return false // nothing to match on
     }
     return (gStuStopSeq == null || gStuStopSeq == stopSequence) // unspecified OR same stop sequence
@@ -42,7 +42,7 @@ fun GTUStopTimeUpdate.match(
     val gStuStopId = optStopIdNotEmpty
     val gStuStopSeq = optStopSequence
     if (gStuStopId == null && gStuStopSeq == null) {
-        MTLog.d(LOG_TAG, "match() > false (nothing to match on in ${this.toStringExt(short = true)})")
+        MTLogK.d(LOG_TAG, "match() > false (nothing to match on in ${this.toStringExt(short = true)})")
         return false // nothing to match on
     }
     val gStuStopIdHash = gStuStopId?.let { parseStopId(gStuStopId) }

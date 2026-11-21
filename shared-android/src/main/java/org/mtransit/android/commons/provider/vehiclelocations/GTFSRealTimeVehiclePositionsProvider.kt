@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.annotation.VisibleForTesting
 import com.google.transit.realtime.headerOrNull
 import org.mtransit.android.commons.Constants
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.SecurityUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
@@ -55,7 +55,7 @@ import com.google.transit.realtime.GtfsRealtime.FeedMessage as GFeedMessage
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
 import com.google.transit.realtime.GtfsRealtime.VehiclePosition as GVehiclePosition
 
-object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
+object GTFSRealTimeVehiclePositionsProvider : MTLogK.Loggable {
 
     internal val LOG_TAG: String = GTFSRealTimeVehiclePositionsProvider::class.java.simpleName
 
@@ -206,16 +206,16 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                                 it + VEHICLE_POSITIONS_MAX_AGE_MS < newLastUpdateInMs
                             } == true
                             if (outdated) {
-                                MTLog.w(LOG_TAG, "loadAgencyDataFromWWW() > IGNORE cached feed (too old: ${feedTimestampMs.toDateTimeLog()})")
+                                MTLogK.w(LOG_TAG, "loadAgencyDataFromWWW() > IGNORE cached feed (too old: ${feedTimestampMs.toDateTimeLog()})")
                             }
                             val gVehiclePositions = gFeedMessage.takeIf { !outdated }?.entityList?.toVehicles() ?: emptyList()
                             if (Constants.DEBUG) {
-                                MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > GTFS vehicles[${gVehiclePositions.size}]: ")
+                                MTLogK.d(LOG_TAG, "loadAgencyDataFromWWW() > GTFS vehicles[${gVehiclePositions.size}]: ")
                             }
                             val ignoreDirection = ignoreDirection
                             for (gVehiclePosition in gVehiclePositions.sortVehicles()) {
                                 if (Constants.DEBUG) {
-                                    MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > GTFS - ${gVehiclePosition.toStringExt()}.")
+                                    MTLogK.d(LOG_TAG, "loadAgencyDataFromWWW() > GTFS - ${gVehiclePosition.toStringExt()}.")
                                 }
                                 processVehiclePositions(context, newLastUpdateInMs, gVehiclePosition, ignoreDirection)
                                     ?.takeIf { it.isNotEmpty() }
@@ -224,12 +224,12 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                                     }
                             }
                         } catch (e: Exception) {
-                            MTLog.w(LOG_TAG, e, "loadAgencyDataFromWWW() > error while parsing GTFS Real Time data!")
+                            MTLogK.w(LOG_TAG, "loadAgencyDataFromWWW() > error while parsing GTFS Real Time data!", e)
                         }
-                        MTLog.i(LOG_TAG, "Found %d vehicle locations.", vehicleLocations.size)
+                        MTLogK.i(LOG_TAG, "Found ${vehicleLocations.size} vehicle locations.")
                         if (Constants.DEBUG) {
                             for (vehicleLocation in vehicleLocations) {
-                                MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > - new ${vehicleLocation.toStringShort()}.")
+                                MTLogK.d(LOG_TAG, "loadAgencyDataFromWWW() > - new ${vehicleLocation.toStringShort()}.")
                             }
                         }
                         setTripIdsOutOfSync(vehicleLocations)
@@ -237,43 +237,43 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                     }
 
                     else -> {
-                        MTLog.w(LOG_TAG, "ERROR: HTTP URL-Connection Response Code ${response.code} (Message: ${response.message})")
+                        MTLogK.w(LOG_TAG, "ERROR: HTTP URL-Connection Response Code ${response.code} (Message: ${response.message})")
                         return null
                     }
                 }
             }
         } catch (sslhe: SSLHandshakeException) {
-            MTLog.w(LOG_TAG, sslhe, "SSL error!")
+            MTLogK.w(LOG_TAG, "SSL error!", sslhe)
             SecurityUtils.logCertPathValidatorException(sslhe)
             storage.saveVehicleLocationLastUpdateCode(567) // SSL certificate not trusted (on this device)
             storage.saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
             return null
         } catch (iioe: InterruptedIOException) {
-            MTLog.w(LOG_TAG, iioe, "Connection timeout!")
+            MTLogK.w(LOG_TAG, "Connection timeout!", iioe)
             storage.saveVehicleLocationLastUpdateCode(567)
             storage.saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
             return null
         } catch (uhe: UnknownHostException) {
-            if (MTLog.isLoggable(android.util.Log.DEBUG)) {
-                MTLog.w(LOG_TAG, uhe, "No Internet Connection!")
+            if (MTLogK.isLoggable(android.util.Log.DEBUG)) {
+                MTLogK.w(LOG_TAG, "No Internet Connection!", uhe)
             } else {
-                MTLog.w(LOG_TAG, "No Internet Connection!")
+                MTLogK.w(LOG_TAG, "No Internet Connection!")
             }
             storage.saveVehicleLocationLastUpdateCode(567)
             storage.saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
             return null
         } catch (se: SocketException) {
-            MTLog.w(LOG_TAG, se, "No Internet Connection!")
+            MTLogK.w(LOG_TAG, "No Internet Connection!", se)
             storage.saveVehicleLocationLastUpdateCode(567)
             storage.saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
             return null
         } catch (ioe: IOException) {
-            MTLog.w(LOG_TAG, ioe, "I/O error!")
+            MTLogK.w(LOG_TAG, "I/O error!", ioe)
             storage.saveVehicleLocationLastUpdateCode(567)
             storage.saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
             return null
         } catch (e: Exception) { // Unknown error
-            MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception")
+            MTLogK.e(LOG_TAG, "INTERNAL ERROR: Unknown Exception", e)
             return null
         }
     }
@@ -283,7 +283,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
             getOneTripId = { vehicleLocations.firstOrNull { it.targetTripId != null }?.targetTripId },
             saveTripIdsOutOfSync = { tripIdsOutOfSync ->
                 if (tripIdsOutOfSync) {
-                    MTLog.w(LOG_TAG, "Trip IDs out of sync!")
+                    MTLogK.w(LOG_TAG, "Trip IDs out of sync!")
                 }
                 storage.saveVehicleLocationTripIdsOutOfSync(tripIdsOutOfSync)
                 _tripIdsOutOfSync = tripIdsOutOfSync
@@ -301,7 +301,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
         val vehicleLng = gVehiclePosition.optPosition?.optLongitude ?: return null
         gVehiclePosition.optTimestampMs?.let { vpTimestamp ->
             if (vpTimestamp + VEHICLE_POSITIONS_MAX_AGE_MS < lastUpdateInMs) {
-                MTLog.d(LOG_TAG, "processVehiclePositions() > IGNORE ${(lastUpdateInMs - vpTimestamp).toDurationLog()} old: ${gVehiclePosition.toStringExt()}")
+                MTLogK.d(LOG_TAG, "processVehiclePositions() > IGNORE ${(lastUpdateInMs - vpTimestamp).toDurationLog()} old: ${gVehiclePosition.toStringExt()}")
                 return null
             }
         }
@@ -330,10 +330,10 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
     internal fun GTFSRealTimeProvider.parseProviderTargetUUID(gVehiclePosition: GVehiclePosition, ignoreDirection: Boolean): String? {
         val gTripDescriptor = gVehiclePosition.optTrip ?: return null
         if (gTripDescriptor.hasModifiedTrip()) {
-            MTLog.d(LOG_TAG, "parseTargetUUID() > unhandled modified trip: ${gTripDescriptor.toStringExt()}")
+            MTLogK.d(LOG_TAG, "parseTargetUUID() > unhandled modified trip: ${gTripDescriptor.toStringExt()}")
         }
         if (gTripDescriptor.hasStartTime() || gTripDescriptor.hasStartDate()) {
-            MTLog.d(LOG_TAG, "parseTargetUUID() > unhandled start date & time: ${gTripDescriptor.toStringExt()}")
+            MTLogK.d(LOG_TAG, "parseTargetUUID() > unhandled start date & time: ${gTripDescriptor.toStringExt()}")
         }
         @Suppress("DEPRECATION")
         when (gTripDescriptor.scheduleRelationship) {
@@ -346,7 +346,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
             GTDScheduleRelationship.DUPLICATED,
             GTDScheduleRelationship.DELETED,
             GTDScheduleRelationship.NEW,
-                -> MTLog.d(LOG_TAG, "parseTargetUUID() > unhandled schedule relationship: ${gTripDescriptor.scheduleRelationship}")
+                -> MTLogK.d(LOG_TAG, "parseTargetUUID() > unhandled schedule relationship: ${gTripDescriptor.scheduleRelationship}")
         }
         parseRouteId(gTripDescriptor)?.let { routeId ->
             @Suppress("SimplifyBooleanWithConstants")

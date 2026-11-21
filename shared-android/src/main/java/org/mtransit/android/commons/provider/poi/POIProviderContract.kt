@@ -11,7 +11,7 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import org.mtransit.android.commons.LocationUtils
-import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.optDouble
 import org.mtransit.android.commons.provider.common.ContentProviderConstants
@@ -118,7 +118,7 @@ interface POIProviderContract : ProviderContract {
         private val extras: SimpleArrayMap<String, Any> = SimpleArrayMap(),
         private val sqlSelection: String? = null,
         val searchKeywords: List<String>? = null,
-    ) : ProviderContract.Filter(), MTLog.Loggable {
+    ) : ProviderContract.Filter(), MTLogK.Loggable {
 
         companion object {
             private val LOG_TAG = POIProviderContract::class.java.getSimpleName() + ">" + Filter::class.java.getSimpleName()
@@ -274,7 +274,7 @@ interface POIProviderContract : ProviderContract {
                 try {
                     return jsonString?.let { fromJSON(JSONObject(it)) }
                 } catch (jsone: JSONException) {
-                    MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '$jsonString'")
+                    MTLogK.w(LOG_TAG, "Error while parsing JSON string '$jsonString'", jsone)
                     return null
                 }
             }
@@ -368,7 +368,7 @@ interface POIProviderContract : ProviderContract {
                             || (it.sqlSelection != null)
                     }
                 } catch (jsone: JSONException) {
-                    MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '$json'")
+                    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$json'", jsone)
                     return null
                 }
             }
@@ -434,7 +434,7 @@ interface POIProviderContract : ProviderContract {
                     } else if (isSQLSelection(poiFilter)) {
                         json.put(JSON_SQL_SELECTION, poiFilter.sqlSelection)
                     } else {
-                        MTLog.w(LOG_TAG, "Empty POI filter '$poiFilter' converted to JSON!")
+                        MTLogK.w(LOG_TAG, "Empty POI filter '$poiFilter' converted to JSON!")
                     }
                     val jExtras = JSONArray()
                     toJSON(poiFilter, json)
@@ -447,7 +447,7 @@ interface POIProviderContract : ProviderContract {
                     json.put(JSON_EXTRAS, jExtras)
                     return json
                 } catch (jsone: JSONException) {
-                    MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '$poiFilter'")
+                    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$poiFilter'", jsone)
                     return null
                 }
             }
