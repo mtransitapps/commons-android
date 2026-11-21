@@ -178,7 +178,7 @@ interface ServiceUpdateProviderContract : ProviderContract {
                         authority?.let { put(JSON_AUTHORITY, it) }
                     }
                 } catch (se: SerializationException) {
-                    MTLogK.w(LOG_TAG, "Error while making JSON object '$this'", se)
+                    MTLogK.w(this, "Error while making JSON object '$this'", se)
                     throw se
                 }
         }

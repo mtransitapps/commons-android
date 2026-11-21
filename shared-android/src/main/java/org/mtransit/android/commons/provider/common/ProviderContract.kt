@@ -20,7 +20,7 @@ import org.mtransit.android.commons.toDurationLog
 import org.mtransit.commons.model.Secret
 import kotlin.time.Duration.Companion.days
 
-interface ProviderContract : Loggable {
+interface ProviderContract : MTLogK.Loggable {
 
     companion object {
         const val PING_PATH: String = "ping"
