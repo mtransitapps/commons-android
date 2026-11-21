@@ -11,10 +11,11 @@ import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
 
 import java.lang.annotation.Retention;
+
+import kotlinx.serialization.json.JsonObject;
 
 public interface POI extends Targetable, MTLog.Loggable {
 
@@ -89,11 +90,8 @@ public interface POI extends Targetable, MTLog.Loggable {
 
 	void setScore(@Nullable Integer score);
 
-	@Nullable
-	JSONObject toJSON();
-
-	@Nullable
-	POI fromJSON(@NonNull JSONObject json);
+	@NonNull
+	JsonObject toJson();
 
 	@NonNull
 	ContentValues toContentValues();
@@ -117,7 +115,7 @@ public interface POI extends Targetable, MTLog.Loggable {
 
 		@NonNull
 		public static String makeUUID(@NonNull String authority, @NonNull Object... poiUIDs) {
-			StringBuilder sb = new StringBuilder(authority);
+			final StringBuilder sb = new StringBuilder(authority);
 			for (Object poiUID : poiUIDs) {
 				sb.append(UID_SEPARATOR).append(poiUID);
 			}
@@ -126,10 +124,8 @@ public interface POI extends Targetable, MTLog.Loggable {
 
 		@Nullable
 		public static String extractAuthorityFromUUID(@Nullable String uuid) {
-			if (TextUtils.isEmpty(uuid)) {
-				return null;
-			}
-			String[] split = uuid.split(UID_SEPARATOR);
+			if (TextUtils.isEmpty(uuid)) return null;
+			final String[] split = uuid.split(UID_SEPARATOR);
 			if (split.length < 1) {
 				return null;
 			}

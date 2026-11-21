@@ -34,7 +34,7 @@ import com.google.transit.realtime.GtfsRealtime.TripUpdate.TripProperties as GTU
 import com.google.transit.realtime.GtfsRealtime.VehicleDescriptor as GVehicleDescriptor
 import com.google.transit.realtime.GtfsRealtime.VehiclePosition as GVehiclePosition
 
-@Suppress("MemberVisibilityCanBePrivate", "unused", "UnreachableCode")
+@Suppress("MemberVisibilityCanBePrivate", "unused")
 object GtfsRealtimeExt {
 
     private const val MAX_LIST_ITEMS = 5
@@ -230,7 +230,7 @@ object GtfsRealtimeExt {
     val GTripUpdate.optTrip get() = if (hasTrip()) trip else null
     val GTripUpdate.optVehicle get() = if (hasVehicle()) vehicle else null
     fun GTripUpdate.hasStopTimeUpdateList() = stopTimeUpdateList.isNotEmpty()
-    val GTripUpdate.optStopTimeUpdateList get() = if (hasStopTimeUpdateList()) stopTimeUpdateList else null
+    val GTripUpdate.optStopTimeUpdateList: List<GTUStopTimeUpdate>? get() = if (hasStopTimeUpdateList()) stopTimeUpdateList else null
     val GTripUpdate.optTimestamp get() = if (hasTimestamp()) timestamp else null
     val GTripUpdate.optTimestampMs get() = optTimestamp?.secToMs()
     val GTripUpdate.optDelay get() = if (hasDelay()) delay else null

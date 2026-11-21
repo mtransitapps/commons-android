@@ -9,8 +9,6 @@ import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
@@ -24,7 +22,7 @@ import java.util.Objects;
 @SuppressWarnings("WeakerAccess")
 public class Direction implements Targetable {
 
-	private static final String LOG_TAG = Direction.class.getSimpleName();
+	protected static final String LOG_TAG = Direction.class.getSimpleName();
 
 	public static final DirectionHeadSignComparator HEAD_SIGN_COMPARATOR = new DirectionHeadSignComparator();
 
@@ -86,40 +84,6 @@ public class Direction implements Targetable {
 				", routeId=" + routeId +
 				", heading='" + heading + '\'' +
 				'}';
-	}
-
-	private static final String JSON_ID = "id";
-	private static final String JSON_HEADSIGN_TYPE = "headsignType";
-	private static final String JSON_HEADSIGN_VALUE = "headsignValue";
-	private static final String JSON_ROUTE_ID = "routeId";
-
-	@Nullable
-	public static JSONObject toJSON(@NonNull Direction direction) {
-		try {
-			return new JSONObject() //
-					.put(JSON_ID, direction.getId()) //
-					.put(JSON_HEADSIGN_TYPE, direction.getHeadsignType()) //
-					.put(JSON_HEADSIGN_VALUE, direction.getHeadsignValue()) //
-					.put(JSON_ROUTE_ID, direction.getRouteId());
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while converting to JSON (%s)!", direction);
-			return null;
-		}
-	}
-
-	@NonNull
-	public static Direction fromJSON(@NonNull JSONObject jDirection, @NonNull String authority) throws JSONException {
-		try {
-			return new Direction(
-					authority,
-					jDirection.getLong(JSON_ID),
-					jDirection.getInt(JSON_HEADSIGN_TYPE),
-					jDirection.getString(JSON_HEADSIGN_VALUE),
-					jDirection.getInt(JSON_ROUTE_ID));
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jDirection);
-			throw jsone;
-		}
 	}
 
 	@SuppressWarnings("unused")

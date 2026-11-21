@@ -2,24 +2,23 @@ package org.mtransit.android.commons.provider
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.SharedPreferences
-import android.content.UriMatcher
-import android.database.sqlite.SQLiteDatabase
 import android.net.Uri
 import androidx.annotation.IntegerRes
 import androidx.annotation.StringRes
 import androidx.core.content.ContentProviderCompat
-import androidx.core.content.edit
 import androidx.core.text.toHtml
 import androidx.core.text.toSpanned
 import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
 import org.mtransit.android.commons.ColorUtils
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.HtmlUtils
+import org.mtransit.android.commons.KeysIds
 import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.NetworkUtils
-import org.mtransit.android.commons.PreferenceUtils
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.StringUtils
@@ -30,8 +29,13 @@ import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JEdgeOwnerToTimelineMediaNode
 import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JProfileUser
 import org.mtransit.android.commons.provider.agency.AgencyUtils
-import org.mtransit.android.commons.provider.news.NewsProvider
+import org.mtransit.android.commons.provider.common.ProviderConfig
+import org.mtransit.android.commons.provider.common.sharedJson
+import org.mtransit.android.commons.provider.news.ConfigurableNewsProvider
 import org.mtransit.android.commons.provider.news.NewsProviderContract
+import org.mtransit.android.commons.provider.news.instagram.InstagramNewsConfig
+import org.mtransit.android.commons.provider.news.instagram.InstagramNewsDbHelper
+import org.mtransit.android.commons.provider.news.instagram.InstagramStorage
 import retrofit2.Call
 import retrofit2.create
 import retrofit2.http.GET
@@ -42,20 +46,10 @@ import java.util.concurrent.TimeUnit
 
 // DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressLint("Registered")
-class InstagramNewsProvider : NewsProvider() {
+class InstagramNewsProvider : ConfigurableNewsProvider() {
 
     companion object {
         private val LOG_TAG: String = InstagramNewsProvider::class.java.simpleName
-
-        /**
-         * Override if multiple [InstagramNewsProvider] implementations in same app.
-         */
-        private const val PREF_KEY_AGENCY_LAST_UPDATE_MS = InstagramNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_MS
-
-        /**
-         * Override if multiple [InstagramNewsProvider] implementations in same app.
-         */
-        private const val PREF_KEY_AGENCY_LAST_UPDATE_LANG = InstagramNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_LANG
 
         private const val MENTION_AND_SCREEN_NAME = "@%s"
 
@@ -74,75 +68,71 @@ class InstagramNewsProvider : NewsProvider() {
         }
     }
 
-    private val _uriMatcher: UriMatcher by lazy {
-        getNewUriMatcher(_authority)
-    }
-
     private val _authority: String by lazy {
-        ContentProviderCompat.requireContext(this).getString(
-            R.string.instagram_authority
-        )
+        importedProviderConfig?.authority
+            ?: ContentProviderCompat.requireContext(this).getString(R.string.instagram_authority)
     }
 
     private val _authorityUri: Uri by lazy {
         UriUtils.newContentUri(_authority)
     }
 
-    private val _color: String by lazy {
-        ContentProviderCompat.requireContext(this).getString(
-            R.string.instagram_color
-        )
+    private val color: String by lazy {
+        if (importedProviderConfig != null) return@lazy importedInstagramConfig?.color.orEmpty()
+        ContentProviderCompat.requireContext(this).getString(R.string.instagram_color)
     }
 
-    private val _userNames: List<String> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.instagram_user_names
-        ).toList()
+    private val userNames: List<String> by lazy {
+        importedInstagramConfig?.userNames
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.instagram_user_names).toList()
     }
 
-    private val _userNamesLang: List<String> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.instagram_user_names_lang
-        ).toList()
+    private val userNamesLang: List<String> by lazy {
+        importedInstagramConfig?.userNamesLang
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.instagram_user_names_lang).toList()
     }
 
-    private val _userNamesColors: List<String> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.instagram_user_names_colors
-        ).toList()
+    private val userNamesColors: List<String> by lazy {
+        importedInstagramConfig?.userNamesColors
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.instagram_user_names_colors).toList()
     }
 
-    private val _targetAuthority: String by lazy {
-        ContentProviderCompat.requireContext(this).getString(
-            R.string.instagram_target_for_poi_authority
-        )
+    private val targetAuthority: String by lazy {
+        importedProviderConfig?.targetAuthority
+            ?: ContentProviderCompat.requireContext(this).getString(R.string.instagram_target_for_poi_authority)
     }
 
-    private val _userNamesTarget: List<String> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.instagram_user_names_target
-        ).toList()
+    private val userNamesTarget: List<String> by lazy {
+        importedInstagramConfig?.userNamesTarget
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.instagram_user_names_target).toList()
     }
 
-    private val _userNamesSeverity: List<Int> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getIntArray(
-            R.array.instagram_user_names_severity
-        ).toList()
+    private val userNamesSeverity: List<Int> by lazy {
+        importedInstagramConfig?.userNamesSeverity
+            ?: ContentProviderCompat.requireContext(this).resources.getIntArray(R.array.instagram_user_names_severity).toList()
     }
 
     @get:IntegerRes
-    private val _userNamesSeverityDefaultResId: Int get() = R.integer.news_provider_severity_info_agency
+    private val userNamesSeverityDefaultResId: Int get() = R.integer.news_provider_severity_info_agency
 
-    private val _userNamesNoteworthy: List<Long> by lazy {
-        ContentProviderCompat.requireContext(this).resources.getStringArray(
-            R.array.instagram_user_names_noteworthy
-        ).toList().map { it.toLong() }
+    private val userNamesNoteworthy: List<Long> by lazy {
+        importedInstagramConfig?.userNamesNoteworthy
+            ?: ContentProviderCompat.requireContext(this).resources.getStringArray(R.array.instagram_user_names_noteworthy).toList().map { it.toLong() }
+    }
+
+    // legacy credentials (not used by current API client): exported encoded only
+    private val consumerKey: String by lazy {
+        ContentProviderCompat.requireContext(this).getString(R.string.instagram_consumer_key)
+    }
+
+    private val consumerSecret: String by lazy {
+        ContentProviderCompat.requireContext(this).getString(R.string.instagram_consumer_secret)
     }
 
     @get:StringRes
-    private val _userNamesNoteworthyDefaultResId: Int get() = R.string.news_provider_noteworthy_info
+    private val userNamesNoteworthyDefaultResId: Int get() = R.string.news_provider_noteworthy_info
 
-    private val _languages: List<String> by lazy {
+    private val languages: List<String> by lazy {
         listOf<String>(
             if (LocaleUtils.isFR()) Locale.FRENCH.language else Locale.ENGLISH.language,
             LocaleUtils.UNKNOWN
@@ -151,47 +141,53 @@ class InstagramNewsProvider : NewsProvider() {
 
     override fun getLogTag() = LOG_TAG
 
-    override val URI_MATCHER: UriMatcher get() = _uriMatcher
+    @Volatile
+    private var importedInstagramConfig: InstagramNewsConfig? = null
 
-    private var _dbHelper: InstagramNewsDbHelper? = null
-    private var _currentDbVersion: Int = -1
-
-    private fun getDBHelper(context: Context): InstagramNewsDbHelper {
-        when (val currentDbHelper: InstagramNewsDbHelper? = _dbHelper) {
-            null -> { // initialize
-                val newDbHelper = getNewDbHelper(context)
-                _dbHelper = newDbHelper
-                _currentDbVersion = currentDbVersion
-                return newDbHelper
-            }
-
-            else -> {
-                return try {
-                    if (_currentDbVersion == currentDbVersion) {
-                        _dbHelper?.close()
-                        _dbHelper = null
-                        getDBHelper(context)
-                    } else {
-                        currentDbHelper
-                    }
-                } catch (e: Exception) { // fail if locked, will try again later
-                    MTLogK.w(this, "Can't check DB version!", e)
-                    currentDbHelper
-                }
-            }
-        }
+    override fun configureNewsConfig(config: ProviderConfig) {
+        require(config.type == ProviderConfig.TYPE_NEWS_INSTAGRAM) { "Unsupported Instagram config type" }
+        importedInstagramConfig = sharedJson.decodeFromJsonElement<InstagramNewsConfig>(config.params)
     }
 
-    /**
-     * Override if multiple [InstagramNewsDbHelper] implementations in same app.
-     */
-    override fun getCurrentDbVersion() = _currentDbVersion
+    override fun getProviderConfig(): ProviderConfig {
+        importedProviderConfig?.let { return it }
+        val context = requireContextCompat()
+        return ProviderConfig.create(
+            type = ProviderConfig.TYPE_NEWS_INSTAGRAM,
+            authority = _authority,
+            targetAuthority = targetAuthority.takeIf { it.isNotBlank() } ?: AgencyUtils.getAgencyAuthority(context).orEmpty(),
+            params = sharedJson.encodeToJsonElement(
+                InstagramNewsConfig(
+                    color = color.takeIf { it.isNotBlank() } ?: AgencyUtils.getAgencyColor(context),
+                    userNames = userNames,
+                    userNamesLang = userNamesLang,
+                    userNamesColors = userNamesColors,
+                    userNamesTarget = userNamesTarget,
+                    userNamesSeverity = userNamesSeverity,
+                    userNamesNoteworthy = userNamesNoteworthy,
+                    defaultSeverity = context.resources.getInteger(userNamesSeverityDefaultResId),
+                    defaultNoteworthy = context.getString(userNamesNoteworthyDefaultResId).toLong(),
+                )
+            ).jsonObject,
+            secrets = mapOf(
+                KeysIds.INSTAGRAM_CONSUMER_KEY to consumerKey,
+                KeysIds.INSTAGRAM_CONSUMER_SECRET to consumerSecret,
+            ),
+        )
+    }
 
-    override fun getNewDbHelper(context: Context) =
-        InstagramNewsDbHelper(context.applicationContext, getStorage(context))
+    override fun closeConfiguredRuntime() {
+        super.closeConfiguredRuntime()
+        storage = null
+    }
 
-    // override
-    fun getDBHelper() = getDBHelper(ContentProviderCompat.requireContext(this))
+    override fun getCurrentDbVersion() = InstagramNewsDbHelper.getDbVersion(requireContextCompat())
+
+    override fun getNewDbHelper(context: Context) = InstagramNewsDbHelper(
+        context.applicationContext,
+        getStorage(context),
+        dbNamePrefix = importedProviderConfig?.authorityStoragePrefix,
+    )
 
     override fun purgeUselessCachedNews(): Boolean {
         return purgeUselessCachedNews(this)
@@ -233,15 +229,18 @@ class InstagramNewsProvider : NewsProvider() {
     }
 
     @Volatile
-    private var _storage: SharedPreferences? = null
+    private var storage: InstagramStorage? = null
 
-    private fun getStorage(context: Context) = _storage ?: synchronized(this) {
-        _storage ?: PreferenceUtils.getPrefLcl(context.applicationContext).also { _storage = it }
+    private fun getStorage(context: Context) = storage ?: synchronized(this) {
+        storage ?: InstagramStorage(
+            context.applicationContext,
+            prefix = importedProviderConfig?.authorityStoragePrefix,
+        ).also { storage = it }
     }
 
     private fun updateAgencyNewsDataIfRequired(context: Context, inFocus: Boolean) {
-        val lastUpdateInMs = getStorage(context).getLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L)
-        val lastUpdateLang = getStorage(context).getString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, EMPTY)
+        val lastUpdateInMs = getStorage(context).getLastUpdateMs(0L)
+        val lastUpdateLang = getStorage(context).getLastUpdateLang(EMPTY)
         val minUpdateMs = newsMaxValidityInMs.coerceAtMost(getNewsValidityInMs(inFocus))
         val nowInMs = TimeUtils.currentTimeMillis()
         if (lastUpdateInMs + minUpdateMs > nowInMs && LocaleUtils.getDefaultLanguage() == lastUpdateLang) {
@@ -256,8 +255,8 @@ class InstagramNewsProvider : NewsProvider() {
         lastLastUpdateInMs: Long,
         inFocus: Boolean
     ) {
-        val lastUpdateInMs = getStorage(context).getLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L)
-        val lastUpdateLang = getStorage(context).getString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, EMPTY)
+        val lastUpdateInMs = getStorage(context).getLastUpdateMs(0L)
+        val lastUpdateLang = getStorage(context).getLastUpdateLang(EMPTY)
         if (lastUpdateInMs > lastLastUpdateInMs // IF new more recent last update DO
             && LocaleUtils.getDefaultLanguage() == lastUpdateLang
         ) {
@@ -291,10 +290,7 @@ class InstagramNewsProvider : NewsProvider() {
                 deleteAllAgencyNewsData()
             }
             cacheNews(newNews)
-            getStorage(context).edit {
-                putLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs)
-                putString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, LocaleUtils.getDefaultLanguage())
-            }
+            getStorage(context).saveLastUpdate(nowInMs, LocaleUtils.getDefaultLanguage())
         } // else keep whatever we have until max validity reached
     }
 
@@ -308,7 +304,7 @@ class InstagramNewsProvider : NewsProvider() {
             val newNews = ArrayList<News>()
             val maxValidityInMs = newsMaxValidityInMs
             val authority = _authority
-            for ((i, userName) in _userNames.withIndex()) {
+            for ((i, userName) in userNames.withIndex()) {
                 loadUserTimeline(
                     context,
                     getInstagramApi(context),
@@ -339,7 +335,7 @@ class InstagramNewsProvider : NewsProvider() {
         i: Int,
         username: String
     ) {
-        val userLang = _userNamesLang.getOrNull(i) ?: LocaleUtils.UNKNOWN
+        val userLang = userNamesLang.getOrNull(i) ?: LocaleUtils.UNKNOWN
         if (LocaleUtils.MULTIPLE != userLang
             && LocaleUtils.UNKNOWN != userLang
             && LocaleUtils.getDefaultLanguage() != userLang
@@ -350,18 +346,20 @@ class InstagramNewsProvider : NewsProvider() {
         val newLastUpdateInMs = TimeUtils.currentTimeMillis()
         MTLogK.i(this, "Loading '@$username' posts from '$BASE_HOST'...")
         val response = instagramApi.userProfile(username).execute()
-        val targetUUID = _userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
-            ?: _targetAuthority.takeIf { it.isNotBlank() }
+        val targetUUID = userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
+            ?: targetAuthority.takeIf { it.isNotBlank() }
             ?: AgencyUtils.getAgencyAuthority(context)
             ?: EMPTY.takeIf { context.packageName == Constants.MAIN_APP_PACKAGE_NAME } // target all allowed for main app
             ?: run {
                 MTLogK.w(this, "SKIP loading '$username': no target UUID!")
                 return
             }
-        val severity = _userNamesSeverity.getOrNull(i)
-            ?: context.resources.getInteger(_userNamesSeverityDefaultResId)
-        val noteworthyInMs = _userNamesNoteworthy.getOrNull(i)
-            ?: context.resources.getString(_userNamesNoteworthyDefaultResId).toLong()
+        val severity = userNamesSeverity.getOrNull(i)
+            ?: importedInstagramConfig?.defaultSeverity
+            ?: context.resources.getInteger(userNamesSeverityDefaultResId)
+        val noteworthyInMs = userNamesNoteworthy.getOrNull(i)
+            ?: importedInstagramConfig?.defaultNoteworthy
+            ?: context.resources.getString(userNamesNoteworthyDefaultResId).toLong()
         var loadedNewsCount = 0
         if (!response.isSuccessful) {
             throw IOException("ERROR while loading '@$username': HTTP Response Code ${response.code()} (Message: ${response.message()})")
@@ -369,9 +367,9 @@ class InstagramNewsProvider : NewsProvider() {
         val responseBody = response.body()
         val user = responseBody?.graphQL?.user
         val timelineMediaEdges = user?.edgeOwnerToTimelineMedia?.edges
-        val userColor = _userNamesColors.getOrNull(i)
-            ?: _color.takeIf { it.isNotBlank() }
-            ?: AgencyUtils.getAgencyColor(context)
+        val userColor = userNamesColors.getOrNull(i)
+            ?: color.takeIf { it.isNotBlank() }
+            ?: AgencyUtils.getAgencyColor(context).takeIf { importedProviderConfig == null } // main app color != module color
             ?: ColorUtils.BLACK
                 .also {
                     MTLogK.w(this, "No color found for '$username'! (used fallback)")
@@ -605,75 +603,5 @@ class InstagramNewsProvider : NewsProvider() {
         )
     }
 
-    override val newsLanguages: Collection<String> get() = _languages
-
-    class InstagramNewsDbHelper(
-        val context: Context,
-        val storage: SharedPreferences,
-        dbName: String = DB_NAME,
-        dbVersion: Int = getDbVersion(context)
-    ) : NewsDbHelper(context, dbName, dbVersion) {
-
-        companion object {
-            private val LOG_TAG: String = InstagramNewsDbHelper::class.java.simpleName
-
-            /**
-             * Override if multiple [InstagramNewsDbHelper] implementations in same app.
-             */
-            private const val DB_NAME = "news_instagram.db"
-
-            /**
-             * Override if multiple [InstagramNewsDbHelper] implementations in same app.
-             */
-            const val PREF_KEY_AGENCY_LAST_UPDATE_MS = "pInstagramNewsLastUpdate"
-
-            /**
-             * Override if multiple [InstagramNewsDbHelper] implementations in same app.
-             */
-            const val PREF_KEY_AGENCY_LAST_UPDATE_LANG = "pInstagramNewsLastUpdateLang"
-
-            private const val T_INSTAGRAM_NEWS = T_NEWS
-
-            private val T_INSTAGRAM_NEWS_SQL_CREATE = getSqlCreateBuilder(T_INSTAGRAM_NEWS).build()
-
-            private val T_INSTAGRAM_NEWS_SQL_DROP =
-                SqlUtils.getSQLDropIfExistsQuery(T_INSTAGRAM_NEWS)
-
-            private var dbVersion = -1
-
-            /**
-             * Override if multiple [InstagramNewsDbHelper] in same app.
-             */
-            fun getDbVersion(context: Context): Int {
-                if (dbVersion < 0) {
-                    dbVersion = context.resources.getInteger(R.integer.instagram_db_version)
-                    dbVersion++ // add news articles images URLs do DB -> FORCE DB update
-                }
-                return dbVersion
-            }
-        }
-
-        override fun getLogTag() = LOG_TAG
-
-        override fun getDbName(): String {
-            return DB_NAME
-        }
-
-        override fun onCreateMT(db: SQLiteDatabase) {
-            initAllDbTables(db)
-        }
-
-        override fun onUpgradeMT(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-            db.execSQL(T_INSTAGRAM_NEWS_SQL_DROP)
-            initAllDbTables(db)
-        }
-
-        private fun initAllDbTables(db: SQLiteDatabase) {
-            db.execSQL(T_INSTAGRAM_NEWS_SQL_CREATE)
-            storage.edit {
-                remove(PREF_KEY_AGENCY_LAST_UPDATE_MS)
-                remove(PREF_KEY_AGENCY_LAST_UPDATE_LANG)
-            }
-        }
-    }
+    override val newsLanguages: Collection<String> get() = languages
 }

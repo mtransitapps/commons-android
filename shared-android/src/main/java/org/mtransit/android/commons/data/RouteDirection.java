@@ -4,10 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
@@ -19,7 +16,7 @@ import java.util.Objects;
 
 public class RouteDirection implements Targetable, MTLog.Loggable {
 
-	private static final String LOG_TAG = RouteDirection.class.getSimpleName();
+	protected static final String LOG_TAG = RouteDirection.class.getSimpleName();
 
 	@NonNull
 	@Override
@@ -102,40 +99,6 @@ public class RouteDirection implements Targetable, MTLog.Loggable {
 		return getRoute().getShortName() +
 				'-' +
 				getDirection().getHeadsignValue();
-	}
-
-	private static final String JSON_ROUTE = "route";
-	private static final String JSON_DIRECTION = "trip"; // do not change to avoid breaking compat w/ old modules
-
-	@Nullable
-	public static JSONObject toJSON(@NonNull RouteDirection routeDirection) {
-		return routeDirection.toJSON();
-	}
-
-	@Nullable
-	public JSONObject toJSON() {
-		try {
-			JSONObject json = new JSONObject();
-			json.put(JSON_ROUTE, Route.toJSON(getRoute()));
-			json.put(JSON_DIRECTION, Direction.toJSON(getDirection()));
-			return json;
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while converting to JSON (%s)!", this);
-			return null;
-		}
-	}
-
-	@Nullable
-	public static RouteDirection fromJSON(@NonNull JSONObject json, @NonNull String authority) {
-		try {
-			return new RouteDirection(
-					Route.fromJSON(json.getJSONObject(JSON_ROUTE), authority),
-					Direction.fromJSON(json.getJSONObject(JSON_DIRECTION), authority)
-			);
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", json);
-			return null;
-		}
 	}
 
 	@NonNull

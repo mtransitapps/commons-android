@@ -86,13 +86,13 @@
     <ID>CyclomaticComplexMethod:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
     <ID>CyclomaticComplexMethod:InstagramNewsProvider.kt:InstagramNewsProvider$private fun loadUserTimeline</ID>
     <ID>CyclomaticComplexMethod:POIProviderContract.kt:POIProviderContract.Filter$fun getSqlSelection: String?</ID>
-    <ID>CyclomaticComplexMethod:POIProviderContract.kt:POIProviderContract.Filter.Companion$@JvmStatic fun toJSON: JSONObject?</ID>
-    <ID>CyclomaticComplexMethod:POIProviderContract.kt:POIProviderContract.Filter.Companion$private fun fromJSON: Filter?</ID>
+    <ID>CyclomaticComplexMethod:POIProviderContract.kt:POIProviderContract.Filter.Companion$private fun JsonObject.toFilter</ID>
     <ID>CyclomaticComplexMethod:RouteShortNameComparator.kt:RouteShortNameComparator$override fun compare: Int</ID>
     <ID>CyclomaticComplexMethod:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$@VisibleForTesting internal fun EtatServiceResponse?.toServiceUpdates: ServiceUpdates</ID>
     <ID>CyclomaticComplexMethod:TwitterNewsProvider.kt:TwitterNewsProvider$private fun loadUserTimeline</ID>
     <ID>CyclomaticComplexMethod:VehicleLocationProvider.kt:VehicleLocationProvider.Companion$private fun &lt;P : VehicleLocationProviderContract&gt; P.getVehicleLocations: Cursor</ID>
     <ID>CyclomaticComplexMethod:YouTubeNewsProvider.kt:YouTubeNewsProvider$private fun loadUserUploadsPlaylist</ID>
+    <ID>ForbiddenImport:AppUpdateUtils.kt:import org.json.JSONObject</ID>
     <ID>ImplicitDefaultLocale:GTFSProviderDBHelperUtils.kt:GTFSProviderDBHelperUtils$String.format(sqlInsert, line)</ID>
     <ID>ImplicitDefaultLocale:InstagramNewsProvider.kt:InstagramNewsProvider$String.format(MENTION_AND_SCREEN_NAME, user.username ?: username)</ID>
     <ID>ImplicitDefaultLocale:YouTubeNewsProvider.kt:YouTubeNewsProvider$YOUTUBE_VIDEO_LINK_AND_VIDEO_ID.format(videoId)</ID>
@@ -100,7 +100,7 @@
     <ID>LongMethod:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: Boolean</ID>
     <ID>LongMethod:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider$private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData: POIStatus?</ID>
     <ID>LongMethod:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
-    <ID>LongMethod:POIProviderContract.kt:POIProviderContract.Filter.Companion$private fun fromJSON: Filter?</ID>
+    <ID>LongMethod:POIProviderContract.kt:POIProviderContract.Filter.Companion$private fun JsonObject.toFilter</ID>
     <ID>LongMethod:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$@VisibleForTesting internal fun EtatServiceResponse?.toServiceUpdates: ServiceUpdates</ID>
     <ID>LongMethod:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun StmInfoApiProvider.loadAgencyDataFromWWW: ServiceUpdates?</ID>
     <ID>LongMethod:TwitterNewsProvider.kt:TwitterNewsProvider$private fun loadUserTimeline</ID>
@@ -207,21 +207,22 @@
     <ID>TooGenericExceptionThrown:PreferencesExt.kt:throw RuntimeException("Not support type: ${T::class} for SharedPreferences.liveData")</ID>
     <ID>TooManyFunctions:AppUpdateUtils.kt:AppUpdateUtils : Loggable</ID>
     <ID>TooManyFunctions:CursorExt.kt:org.mtransit.android.commons.CursorExt.kt</ID>
+    <ID>TooManyFunctions:DefaultPOIExt.kt:org.mtransit.android.commons.data.DefaultPOIExt.kt</ID>
     <ID>TooManyFunctions:GBFSStorage.kt:GBFSStorage</ID>
     <ID>TooManyFunctions:GTFSRealTimeProviderExt.kt:org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderExt.kt</ID>
     <ID>TooManyFunctions:GTFSRealTimeTripUpdatesProvider.kt:GTFSRealTimeTripUpdatesProvider : Loggable</ID>
     <ID>TooManyFunctions:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider : Loggable</ID>
     <ID>TooManyFunctions:GtfsRealTimeStorage.kt:GtfsRealTimeStorage</ID>
     <ID>TooManyFunctions:GtfsRealtimeExt.kt:GtfsRealtimeExt</ID>
-    <ID>TooManyFunctions:InstagramNewsProvider.kt:InstagramNewsProvider : NewsProvider</ID>
+    <ID>TooManyFunctions:InstagramNewsProvider.kt:InstagramNewsProvider : ConfigurableNewsProvider</ID>
     <ID>TooManyFunctions:NextBusVehicleLocationsProvider.kt:NextBusVehicleLocationsProvider</ID>
     <ID>TooManyFunctions:POIProviderContract.kt:POIProviderContract.Filter$Companion</ID>
     <ID>TooManyFunctions:PackageManagerExt.kt:org.mtransit.android.commons.PackageManagerExt.kt</ID>
     <ID>TooManyFunctions:RssNewProviderUtils.kt:RssNewProviderUtils : Loggable</ID>
     <ID>TooManyFunctions:ScheduleExt.kt:org.mtransit.android.commons.data.ScheduleExt.kt</ID>
     <ID>TooManyFunctions:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider : Loggable</ID>
-    <ID>TooManyFunctions:TwitterNewsProvider.kt:TwitterNewsProvider : NewsProvider</ID>
-    <ID>TooManyFunctions:YouTubeNewsProvider.kt:YouTubeNewsProvider : NewsProvider</ID>
+    <ID>TooManyFunctions:TwitterNewsProvider.kt:TwitterNewsProvider : ConfigurableNewsProvider</ID>
+    <ID>TooManyFunctions:YouTubeNewsProvider.kt:YouTubeNewsProvider : ConfigurableNewsProvider</ID>
     <ID>UnreachableCode:AppUpdateLauncher.kt:AppUpdateLauncher$intent.resolveActivity(context.packageManager) != null</ID>
     <ID>UnreachableCode:GTFSRealTimeProviderExt.kt:parseAgencyId(it)</ID>
     <ID>UnreachableCode:GTFSRealTimeServiceAlertsProvider.kt:GTFSRealTimeServiceAlertsProvider$return getAgencyRouteTypeTagTargetUUID(agencyTag, routeType)</ID>
@@ -252,9 +253,5 @@
     <ID>UnusedPrivateFunction:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun RouteDirectionStop.getDirectionTag</ID>
     <ID>UnusedPrivateFunction:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$private fun RouteDirectionStop.getRouteTag</ID>
     <ID>UnusedPrivateProperty:StatusProviderExt.kt:private val StatusProviderContract.dbTableName: String get() = this.statusDbTableName</ID>
-    <ID>UseOrEmpty:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$gFeedMessage.takeIf { !outdated }?.entityList?.toVehicles() ?: emptyList()</ID>
-    <ID>UseOrEmpty:PreferencesExt.kt:defaultValue as? Set&lt;String&gt; ?: emptySet()</ID>
-    <ID>UseOrEmpty:PreferencesExt.kt:defaultValue as? String ?: ""</ID>
-    <ID>UseOrEmpty:TwitterNewsProvider.kt:TwitterNewsProvider$author?.profileImageUrl ?: ""</ID>
   </CurrentIssues>
 </SmellBaseline>
