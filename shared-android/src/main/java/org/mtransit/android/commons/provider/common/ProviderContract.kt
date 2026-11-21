@@ -14,7 +14,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
-import org.mtransit.android.commons.MTLogK.Loggable
+import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.SecureStringUtils
 import org.mtransit.android.commons.toDurationLog
 import org.mtransit.commons.model.Secret
