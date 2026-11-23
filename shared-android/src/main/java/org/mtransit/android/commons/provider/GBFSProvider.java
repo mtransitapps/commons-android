@@ -7,10 +7,7 @@ import android.database.Cursor;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.mtransit.android.commons.FileUtils;
-import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.TimeUtils;
@@ -34,7 +31,7 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -44,7 +41,7 @@ import javax.net.ssl.SSLHandshakeException;
 @SuppressLint("Registered")
 public class GBFSProvider extends BikeStationProvider {
 
-	private static final String LOG_TAG = GBFSProvider.class.getSimpleName();
+	protected static final String LOG_TAG = GBFSProvider.class.getSimpleName();
 
 	@NonNull
 	@Override
@@ -134,17 +131,17 @@ public class GBFSProvider extends BikeStationProvider {
 			urlString += "en/"; // TODO support fr...
 			urlString += "station_information.json";
 			MTLog.i(this, "Loading from '%s'...", urlString);
-			URL url = new URL(urlString);
-			URLConnection urlc = url.openConnection();
+			final URL url = new URL(urlString);
+			final URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			final HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				String jsonString = FileUtils.getString(urlc.getInputStream());
+				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+				final String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadBikeStationDataFromWWW() > jsonString: %s.", jsonString);
-				JStationInformation jStationInformation = parseAgencyJSONStationInformation(jsonString);
-				HashSet<DefaultPOI> newBikeStations = parseAgencyJSONStations(context, jStationInformation.getData().getStations());
+				final List<JStationInformation.JData.JStation> jStations = parseAgencyJSONStationInformation(jsonString);
+				final HashSet<DefaultPOI> newBikeStations = parseAgencyJSONStations(context, jStations);
 				MTLog.i(this, "Found %d stations.", newBikeStations.size());
 				final Area coverageArea = POITools.getCoverageArea(newBikeStations);
 				getStorage(context).saveArea(coverageArea);
@@ -198,12 +195,12 @@ public class GBFSProvider extends BikeStationProvider {
 			@NonNull Context context,
 			@NonNull List<JStationInformation.JData.JStation> jStations
 	) {
-		HashSet<DefaultPOI> newBikeStations = new HashSet<>();
+		final HashSet<DefaultPOI> newBikeStations = new HashSet<>();
 		try {
-			String authority = getAUTHORITY(context);
-			int dataSourceTypeId = getAGENCY_TYPE_ID(context);
+			final String authority = getAUTHORITY(context);
+			final int dataSourceTypeId = getAGENCY_TYPE_ID(context);
 			for (JStationInformation.JData.JStation jStation : jStations) {
-				DefaultPOI newBikeStation = parseAgencyJSONStation(authority, dataSourceTypeId, jStation);
+				final DefaultPOI newBikeStation = parseAgencyJSONStation(authority, dataSourceTypeId, jStation);
 				if (newBikeStation != null) {
 					newBikeStations.add(newBikeStation);
 				}
@@ -247,60 +244,12 @@ public class GBFSProvider extends BikeStationProvider {
 	}
 
 	@NonNull
-	private JStationInformation parseAgencyJSONStationInformation(@Nullable String jsonString) {
-		ArrayList<JStationInformation.JData.JStation> stations = new ArrayList<>();
+	private List<JStationInformation.JData.JStation> parseAgencyJSONStationInformation(@NonNull String jsonString) {
 		try {
-			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
-			parseAgencyJSONStationInformationStations(stations, json);
+			return GBFSProviderExtKt.toJStationInfoList(jsonString);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
-		}
-		return new JStationInformation(new JStationInformation.JData(stations));
-	}
-
-	private static final String JSON_DATA = "data";
-	private static final String JSON_STATIONS = "stations";
-	private static final String JSON_STATION_ID = "station_id";
-	private static final String JSON_NAME = "name";
-	private static final String JSON_SHORT_NAME = "short_name";
-	private static final String JSON_LAT = "lat";
-	private static final String JSON_LON = "lon";
-	private static final String JSON_CAPACITY = "capacity";
-	private static final String JSON_NUM_BIKES_AVAILABLE = "num_bikes_available";
-	private static final String JSON_NUM_EBIKES_AVAILABLE = "num_ebikes_available";
-	private static final String JSON_NUM_BIKES_AVAILABLE_TYPES = "num_bikes_available_types";
-	private static final String JSON_MECHANICAL = "mechanical";
-	private static final String JSON_EBIKE = "ebike";
-	private static final String JSON_NUM_DOCKS_AVAILABLE = "num_docks_available";
-	private static final String JSON_IS_INSTALLED = "is_installed";
-	private static final String JSON_IS_RENTING = "is_renting";
-	private static final String JSON_IS_RETURNING = "is_returning";
-	private static final String JSON_LAST_REPORTED = "last_reported";
-
-	private void parseAgencyJSONStationInformationStations(@NonNull List<JStationInformation.JData.JStation> stations,
-														   @Nullable JSONObject json) {
-		try {
-			if (json != null && json.has(JSON_DATA)) {
-				JSONObject jData = json.optJSONObject(JSON_DATA);
-				if (jData != null && jData.has(JSON_STATIONS)) {
-					JSONArray jStations = jData.getJSONArray(JSON_STATIONS);
-					for (int l = 0; l < jStations.length(); l++) {
-						JSONObject jStation = jStations.getJSONObject(l);
-						if (jStation != null) {
-							stations.add(new JStationInformation.JData.JStation(
-									jStation.optString(JSON_STATION_ID),
-									jStation.optString(JSON_NAME),
-									jStation.optString(JSON_SHORT_NAME),
-									jStation.optDouble(JSON_LAT),
-									jStation.optDouble(JSON_LON),
-									jStation.optInt(JSON_CAPACITY)
-							));
-						}
-					}
-				}
-			}
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON '%s'!", json);
+			return Collections.emptyList();
 		}
 	}
 
@@ -314,17 +263,17 @@ public class GBFSProvider extends BikeStationProvider {
 			urlString += "station_status.json";
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			final String sourceLabel = SourceUtils.getSourceLabel(getDATA_URL(context));
-			URL url = new URL(urlString);
-			URLConnection urlc = url.openConnection();
+			final URL url = new URL(urlString);
+			final URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			final HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				String jsonString = FileUtils.getString(urlc.getInputStream());
+				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+				final String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadBikeStationStatusDataFromWWW() > jsonString: %s.", jsonString);
-				JStationStatus jStationStatus = parseAgencyJSONStationStatus(jsonString);
-				HashSet<POIStatus> newBikeStationStatus = parseAgencyJSONStationsStatus(context, jStationStatus.getData().getStations(), sourceLabel, newLastUpdateInMs);
+				final List<JStationStatus.JData.JStation> jStationStatus = parseAgencyJSONStationStatus(jsonString);
+				final HashSet<POIStatus> newBikeStationStatus = parseAgencyJSONStationsStatus(context, jStationStatus, sourceLabel, newLastUpdateInMs);
 				MTLog.i(this, "Found %d statuses.", newBikeStationStatus.size());
 				deleteAllBikeStationStatusData();
 				StatusProvider.cacheAllStatusesBulkLockDB(this, newBikeStationStatus);
@@ -355,21 +304,24 @@ public class GBFSProvider extends BikeStationProvider {
 	}
 
 	@NonNull
-	private HashSet<POIStatus> parseAgencyJSONStationsStatus(@NonNull Context context,
-															 @NonNull List<JStationStatus.JData.JStation> jStations,
-															 @Nullable String sourceLabel, long newLastUpdateInMs) {
-		HashSet<POIStatus> newBikeStationStatuses = new HashSet<>();
+	private HashSet<POIStatus> parseAgencyJSONStationsStatus(
+			@NonNull Context context,
+			@NonNull List<JStationStatus.JData.JStation> jStations,
+			@Nullable String sourceLabel,
+			long newLastUpdateInMs
+	) {
+		final HashSet<POIStatus> newBikeStationStatuses = new HashSet<>();
 		try {
-			String authority = getAUTHORITY(context);
-			long statusMaxValidityInMs = getStatusMaxValidityInMs();
-			int value1Color = getValue1Color(context);
-			int value1ColorBg = getValue1ColorBg(context);
-			int value1SubValue1Color = getValue1SubValue1Color(context);
-			int value1SubValue1ColorBg = getValue1SubValue1ColorBg(context);
-			int value2Color = getValue2Color(context);
-			int value2ColorBg = getValue2ColorBg(context);
+			final String authority = getAUTHORITY(context);
+			final long statusMaxValidityInMs = getStatusMaxValidityInMs();
+			final int value1Color = getValue1Color(context);
+			final int value1ColorBg = getValue1ColorBg(context);
+			final int value1SubValue1Color = getValue1SubValue1Color(context);
+			final int value1SubValue1ColorBg = getValue1SubValue1ColorBg(context);
+			final int value2Color = getValue2Color(context);
+			final int value2ColorBg = getValue2ColorBg(context);
 			for (JStationStatus.JData.JStation jStation : jStations) {
-				POIStatus newBikeStationStatus = parseAgencyJSONStationStatus(
+				final POIStatus newBikeStationStatus = parseAgencyJSONStationStatus(
 						authority, jStation, sourceLabel, newLastUpdateInMs,
 						statusMaxValidityInMs,
 						value1Color, value1ColorBg,
@@ -386,19 +338,24 @@ public class GBFSProvider extends BikeStationProvider {
 	}
 
 	@Nullable
-	private POIStatus parseAgencyJSONStationStatus(@NonNull String authority,
-												   @NonNull JStationStatus.JData.JStation jStation,
-												   @Nullable String sourceLabel, long newLastUpdateInMs, long statusMaxValidityInMs,
-												   int value1Color, int value1ColorBg,
-												   int value1SubValue1Color, int value1SubValue1ColorBg,
-												   int value2Color, int value2ColorBg) {
+	private POIStatus parseAgencyJSONStationStatus(
+			@NonNull String authority,
+			@NonNull JStationStatus.JData.JStation jStation,
+			@Nullable String sourceLabel,
+			long newLastUpdateInMs,
+			long statusMaxValidityInMs,
+			int value1Color,
+			int value1ColorBg,
+			int value1SubValue1Color,
+			int value1SubValue1ColorBg,
+			int value2Color,
+			int value2ColorBg
+	) {
 		try {
-			String idString = jStation.getStationId();
+			final String idString = jStation.getStationId();
 			int bikeStationId = idString == null ? -1 : Integer.parseInt(idString);
-			if (bikeStationId < 0) {
-				return null;
-			}
-			BikeStationAvailabilityPercent newBikeStationStatus = new BikeStationAvailabilityPercent(
+			if (bikeStationId < 0) return null;
+			final BikeStationAvailabilityPercent newBikeStationStatus = new BikeStationAvailabilityPercent(
 					null,
 					POI.POIUtils.makeUUID(authority, bikeStationId),
 					newLastUpdateInMs,
@@ -412,9 +369,9 @@ public class GBFSProvider extends BikeStationProvider {
 					value2Color,
 					value2ColorBg
 			);
-			boolean isInstalled = Boolean.TRUE.equals(jStation.getIsInstalled());
-			boolean isRenting = Boolean.TRUE.equals(jStation.getIsRenting());
-			boolean isReturning = Boolean.TRUE.equals(jStation.getIsReturning());
+			final boolean isInstalled = Boolean.TRUE.equals(jStation.getIsInstalled());
+			final boolean isRenting = Boolean.TRUE.equals(jStation.getIsRenting());
+			final boolean isReturning = Boolean.TRUE.equals(jStation.getIsReturning());
 			newBikeStationStatus.setStatusInstalled(isInstalled);
 			int numBikesAvailable = jStation.getNumBikesAvailable() == null ? 0 : jStation.getNumBikesAvailable();
 			if (!isRenting) {
@@ -445,81 +402,20 @@ public class GBFSProvider extends BikeStationProvider {
 	}
 
 	@NonNull
-	private JStationStatus parseAgencyJSONStationStatus(@Nullable String jsonString) {
-		ArrayList<JStationStatus.JData.JStation> stations = new ArrayList<>();
+	private List<JStationStatus.JData.JStation> parseAgencyJSONStationStatus(@NonNull String jsonString) {
 		try {
-			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
-			parseAgencyJSONStationStatusStations(stations, json);
+			return GBFSProviderExtKt.toJStationStatusList(jsonString);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
-		}
-		return new JStationStatus(new JStationStatus.JData(stations));
-	}
-
-	private void parseAgencyJSONStationStatusStations(List<JStationStatus.JData.JStation> stations, JSONObject json) {
-		try {
-			if (json != null && json.has(JSON_DATA)) {
-				JSONObject jData = json.optJSONObject(JSON_DATA);
-				if (jData != null && jData.has(JSON_STATIONS)) {
-					JSONArray jStations = jData.getJSONArray(JSON_STATIONS);
-					for (int l = 0; l < jStations.length(); l++) {
-						JSONObject jStation = jStations.getJSONObject(l);
-						if (jStation != null) {
-							JStationStatus.JData.JStation.JNumBikesAvailableTypes numBikesAvailableTypes = null;
-							JSONObject jNumBikesAvailableTypes = jStation.optJSONObject(JSON_NUM_BIKES_AVAILABLE_TYPES);
-							if (jNumBikesAvailableTypes != null) {
-								numBikesAvailableTypes = new JStationStatus.JData.JStation.JNumBikesAvailableTypes(
-										JSONUtils.optInt(jNumBikesAvailableTypes, JSON_MECHANICAL),
-										JSONUtils.optInt(jNumBikesAvailableTypes, JSON_EBIKE)
-								);
-							}
-							stations.add(new JStationStatus.JData.JStation(
-									jStation.optString(JSON_STATION_ID),
-									jStation.optInt(JSON_NUM_BIKES_AVAILABLE),
-									JSONUtils.optInt(jStation, JSON_NUM_EBIKES_AVAILABLE),
-									numBikesAvailableTypes,
-									jStation.optInt(JSON_NUM_DOCKS_AVAILABLE),
-									getIntOrBoolean(jStation, JSON_IS_INSTALLED),
-									getIntOrBoolean(jStation, JSON_IS_RENTING),
-									getIntOrBoolean(jStation, JSON_IS_RETURNING),
-									jStation.optLong(JSON_LAST_REPORTED)
-							));
-						}
-					}
-				}
-			}
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON '%s'!", json);
+			return Collections.emptyList();
 		}
 	}
 
-	@Nullable
-	private static Boolean getIntOrBoolean(@NonNull JSONObject jStation, @NonNull String key) {
-		return getIntOrBoolean(jStation.opt(key), key);
-	}
-
-	@Nullable
-	protected static Boolean getIntOrBoolean(@Nullable Object value, @NonNull String key) {
-		if (value instanceof Boolean) {
-			return (Boolean) value;
-		} else if (value instanceof Integer) {
-			final int intValue = (Integer) value;
-			if (intValue == 0) {
-				return false;
-			} else if (intValue == 1) {
-				return true;
-			}
-		}
-		MTLog.w(LOG_TAG, "Unexpected int/boolean value '%s' for key '%s'!", key, value);
-		return null;
-	}
-
-	@SuppressWarnings({"unused", "WeakerAccess"})
-	private static class JStationInformation {
+	static class JStationInformation {
 		@NonNull
 		private final JData data;
 
-		private JStationInformation(@NonNull JData data) {
+		protected JStationInformation(@NonNull JData data) {
 			this.data = data;
 		}
 
@@ -536,11 +432,11 @@ public class GBFSProvider extends BikeStationProvider {
 					'}';
 		}
 
-		private static class JData {
+		static class JData {
 			@NonNull
 			private final List<JStation> stations;
 
-			private JData(@NonNull List<JStation> stations) {
+			protected JData(@NonNull List<JStation> stations) {
 				this.stations = stations;
 			}
 
@@ -557,7 +453,7 @@ public class GBFSProvider extends BikeStationProvider {
 						'}';
 			}
 
-			private static class JStation {
+			static class JStation {
 				@Nullable
 				private final String stationId;
 				@Nullable
@@ -571,12 +467,14 @@ public class GBFSProvider extends BikeStationProvider {
 				@Nullable
 				private final Integer capacity;
 
-				private JStation(@Nullable String stationId,
-								 @Nullable String name,
-								 @Nullable String shortName,
-								 @Nullable Double lat,
-								 @Nullable Double lon,
-								 @Nullable Integer capacity) {
+				protected JStation(
+						@Nullable String stationId,
+						@Nullable String name,
+						@Nullable String shortName,
+						@Nullable Double lat,
+						@Nullable Double lon,
+						@Nullable Integer capacity
+				) {
 					this.stationId = stationId;
 					this.name = name;
 					this.shortName = shortName;
@@ -631,8 +529,7 @@ public class GBFSProvider extends BikeStationProvider {
 		}
 	}
 
-	@SuppressWarnings({"unused", "WeakerAccess"})
-	private static class JStationStatus {
+	static class JStationStatus {
 		@NonNull
 		private final JData data;
 
@@ -641,7 +538,7 @@ public class GBFSProvider extends BikeStationProvider {
 		}
 
 		@NonNull
-		public JData getData() {
+		protected JData getData() {
 			return data;
 		}
 
@@ -653,11 +550,11 @@ public class GBFSProvider extends BikeStationProvider {
 					'}';
 		}
 
-		private static class JData {
+		static class JData {
 			@NonNull
 			private final List<JStation> stations;
 
-			private JData(@NonNull List<JStation> stations) {
+			protected JData(@NonNull List<JStation> stations) {
 				this.stations = stations;
 			}
 
@@ -674,7 +571,7 @@ public class GBFSProvider extends BikeStationProvider {
 						'}';
 			}
 
-			private static class JStation {
+			static class JStation {
 
 				@Nullable
 				private final String stationId;
@@ -695,15 +592,17 @@ public class GBFSProvider extends BikeStationProvider {
 				@Nullable
 				private final Long lastReported; // in seconds
 
-				private JStation(@Nullable String stationId,
-								 @Nullable Integer numBikesAvailable,
-								 @Nullable Integer numEBikesAvailable,
-								 @Nullable JNumBikesAvailableTypes numBikesAvailableTypes,
-								 @Nullable Integer numDocksAvailable,
-								 @Nullable Boolean isInstalled,
-								 @Nullable Boolean isRenting,
-								 @Nullable Boolean isReturning,
-								 @Nullable Long lastReported) {
+				protected JStation(
+						@Nullable String stationId,
+						@Nullable Integer numBikesAvailable,
+						@Nullable Integer numEBikesAvailable,
+						@Nullable JNumBikesAvailableTypes numBikesAvailableTypes,
+						@Nullable Integer numDocksAvailable,
+						@Nullable Boolean isInstalled,
+						@Nullable Boolean isRenting,
+						@Nullable Boolean isReturning,
+						@Nullable Long lastReported
+				) {
 					this.stationId = stationId;
 					this.numBikesAvailable = numBikesAvailable;
 					this.numEBikesAvailable = numEBikesAvailable;
@@ -775,13 +674,13 @@ public class GBFSProvider extends BikeStationProvider {
 							'}';
 				}
 
-				private static class JNumBikesAvailableTypes {
+				static class JNumBikesAvailableTypes {
 					@Nullable
 					private final Integer mechanical;
 					@Nullable
 					private final Integer eBikes;
 
-					private JNumBikesAvailableTypes(
+					protected JNumBikesAvailableTypes(
 							@Nullable Integer mechanical,
 							@Nullable Integer eBikes) {
 						this.mechanical = mechanical;
