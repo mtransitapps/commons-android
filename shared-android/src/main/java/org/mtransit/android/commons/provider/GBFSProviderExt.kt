@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.provider
 
+import androidx.annotation.VisibleForTesting
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -36,7 +37,6 @@ internal fun String.toJStationInfoList() = try {
 internal fun JsonObject.toJStationInfoList() = try {
     get(JSON_DATA)?.jsonObject?.get(JSON_STATIONS)?.jsonArray?.map { jStation ->
         jStation.jsonObject.toJStationInfo()
-
     }.orEmpty()
 } catch (se: SerializationException) {
     MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", se)
@@ -95,14 +95,15 @@ internal fun JsonObject.toJStationStatus() = GBFSProvider.JStationStatus.JData.J
     this[JSON_LAST_REPORTED]?.jsonPrimitive?.longOrNull,
 )
 
-private fun JsonPrimitive.getIntOrBoolean(key: String): Boolean? {
+@VisibleForTesting
+internal fun JsonPrimitive.getIntOrBoolean(key: String): Boolean? {
     booleanOrNull?.let { return it }
     intOrNull?.let { intValue ->
         if (intValue == 0) return false
         if (intValue == 1) return true
     }
-    MTLogK.w(LOG_TAG, "Unexpected int/boolean value '$this' for key '$key'!");
-    return null;
+    MTLogK.w(LOG_TAG, "Unexpected int/boolean value '$this' for key '$key'!")
+    return null
 }
 
 private fun JsonObject.toJNumBikesAvailableTypes() = GBFSProvider.JStationStatus.JData.JStation.JNumBikesAvailableTypes(
