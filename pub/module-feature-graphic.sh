@@ -110,7 +110,6 @@ fi
 
 # https://github.com/mtransitapps/mtransit-for-android/blob/master/app-android/src/main/java/org/mtransit/android/data/DataSourceType.java
 
-SOURCE_GIT_PATH="pub/module-feature-graphic*.svg"
 SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic.svg" # BASE (ALL TYPE LAYERS HIDDEN)
 if [ "$TYPE" -eq 0 ]; then # LIGHT_RAIL
   SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-light-rail.svg"
@@ -136,6 +135,11 @@ elif [ "$TYPE" -eq 4 ]; then # FERRY
   SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-ferry.svg"
   if [[ "$#" -eq 4 ]]; then
     SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-ferry-2.svg"
+  fi
+elif [ "$TYPE" -eq 6 ]; then # GONDOLA
+  SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-gondola.svg"
+  if [[ "$#" -eq 4 ]]; then
+    SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-gondola-2.svg"
   fi
 elif [ "$TYPE" -eq 100 ]; then # BIKE
   SOURCE="$ROOT_DIR/commons-android/pub/module-feature-graphic-bike.svg"
