@@ -8,12 +8,8 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.mtransit.android.commons.CursorExtKt;
-import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 
 import java.util.Objects;
