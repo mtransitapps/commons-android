@@ -2,6 +2,7 @@ package org.mtransit.android.commons.provider
 
 import androidx.annotation.VisibleForTesting
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
@@ -14,7 +15,13 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.provider.GBFSProvider.LOG_TAG
-import org.mtransit.android.commons.provider.common.sharedJson
+
+private val gbfsJson = Json {
+    allowTrailingComma = true // do not fail on trailing comma
+    coerceInputValues = true // Falls back to default Kotlin values if org.json outputs null or mismatched types
+    ignoreUnknownKeys = true // new keys might be added/updated between main app and agency module app releases
+    isLenient = true // allows unquoted strings or malformed formatting (if legacy org.json writers were used)
+}
 
 // region station information
 
@@ -28,7 +35,7 @@ private const val JSON_LON = "lon"
 private const val JSON_CAPACITY = "capacity"
 
 internal fun String.toJStationInfoList() = try {
-    sharedJson.parseToJsonElement(this).jsonObject.toJStationInfoList()
+    gbfsJson.parseToJsonElement(this).jsonObject.toJStationInfoList()
 } catch (se: SerializationException) {
     MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", se)
     throw se
@@ -68,7 +75,7 @@ private const val JSON_IS_RETURNING = "is_returning"
 private const val JSON_LAST_REPORTED = "last_reported"
 
 internal fun String.toJStationStatusList() = try {
-    sharedJson.parseToJsonElement(this).jsonObject.toJStationStatusList()
+    gbfsJson.parseToJsonElement(this).jsonObject.toJStationStatusList()
 } catch (se: SerializationException) {
     MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", se)
     throw se
