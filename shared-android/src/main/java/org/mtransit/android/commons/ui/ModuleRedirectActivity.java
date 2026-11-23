@@ -300,6 +300,9 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 			case DataSourceTypeId.FERRY:
 				typeImgResId = R.drawable.ic_directions_boat_black_24dp;
 				break;
+			case DataSourceTypeId.GONDOLA:
+				typeImgResId = R.drawable.ic_gondola_lift_black_24dp;
+				break;
 			case DataSourceTypeId.BIKE:
 				typeImgResId = R.drawable.ic_directions_bike_black_24dp;
 				break;

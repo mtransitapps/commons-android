@@ -11,7 +11,7 @@ object DataSourceTypeId {
     @Retention(AnnotationRetention.SOURCE)
     @IntDef(
         INVALID,
-        LIGHT_RAIL, SUBWAY, RAIL, BUS, FERRY,
+        LIGHT_RAIL, SUBWAY, RAIL, BUS, FERRY, GONDOLA,
         EX_TRAM,
         BIKE, PLACE, MODULE,
         FAVORITE, NEWS,
@@ -28,6 +28,7 @@ object DataSourceTypeId {
     const val RAIL = 2
     const val BUS = 3
     const val FERRY = 4
+    const val GONDOLA = 6
 
     // https://developers.google.com/transit/gtfs/reference/extended-route-types
     const val EX_TRAM = 900 // Tram service - Streetcar
