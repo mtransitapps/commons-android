@@ -6,10 +6,6 @@ import android.database.MatrixCursor;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.scheduletimestamp.ScheduleTimestampsProviderContract;
 import org.mtransit.commons.CollectionUtils;
@@ -17,9 +13,11 @@ import org.mtransit.commons.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import kotlinx.serialization.SerializationException;
+
 public class ScheduleTimestamps implements MTLog.Loggable {
 
-	private static final String LOG_TAG = ScheduleTimestamps.class.getSimpleName();
+	protected static final String LOG_TAG = ScheduleTimestamps.class.getSimpleName();
 
 	@NonNull
 	@Override
@@ -100,39 +98,10 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 	@Nullable
 	private static ScheduleTimestamps fromExtraJSONString(ScheduleTimestamps scheduleTimestamps, String extrasJSONString) {
 		try {
-			final JSONObject json = extrasJSONString == null ? null : new JSONObject(extrasJSONString);
-			if (json == null) return null;
-			return fromExtraJSON(scheduleTimestamps, json);
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while retrieving extras information from cursor.");
-			return null;
-		}
-	}
-
-	private static final String JSON_SOURCE_LABEL = "sourceLabel";
-	private static final String JSON_LOCAL_TIME_ZONE_ID = "tz";
-	private static final String JSON_TIMESTAMPS = "timestamps";
-
-	private static ScheduleTimestamps fromExtraJSON(ScheduleTimestamps scheduleTimestamps, JSONObject extrasJSON) {
-		try {
-			scheduleTimestamps.setSourceLabel(JSONUtils.optString(extrasJSON, JSON_SOURCE_LABEL));
-			String localTimeZoneId = JSONUtils.optString(extrasJSON, JSON_LOCAL_TIME_ZONE_ID);
-			final JSONArray jTimestamps = extrasJSON.getJSONArray(JSON_TIMESTAMPS);
-			for (int i = 0; i < jTimestamps.length(); i++) {
-				final JSONObject jTimestamp = jTimestamps.getJSONObject(i);
-				final Schedule.Timestamp newTimestamp = Schedule.Timestamp.parseJSON(jTimestamp);
-				if (newTimestamp == null) continue;
-				if (localTimeZoneId == null) {
-					//noinspection DiscouragedApi
-					localTimeZoneId = newTimestamp.getLocalTimeZoneId();
-				}
-				scheduleTimestamps.addTimestampWithoutSort(newTimestamp);
-			}
-			scheduleTimestamps.setLocalTimeZoneId(localTimeZoneId);
-			scheduleTimestamps.sortTimestamps();
-			return scheduleTimestamps;
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while retrieving extras information from cursor.");
+			if (extrasJSONString == null) return null;
+			return ScheduleTimestampsExtKt.toScheduleTimestamps(scheduleTimestamps, extrasJSONString);
+		} catch (SerializationException se) {
+			MTLog.w(LOG_TAG, se, "Error while retrieving extras information from cursor.");
 			return null;
 		}
 	}
@@ -152,30 +121,10 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 	@Nullable
 	private String getExtrasJSONString() {
 		try {
-			final JSONObject extrasJSON = getExtrasJSON();
-			return extrasJSON == null ? null : extrasJSON.toString();
+			return ScheduleTimestampsExtKt.toJsonString(this);
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while converting JSON to String!");
 			return null;
-		}
-	}
-
-	@SuppressWarnings("WeakerAccess")
-	@Nullable
-	public JSONObject getExtrasJSON() {
-		try {
-			final JSONObject json = new JSONObject();
-			json.put(JSON_SOURCE_LABEL, this.sourceLabel);
-			json.put(JSON_LOCAL_TIME_ZONE_ID, this.localTimeZoneId);
-			final JSONArray jTimestamps = new JSONArray();
-			for (Schedule.Timestamp timestamp : this.timestamps) {
-				jTimestamps.put(timestamp.toJSON());
-			}
-			json.put(JSON_TIMESTAMPS, jTimestamps);
-			return json;
-		} catch (Exception e) {
-			MTLog.w(LOG_TAG, e, "Error while converting object '%s' to JSON!", this);
-			return null; // no partial result
 		}
 	}
 

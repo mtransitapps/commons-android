@@ -2,9 +2,22 @@
 
 package org.mtransit.android.commons.data
 
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.long
 import org.mtransit.android.commons.Constants
+import org.mtransit.android.commons.MTLogK
+import org.mtransit.android.commons.data.AvailabilityPercent.LOG_TAG
 import org.mtransit.android.commons.floorBy
 import org.mtransit.android.commons.millisToInstant
+import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.roundToNearest
 import org.mtransit.android.commons.toDateTimeLog
 import org.mtransit.android.commons.toDurationLog
@@ -13,6 +26,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+import kotlinx.serialization.json.put as putK
 
 fun makeSchedule(
     id: Int? = null,
@@ -289,4 +303,66 @@ fun Schedule.Timestamp.toStringShort() = buildString {
         append("[OLD]")
     }
     append("}")
+}
+
+private const val JSON_PROVIDER_PRECISION_IN_MS = "providerPrecisionInMs"
+private const val JSON_IS_NO_PICKUP = "decentOnly" // do NOT change JSON key string value!
+private const val JSON_TIMESTAMPS = "timestamps"
+private const val JSON_FREQUENCIES = "frequencies"
+private const val JSON_LOCAL_TIME_ZONE_ID = "tz"
+
+fun POIStatus.toSchedule(jsonString: String) = try {
+    this.toSchedule(sharedJson.parseToJsonElement(jsonString).jsonObject)
+} catch (se: SerializationException) {
+    MTLogK.w(Schedule.LOG_TAG, "Error while parsing JSON string '$jsonString'", se)
+    throw se
+}
+
+fun POIStatus.toSchedule(jsonObject: JsonObject) = try {
+    var localTimeZoneId = jsonObject[JSON_LOCAL_TIME_ZONE_ID]?.jsonPrimitive?.contentOrNull
+    val timestamps = jsonObject[JSON_TIMESTAMPS]?.jsonArray?.mapNotNull {
+        it.jsonObject.toTimestamp()
+    }.orEmpty()
+    if (localTimeZoneId == null) {
+        //noinspection DiscouragedApi
+        localTimeZoneId = timestamps.find { it.localTimeZoneId != null }?.localTimeZoneId
+    }
+    val frequencies = jsonObject[JSON_FREQUENCIES]?.jsonArray?.mapNotNull {
+        it.jsonObject.toFrequency()
+    }.orEmpty()
+    Schedule(
+        this,
+        jsonObject.getValue(JSON_PROVIDER_PRECISION_IN_MS).jsonPrimitive.long,
+        jsonObject[JSON_IS_NO_PICKUP]?.jsonPrimitive?.booleanOrNull ?: false,
+        localTimeZoneId
+    ).apply {
+        setTimestampsAndSort(timestamps)
+        setFrequenciesAndSort(frequencies)
+    }
+} catch (se: SerializationException) {
+    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$jsonObject'", se)
+    throw se
+}
+
+fun Schedule.toJson() = try {
+    buildJsonObject {
+        putK(JSON_PROVIDER_PRECISION_IN_MS, this@toJson.providerPrecisionInMs)
+        putK(JSON_IS_NO_PICKUP, this@toJson.isNoPickup)
+        this@toJson.localTimeZoneId?.let { putK(JSON_LOCAL_TIME_ZONE_ID, it) }
+        put(
+            JSON_TIMESTAMPS,
+            buildJsonArray {
+                addAll(this@toJson.timestamps.mapNotNull { it.toJson() })
+            }
+        )
+        put(
+            JSON_FREQUENCIES,
+            buildJsonArray {
+                addAll(this@toJson.frequencies.mapNotNull { it.toJson() })
+            }
+        )
+    }
+} catch (se: SerializationException) {
+    MTLogK.w(this, "Error while making JSON object '$this'", se)
+    throw se
 }

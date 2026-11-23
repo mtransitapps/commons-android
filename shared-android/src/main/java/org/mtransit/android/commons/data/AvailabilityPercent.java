@@ -11,19 +11,19 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.mtransit.android.commons.ColorUtils;
-import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.StringUtils;
 
+import kotlinx.serialization.SerializationException;
+import kotlinx.serialization.json.JsonObject;
+
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
-	private static final String LOG_TAG = AvailabilityPercent.class.getSimpleName();
+	protected static final String LOG_TAG = AvailabilityPercent.class.getSimpleName();
 
 	@NonNull
 	@Override
@@ -40,41 +40,45 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 	private static final int ENOUGH_AVAILABILITY = 3;
 
-	private int value1;
-	private String value1EmptyRes;
-	private String value1QuantityRes;
+	protected int value1;
+	@Nullable
+	protected String value1EmptyRes;
+	@Nullable
+	protected String value1QuantityRes;
 	@ColorInt
-	private int value1Color;
+	protected int value1Color;
 	@ColorInt
-	private int value1ColorBg;
+	protected int value1ColorBg;
 
 	@Nullable
-	private String value1SubValueDefaultEmptyRes;
+	protected String value1SubValueDefaultEmptyRes;
 	@Nullable
-	private String value1SubValueDefaultQuantityRes;
+	protected String value1SubValueDefaultQuantityRes;
 
 	@Nullable
-	private Integer value1SubValue1;
+	protected Integer value1SubValue1;
 	@Nullable
-	private String value1SubValue1EmptyRes;
+	protected String value1SubValue1EmptyRes;
 	@Nullable
-	private String value1SubValue1QuantityRes;
+	protected String value1SubValue1QuantityRes;
 	@ColorInt
 	@Nullable
-	private Integer value1SubValue1Color;
+	protected Integer value1SubValue1Color;
 	@ColorInt
 	@Nullable
-	private Integer value1SubValue1ColorBg;
+	protected Integer value1SubValue1ColorBg;
 
-	private int value2;
-	private String value2EmptyRes;
-	private String value2QuantityRes;
+	protected int value2;
+	@Nullable
+	protected String value2EmptyRes;
+	@Nullable
+	protected String value2QuantityRes;
 	@ColorInt
-	private int value2Color;
+	protected int value2Color;
 	@ColorInt
-	private int value2ColorBg;
+	protected int value2ColorBg;
 
-	private int statusMsgId = STATUS_OK;
+	protected int statusMsgId = STATUS_OK;
 
 	public AvailabilityPercent(@NonNull POIStatus status) {
 		this(
@@ -509,99 +513,18 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	@Nullable
 	private static AvailabilityPercent fromExtraJSONString(@NonNull POIStatus status, @Nullable String extrasJSONString) {
 		try {
-			final JSONObject json = extrasJSONString == null ? null : new JSONObject(extrasJSONString);
-			if (json == null) return null;
-			return fromExtraJSON(status, json);
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while retrieving extras information from cursor.");
+			if (extrasJSONString == null) return null;
+			return AvailabilityPercentExtKt.toAvailabilityPercent(status, extrasJSONString);
+		} catch (SerializationException se) {
+			MTLog.w(LOG_TAG, se, "Error while retrieving extras information from cursor.");
 			return null;
 		}
 	}
-
-	@Nullable
-	private static AvailabilityPercent fromExtraJSON(@NonNull POIStatus status, @NonNull JSONObject extrasJSON) {
-		try {
-			AvailabilityPercent availabilityPercent = new AvailabilityPercent(status);
-			availabilityPercent.statusMsgId = extrasJSON.getInt(JSON_STATUS_MSG_ID);
-			availabilityPercent.value1 = extrasJSON.getInt(JSON_VALUE1);
-			availabilityPercent.value1EmptyRes = extrasJSON.getString(JSON_VALUE1_EMPTY_RES);
-			availabilityPercent.value1QuantityRes = extrasJSON.getString(JSON_VALUE1_QUANTITY_RES);
-			availabilityPercent.value1Color = extrasJSON.getInt(JSON_VALUE1_COLOR);
-			availabilityPercent.value1ColorBg = extrasJSON.getInt(JSON_VALUE1_COLOR_BG);
-			availabilityPercent.value1SubValueDefaultEmptyRes = JSONUtils.optString(extrasJSON, JSON_VALUE1_SUB_VALUE_DEFAULT_EMPTY_RES);
-			availabilityPercent.value1SubValueDefaultQuantityRes = JSONUtils.optString(extrasJSON, JSON_VALUE1_SUB_VALUE_DEFAULT_QUANTITY_RES);
-			availabilityPercent.value1SubValue1 = JSONUtils.optInt(extrasJSON, JSON_VALUE1_SUB_VALUE1);
-			availabilityPercent.value1SubValue1EmptyRes = JSONUtils.optString(extrasJSON, JSON_VALUE1_SUB_VALUE1_EMPTY_RES);
-			availabilityPercent.value1SubValue1QuantityRes = JSONUtils.optString(extrasJSON, JSON_VALUE1_SUB_VALUE1_QUANTITY_RES);
-			availabilityPercent.value1SubValue1Color = JSONUtils.optInt(extrasJSON, JSON_VALUE1_SUB_VALUE1_COLOR);
-			availabilityPercent.value1SubValue1ColorBg = JSONUtils.optInt(extrasJSON, JSON_VALUE1_SUB_VALUE1_COLOR_BG);
-			availabilityPercent.value2 = extrasJSON.getInt(JSON_VALUE2);
-			availabilityPercent.value2EmptyRes = extrasJSON.getString(JSON_VALUE2_EMPTY_RES);
-			availabilityPercent.value2QuantityRes = extrasJSON.getString(JSON_VALUE2_QUANTITY_RES);
-			availabilityPercent.value2Color = extrasJSON.getInt(JSON_VALUE2_COLOR);
-			availabilityPercent.value2ColorBg = extrasJSON.getInt(JSON_VALUE2_COLOR_BG);
-			return availabilityPercent;
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while retrieving extras information from cursor.");
-			return null;
-		}
-	}
-
-	private static final String JSON_STATUS_MSG_ID = "statusMsgId";
-	private static final String JSON_VALUE1 = "value1";
-	private static final String JSON_VALUE1_EMPTY_RES = "value1EmptyRes";
-	private static final String JSON_VALUE1_QUANTITY_RES = "value1QuantityRes";
-	private static final String JSON_VALUE1_COLOR = "value1Color";
-	private static final String JSON_VALUE1_COLOR_BG = "value1ColorBg";
-	private static final String JSON_VALUE1_SUB_VALUE_DEFAULT_EMPTY_RES = "value1SubValueDefaultEmptyRes";
-	private static final String JSON_VALUE1_SUB_VALUE_DEFAULT_QUANTITY_RES = "value1SubValueDefaultQuantityRes";
-	private static final String JSON_VALUE1_SUB_VALUE1 = "value1SubValue1";
-	private static final String JSON_VALUE1_SUB_VALUE1_EMPTY_RES = "value1SubValue1EmptyRes";
-	private static final String JSON_VALUE1_SUB_VALUE1_QUANTITY_RES = "value1SubValue1QuantityRes";
-	private static final String JSON_VALUE1_SUB_VALUE1_COLOR = "value1SubValue1Color";
-	private static final String JSON_VALUE1_SUB_VALUE1_COLOR_BG = "value1SubValue1ColorBg";
-	private static final String JSON_VALUE2 = "value2";
-	private static final String JSON_VALUE2_EMPTY_RES = "value2EmptyRes";
-	private static final String JSON_VALUE2_QUANTITY_RES = "value2QuantityRes";
-	private static final String JSON_VALUE2_COLOR = "value2Color";
-	private static final String JSON_VALUE2_COLOR_BG = "value2ColorBg";
 
 	@Nullable
 	@Override
-	public JSONObject getExtrasJSON() {
-		try {
-			JSONObject json = new JSONObject();
-			json.put(JSON_STATUS_MSG_ID, this.statusMsgId);
-			json.put(JSON_VALUE1, this.value1);
-			json.put(JSON_VALUE1_EMPTY_RES, this.value1EmptyRes);
-			json.put(JSON_VALUE1_QUANTITY_RES, this.value1QuantityRes);
-			json.put(JSON_VALUE1_COLOR, this.value1Color);
-			json.put(JSON_VALUE1_COLOR_BG, this.value1ColorBg);
-			if (this.value1SubValueDefaultEmptyRes != null
-					&& this.value1SubValueDefaultQuantityRes != null
-					&& this.value1SubValue1 != null
-					&& this.value1SubValue1EmptyRes != null
-					&& this.value1SubValue1QuantityRes != null
-					&& this.value1SubValue1Color != null
-					&& this.value1SubValue1ColorBg != null) {
-				json.put(JSON_VALUE1_SUB_VALUE_DEFAULT_EMPTY_RES, this.value1SubValueDefaultEmptyRes);
-				json.put(JSON_VALUE1_SUB_VALUE_DEFAULT_QUANTITY_RES, this.value1SubValueDefaultQuantityRes);
-				json.put(JSON_VALUE1_SUB_VALUE1, this.value1SubValue1);
-				json.put(JSON_VALUE1_SUB_VALUE1_EMPTY_RES, this.value1SubValue1EmptyRes);
-				json.put(JSON_VALUE1_SUB_VALUE1_QUANTITY_RES, this.value1SubValue1QuantityRes);
-				json.put(JSON_VALUE1_SUB_VALUE1_COLOR, this.value1SubValue1Color);
-				json.put(JSON_VALUE1_SUB_VALUE1_COLOR_BG, this.value1SubValue1ColorBg);
-			}
-			json.put(JSON_VALUE2, this.value2);
-			json.put(JSON_VALUE2_EMPTY_RES, this.value2EmptyRes);
-			json.put(JSON_VALUE2_QUANTITY_RES, this.value2QuantityRes);
-			json.put(JSON_VALUE2_COLOR, this.value2Color);
-			json.put(JSON_VALUE2_COLOR_BG, this.value2ColorBg);
-			return json;
-		} catch (Exception e) {
-			MTLog.w(LOG_TAG, e, "Error while converting object '%s' to JSON!", this);
-			return null; // no partial result
-		}
+	public JsonObject getExtrasJson() {
+		return AvailabilityPercentExtKt.toJson(this);
 	}
 
 	@NonNull

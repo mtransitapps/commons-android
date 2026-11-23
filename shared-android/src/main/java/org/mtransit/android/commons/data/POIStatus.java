@@ -11,7 +11,6 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONObject;
 import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.MTLog;
@@ -19,10 +18,14 @@ import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.status.StatusProviderContract;
 
+import java.util.Collections;
+
+import kotlinx.serialization.json.JsonObject;
+
 // TODO abstract
 public class POIStatus implements MTLog.Loggable {
 
-	private static final String LOG_TAG = POIStatus.class.getSimpleName();
+	protected static final String LOG_TAG = POIStatus.class.getSimpleName();
 
 	@NonNull
 	@Override
@@ -88,9 +91,6 @@ public class POIStatus implements MTLog.Loggable {
 				'}';
 	}
 
-	private static final String JSON_SOURCE_LABEL = "sourceLabel";
-	private static final String JSON_NO_DATA = "noData";
-
 	@NonNull
 	public static POIStatus fromCursor(@NonNull Cursor cursor) {
 		int idIdx = cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_ID);
@@ -109,11 +109,11 @@ public class POIStatus implements MTLog.Loggable {
 		String sourceLabel = null; // optional
 		boolean noData = false; // optional
 		try {
-			String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
-			JSONObject extrasJSON = extrasJSONString.isEmpty() ? null : new JSONObject(extrasJSONString);
+			final String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
+			final JsonObject extrasJSON = POIStatusExtKt.toJsonObject(extrasJSONString);
 			if (extrasJSON != null) {
-				noData = extrasJSON.optBoolean(JSON_NO_DATA, false);
-				sourceLabel = extrasJSON.optString(JSON_SOURCE_LABEL, null);
+				noData = POIStatusExtKt.getNoDataFromJsonOrDefault(extrasJSON);
+				sourceLabel = POIStatusExtKt.getSourceLabelFromJson(extrasJSON);
 			}
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while retrieving extras information from cursor.");
@@ -196,13 +196,13 @@ public class POIStatus implements MTLog.Loggable {
 	@Nullable
 	private String getExtrasJSONString() {
 		try {
-			JSONObject extrasJSON = getExtrasJSON();
+			JsonObject extrasJSON = getExtrasJson();
 			if (extrasJSON == null) {
-				extrasJSON = new JSONObject();
+				extrasJSON = new JsonObject(Collections.emptyMap());
 			}
-			extrasJSON.put(JSON_SOURCE_LABEL, this.sourceLabel);
-			extrasJSON.put(JSON_NO_DATA, this.noData);
-			return extrasJSON.toString();
+			return POIStatusExtKt.toJsonString(
+					POIStatusExtKt.toJsonCommon(extrasJSON, this)
+			);
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while converting JSON to String!");
 			return null;
@@ -210,7 +210,7 @@ public class POIStatus implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public JSONObject getExtrasJSON() {
+	public JsonObject getExtrasJson() {
 		return null; // to override in super class
 	}
 
