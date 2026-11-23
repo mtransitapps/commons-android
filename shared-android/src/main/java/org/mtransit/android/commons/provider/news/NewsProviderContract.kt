@@ -12,7 +12,6 @@ import kotlinx.serialization.json.addAll
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
@@ -203,10 +202,10 @@ interface NewsProviderContract : ProviderContract {
                     inFocus = getInFocusFromJson(),
                     providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
                     articlesUUIDs = this[JSON_ARTICLE_UUIDS]?.jsonArrayOrNull?.takeIf { it.isNotEmpty() }?.mapNotNull {
-                        it.jsonPrimitive.contentOrNull
+                        it.jsonPrimitiveOrNull?.contentOrNull
                     },
                     targetsUUIDs = this[JSON_TARGETS_UUIDS]?.jsonArrayOrNull?.takeIf { it.isNotEmpty() }?.mapNotNull {
-                        it.jsonPrimitive.contentOrNull
+                        it.jsonPrimitiveOrNull?.contentOrNull
                     },
                     minCreatedAtInMs = this[JSON_MIN_CREATED_AT_IN_MS]?.jsonPrimitiveOrNull?.longOrNull,
                 )

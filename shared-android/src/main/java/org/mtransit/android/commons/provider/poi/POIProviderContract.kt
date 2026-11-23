@@ -347,7 +347,7 @@ interface POIProviderContract : ProviderContract {
                     optLoadedMaxLat = optLoadedMaxLat,
                     optLoadedMinLng = optLoadedMinLng,
                     optLoadedMaxLng = optLoadedMaxLng,
-                    uuids = this[JSON_UUIDS]?.jsonArrayOrNull?.mapNotNull { it.jsonPrimitive.contentOrNull },
+                    uuids = this[JSON_UUIDS]?.jsonArrayOrNull?.mapNotNull { it.jsonPrimitiveOrNull?.contentOrNull },
                     extras = SimpleArrayMap<String, Any>().apply {
                         this@toFilter[JSON_EXTRAS]?.jsonArrayOrNull?.let { jExtras ->
                             jExtras.forEach { jExtra ->
@@ -362,7 +362,7 @@ interface POIProviderContract : ProviderContract {
                         }
                     },
                     sqlSelection = this[JSON_SQL_SELECTION]?.jsonPrimitiveOrNull?.contentOrNull,
-                    searchKeywords = this[JSON_SEARCH_KEYWORDS]?.jsonArrayOrNull?.mapNotNull { it.jsonPrimitive.contentOrNull },
+                    searchKeywords = this[JSON_SEARCH_KEYWORDS]?.jsonArrayOrNull?.mapNotNull { it.jsonPrimitiveOrNull?.contentOrNull },
                 ).takeIf {
                     (it.lat != null && it.lng != null && it.aroundDiff != null)
                         || (it.minLat != null && it.maxLat != null && it.minLng != null && it.maxLng != null)

@@ -10,6 +10,7 @@ import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.ScheduleTimestamps.LOG_TAG
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.commons.jsonArrayOrNull
+import org.mtransit.commons.jsonObjectOrNull
 import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlinx.serialization.json.put as putK
 
@@ -29,7 +30,7 @@ fun ScheduleTimestamps.toScheduleTimestamps(jsonObject: JsonObject) = this.apply
         sourceLabel = jsonObject[JSON_SOURCE_LABEL]?.jsonPrimitiveOrNull?.contentOrNull
         var localTimeZoneId = jsonObject[JSON_LOCAL_TIME_ZONE_ID]?.jsonPrimitiveOrNull?.contentOrNull
         val timestamps = jsonObject[JSON_TIMESTAMPS]?.jsonArrayOrNull?.mapNotNull {
-            it.jsonObject.toTimestamp()
+            it.jsonObjectOrNull?.toTimestamp()
         }.orEmpty()
         if (localTimeZoneId == null) {
             //noinspection DiscouragedApi

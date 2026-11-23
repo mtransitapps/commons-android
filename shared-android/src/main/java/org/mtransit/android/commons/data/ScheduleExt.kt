@@ -22,6 +22,7 @@ import org.mtransit.android.commons.toDateTimeLog
 import org.mtransit.android.commons.toDurationLog
 import org.mtransit.android.commons.toMillis
 import org.mtransit.commons.jsonArrayOrNull
+import org.mtransit.commons.jsonObjectOrNull
 import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -322,14 +323,14 @@ fun POIStatus.toSchedule(jsonString: String) = try {
 fun POIStatus.toSchedule(jsonObject: JsonObject) = try {
     var localTimeZoneId = jsonObject[JSON_LOCAL_TIME_ZONE_ID]?.jsonPrimitiveOrNull?.contentOrNull
     val timestamps = jsonObject[JSON_TIMESTAMPS]?.jsonArrayOrNull?.mapNotNull {
-        it.jsonObject.toTimestamp()
+        it.jsonObjectOrNull?.toTimestamp()
     }.orEmpty()
     if (localTimeZoneId == null) {
         //noinspection DiscouragedApi
         localTimeZoneId = timestamps.find { it.localTimeZoneId != null }?.localTimeZoneId
     }
     val frequencies = jsonObject[JSON_FREQUENCIES]?.jsonArrayOrNull?.mapNotNull {
-        it.jsonObject.toFrequency()
+        it.jsonObjectOrNull?.toFrequency()
     }.orEmpty()
     Schedule(
         this,

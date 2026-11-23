@@ -59,8 +59,8 @@ interface ProviderContract : MTLogK.Loggable {
             fun JsonObject.getCacheValidityInMsFromJson() = this[JSON_CACHE_VALIDITY_IN_MS]?.jsonPrimitiveOrNull?.longOrNull
 
             fun JsonObject.getProvidedEncryptKeysMapFromJson(): Secret<Map<String, String>>? =
-                this[JSON_PROVIDED_ENCRYPT_KEYS_MAP]?.jsonObjectOrNull?.mapNotNull { (key, value) ->
-                    value.jsonPrimitive.contentOrNull?.takeIf { it.isNotBlank() }?.let { key to it }
+                this[JSON_PROVIDED_ENCRYPT_KEYS_MAP]?.jsonObjectOrNull?.mapNotNull { (key, jsonElement) ->
+                    jsonElement.jsonPrimitiveOrNull?.contentOrNull?.takeIf { it.isNotBlank() }?.let { key to it }
                 }?.toMap()?.let { Secret(it) }
 
             fun JsonObjectBuilder.toJsonCommon(filter: Filter) = filter.apply {
