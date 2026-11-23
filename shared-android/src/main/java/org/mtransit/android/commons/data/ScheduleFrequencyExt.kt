@@ -9,6 +9,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.Schedule.Frequency.LOG_TAG
+import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlinx.serialization.json.put as putK
 
 private const val JSON_START_TIME_IN_MS = "startTimeInMs"
@@ -21,7 +22,7 @@ fun JsonObject.toFrequency() = try {
         getValue(JSON_START_TIME_IN_MS).jsonPrimitive.long,
         getValue(JSON_END_TIME_IN_MS).jsonPrimitive.long,
         getValue(JSON_HEADWAY_IN_SEC).jsonPrimitive.int,
-        get(JSON_OLD_SCHEDULE)?.jsonPrimitive?.booleanOrNull,
+        get(JSON_OLD_SCHEDULE)?.jsonPrimitiveOrNull?.booleanOrNull,
     )
 } catch (se: SerializationException) {
     MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)

@@ -10,6 +10,7 @@ import kotlinx.serialization.json.long
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.Route.LOG_TAG
 import org.mtransit.commons.GTFSCommons
+import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlinx.serialization.json.put as putK
 
 private const val JSON_AUTHORITY = "authority"
@@ -38,13 +39,13 @@ fun Route.toJson() = try {
 @Throws(SerializationException::class)
 fun JsonObject.toRoute(authority: String) = try {
     Route(
-        this[JSON_AUTHORITY]?.jsonPrimitive?.contentOrNull ?: authority,
+        this[JSON_AUTHORITY]?.jsonPrimitiveOrNull?.contentOrNull ?: authority,
         getValue(JSON_ID).jsonPrimitive.long,
         getValue(JSON_SHORT_NAME).jsonPrimitive.content,
         getValue(JSON_LONG_NAME).jsonPrimitive.content,
         getValue(JSON_COLOR).jsonPrimitive.content,
-        this[JSON_ORIGINAL_ID_HASH]?.jsonPrimitive?.intOrNull ?: GTFSCommons.DEFAULT_ID_HASH,
-        this[JSON_TYPE]?.jsonPrimitive?.intOrNull ?: GTFSCommons.DEFAULT_ROUTE_TYPE,
+        this[JSON_ORIGINAL_ID_HASH]?.jsonPrimitiveOrNull?.intOrNull ?: GTFSCommons.DEFAULT_ID_HASH,
+        this[JSON_TYPE]?.jsonPrimitiveOrNull?.intOrNull ?: GTFSCommons.DEFAULT_ROUTE_TYPE,
     )
 } catch (se: SerializationException) {
     MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", se)

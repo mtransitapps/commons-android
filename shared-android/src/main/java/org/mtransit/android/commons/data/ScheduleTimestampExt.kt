@@ -13,6 +13,7 @@ import kotlinx.serialization.json.longOrNull
 import org.mtransit.android.commons.BuildConfig
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.Schedule.Timestamp.LOG_TAG
+import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlinx.serialization.json.put as putK
 
 private const val JSON_DEPARTURE = "t"
@@ -30,7 +31,7 @@ private const val JSON_ACCESSIBLE = "a11y"
 private const val JSON_CANCELLED = "cancelled"
 
 fun JsonObject.toTimestamp() = try {
-    val localTimeZoneId = jsonObject[JSON_LOCAL_TIME_ZONE_ID_]?.jsonPrimitive?.contentOrNull
+    val localTimeZoneId = jsonObject[JSON_LOCAL_TIME_ZONE_ID_]?.jsonPrimitiveOrNull?.contentOrNull
     if (localTimeZoneId == null) {
         check(!BuildConfig.DEBUG) { "Timestamp missing timezone in JSON!" }
         MTLogK.w(LOG_TAG, "Timestamp missing timezone in JSON '$this'!")
@@ -39,13 +40,13 @@ fun JsonObject.toTimestamp() = try {
         getValue(JSON_DEPARTURE).jsonPrimitive.long,
         localTimeZoneId,
     ).apply {
-        jsonObject[JSON_ORIGINAL_DEPARTURE_DELAY]?.jsonPrimitive?.longOrNull?.let { originalDepartureDelayMs = it }
-        jsonObject[JSON_DEPARTURE_ARRIVAL_DIFF]?.jsonPrimitive?.longOrNull?.let { departureArrivalDiffMs = it }
-        jsonObject[JSON_ORIGINAL_ARRIVAL_DELAY]?.jsonPrimitive?.longOrNull?.let { originalArrivalDelayMs = it }
-        jsonObject[JSON_TRIP_ID]?.jsonPrimitive?.contentOrNull?.let { tripId = it }
-        jsonObject[JSON_STOP_SEQUENCE]?.jsonPrimitive?.intOrNull?.let { setStopSequence(it) }
-        val headSignType = jsonObject[JSON_HEADSIGN_TYPE]?.jsonPrimitive?.intOrNull ?: Direction.HEADSIGN_TYPE_NONE
-        val headSignValue = jsonObject[JSON_HEADSIGN_VALUE]?.jsonPrimitive?.contentOrNull.orEmpty()
+        jsonObject[JSON_ORIGINAL_DEPARTURE_DELAY]?.jsonPrimitiveOrNull?.longOrNull?.let { originalDepartureDelayMs = it }
+        jsonObject[JSON_DEPARTURE_ARRIVAL_DIFF]?.jsonPrimitiveOrNull?.longOrNull?.let { departureArrivalDiffMs = it }
+        jsonObject[JSON_ORIGINAL_ARRIVAL_DELAY]?.jsonPrimitiveOrNull?.longOrNull?.let { originalArrivalDelayMs = it }
+        jsonObject[JSON_TRIP_ID]?.jsonPrimitiveOrNull?.contentOrNull?.let { tripId = it }
+        jsonObject[JSON_STOP_SEQUENCE]?.jsonPrimitiveOrNull?.intOrNull?.let { setStopSequence(it) }
+        val headSignType = jsonObject[JSON_HEADSIGN_TYPE]?.jsonPrimitiveOrNull?.intOrNull ?: Direction.HEADSIGN_TYPE_NONE
+        val headSignValue = jsonObject[JSON_HEADSIGN_VALUE]?.jsonPrimitiveOrNull?.contentOrNull.orEmpty()
         if (headSignType >= 0 && headSignValue.isNotEmpty()) {
             setHeadsign(headSignType, headSignValue)
         } else {
@@ -53,10 +54,10 @@ fun JsonObject.toTimestamp() = try {
                 setHeadsign(headSignType, null)
             }
         }
-        jsonObject[JSON_REAL_TIME]?.jsonPrimitive?.booleanOrNull?.let { realTime = it }
-        jsonObject[JSON_OLD_SCHEDULE]?.jsonPrimitive?.booleanOrNull?.let { oldSchedule = it }
-        jsonObject[JSON_ACCESSIBLE]?.jsonPrimitive?.intOrNull?.let { accessible = it }
-        jsonObject[JSON_CANCELLED]?.jsonPrimitive?.booleanOrNull?.let { cancelled = it }
+        jsonObject[JSON_REAL_TIME]?.jsonPrimitiveOrNull?.booleanOrNull?.let { realTime = it }
+        jsonObject[JSON_OLD_SCHEDULE]?.jsonPrimitiveOrNull?.booleanOrNull?.let { oldSchedule = it }
+        jsonObject[JSON_ACCESSIBLE]?.jsonPrimitiveOrNull?.intOrNull?.let { accessible = it }
+        jsonObject[JSON_CANCELLED]?.jsonPrimitiveOrNull?.booleanOrNull?.let { cancelled = it }
     }
 } catch (se: SerializationException) {
     MTLogK.w(LOG_TAG, "Error while parsing JSON object '$jsonObject'", se)

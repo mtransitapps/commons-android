@@ -13,7 +13,6 @@ import kotlinx.serialization.json.addAll
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.double
-import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
@@ -24,6 +23,8 @@ import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.provider.common.ContentProviderConstants
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.common.sharedJson
+import org.mtransit.commons.jsonArrayOrNull
+import org.mtransit.commons.jsonPrimitiveOrNull
 import org.mtransit.commons.model.Secret
 import org.mtransit.commons.toAny
 import org.mtransit.commons.toJsonElement
@@ -315,10 +316,10 @@ interface POIProviderContract : ProviderContract {
                     maxLat = getValue(JSON_MAX_LAT).jsonPrimitive.double
                     minLng = getValue(JSON_MIN_LNG).jsonPrimitive.double
                     maxLng = getValue(JSON_MAX_LNG).jsonPrimitive.double
-                    optLoadedMinLat = this[JSON_OPT_LOADED_MIN_LAT]?.jsonPrimitive?.double
-                    optLoadedMaxLat = this[JSON_OPT_LOADED_MAX_LAT]?.jsonPrimitive?.double
-                    optLoadedMinLng = this[JSON_OPT_LOADED_MIN_LNG]?.jsonPrimitive?.double
-                    optLoadedMaxLng = this[JSON_OPT_LOADED_MAX_LNG]?.jsonPrimitive?.double
+                    optLoadedMinLat = this[JSON_OPT_LOADED_MIN_LAT]?.jsonPrimitiveOrNull?.double
+                    optLoadedMaxLat = this[JSON_OPT_LOADED_MAX_LAT]?.jsonPrimitiveOrNull?.double
+                    optLoadedMinLng = this[JSON_OPT_LOADED_MIN_LNG]?.jsonPrimitiveOrNull?.double
+                    optLoadedMaxLng = this[JSON_OPT_LOADED_MAX_LNG]?.jsonPrimitiveOrNull?.double
                 } catch (_: RuntimeException) { // expected
                     minLat = null
                     maxLat = null
@@ -346,9 +347,9 @@ interface POIProviderContract : ProviderContract {
                     optLoadedMaxLat = optLoadedMaxLat,
                     optLoadedMinLng = optLoadedMinLng,
                     optLoadedMaxLng = optLoadedMaxLng,
-                    uuids = this[JSON_UUIDS]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull },
+                    uuids = this[JSON_UUIDS]?.jsonArrayOrNull?.mapNotNull { it.jsonPrimitive.contentOrNull },
                     extras = SimpleArrayMap<String, Any>().apply {
-                        this@toFilter[JSON_EXTRAS]?.jsonArray?.let { jExtras ->
+                        this@toFilter[JSON_EXTRAS]?.jsonArrayOrNull?.let { jExtras ->
                             jExtras.forEach { jExtra ->
                                 val key = runCatching {
                                     jExtra.jsonObject.getValue(JSON_EXTRAS_KEY).jsonPrimitive.content
@@ -360,8 +361,8 @@ interface POIProviderContract : ProviderContract {
                             }
                         }
                     },
-                    sqlSelection = this[JSON_SQL_SELECTION]?.jsonPrimitive?.contentOrNull,
-                    searchKeywords = this[JSON_SEARCH_KEYWORDS]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull },
+                    sqlSelection = this[JSON_SQL_SELECTION]?.jsonPrimitiveOrNull?.contentOrNull,
+                    searchKeywords = this[JSON_SEARCH_KEYWORDS]?.jsonArrayOrNull?.mapNotNull { it.jsonPrimitive.contentOrNull },
                 ).takeIf {
                     (it.lat != null && it.lng != null && it.aroundDiff != null)
                         || (it.minLat != null && it.maxLat != null && it.minLng != null && it.maxLng != null)

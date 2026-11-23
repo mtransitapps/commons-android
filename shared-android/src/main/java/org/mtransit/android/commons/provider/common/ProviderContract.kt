@@ -10,13 +10,14 @@ import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.SecureStringUtils
 import org.mtransit.android.commons.toDurationLog
+import org.mtransit.commons.jsonObjectOrNull
+import org.mtransit.commons.jsonPrimitiveOrNull
 import org.mtransit.commons.model.Secret
 import kotlin.time.Duration.Companion.days
 
@@ -51,14 +52,14 @@ interface ProviderContract : MTLogK.Loggable {
             private const val JSON_IN_FOCUS = "inFocus"
             private const val JSON_PROVIDED_ENCRYPT_KEYS_MAP = "providedEncryptKeysMap"
 
-            fun JsonObject.getCacheOnlyFromJson() = this[JSON_CACHE_ONLY]?.jsonPrimitive?.booleanOrNull
+            fun JsonObject.getCacheOnlyFromJson() = this[JSON_CACHE_ONLY]?.jsonPrimitiveOrNull?.booleanOrNull
 
-            fun JsonObject.getInFocusFromJson() = this[JSON_IN_FOCUS]?.jsonPrimitive?.booleanOrNull
+            fun JsonObject.getInFocusFromJson() = this[JSON_IN_FOCUS]?.jsonPrimitiveOrNull?.booleanOrNull
 
-            fun JsonObject.getCacheValidityInMsFromJson() = this[JSON_CACHE_VALIDITY_IN_MS]?.jsonPrimitive?.longOrNull
+            fun JsonObject.getCacheValidityInMsFromJson() = this[JSON_CACHE_VALIDITY_IN_MS]?.jsonPrimitiveOrNull?.longOrNull
 
             fun JsonObject.getProvidedEncryptKeysMapFromJson(): Secret<Map<String, String>>? =
-                this[JSON_PROVIDED_ENCRYPT_KEYS_MAP]?.jsonObject?.mapNotNull { (key, value) ->
+                this[JSON_PROVIDED_ENCRYPT_KEYS_MAP]?.jsonObjectOrNull?.mapNotNull { (key, value) ->
                     value.jsonPrimitive.contentOrNull?.takeIf { it.isNotBlank() }?.let { key to it }
                 }?.toMap()?.let { Secret(it) }
 

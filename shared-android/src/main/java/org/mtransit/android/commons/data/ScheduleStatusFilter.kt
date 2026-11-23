@@ -6,13 +6,14 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.provider.status.StatusProviderContract
+import org.mtransit.commons.jsonObjectOrNull
+import org.mtransit.commons.jsonPrimitiveOrNull
 import org.mtransit.commons.model.Secret
 import java.util.concurrent.TimeUnit
 
@@ -77,18 +78,18 @@ data class ScheduleStatusFilter(
         private const val JSON_INCLUDE_CANCELLED_TIMESTAMPS = "includeCancelledTimestamps"
 
         fun JsonObject.toFilter() = try {
-            this[JSON_ROUTE_DIRECTION_STOP]?.jsonObject?.toRouteDirectionStop()?.let { routeDirectionStop ->
+            this[JSON_ROUTE_DIRECTION_STOP]?.jsonObjectOrNull?.toRouteDirectionStop()?.let { routeDirectionStop ->
                 ScheduleStatusFilter(
                     cacheOnly = getCacheOnlyFromJson(),
                     cacheValidityInMs = getCacheValidityInMsFromJson(),
                     inFocus = getInFocusFromJson(),
                     providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
                     routeDirectionStop = routeDirectionStop,
-                    lookBehindInMs = this[JSON_LOOK_BEHIND_IN_MS]?.jsonPrimitive?.longOrNull,
-                    minUsefulDurationCoveredInMs = this[JSON_MIN_USEFUL_DURATION_COVERED_IN_MS]?.jsonPrimitive?.longOrNull,
-                    minUsefulResults = this[JSON_MIN_USEFUL_RESULTS]?.jsonPrimitive?.intOrNull,
-                    maxDataRequests = this[JSON_MAX_DATA_REQUESTS]?.jsonPrimitive?.intOrNull,
-                    includeCancelledTimestamps = this[JSON_INCLUDE_CANCELLED_TIMESTAMPS]?.jsonPrimitive?.booleanOrNull,
+                    lookBehindInMs = this[JSON_LOOK_BEHIND_IN_MS]?.jsonPrimitiveOrNull?.longOrNull,
+                    minUsefulDurationCoveredInMs = this[JSON_MIN_USEFUL_DURATION_COVERED_IN_MS]?.jsonPrimitiveOrNull?.longOrNull,
+                    minUsefulResults = this[JSON_MIN_USEFUL_RESULTS]?.jsonPrimitiveOrNull?.intOrNull,
+                    maxDataRequests = this[JSON_MAX_DATA_REQUESTS]?.jsonPrimitiveOrNull?.intOrNull,
+                    includeCancelledTimestamps = this[JSON_INCLUDE_CANCELLED_TIMESTAMPS]?.jsonPrimitiveOrNull?.booleanOrNull,
                 )
             }
         } catch (se: SerializationException) {

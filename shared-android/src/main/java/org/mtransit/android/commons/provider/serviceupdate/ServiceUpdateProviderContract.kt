@@ -9,7 +9,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.Direction
@@ -25,6 +24,8 @@ import org.mtransit.android.commons.data.toRouteDirection
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderFilter
+import org.mtransit.commons.jsonObjectOrNull
+import org.mtransit.commons.jsonPrimitiveOrNull
 import org.mtransit.commons.model.Secret
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -142,13 +143,13 @@ interface ServiceUpdateProviderContract : ProviderContract {
 
             fun JsonObject.toFilter() =
                 try {
-                    val poi = this[JSON_POI]?.jsonObject?.toPOI()
-                    val authority = this[JSON_AUTHORITY]?.jsonPrimitive?.contentOrNull ?: poi?.authority
+                    val poi = this[JSON_POI]?.jsonObjectOrNull?.toPOI()
+                    val authority = this[JSON_AUTHORITY]?.jsonPrimitiveOrNull?.contentOrNull ?: poi?.authority
                     val route = authority?.let { authority ->
-                        this[JSON_ROUTE]?.jsonObject?.toRoute(authority)
+                        this[JSON_ROUTE]?.jsonObjectOrNull?.toRoute(authority)
                     }
                     val routeDirection = authority?.let { authority ->
-                        this[JSON_ROUTE_DIRECTION]?.jsonObject?.toRouteDirection(authority)
+                        this[JSON_ROUTE_DIRECTION]?.jsonObjectOrNull?.toRouteDirection(authority)
                     }
                     //noinspection DiscouragedApi
                     Filter(

@@ -5,11 +5,11 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.provider.status.StatusProviderContract
+import org.mtransit.commons.jsonPrimitiveOrNull
 import org.mtransit.commons.model.Secret
 
 data class AppStatusFilter(
@@ -49,7 +49,7 @@ data class AppStatusFilter(
                 inFocus = getInFocusFromJson(),
                 providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
                 targetUUID = getTargetUUIDFromJson(),
-                pkg = this[JSON_PKG]?.jsonPrimitive?.contentOrNull ?: throw SerializationException("Missing key '$JSON_PKG'!"),
+                pkg = this[JSON_PKG]?.jsonPrimitiveOrNull?.contentOrNull ?: throw SerializationException("Missing key '$JSON_PKG'!"),
             )
         } catch (se: SerializationException) {
             MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)

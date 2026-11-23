@@ -8,7 +8,6 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
@@ -22,6 +21,8 @@ import org.mtransit.android.commons.roundToNearest
 import org.mtransit.android.commons.toDateTimeLog
 import org.mtransit.android.commons.toDurationLog
 import org.mtransit.android.commons.toMillis
+import org.mtransit.commons.jsonArrayOrNull
+import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -319,21 +320,21 @@ fun POIStatus.toSchedule(jsonString: String) = try {
 }
 
 fun POIStatus.toSchedule(jsonObject: JsonObject) = try {
-    var localTimeZoneId = jsonObject[JSON_LOCAL_TIME_ZONE_ID]?.jsonPrimitive?.contentOrNull
-    val timestamps = jsonObject[JSON_TIMESTAMPS]?.jsonArray?.mapNotNull {
+    var localTimeZoneId = jsonObject[JSON_LOCAL_TIME_ZONE_ID]?.jsonPrimitiveOrNull?.contentOrNull
+    val timestamps = jsonObject[JSON_TIMESTAMPS]?.jsonArrayOrNull?.mapNotNull {
         it.jsonObject.toTimestamp()
     }.orEmpty()
     if (localTimeZoneId == null) {
         //noinspection DiscouragedApi
         localTimeZoneId = timestamps.find { it.localTimeZoneId != null }?.localTimeZoneId
     }
-    val frequencies = jsonObject[JSON_FREQUENCIES]?.jsonArray?.mapNotNull {
+    val frequencies = jsonObject[JSON_FREQUENCIES]?.jsonArrayOrNull?.mapNotNull {
         it.jsonObject.toFrequency()
     }.orEmpty()
     Schedule(
         this,
         jsonObject.getValue(JSON_PROVIDER_PRECISION_IN_MS).jsonPrimitive.long,
-        jsonObject[JSON_IS_NO_PICKUP]?.jsonPrimitive?.booleanOrNull ?: false,
+        jsonObject[JSON_IS_NO_PICKUP]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
         localTimeZoneId
     ).apply {
         setTimestampsAndSort(timestamps)

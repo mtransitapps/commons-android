@@ -10,6 +10,7 @@ import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.toRouteDirectionStop
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.provider.scheduletimestamp.ScheduleTimestampsProviderContract.Filter.LOG_TAG
+import org.mtransit.commons.jsonObjectOrNull
 import kotlinx.serialization.json.put as putK
 
 // region Filter
@@ -28,7 +29,7 @@ fun String.toFilter() = try {
 }
 
 fun JsonObject.toFilter() = try {
-    this[JSON_ROUTE_DIRECTION_STOP]?.jsonObject?.toRouteDirectionStop()?.let { rds ->
+    this[JSON_ROUTE_DIRECTION_STOP]?.jsonObjectOrNull?.toRouteDirectionStop()?.let { rds ->
         ScheduleTimestampsProviderContract.Filter(
             rds,
             getValue(JSON_STARTS_AT_IN_MS).jsonPrimitive.long,

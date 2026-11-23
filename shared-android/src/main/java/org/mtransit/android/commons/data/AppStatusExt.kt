@@ -5,10 +5,10 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.AppStatus.LOG_TAG
 import org.mtransit.android.commons.provider.common.sharedJson
+import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlinx.serialization.json.put as putK
 
 private const val JSON_APP_INSTALLED = "appInstalled"
@@ -26,9 +26,9 @@ fun POIStatus.toAppStatus(jsonString: String? = null) = try {
 private fun POIStatus.toAppStatus(jsonObject: JsonObject?) = try {
     AppStatus(
         this,
-        jsonObject?.get(JSON_APP_INSTALLED)?.jsonPrimitive?.booleanOrNull ?: false,
-        jsonObject?.get(JSON_APP_ENABLED)?.jsonPrimitive?.booleanOrNull ?: true,
-        jsonObject?.get(JSON_UPDATE_AVAILABLE)?.jsonPrimitive?.booleanOrNull ?: false,
+        jsonObject?.get(JSON_APP_INSTALLED)?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
+        jsonObject?.get(JSON_APP_ENABLED)?.jsonPrimitiveOrNull?.booleanOrNull ?: true,
+        jsonObject?.get(JSON_UPDATE_AVAILABLE)?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
     )
 } catch (se: SerializationException) {
     MTLogK.w(LOG_TAG, "Error while parsing JSON object '$jsonObject'", se)

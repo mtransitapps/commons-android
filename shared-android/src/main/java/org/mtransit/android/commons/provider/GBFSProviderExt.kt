@@ -9,12 +9,13 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.provider.GBFSProvider.LOG_TAG
+import org.mtransit.commons.jsonArrayOrNull
+import org.mtransit.commons.jsonObjectOrNull
+import org.mtransit.commons.jsonPrimitiveOrNull
 
 private val gbfsJson = Json {
     allowTrailingComma = true // do not fail on trailing comma
@@ -42,7 +43,7 @@ internal fun String.toJStationInfoList() = try {
 }
 
 internal fun JsonObject.toJStationInfoList() = try {
-    get(JSON_DATA)?.jsonObject?.get(JSON_STATIONS)?.jsonArray?.map { jStation ->
+    get(JSON_DATA)?.jsonObjectOrNull?.get(JSON_STATIONS)?.jsonArrayOrNull?.map { jStation ->
         jStation.jsonObject.toJStationInfo()
     }.orEmpty()
 } catch (se: SerializationException) {
@@ -51,12 +52,12 @@ internal fun JsonObject.toJStationInfoList() = try {
 }
 
 internal fun JsonObject.toJStationInfo() = GBFSProvider.JStationInformation.JData.JStation(
-    this[JSON_STATION_ID]?.jsonPrimitive?.contentOrNull,
-    this[JSON_NAME]?.jsonPrimitive?.contentOrNull,
-    this[JSON_SHORT_NAME]?.jsonPrimitive?.contentOrNull,
-    this[JSON_LAT]?.jsonPrimitive?.doubleOrNull,
-    this[JSON_LON]?.jsonPrimitive?.doubleOrNull,
-    this[JSON_CAPACITY]?.jsonPrimitive?.intOrNull,
+    this[JSON_STATION_ID]?.jsonPrimitiveOrNull?.contentOrNull,
+    this[JSON_NAME]?.jsonPrimitiveOrNull?.contentOrNull,
+    this[JSON_SHORT_NAME]?.jsonPrimitiveOrNull?.contentOrNull,
+    this[JSON_LAT]?.jsonPrimitiveOrNull?.doubleOrNull,
+    this[JSON_LON]?.jsonPrimitiveOrNull?.doubleOrNull,
+    this[JSON_CAPACITY]?.jsonPrimitiveOrNull?.intOrNull,
 )
 
 // endregion
@@ -82,7 +83,7 @@ internal fun String.toJStationStatusList() = try {
 }
 
 internal fun JsonObject.toJStationStatusList() = try {
-    get(JSON_DATA)?.jsonObject?.get(JSON_STATIONS)?.jsonArray?.map { jStation ->
+    get(JSON_DATA)?.jsonObjectOrNull?.get(JSON_STATIONS)?.jsonArrayOrNull?.map { jStation ->
         jStation.jsonObject.toJStationStatus()
     }.orEmpty()
 } catch (se: SerializationException) {
@@ -91,15 +92,15 @@ internal fun JsonObject.toJStationStatusList() = try {
 }
 
 internal fun JsonObject.toJStationStatus() = GBFSProvider.JStationStatus.JData.JStation(
-    this[JSON_STATION_ID]?.jsonPrimitive?.contentOrNull,
-    this[JSON_NUM_BIKES_AVAILABLE]?.jsonPrimitive?.intOrNull,
-    this[JSON_NUM_EBIKES_AVAILABLE]?.jsonPrimitive?.intOrNull,
-    this[JSON_NUM_BIKES_AVAILABLE_TYPES]?.jsonObject?.toJNumBikesAvailableTypes(),
-    this[JSON_NUM_DOCKS_AVAILABLE]?.jsonPrimitive?.intOrNull,
-    this[JSON_IS_INSTALLED]?.jsonPrimitive?.getIntOrBoolean(JSON_IS_INSTALLED),
-    this[JSON_IS_RENTING]?.jsonPrimitive?.getIntOrBoolean(JSON_IS_RENTING),
-    this[JSON_IS_RETURNING]?.jsonPrimitive?.getIntOrBoolean(JSON_IS_RETURNING),
-    this[JSON_LAST_REPORTED]?.jsonPrimitive?.longOrNull,
+    this[JSON_STATION_ID]?.jsonPrimitiveOrNull?.contentOrNull,
+    this[JSON_NUM_BIKES_AVAILABLE]?.jsonPrimitiveOrNull?.intOrNull,
+    this[JSON_NUM_EBIKES_AVAILABLE]?.jsonPrimitiveOrNull?.intOrNull,
+    this[JSON_NUM_BIKES_AVAILABLE_TYPES]?.jsonObjectOrNull?.toJNumBikesAvailableTypes(),
+    this[JSON_NUM_DOCKS_AVAILABLE]?.jsonPrimitiveOrNull?.intOrNull,
+    this[JSON_IS_INSTALLED]?.jsonPrimitiveOrNull?.getIntOrBoolean(JSON_IS_INSTALLED),
+    this[JSON_IS_RENTING]?.jsonPrimitiveOrNull?.getIntOrBoolean(JSON_IS_RENTING),
+    this[JSON_IS_RETURNING]?.jsonPrimitiveOrNull?.getIntOrBoolean(JSON_IS_RETURNING),
+    this[JSON_LAST_REPORTED]?.jsonPrimitiveOrNull?.longOrNull,
 )
 
 @VisibleForTesting
@@ -114,8 +115,8 @@ internal fun JsonPrimitive.getIntOrBoolean(key: String): Boolean? {
 }
 
 private fun JsonObject.toJNumBikesAvailableTypes() = GBFSProvider.JStationStatus.JData.JStation.JNumBikesAvailableTypes(
-    get(JSON_MECHANICAL)?.jsonPrimitive?.intOrNull,
-    get(JSON_EBIKE)?.jsonPrimitive?.intOrNull,
+    get(JSON_MECHANICAL)?.jsonPrimitiveOrNull?.intOrNull,
+    get(JSON_EBIKE)?.jsonPrimitiveOrNull?.intOrNull,
 )
 
 // endregion

@@ -11,6 +11,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.AvailabilityPercent.LOG_TAG
 import org.mtransit.android.commons.provider.common.sharedJson
+import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlinx.serialization.json.put as putK
 
 private const val JSON_STATUS_MSG_ID = "statusMsgId"
@@ -47,13 +48,13 @@ fun POIStatus.toAvailabilityPercent(jsonObject: JsonObject) = try {
         value1QuantityRes = jsonObject.getValue(JSON_VALUE1_QUANTITY_RES).jsonPrimitive.content
         value1Color = jsonObject.getValue(JSON_VALUE1_COLOR).jsonPrimitive.int
         value1ColorBg = jsonObject.getValue(JSON_VALUE1_COLOR_BG).jsonPrimitive.int
-        value1SubValueDefaultEmptyRes = jsonObject.get(JSON_VALUE1_SUB_VALUE_DEFAULT_EMPTY_RES)?.jsonPrimitive?.contentOrNull
-        value1SubValueDefaultQuantityRes = jsonObject.get(JSON_VALUE1_SUB_VALUE_DEFAULT_QUANTITY_RES)?.jsonPrimitive?.contentOrNull
-        value1SubValue1 = jsonObject.get(JSON_VALUE1_SUB_VALUE1)?.jsonPrimitive?.intOrNull
-        value1SubValue1EmptyRes = jsonObject.get(JSON_VALUE1_SUB_VALUE1_EMPTY_RES)?.jsonPrimitive?.contentOrNull
-        value1SubValue1QuantityRes = jsonObject.get(JSON_VALUE1_SUB_VALUE1_QUANTITY_RES)?.jsonPrimitive?.contentOrNull
-        value1SubValue1Color = jsonObject.get(JSON_VALUE1_SUB_VALUE1_COLOR)?.jsonPrimitive?.intOrNull
-        value1SubValue1ColorBg = jsonObject.get(JSON_VALUE1_SUB_VALUE1_COLOR_BG)?.jsonPrimitive?.intOrNull
+        value1SubValueDefaultEmptyRes = jsonObject.get(JSON_VALUE1_SUB_VALUE_DEFAULT_EMPTY_RES)?.jsonPrimitiveOrNull?.contentOrNull
+        value1SubValueDefaultQuantityRes = jsonObject.get(JSON_VALUE1_SUB_VALUE_DEFAULT_QUANTITY_RES)?.jsonPrimitiveOrNull?.contentOrNull
+        value1SubValue1 = jsonObject.get(JSON_VALUE1_SUB_VALUE1)?.jsonPrimitiveOrNull?.intOrNull
+        value1SubValue1EmptyRes = jsonObject.get(JSON_VALUE1_SUB_VALUE1_EMPTY_RES)?.jsonPrimitiveOrNull?.contentOrNull
+        value1SubValue1QuantityRes = jsonObject.get(JSON_VALUE1_SUB_VALUE1_QUANTITY_RES)?.jsonPrimitiveOrNull?.contentOrNull
+        value1SubValue1Color = jsonObject.get(JSON_VALUE1_SUB_VALUE1_COLOR)?.jsonPrimitiveOrNull?.intOrNull
+        value1SubValue1ColorBg = jsonObject.get(JSON_VALUE1_SUB_VALUE1_COLOR_BG)?.jsonPrimitiveOrNull?.intOrNull
         value2 = jsonObject.getValue(JSON_VALUE2).jsonPrimitive.int
         value2EmptyRes = jsonObject.getValue(JSON_VALUE2_EMPTY_RES).jsonPrimitive.content
         value2QuantityRes = jsonObject.getValue(JSON_VALUE2_QUANTITY_RES).jsonPrimitive.content

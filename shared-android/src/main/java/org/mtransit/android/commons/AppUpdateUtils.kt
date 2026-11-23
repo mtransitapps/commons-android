@@ -19,12 +19,12 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import org.mtransit.android.commons.AppUpdateUtils.AppUpdateFilter.Companion.toFilter
 import org.mtransit.android.commons.provider.GTFSProvider
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.receiver.DataChange
+import org.mtransit.commons.jsonPrimitiveOrNull
 import java.util.concurrent.TimeUnit
 
 object AppUpdateUtils : MTLogK.Loggable {
@@ -219,8 +219,8 @@ object AppUpdateUtils : MTLogK.Loggable {
 
             fun JsonObject.toFilter() = try {
                 AppUpdateFilter(
-                    forceRefresh = this[JSON_FORCE_REFRESH]?.jsonPrimitive?.booleanOrNull ?: false,
-                    inFocus = this[JSON_IN_FOCUS]?.jsonPrimitive?.booleanOrNull ?: false,
+                    forceRefresh = this[JSON_FORCE_REFRESH]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
+                    inFocus = this[JSON_IN_FOCUS]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
                 )
             } catch (se: SerializationException) {
                 MTLogK.w(LOG_TAG, "Error while parsing app update filter '$this'!", se)

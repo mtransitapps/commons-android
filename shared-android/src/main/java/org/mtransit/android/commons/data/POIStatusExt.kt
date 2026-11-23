@@ -6,12 +6,12 @@ import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.millisToInstant
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.commons.edit
+import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlin.time.Instant
 
 val POIStatus.readFromSource: Instant? get() = this.readFromSourceAtInMs.takeIf { it > 0 }?.millisToInstant()
@@ -32,8 +32,8 @@ fun String?.toJsonObject() = try {
     throw se
 }
 
-fun JsonObject?.getSourceLabelFromJson() = this?.get(JSON_SOURCE_LABEL)?.jsonPrimitive?.contentOrNull
-fun JsonObject?.getNoDataFromJson() = this?.get(JSON_NO_DATA)?.jsonPrimitive?.booleanOrNull
+fun JsonObject?.getSourceLabelFromJson() = this?.get(JSON_SOURCE_LABEL)?.jsonPrimitiveOrNull?.contentOrNull
+fun JsonObject?.getNoDataFromJson() = this?.get(JSON_NO_DATA)?.jsonPrimitiveOrNull?.booleanOrNull
 fun JsonObject?.getNoDataFromJsonOrDefault() = getNoDataFromJson() ?: false
 
 fun JsonObject.toJsonCommon(poiStatus: POIStatus) = edit { toJsonCommon(poiStatus) }

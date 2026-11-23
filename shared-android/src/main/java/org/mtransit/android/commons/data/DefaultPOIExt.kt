@@ -11,6 +11,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.DefaultPOI.LOG_TAG
 import org.mtransit.android.commons.data.POI.ItemViewType
+import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlinx.serialization.json.put as putK
 
 private const val JSON_AUTHORITY = "authority"
@@ -57,7 +58,7 @@ private fun JsonObject.toDefaultPOI(
         getDSTypeIdFromJson(),
         type,
         getValue(JSON_STATUS_TYPE).jsonPrimitive.int,
-        this[JSON_ACTION_TYPE]?.jsonPrimitive?.intOrNull ?: POI.ITEM_ACTION_TYPE_NONE,
+        this[JSON_ACTION_TYPE]?.jsonPrimitiveOrNull?.intOrNull ?: POI.ITEM_ACTION_TYPE_NONE,
         getLatFromJson(),
         getLngFromJson(),
         getNameFromJson()

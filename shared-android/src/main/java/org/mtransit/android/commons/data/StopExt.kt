@@ -13,6 +13,7 @@ import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.Stop.LOG_TAG
 import org.mtransit.commons.FeatureFlags.F_EXPORT_STOP_TIMEZONE_ID
 import org.mtransit.commons.GTFSCommons
+import org.mtransit.commons.jsonPrimitiveOrNull
 
 private const val JSON_ID = "id"
 private const val JSON_CODE = "code"
@@ -49,9 +50,9 @@ fun JsonObject.toStop() = try {
         getValue(JSON_NAME).jsonPrimitive.content,
         getValue(JSON_LAT).jsonPrimitive.double,
         getValue(JSON_LNG).jsonPrimitive.double,
-        this[JSON_ACCESSIBLE]?.jsonPrimitive?.intOrNull ?: Accessibility.DEFAULT,
-        this[JSON_ORIGINAL_ID_HASH]?.jsonPrimitive?.intOrNull ?: GTFSCommons.DEFAULT_ID_HASH,
-        this[JSON_TIMEZONE_ID]?.jsonPrimitive?.contentOrNull,
+        this[JSON_ACCESSIBLE]?.jsonPrimitiveOrNull?.intOrNull ?: Accessibility.DEFAULT,
+        this[JSON_ORIGINAL_ID_HASH]?.jsonPrimitiveOrNull?.intOrNull ?: GTFSCommons.DEFAULT_ID_HASH,
+        this[JSON_TIMEZONE_ID]?.jsonPrimitiveOrNull?.contentOrNull,
     )
 } catch (se: SerializationException) {
     MTLogK.w(LOG_TAG, "Error while converting from JSON ($this)!", se)

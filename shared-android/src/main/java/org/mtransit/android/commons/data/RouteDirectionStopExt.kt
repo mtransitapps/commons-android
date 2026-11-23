@@ -10,6 +10,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.RouteDirectionStop.LOG_TAG
 import org.mtransit.commons.FeatureFlags
+import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlinx.serialization.json.put as putK
 
 private const val JSON_ROUTE = "route"
@@ -42,7 +43,7 @@ fun JsonObject.toRouteDirectionStop() = try {
             getValue(JSON_DIRECTION).jsonObject.toDirection(authority),
             getValue(JSON_STOP).jsonObject.toStop(),
             getValue(JSON_NO_PICKUP).jsonPrimitive.boolean,
-            get(JSON_ALWAYS_LAST_TRIP_STOP)?.jsonPrimitive?.booleanOrNull,
+            get(JSON_ALWAYS_LAST_TRIP_STOP)?.jsonPrimitiveOrNull?.booleanOrNull,
         ).apply {
             applyTo(this)
         }

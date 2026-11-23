@@ -11,7 +11,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.addAll
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
@@ -24,6 +23,8 @@ import org.mtransit.android.commons.data.POI
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.common.sharedJson
+import org.mtransit.commons.jsonArrayOrNull
+import org.mtransit.commons.jsonPrimitiveOrNull
 import org.mtransit.commons.model.Secret
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -201,13 +202,13 @@ interface NewsProviderContract : ProviderContract {
                     cacheValidityInMs = getCacheValidityInMsFromJson(),
                     inFocus = getInFocusFromJson(),
                     providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
-                    articlesUUIDs = this[JSON_ARTICLE_UUIDS]?.jsonArray?.takeIf { it.isNotEmpty() }?.mapNotNull {
+                    articlesUUIDs = this[JSON_ARTICLE_UUIDS]?.jsonArrayOrNull?.takeIf { it.isNotEmpty() }?.mapNotNull {
                         it.jsonPrimitive.contentOrNull
                     },
-                    targetsUUIDs = this[JSON_TARGETS_UUIDS]?.jsonArray?.takeIf { it.isNotEmpty() }?.mapNotNull {
+                    targetsUUIDs = this[JSON_TARGETS_UUIDS]?.jsonArrayOrNull?.takeIf { it.isNotEmpty() }?.mapNotNull {
                         it.jsonPrimitive.contentOrNull
                     },
-                    minCreatedAtInMs = this[JSON_MIN_CREATED_AT_IN_MS]?.jsonPrimitive?.longOrNull,
+                    minCreatedAtInMs = this[JSON_MIN_CREATED_AT_IN_MS]?.jsonPrimitiveOrNull?.longOrNull,
                 )
             } catch (se: SerializationException) {
                 MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
