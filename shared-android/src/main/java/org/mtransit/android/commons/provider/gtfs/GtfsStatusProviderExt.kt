@@ -49,7 +49,7 @@ private fun Context.getRDSSchedule(
             lookBehindInMs = lookBehind.inWholeMilliseconds,
             maxDataRequests = maxDataRequest,
             includeCancelledTimestamps = includeCancelledTimestamps
-        ).toJSONString(),
+        ).toJsonString(),
         null,
         null
     ).use { cursor ->

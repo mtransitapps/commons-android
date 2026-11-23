@@ -152,7 +152,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 
 	@Nullable
 	private static Cursor getNews(@NonNull NewsProviderContract provider, @Nullable String selection) {
-		final NewsProviderContract.Filter newsFilter = NewsProviderContract.Filter.fromJSONString(selection);
+		final NewsProviderContract.Filter newsFilter = NewsProviderContract.Filter.toFilterN(selection);
 		if (newsFilter == null) {
 			return getNewsCursor(null);
 		}

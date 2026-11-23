@@ -21,24 +21,22 @@ fun Context.getRDS(
             POIProviderContract.POI_PATH
         ),
         GTFSProviderContract.PROJECTION_RDS_POI,
-        POIProviderContract.Filter.toJSON(
-            POIProviderContract.Filter.getNewSqlSelectionFilter(
-                buildString {
-                    routeId?.let {
-                        append(
-                            SqlUtils.getWhereEquals(
-                                GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ID,
-                                it
-                            )
+        POIProviderContract.Filter.getNewSqlSelectionFilter(
+            buildString {
+                routeId?.let {
+                    append(
+                        SqlUtils.getWhereEquals(
+                            GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ID,
+                            it
                         )
-                    }
-                    directionId?.let {
-                        if (isNotEmpty()) append(SqlUtils.AND)
-                        append(SqlUtils.getWhereEquals(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_ID, it))
-                    }
+                    )
                 }
-            )
-        ).toString(),
+                directionId?.let {
+                    if (isNotEmpty()) append(SqlUtils.AND)
+                    append(SqlUtils.getWhereEquals(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_ID, it))
+                }
+            }
+        ).toJsonString(),
         null,
         SqlUtils.getSortOrderAscending(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_STOP_SEQUENCE)
     ).use { cursor ->

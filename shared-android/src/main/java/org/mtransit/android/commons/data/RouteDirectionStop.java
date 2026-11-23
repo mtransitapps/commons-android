@@ -11,12 +11,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.CursorExtKt;
-import org.mtransit.android.commons.JSONUtils;
-import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
@@ -29,9 +25,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 
+import kotlinx.serialization.json.JsonObject;
+
 public class RouteDirectionStop extends DefaultPOI {
 
-	private static final String LOG_TAG = RouteDirectionStop.class.getSimpleName();
+	protected static final String LOG_TAG = RouteDirectionStop.class.getSimpleName();
 
 	@NonNull
 	@Override
@@ -229,56 +227,10 @@ public class RouteDirectionStop extends DefaultPOI {
 				getStop().getCode();
 	}
 
-	private static final String JSON_ROUTE = "route";
-	private static final String JSON_DIRECTION = "trip"; // do not change to avoid breaking compat w/ old modules
-	private static final String JSON_STOP = "stop";
-	private static final String JSON_NO_PICKUP = "decentOnly";
-	private static final String JSON_ALWAYS_LAST_TRIP_STOP = "lastStop";
-
-	@Nullable
+	@NonNull
 	@Override
-	public JSONObject toJSON() {
-		try {
-			final JSONObject json = new JSONObject();
-			json.put(JSON_ROUTE, Route.toJSON(getRoute()));
-			json.put(JSON_DIRECTION, Direction.toJSON(getDirection()));
-			json.put(JSON_STOP, Stop.toJSON(getStop()));
-			json.put(JSON_NO_PICKUP, isNoPickup());
-			if (FeatureFlags.F_EXPORT_DIRECTION_STOP_LAST) {
-				json.put(JSON_ALWAYS_LAST_TRIP_STOP, isAlwaysLastTripStop());
-			}
-			DefaultPOI.toJSON(this, json);
-			return json;
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while converting to JSON (%s)!", this);
-			return null;
-		}
-	}
-
-	@Nullable
-	@Override
-	public POI fromJSON(@NonNull JSONObject json) {
-		return fromJSONStatic(json);
-	}
-
-	@Nullable
-	public static RouteDirectionStop fromJSONStatic(@NonNull JSONObject json) {
-		try {
-			final String authority = DefaultPOI.getAuthorityFromJSON(json);
-			final RouteDirectionStop rds = new RouteDirectionStop(
-					DefaultPOI.getDSTypeIdFromJSON(json),
-					Route.fromJSON(json.getJSONObject(JSON_ROUTE), authority),
-					Direction.fromJSON(json.getJSONObject(JSON_DIRECTION), authority),
-					Stop.fromJSON(json.getJSONObject(JSON_STOP)),
-					json.getBoolean(JSON_NO_PICKUP),
-					JSONUtils.optBoolean(json, JSON_ALWAYS_LAST_TRIP_STOP)
-			);
-			DefaultPOI.fromJSON(json, rds);
-			return rds;
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", json);
-			return null;
-		}
+	public JsonObject toJson() {
+		return RouteDirectionStopExtKt.toJsonK(this);
 	}
 
 	@NonNull

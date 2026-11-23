@@ -3,6 +3,7 @@ package org.mtransit.android.commons.data
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.StringUtils
 import org.mtransit.android.commons.TimeUtils
+import org.mtransit.android.commons.data.ServiceUpdate.LOG_TAG
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract
 import org.mtransit.android.commons.toMillis
 import kotlin.time.Duration
@@ -12,7 +13,7 @@ fun ServiceUpdate.syncTargetUUID(targetUUIDs: Map<String, String>?) {
     targetUUIDs?.takeIf { it.isNotEmpty() } ?: return
     this.targetUUID = targetUUIDs[this.targetUUID]
         ?: run {
-            MTLogK.w("ServiceUpdate", "No target UUID in '$targetUUIDs' for service update: $this!")
+            MTLogK.w(LOG_TAG, "No target UUID in '$targetUUIDs' for service update: $this!")
             return
         }
 }

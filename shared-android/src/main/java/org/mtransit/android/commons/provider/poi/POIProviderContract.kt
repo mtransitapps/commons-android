@@ -7,16 +7,26 @@ import android.provider.BaseColumns
 import androidx.annotation.Discouraged
 import androidx.collection.ArrayMap
 import androidx.collection.SimpleArrayMap
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.addAll
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.double
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
 import org.mtransit.android.commons.LocationUtils
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.SqlUtils
-import org.mtransit.android.commons.optDouble
 import org.mtransit.android.commons.provider.common.ContentProviderConstants
 import org.mtransit.android.commons.provider.common.ProviderContract
+import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.commons.model.Secret
+import org.mtransit.commons.toAny
+import org.mtransit.commons.toJsonElement
 import java.util.Locale
 import kotlin.time.Duration.Companion.days
 
@@ -270,107 +280,98 @@ interface POIProviderContract : ProviderContract {
             }
 
             @JvmStatic
-            fun fromJSONString(jsonString: String?): Filter? {
-                try {
-                    return jsonString?.let { fromJSON(JSONObject(it)) }
-                } catch (jsone: JSONException) {
-                    MTLogK.w(LOG_TAG, "Error while parsing JSON string '$jsonString'", jsone)
-                    return null
-                }
+            fun String?.toFilterN() = this?.toFilter()
+
+            fun String.toFilter() = try {
+                sharedJson.parseToJsonElement(this).jsonObject.toFilter()
+            } catch (se: SerializationException) {
+                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", se)
+                throw se
             }
 
-            private fun fromJSON(json: JSONObject): Filter? {
+            private fun JsonObject.toFilter() = try {
+                var lat: Double?
+                var lng: Double?
+                var aroundDiff: Double?
+                var minLat: Double?
+                var maxLat: Double?
+                var minLng: Double?
+                var maxLng: Double?
+                var optLoadedMinLat: Double?
+                var optLoadedMaxLat: Double?
+                var optLoadedMinLng: Double?
+                var optLoadedMaxLng: Double?
                 try {
-                    var lat: Double?
-                    var lng: Double?
-                    var aroundDiff: Double?
-                    var minLat: Double?
-                    var maxLat: Double?
-                    var minLng: Double?
-                    var maxLng: Double?
-                    var optLoadedMinLat: Double?
-                    var optLoadedMaxLat: Double?
-                    var optLoadedMinLng: Double?
-                    var optLoadedMaxLng: Double?
-                    try {
-                        lat = json.getDouble(JSON_LAT)
-                        lng = json.getDouble(JSON_LNG)
-                        aroundDiff = json.getDouble(JSON_AROUND_DIFF)
-                    } catch (_: JSONException) { // expected
-                        lat = null
-                        lng = null
-                        aroundDiff = null
-                    }
-                    try {
-                        minLat = json.getDouble(JSON_MIN_LAT)
-                        maxLat = json.getDouble(JSON_MAX_LAT)
-                        minLng = json.getDouble(JSON_MIN_LNG)
-                        maxLng = json.getDouble(JSON_MAX_LNG)
-                        optLoadedMinLat = json.optDouble(JSON_OPT_LOADED_MIN_LAT, null)
-                        optLoadedMaxLat = json.optDouble(JSON_OPT_LOADED_MAX_LAT, null)
-                        optLoadedMinLng = json.optDouble(JSON_OPT_LOADED_MIN_LNG, null)
-                        optLoadedMaxLng = json.optDouble(JSON_OPT_LOADED_MAX_LNG, null)
-                    } catch (_: JSONException) { // expected
-                        minLat = null
-                        maxLat = null
-                        minLng = null
-                        maxLng = null
-                        optLoadedMinLat = null
-                        optLoadedMaxLat = null
-                        optLoadedMinLng = null
-                        optLoadedMaxLng = null
-                    }
-                    //noinspection DiscouragedApi
-                    return Filter(
-                        cacheOnly = getCacheOnlyFromJSON(json),
-                        cacheValidityInMs = getCacheValidityInMsFromJSON(json),
-                        inFocus = getInFocusFromJSON(json),
-                        providedEncryptKeysMap = getProvidedEncryptKeysMapFromJSON(json),
-                        lat = lat,
-                        lng = lng,
-                        aroundDiff = aroundDiff,
-                        minLat = minLat,
-                        maxLat = maxLat,
-                        minLng = minLng,
-                        maxLng = maxLng,
-                        optLoadedMinLat = optLoadedMinLat,
-                        optLoadedMaxLat = optLoadedMaxLat,
-                        optLoadedMinLng = optLoadedMinLng,
-                        optLoadedMaxLng = optLoadedMaxLng,
-                        uuids = json.optJSONArray(JSON_UUIDS)?.let { jUUIDs ->
-                            buildList {
-                                for (i in 0..<jUUIDs.length()) {
-                                    add(jUUIDs.getString(i))
-                                }
-                            }
-                        },
-                        extras = json.optJSONArray(JSON_EXTRAS)?.let { jExtras ->
-                            val extras = SimpleArrayMap<String, Any>()
-                            for (i in 0..<jExtras.length()) {
-                                val jExtra = jExtras.getJSONObject(i)
-                                extras.put(jExtra.getString(JSON_EXTRAS_KEY), jExtra.get(JSON_EXTRAS_VALUE))
-                            }
-                            extras
-                        } ?: SimpleArrayMap(),
-                        sqlSelection = json.optString(JSON_SQL_SELECTION),
-                        searchKeywords = json.optJSONArray(JSON_SEARCH_KEYWORDS)?.let { jSearchKeywords ->
-                            buildList {
-                                for (i in 0..<jSearchKeywords.length()) {
-                                    add(jSearchKeywords.getString(i))
-                                }
-                            }
-                        },
-                    ).takeIf {
-                        (it.lat != null && it.lng != null && it.aroundDiff != null)
-                            || (it.minLat != null && it.maxLat != null && it.minLng != null && it.maxLng != null)
-                            || (it.uuids?.isNotEmpty() == true)
-                            || (it.searchKeywords?.isNotEmpty() == true)
-                            || (it.sqlSelection != null)
-                    }
-                } catch (jsone: JSONException) {
-                    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$json'", jsone)
-                    return null
+                    lat = getValue(JSON_LAT).jsonPrimitive.double
+                    lng = getValue(JSON_LNG).jsonPrimitive.double
+                    aroundDiff = getValue(JSON_AROUND_DIFF).jsonPrimitive.double
+                } catch (_: RuntimeException) { // expected
+                    lat = null
+                    lng = null
+                    aroundDiff = null
                 }
+                try {
+                    minLat = getValue(JSON_MIN_LAT).jsonPrimitive.double
+                    maxLat = getValue(JSON_MAX_LAT).jsonPrimitive.double
+                    minLng = getValue(JSON_MIN_LNG).jsonPrimitive.double
+                    maxLng = getValue(JSON_MAX_LNG).jsonPrimitive.double
+                    optLoadedMinLat = this[JSON_OPT_LOADED_MIN_LAT]?.jsonPrimitive?.double
+                    optLoadedMaxLat = this[JSON_OPT_LOADED_MAX_LAT]?.jsonPrimitive?.double
+                    optLoadedMinLng = this[JSON_OPT_LOADED_MIN_LNG]?.jsonPrimitive?.double
+                    optLoadedMaxLng = this[JSON_OPT_LOADED_MAX_LNG]?.jsonPrimitive?.double
+                } catch (_: RuntimeException) { // expected
+                    minLat = null
+                    maxLat = null
+                    minLng = null
+                    maxLng = null
+                    optLoadedMinLat = null
+                    optLoadedMaxLat = null
+                    optLoadedMinLng = null
+                    optLoadedMaxLng = null
+                }
+                //noinspection DiscouragedApi
+                Filter(
+                    cacheOnly = getCacheOnlyFromJson(),
+                    cacheValidityInMs = getCacheValidityInMsFromJson(),
+                    inFocus = getInFocusFromJson(),
+                    providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
+                    lat = lat,
+                    lng = lng,
+                    aroundDiff = aroundDiff,
+                    minLat = minLat,
+                    maxLat = maxLat,
+                    minLng = minLng,
+                    maxLng = maxLng,
+                    optLoadedMinLat = optLoadedMinLat,
+                    optLoadedMaxLat = optLoadedMaxLat,
+                    optLoadedMinLng = optLoadedMinLng,
+                    optLoadedMaxLng = optLoadedMaxLng,
+                    uuids = this[JSON_UUIDS]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull },
+                    extras = SimpleArrayMap<String, Any>().apply {
+                        this@toFilter[JSON_EXTRAS]?.jsonArray?.let { jExtras ->
+                            jExtras.forEach { jExtra ->
+                                val key = runCatching {
+                                    jExtra.jsonObject.getValue(JSON_EXTRAS_KEY).jsonPrimitive.content
+                                }.onFailure {
+                                    MTLogK.w(LOG_TAG, "Error while parsing extra key JSON object '$jExtra'", it)
+                                }.getOrNull() ?: return@forEach
+                                val value = jExtra.jsonObject[JSON_EXTRAS_VALUE]?.toAny() ?: return@forEach
+                                put(key, value)
+                            }
+                        }
+                    },
+                    sqlSelection = this[JSON_SQL_SELECTION]?.jsonPrimitive?.contentOrNull,
+                    searchKeywords = this[JSON_SEARCH_KEYWORDS]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull },
+                ).takeIf {
+                    (it.lat != null && it.lng != null && it.aroundDiff != null)
+                        || (it.minLat != null && it.maxLat != null && it.minLng != null && it.maxLng != null)
+                        || (it.uuids?.isNotEmpty() == true)
+                        || (it.searchKeywords?.isNotEmpty() == true)
+                        || (it.sqlSelection != null)
+                }
+            } catch (se: SerializationException) {
+                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
+                null
             }
 
             private const val JSON_LAT = "lat"
@@ -391,65 +392,52 @@ interface POIProviderContract : ProviderContract {
             private const val JSON_EXTRAS_KEY = "key"
             private const val JSON_EXTRAS_VALUE = "value"
 
-            private fun toJSONString(statusFilter: Filter) = toJSON(statusFilter)?.toString()
-
             @JvmStatic
-            fun toJSON(poiFilter: Filter?): JSONObject? {
-                poiFilter ?: return null
-                try {
-                    val json = JSONObject()
-                    if (isAreaFilter(poiFilter)) {
-                        json.put(JSON_LAT, poiFilter.lat)
-                        json.put(JSON_LNG, poiFilter.lng)
-                        json.put(JSON_AROUND_DIFF, poiFilter.aroundDiff)
-                    } else if (isAreasFilter(poiFilter)) {
-                        json.put(JSON_MIN_LAT, poiFilter.minLat)
-                        json.put(JSON_MAX_LAT, poiFilter.maxLat)
-                        json.put(JSON_MIN_LNG, poiFilter.minLng)
-                        json.put(JSON_MAX_LNG, poiFilter.maxLng)
-                        if (poiFilter.optLoadedMinLat != null) {
-                            json.put(JSON_OPT_LOADED_MIN_LAT, poiFilter.optLoadedMinLat)
-                        }
-                        if (poiFilter.optLoadedMaxLat != null) {
-                            json.put(JSON_OPT_LOADED_MAX_LAT, poiFilter.optLoadedMaxLat)
-                        }
-                        if (poiFilter.optLoadedMinLng != null) {
-                            json.put(JSON_OPT_LOADED_MIN_LNG, poiFilter.optLoadedMinLng)
-                        }
-                        if (poiFilter.optLoadedMaxLng != null) {
-                            json.put(JSON_OPT_LOADED_MAX_LNG, poiFilter.optLoadedMaxLng)
-                        }
-                    } else if (isUUIDFilter(poiFilter) && poiFilter.uuids != null) {
-                        val jUUIDs = JSONArray()
-                        for (uuid in poiFilter.uuids) {
-                            jUUIDs.put(uuid)
-                        }
-                        json.put(JSON_UUIDS, jUUIDs)
-                    } else if (isSearchKeywords(poiFilter) && poiFilter.searchKeywords != null) {
-                        val jSearchKeywords = JSONArray()
-                        for (searchKeyword in poiFilter.searchKeywords) {
-                            jSearchKeywords.put(searchKeyword)
-                        }
-                        json.put(JSON_SEARCH_KEYWORDS, jSearchKeywords)
-                    } else if (isSQLSelection(poiFilter)) {
-                        json.put(JSON_SQL_SELECTION, poiFilter.sqlSelection)
+            fun Filter.toJson() = try {
+                buildJsonObject {
+                    if (isAreaFilter(this@toJson)) {
+                        put(JSON_LAT, this@toJson.lat)
+                        put(JSON_LNG, this@toJson.lng)
+                        put(JSON_AROUND_DIFF, this@toJson.aroundDiff)
+                    } else if (isAreasFilter(this@toJson)) {
+                        put(JSON_MIN_LAT, this@toJson.minLat)
+                        put(JSON_MAX_LAT, this@toJson.maxLat)
+                        put(JSON_MIN_LNG, this@toJson.minLng)
+                        put(JSON_MAX_LNG, this@toJson.maxLng)
+                        this@toJson.optLoadedMinLat?.let { put(JSON_OPT_LOADED_MIN_LAT, it) }
+                        this@toJson.optLoadedMaxLat?.let { put(JSON_OPT_LOADED_MAX_LAT, it) }
+                        this@toJson.optLoadedMinLng?.let { put(JSON_OPT_LOADED_MIN_LNG, it) }
+                        this@toJson.optLoadedMaxLng?.let { put(JSON_OPT_LOADED_MAX_LNG, it) }
+                    } else if (isUUIDFilter(this@toJson) && this@toJson.uuids != null) {
+                        putJsonArray(JSON_UUIDS) { addAll(this@toJson.uuids) }
+                    } else if (isSearchKeywords(this@toJson) && this@toJson.searchKeywords != null) {
+                        putJsonArray(JSON_SEARCH_KEYWORDS) { addAll(this@toJson.searchKeywords) }
+                    } else if (isSQLSelection(this@toJson)) {
+                        put(JSON_SQL_SELECTION, this@toJson.sqlSelection)
                     } else {
-                        MTLogK.w(LOG_TAG, "Empty POI filter '$poiFilter' converted to JSON!")
+                        throw SerializationException("Empty POI filter '${this@toJson}' converted to JSON!")
                     }
-                    val jExtras = JSONArray()
-                    toJSON(poiFilter, json)
-                    for (i in 0..<poiFilter.extras.size()) {
-                        val jExtra = JSONObject()
-                        jExtra.put(JSON_EXTRAS_KEY, poiFilter.extras.keyAt(i))
-                        jExtra.put(JSON_EXTRAS_VALUE, poiFilter.extras.valueAt(i))
-                        jExtras.put(jExtra)
+                    toJsonCommon(this@toJson)
+                    putJsonArray(JSON_EXTRAS) {
+                        for (i in 0..<this@toJson.extras.size()) {
+                            val key = this@toJson.extras.keyAt(i)
+                            val jsonElement = runCatching {
+                                this@toJson.extras.valueAt(i).toJsonElement()
+                            }.onFailure {
+                                MTLogK.w(LOG_TAG, "Error while parsing '$key' JSON object '${this@toJson}'", it.cause)
+                            }.getOrNull() ?: continue
+                            add(
+                                buildJsonObject {
+                                    put(JSON_EXTRAS_KEY, key)
+                                    put(JSON_EXTRAS_VALUE, jsonElement)
+                                }
+                            )
+                        }
                     }
-                    json.put(JSON_EXTRAS, jExtras)
-                    return json
-                } catch (jsone: JSONException) {
-                    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$poiFilter'", jsone)
-                    return null
                 }
+            } catch (se: SerializationException) {
+                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
+                throw se
             }
         }
 
@@ -522,20 +510,20 @@ interface POIProviderContract : ProviderContract {
             }
         }
 
-        override fun toJSONString() = toJSONString(this)
+        override fun toJsonString() = this.toJson().toString()
 
         fun getExtraBoolean(key: String, defaultValue: Boolean): Boolean {
-            val value = this.extras.get(key) ?: return defaultValue
+            val value = this.extras[key] ?: return defaultValue
             return value as Boolean
         }
 
         fun getExtraString(key: String, defaultValue: String?): String? {
-            val value = this.extras.get(key) ?: return defaultValue
+            val value = this.extras[key] ?: return defaultValue
             return value as String
         }
 
         fun getExtraDouble(key: String, defaultValue: Double?): Double? {
-            val value = this.extras.get(key) ?: return defaultValue
+            val value = this.extras[key] ?: return defaultValue
             return value as Double
         }
     }
