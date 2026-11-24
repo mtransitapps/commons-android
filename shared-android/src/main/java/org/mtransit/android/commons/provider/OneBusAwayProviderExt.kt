@@ -124,7 +124,7 @@ private const val JSON_PREDICTED_ARRIVAL_TIME = "predictedArrivalTime"
 private const val JSON_SCHEDULED_DEPARTURE_TIME = "scheduledDepartureTime"
 private const val JSON_SCHEDULED_ARRIVAL_TIME = "scheduledArrivalTime"
 
-private val JSON_TIME_CANDIDATES = listOf(
+private val JSON_TIME_CANDIDATES = setOf(
     JSON_PREDICTED_DEPARTURE_TIME,
     JSON_PREDICTED_ARRIVAL_TIME,
     JSON_SCHEDULED_DEPARTURE_TIME,
