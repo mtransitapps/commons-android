@@ -56,6 +56,37 @@ public class StmInfoApiProviderTests {
 
 	private RouteDirectionStop rds;
 
+	@Test
+	public void test_toJArrivals() {
+		final String jsonString = "{" +
+				"\"messages\":" +
+				"{" +
+				"\"line\":[" + "{\"text\":\"Line message\"," + "\"start_date\":\"2025-01-01\"}]," +
+				"\"stopPoint\":[{\"text\":\"Stop message\"}]" +
+				"}," +
+				"\"result\":[" +
+				"{\"time\":\"12\"}," +
+				"{\"time\":\"1234\",\"is_real\":true,\"is_congestion\":true,\"is_ramp_cancelled\":true,\"is_on_requested_day\":false}" +
+				"]" +
+				"}";
+
+		final JArrivals result = StmInfoApiProviderExtKt.toJArrivals(
+				jsonString
+		);
+
+		assertNotNull(result);
+		assertEquals(1, result.getMessages().getLines().size());
+		assertEquals("2025-01-01", result.getMessages().getLines().get(0).getStartDate());
+		assertEquals(1, result.getMessages().getStopPoints().size());
+		assertEquals(2, result.getResults().size());
+		assertTrue(result.getResults().get(0).isReal());
+		assertFalse(result.getResults().get(0).isCongestion());
+		assertTrue(result.getResults().get(0).isOnRequestedDay());
+		assertTrue(result.getResults().get(1).isReal());
+		assertTrue(result.getResults().get(1).isRampCancelled());
+		assertFalse(result.getResults().get(1).isOnRequestedDay());
+	}
+
 	@Before
 	public void setUp() {
 		Mockito.when(context.getResources()).thenReturn(resources);
