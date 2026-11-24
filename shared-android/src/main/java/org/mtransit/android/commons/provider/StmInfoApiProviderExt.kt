@@ -37,16 +37,16 @@ private const val JSON_RESULT = "result"
 fun JsonObject.toLegacyMessages() = try {
     LegacyMessages(
         buildList {
-        val shortNameResultRouteList = mutableListOf<MutableMap<String, List<LegacyMessages.JResult.JResultRoute>>>()
-        this@toLegacyMessages[JSON_RESULT]?.jsonArrayOrNull?.forEach { jResult ->
-            val shortNameResultRoutes = mutableMapOf<String, List<LegacyMessages.JResult.JResultRoute>>()
-            jResult.jsonObject.forEach { (jResultKey, jResultRoutes) ->
-                shortNameResultRoutes[jResultKey] = jResultRoutes.jsonArray.map { it.jsonObject.toJResultRoute() }
+            val shortNameResultRouteList = mutableListOf<MutableMap<String, List<LegacyMessages.JResult.JResultRoute>>>()
+            this@toLegacyMessages[JSON_RESULT]?.jsonArrayOrNull?.forEach { jResult ->
+                val shortNameResultRoutes = mutableMapOf<String, List<LegacyMessages.JResult.JResultRoute>>()
+                jResult.jsonObject.forEach { (jResultKey, jResultRoutes) ->
+                    shortNameResultRoutes[jResultKey] = jResultRoutes.jsonArray.map { it.jsonObject.toJResultRoute() }
+                }
+                shortNameResultRouteList.add(shortNameResultRoutes)
             }
-            shortNameResultRouteList.add(shortNameResultRoutes)
+            add(LegacyMessages.JResult(shortNameResultRouteList))
         }
-        add(LegacyMessages.JResult(shortNameResultRouteList))
-    }
     )
 } catch (e: IllegalArgumentException) {
     MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", e)
