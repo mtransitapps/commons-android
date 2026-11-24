@@ -65,54 +65,54 @@ private fun JsonObject.toDefaultPOI(
     ).apply {
         applyTo(this)
     }
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
+    throw iae
 }
 
-@Throws(SerializationException::class)
+@Throws(IllegalArgumentException::class)
 fun JsonObject.applyTo(defaultPOI: POI) {
     this[JSON_SCORE_OPT]?.let { defaultPOI.setScore(it.jsonPrimitive.int) }
 }
 
-@Throws(SerializationException::class)
+@Throws(IllegalArgumentException::class)
 fun JsonObject.getIdFromJson(): Int {
     return getValue(JSON_ID).jsonPrimitive.int
 }
 
-@Throws(SerializationException::class)
+@Throws(IllegalArgumentException::class)
 fun JsonObject.getAuthorityFromJson(): String {
     return getValue(JSON_AUTHORITY).jsonPrimitive.content
 }
 
-@Throws(SerializationException::class)
+@Throws(IllegalArgumentException::class)
 fun JsonObject.getDSTypeIdFromJson(): @DataSourceTypeId.DataSourceType Int {
     return getValue(JSON_DATA_SOURCE_TYPE_ID).jsonPrimitive.int
 }
 
-@Throws(SerializationException::class)
+@Throws(IllegalArgumentException::class)
 fun JsonObject.getLatFromJson(): Double {
     return getValue(JSON_LAT).jsonPrimitive.double
 }
 
-@Throws(SerializationException::class)
+@Throws(IllegalArgumentException::class)
 fun JsonObject.getLngFromJson(): Double {
     return getValue(JSON_LNG).jsonPrimitive.double
 }
 
-@Throws(SerializationException::class)
+@Throws(IllegalArgumentException::class)
 fun JsonObject.getNameFromJson(): String {
     return getValue(JSON_NAME).jsonPrimitive.content
 }
 
 fun DefaultPOI.toJsonK() = try {
     buildJsonObject { toJsonCommon(this@toJsonK) }
-} catch (se: SerializationException) {
-    MTLogK.w(this, "Error while parsing JSON '$this'", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(this, "Error while parsing JSON '$this'", iae)
+    throw iae
 }
 
-@Throws(SerializationException::class)
+@Throws(IllegalArgumentException::class)
 fun JsonObjectBuilder.toJsonCommon(defaultPOI: DefaultPOI) {
     putK(JSON_AUTHORITY, defaultPOI.authority)
     putK(JSON_ID, defaultPOI.id)

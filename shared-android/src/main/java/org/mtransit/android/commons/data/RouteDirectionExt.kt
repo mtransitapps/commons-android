@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.data
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
@@ -15,9 +14,9 @@ fun RouteDirection.toJson() = try {
         put(JSON_ROUTE, route.toJson())
         put(JSON_DIRECTION, direction.toJson())
     }
-} catch (se: SerializationException) {
-    MTLogK.w(this, "Error while converting to JSON ($this)!", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(this, "Error while converting to JSON ($this)!", iae)
+    throw iae
 }
 
 fun JsonObject.toRouteDirection(authority: String) = try {
@@ -25,7 +24,7 @@ fun JsonObject.toRouteDirection(authority: String) = try {
         getValue(JSON_ROUTE).jsonObject.toRoute(authority),
         getValue(JSON_DIRECTION).jsonObject.toDirection(authority),
     )
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
+    throw iae
 }

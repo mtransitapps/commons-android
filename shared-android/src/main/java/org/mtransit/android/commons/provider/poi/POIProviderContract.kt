@@ -285,9 +285,9 @@ interface POIProviderContract : ProviderContract {
 
             fun String.toFilter() = try {
                 sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-            } catch (se: SerializationException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", se)
-                throw se
+            } catch (iae: IllegalArgumentException) {
+                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", iae)
+                throw iae
             }
 
             private fun JsonObject.toFilter() = try {
@@ -370,8 +370,8 @@ interface POIProviderContract : ProviderContract {
                         || (it.searchKeywords?.isNotEmpty() == true)
                         || (it.sqlSelection != null)
                 }
-            } catch (se: SerializationException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
+            } catch (iae: IllegalArgumentException) {
+                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", iae)
                 null
             }
 
@@ -436,9 +436,9 @@ interface POIProviderContract : ProviderContract {
                         }
                     }
                 }
-            } catch (se: SerializationException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
-                throw se
+            } catch (iae: IllegalArgumentException) {
+                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", iae)
+                throw iae
             }
         }
 

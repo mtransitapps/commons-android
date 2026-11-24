@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.data
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -31,12 +30,12 @@ fun Route.toJson() = try {
         putK(JSON_ORIGINAL_ID_HASH, this@toJson.originalIdHash)
         putK(JSON_TYPE, this@toJson.type)
     }
-} catch (se: SerializationException) {
-    MTLogK.w(this, "Error while converting to JSON ($this)!", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(this, "Error while converting to JSON ($this)!", iae)
+    throw iae
 }
 
-@Throws(SerializationException::class)
+@Throws(IllegalArgumentException::class)
 fun JsonObject.toRoute(authority: String) = try {
     Route(
         this[JSON_AUTHORITY]?.jsonPrimitiveOrNull?.contentOrNull ?: authority,
@@ -47,7 +46,7 @@ fun JsonObject.toRoute(authority: String) = try {
         this[JSON_ORIGINAL_ID_HASH]?.jsonPrimitiveOrNull?.intOrNull ?: GTFSCommons.DEFAULT_ID_HASH,
         this[JSON_TYPE]?.jsonPrimitiveOrNull?.intOrNull ?: GTFSCommons.DEFAULT_ROUTE_TYPE,
     )
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
+    throw iae
 }

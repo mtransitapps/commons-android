@@ -14,16 +14,15 @@ import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.android.play.core.ktx.installStatus
 import com.google.android.play.core.ktx.isFlexibleUpdateAllowed
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
 import org.mtransit.android.commons.AppUpdateUtils.AppUpdateFilter.Companion.toFilter
 import org.mtransit.android.commons.provider.GTFSProvider
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.receiver.DataChange
+import org.mtransit.commons.jsonObjectOrNull
 import org.mtransit.commons.jsonPrimitiveOrNull
 import java.util.concurrent.TimeUnit
 
@@ -211,10 +210,10 @@ object AppUpdateUtils : MTLogK.Loggable {
             private const val JSON_IN_FOCUS = "in_focus"
 
             fun String.toFilter() = try {
-                sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-            } catch (se: SerializationException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", se)
-                throw se
+                sharedJson.parseToJsonElement(this).jsonObjectOrNull?.toFilter()
+            } catch (iae: IllegalArgumentException) {
+                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", iae)
+                throw iae
             }
 
             fun JsonObject.toFilter() = try {
@@ -222,9 +221,9 @@ object AppUpdateUtils : MTLogK.Loggable {
                     forceRefresh = this[JSON_FORCE_REFRESH]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
                     inFocus = this[JSON_IN_FOCUS]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
                 )
-            } catch (se: SerializationException) {
-                MTLogK.w(LOG_TAG, "Error while parsing app update filter '$this'!", se)
-                throw se
+            } catch (iae: IllegalArgumentException) {
+                MTLogK.w(LOG_TAG, "Error while parsing app update filter '$this'!", iae)
+                throw iae
             }
 
             fun AppUpdateFilter.toJson() = try {
@@ -232,9 +231,9 @@ object AppUpdateUtils : MTLogK.Loggable {
                     put(JSON_FORCE_REFRESH, this@toJson.forceRefresh)
                     put(JSON_IN_FOCUS, this@toJson.inFocus)
                 }
-            } catch (se: SerializationException) {
-                MTLogK.w(this, "Error while making JSON object '$this'", se)
-                throw se
+            } catch (iae: IllegalArgumentException) {
+                MTLogK.w(this, "Error while making JSON object '$this'", iae)
+                throw iae
             }
         }
 

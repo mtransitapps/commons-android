@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.data
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
@@ -33,9 +32,9 @@ data class AvailabilityPercentStatusFilter(
 
         fun String.toFilter() = try {
             sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-        } catch (se: SerializationException) {
-            MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", se)
-            throw se
+        } catch (iae: IllegalArgumentException) {
+            MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", iae)
+            throw iae
         }
 
         fun JsonObject.toFilter() = try {
@@ -46,18 +45,18 @@ data class AvailabilityPercentStatusFilter(
                 providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
                 targetUUID = getTargetUUIDFromJson(),
             )
-        } catch (se: SerializationException) {
-            MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
-            throw se
+        } catch (iae: IllegalArgumentException) {
+            MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", iae)
+            throw iae
         }
 
         private fun StatusProviderContract.Filter.toJson() = try {
             buildJsonObject {
                 toJson(this@toJson)
             }
-        } catch (se: SerializationException) {
-            MTLogK.w(LOG_TAG, "Error while making JSON object '$this'", se)
-            throw se
+        } catch (iae: IllegalArgumentException) {
+            MTLogK.w(LOG_TAG, "Error while making JSON object '$this'", iae)
+            throw iae
         }
     }
 

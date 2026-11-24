@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.data
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
@@ -59,8 +58,8 @@ fun JsonObject.toTimestamp() = try {
         jsonObject[JSON_ACCESSIBLE]?.jsonPrimitiveOrNull?.intOrNull?.let { accessible = it }
         jsonObject[JSON_CANCELLED]?.jsonPrimitiveOrNull?.booleanOrNull?.let { cancelled = it }
     }
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$jsonObject'", se)
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$jsonObject'", iae)
     null // skip this 1 only
 }
 
@@ -87,7 +86,7 @@ fun Schedule.Timestamp.toJson() = try {
         accessible?.let { putK(JSON_ACCESSIBLE, it) }
         cancelled?.let { putK(JSON_CANCELLED, it) }
     }
-} catch (se: SerializationException) {
-    MTLogK.w(this, "Error while making JSON object '$this'", se)
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(this, "Error while making JSON object '$this'", iae)
     null // skip this 1 only
 }

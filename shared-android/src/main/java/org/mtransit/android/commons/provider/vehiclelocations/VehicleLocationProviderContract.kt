@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import android.provider.BaseColumns
 import androidx.annotation.Discouraged
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -146,9 +145,9 @@ interface VehicleLocationProviderContract : ProviderContract {
 
             fun String.toFilter() = try {
                 sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-            } catch (se: SerializationException) {
-                MTLogK.w(this@Companion, "Error while parsing JSON object '$this'!", se)
-                throw se
+            } catch (iae: IllegalArgumentException) {
+                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'!", iae)
+                throw iae
             }
 
             @SuppressLint("DiscouragedApi")
@@ -177,9 +176,9 @@ interface VehicleLocationProviderContract : ProviderContract {
                     vehicleLocationFilter.route?.let { put(JSON_ROUTE, it.toJson()) }
                     vehicleLocationFilter.routeDirection?.let { put(JSON_ROUTE_DIRECTION, it.toJson()) }
                 }
-            } catch (se: SerializationException) {
-                MTLogK.w(LOG_TAG, "Error while making JSON object '$vehicleLocationFilter'!", se)
-                throw se
+            } catch (iae: IllegalArgumentException) {
+                MTLogK.w(LOG_TAG, "Error while making JSON object '$vehicleLocationFilter'!", iae)
+                throw iae
             }
         }
 

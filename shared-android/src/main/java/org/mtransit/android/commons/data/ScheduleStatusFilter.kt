@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.data
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
@@ -65,9 +64,9 @@ data class ScheduleStatusFilter(
 
         fun String.toFilter() = try {
             sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-        } catch (se: SerializationException) {
-            MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", se)
-            throw se
+        } catch (iae: IllegalArgumentException) {
+            MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", iae)
+            throw iae
         }
 
         private const val JSON_MIN_USEFUL_DURATION_COVERED_IN_MS = "minUsefulDurationCoveredInMs"
@@ -92,13 +91,13 @@ data class ScheduleStatusFilter(
                     includeCancelledTimestamps = this[JSON_INCLUDE_CANCELLED_TIMESTAMPS]?.jsonPrimitiveOrNull?.booleanOrNull,
                 )
             }
-        } catch (se: SerializationException) {
-            MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
-            throw se
+        } catch (iae: IllegalArgumentException) {
+            MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", iae)
+            throw iae
         }
     }
 
-    @Throws(SerializationException::class)
+    @Throws(IllegalArgumentException::class)
     private fun StatusProviderContract.Filter.toJson() = try {
         buildJsonObject {
             toJson(this@toJson)
@@ -111,9 +110,9 @@ data class ScheduleStatusFilter(
                 includeCancelledTimestamps?.let { put(JSON_INCLUDE_CANCELLED_TIMESTAMPS, it) }
             }
         }
-    } catch (se: SerializationException) {
-        MTLogK.w(LOG_TAG, "Error while making JSON object '$this'", se)
-        throw se
+    } catch (iae: IllegalArgumentException) {
+        MTLogK.w(LOG_TAG, "Error while making JSON object '$this'", iae)
+        throw iae
     }
 
     override fun getLogTag() = LOG_TAG
@@ -142,7 +141,7 @@ data class ScheduleStatusFilter(
 
     val isIncludeCancelledTimestampsOrDefault: Boolean get() = this.includeCancelledTimestamps == true
 
-    @Throws(SerializationException::class)
+    @Throws(IllegalArgumentException::class)
     override fun toJsonString() = sharedJson.encodeToString(this.toJson())
 
     override fun toString(): String {

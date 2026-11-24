@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import android.provider.BaseColumns
 import androidx.annotation.Discouraged
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -131,9 +130,9 @@ interface ServiceUpdateProviderContract : ProviderContract {
             fun String?.toFilterN() = this?.toFilter()
             fun String.toFilter() = try {
                 sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-            } catch (se: SerializationException) {
-                MTLogK.w(this@Companion, "Error while parsing JSON string '$this'", se)
-                throw se
+            } catch (iae: IllegalArgumentException) {
+                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", iae)
+                throw iae
             }
 
             private const val JSON_POI = "poi"
@@ -164,9 +163,9 @@ interface ServiceUpdateProviderContract : ProviderContract {
                     ).takeIf {
                         (it.poi != null) || (it.route != null) || (it.routeDirection != null)
                     }
-                } catch (se: SerializationException) {
-                    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
-                    throw se
+                } catch (iae: IllegalArgumentException) {
+                    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", iae)
+                    throw iae
                 }
 
             fun Filter.toJson() =
@@ -178,9 +177,9 @@ interface ServiceUpdateProviderContract : ProviderContract {
                         routeDirection?.let { put(JSON_ROUTE_DIRECTION, it.toJsonK()) }
                         authority?.let { put(JSON_AUTHORITY, it) }
                     }
-                } catch (se: SerializationException) {
-                    MTLogK.w(this, "Error while making JSON object '$this'", se)
-                    throw se
+                } catch (iae: IllegalArgumentException) {
+                    MTLogK.w(this, "Error while making JSON object '$this'", iae)
+                    throw iae
                 }
         }
 

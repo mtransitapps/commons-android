@@ -14,8 +14,6 @@ import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
@@ -25,7 +23,6 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
-import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
@@ -46,7 +43,6 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -58,7 +54,7 @@ import java.util.regex.Pattern;
 @SuppressLint("Registered")
 public class OneBusAwayProvider extends MTContentProvider implements StatusProviderContract {
 
-	private static final String LOG_TAG = OneBusAwayProvider.class.getSimpleName();
+	protected static final String LOG_TAG = OneBusAwayProvider.class.getSimpleName();
 
 	@NonNull
 	@Override
@@ -246,10 +242,12 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		return cachedStatus;
 	}
 
+	@NonNull
 	private String getAgencyRouteStopTagTargetUUID(@NonNull RouteDirectionStop rds) {
 		return rds.getUUID();
 	}
 
+	@NonNull
 	private String getStopTag(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		if (isAGENCY_STOP_TAG_IS_STOP_CODE(context)) {
 			return rds.getStop().getCode();
@@ -300,19 +298,37 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 
 	private void loadPredictionsFromWWW(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		try {
-			String urlString = getStopPredictionsUrlString(context, getAPI_KEY(context), rds);
+			final String urlString = getStopPredictionsUrlString(context, getAPI_KEY(context), rds);
 			MTLog.i(this, "Loading from '%s'...", getStopPredictionsUrlString(context, "API_KEY", rds));
-			String sourceLabel = SourceUtils.getSourceLabel(getPREDICTION_URL(context));
-			URL url = new URL(urlString);
-			URLConnection urlc = url.openConnection();
+			final String sourceLabel = SourceUtils.getSourceLabel(getPREDICTION_URL(context));
+			final URL url = new URL(urlString);
+			final URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			final HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				String jsonString = FileUtils.getString(urlc.getInputStream());
+				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+				final String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadPredictionsFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rds, sourceLabel, newLastUpdateInMs);
+				final Collection<POIStatus> statuses = OneBusAwayProviderExtKt.toStatuses(
+						jsonString,
+						AgencyUtils.getAgencyTimeZoneId(context),
+						() -> new Schedule(
+								null,
+								getAgencyRouteStopTagTargetUUID(rds),
+								newLastUpdateInMs,
+								getStatusMaxValidityInMs(),
+								newLastUpdateInMs,
+								PROVIDER_PRECISION_IN_MS,
+								false,
+								AgencyUtils.getAgencyTimeZoneId(context),
+								sourceLabel,
+								false
+						),
+						(tripHeadsign, forRds) -> forRds ? cleanDirectionHeadsign(context, tripHeadsign, rds) : cleanDirectionHeadsign(context, tripHeadsign),
+						(jRouteId, jRouteShortName) -> isSameRoute(rds, jRouteId, jRouteShortName),
+						(jTripHeadsign) -> isSameDirection(context, rds, jTripHeadsign)
+				);
 				StatusProvider.deleteCachedStatus(this, Collections.singleton(getAgencyRouteStopTagTargetUUID(rds)));
 				MTLog.i(this, "Found %d schedule statuses.", (statuses == null ? 0 : statuses.size()));
 				if (statuses != null) {
@@ -338,96 +354,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private static final String JSON_DATA = "data";
-	private static final String JSON_ENTRY = "entry";
-	private static final String JSON_ARRIVALS_AND_DEPARTURES = "arrivalsAndDepartures";
-	private static final String JSON_PREDICTED = "predicted";
-	private static final String JSON_PREDICTED_DEPARTURE_TIME = "predictedDepartureTime";
-	private static final String JSON_PREDICTED_ARRIVAL_TIME = "predictedArrivalTime";
-	private static final String JSON_SCHEDULED_DEPARTURE_TIME = "scheduledDepartureTime";
-	private static final String JSON_SCHEDULED_ARRIVAL_TIME = "scheduledArrivalTime";
-	private static final String JSON_ROUTE_ID = "routeId";
-	@SuppressWarnings("unused")
-	private static final String JSON_ROUTE_LONG_NAME = "routeLongName";
-	private static final String JSON_ROUTE_SHORT_NAME = "routeShortName";
-	private static final String JSON_TRIP_HEADSIGN = "tripHeadsign";
-	@SuppressWarnings("unused") // TODO ?
-	private static final String JSON_DEPARTURE_ENABLED = "departureEnabled";
-
-	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
-
-	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, @Nullable String jsonString, @NonNull RouteDirectionStop rds, @Nullable String sourceLabel, long newLastUpdateInMs) {
-		try {
-			final String localTimeZoneId = AgencyUtils.getAgencyTimeZoneId(context);
-			ArrayList<POIStatus> result = new ArrayList<>();
-			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
-			if (json != null && json.has(JSON_DATA)) {
-				JSONObject jData = json.optJSONObject(JSON_DATA);
-				if (jData != null && jData.has(JSON_ENTRY)) {
-					JSONObject jEntry = jData.getJSONObject(JSON_ENTRY);
-					if (jEntry.has(JSON_ARRIVALS_AND_DEPARTURES)) {
-						JSONArray jArrivalsAndDepartures = jEntry.getJSONArray(JSON_ARRIVALS_AND_DEPARTURES);
-						final Schedule newSchedule = new Schedule(
-								null,
-								getAgencyRouteStopTagTargetUUID(rds),
-								newLastUpdateInMs,
-								getStatusMaxValidityInMs(),
-								newLastUpdateInMs,
-								PROVIDER_PRECISION_IN_MS,
-								false,
-								localTimeZoneId,
-								sourceLabel
-						);
-						for (int l = 0; l < jArrivalsAndDepartures.length(); l++) {
-							JSONObject jArrivalsAndDeparture = jArrivalsAndDepartures.getJSONObject(l);
-							String jRoutId = jArrivalsAndDeparture.getString(JSON_ROUTE_ID);
-							String jRouteShortName = jArrivalsAndDeparture.getString(JSON_ROUTE_SHORT_NAME);
-							boolean sameRoute = isSameRoute(rds, jRoutId, jRouteShortName);
-							if (!sameRoute) {
-								continue;
-							}
-							long timestamp = getTimestamp(jArrivalsAndDeparture);
-							if (timestamp <= 0L) {
-								continue;
-							}
-							boolean isRealTime = jArrivalsAndDeparture.optBoolean(JSON_PREDICTED, false);
-							Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(timestamp), localTimeZoneId);
-							try {
-								String jTripHeadsign = jArrivalsAndDeparture.getString(JSON_TRIP_HEADSIGN);
-								if (!TextUtils.isEmpty(jTripHeadsign)) {
-									boolean sameTrip = isSameDirection(context, rds, jTripHeadsign);
-									if (!sameTrip) {
-										continue;
-									}
-									jTripHeadsign = cleanDirectionHeadsign(context, jTripHeadsign);
-									jTripHeadsign = cleanDirectionHeadsign(context, jTripHeadsign, rds); // remove rds direction head-sign / route from head sign
-									boolean isDepartureEnabled = jArrivalsAndDeparture.optBoolean(JSON_DEPARTURE_ENABLED, true);
-									if (!isDepartureEnabled) {
-										newTimestamp.setHeadsign(Direction.HEADSIGN_TYPE_NO_PICKUP, null);
-									} else {
-										newTimestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, jTripHeadsign);
-									}
-								}
-							} catch (Exception e) {
-								MTLog.w(this, e, "Error while reading trip headsign in '%s'!", jArrivalsAndDeparture);
-							}
-							newTimestamp.setRealTime(isRealTime);
-							newTimestamp.setAccessible(Accessibility.UNKNOWN); // no information available
-							newSchedule.addTimestampWithoutSort(newTimestamp);
-						}
-						if (newSchedule.getTimestampsCount() > 0) {
-							newSchedule.sortTimestamps();
-							result.add(newSchedule);
-						}
-					}
-				}
-			}
-			return result;
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
-			return null;
-		}
-	}
+	protected static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	private String cleanDirectionHeadsign(@NonNull Context context, @NonNull String tripHeadsign) {
 		try {
@@ -499,7 +426,6 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 				}
 				try {
 					if (obaRegex.matcher(jTripHeadsign).find()) {
-						//noinspection UnusedAssignment
 						matchAtLeastOneObaRegex = true;
 						return gtfsRegex.matcher(gtfsDirectionHeadSign).find();
 					}
@@ -520,27 +446,6 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		}
 		MTLog.w(this, "Unexpected trip '%s' to match with '%s'!", jTripHeadsign, rds);
 		return true; // unknown?
-	}
-
-	private long getTimestamp(@NonNull JSONObject jArrivalsAndDeparture) {
-		try {
-			long timestamp = jArrivalsAndDeparture.optLong(JSON_PREDICTED_DEPARTURE_TIME, 0L);
-			if (timestamp > 0L) {
-				return timestamp;
-			}
-			timestamp = jArrivalsAndDeparture.optLong(JSON_PREDICTED_ARRIVAL_TIME, 0L);
-			if (timestamp > 0L) {
-				return timestamp;
-			}
-			timestamp = jArrivalsAndDeparture.optLong(JSON_SCHEDULED_DEPARTURE_TIME, 0L);
-			if (timestamp > 0L) {
-				return timestamp;
-			}
-			return jArrivalsAndDeparture.optLong(JSON_SCHEDULED_ARRIVAL_TIME, 0L);
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while reading timestamp!");
-			return 0L;
-		}
 	}
 
 	@MainThread

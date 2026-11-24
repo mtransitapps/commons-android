@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.data
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -35,9 +34,9 @@ private const val JSON_VALUE2_COLOR_BG = "value2ColorBg"
 
 fun POIStatus.toAvailabilityPercent(jsonString: String) = try {
     this.toAvailabilityPercent(sharedJson.parseToJsonElement(jsonString).jsonObject)
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON string '$jsonString'", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(LOG_TAG, "Error while parsing JSON string '$jsonString'", iae)
+    throw iae
 }
 
 fun POIStatus.toAvailabilityPercent(jsonObject: JsonObject) = try {
@@ -61,9 +60,9 @@ fun POIStatus.toAvailabilityPercent(jsonObject: JsonObject) = try {
         value2Color = jsonObject.getValue(JSON_VALUE2_COLOR).jsonPrimitive.int
         value2ColorBg = jsonObject.getValue(JSON_VALUE2_COLOR_BG).jsonPrimitive.int
     }
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$jsonObject'", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$jsonObject'", iae)
+    throw iae
 }
 
 fun AvailabilityPercent.toJson() = try {
@@ -96,7 +95,7 @@ fun AvailabilityPercent.toJson() = try {
         putK(JSON_VALUE2_COLOR, this@toJson.value2Color)
         putK(JSON_VALUE2_COLOR_BG, this@toJson.value2ColorBg)
     }
-} catch (se: SerializationException) {
-    MTLogK.w(this, "Error while making JSON object '$this'", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(this, "Error while making JSON object '$this'", iae)
+    throw iae
 }

@@ -6,7 +6,6 @@ import android.net.Uri
 import android.provider.BaseColumns
 import androidx.annotation.Discouraged
 import androidx.collection.ArrayMap
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.addAll
 import kotlinx.serialization.json.buildJsonObject
@@ -185,9 +184,9 @@ interface NewsProviderContract : ProviderContract {
 
             fun String.toFilter() = try {
                 sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-            } catch (se: SerializationException) {
-                MTLogK.w(this@Companion, "Error while parsing JSON string '$this'", se)
-                throw se
+            } catch (iae: IllegalArgumentException) {
+                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", iae)
+                throw iae
             }
 
             private const val JSON_ARTICLE_UUIDS = "uuids" // article UUIDs
@@ -209,9 +208,9 @@ interface NewsProviderContract : ProviderContract {
                     },
                     minCreatedAtInMs = this[JSON_MIN_CREATED_AT_IN_MS]?.jsonPrimitiveOrNull?.longOrNull,
                 )
-            } catch (se: SerializationException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
-                throw se
+            } catch (iae: IllegalArgumentException) {
+                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", iae)
+                throw iae
             }
 
             fun Filter.toJson() = try {
@@ -224,9 +223,9 @@ interface NewsProviderContract : ProviderContract {
                         putJsonArray(JSON_TARGETS_UUIDS) { addAll(targetsUUIDs) }
                     }
                 }
-            } catch (se: SerializationException) {
-                MTLogK.w(LOG_TAG, "Error while making JSON object '$this'", se)
-                throw se
+            } catch (iae: IllegalArgumentException) {
+                MTLogK.w(LOG_TAG, "Error while making JSON object '$this'", iae)
+                throw iae
             }
         }
 

@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.data
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -37,12 +36,12 @@ fun Stop.toJson() = try {
             this@toJson.timeZoneId?.let { put(JSON_TIMEZONE_ID, it) }
         }
     }
-} catch (se: SerializationException) {
-    MTLogK.w(this, "Error while converting to JSON ($this)!", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(this, "Error while converting to JSON ($this)!", iae)
+    throw iae
 }
 
-@Throws(SerializationException::class)
+@Throws(IllegalArgumentException::class)
 fun JsonObject.toStop() = try {
     Stop(
         getValue(JSON_ID).jsonPrimitive.int,
@@ -54,7 +53,7 @@ fun JsonObject.toStop() = try {
         this[JSON_ORIGINAL_ID_HASH]?.jsonPrimitiveOrNull?.intOrNull ?: GTFSCommons.DEFAULT_ID_HASH,
         this[JSON_TIMEZONE_ID]?.jsonPrimitiveOrNull?.contentOrNull,
     )
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while converting from JSON ($this)!", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(LOG_TAG, "Error while converting from JSON ($this)!", iae)
+    throw iae
 }

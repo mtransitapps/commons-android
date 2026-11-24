@@ -4,13 +4,11 @@ import android.content.Context
 import android.content.UriMatcher
 import android.database.sqlite.SQLiteDatabase
 import androidx.annotation.WorkerThread
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 import org.mtransit.android.commons.MTLogK
@@ -98,7 +96,7 @@ interface ProviderContract : MTLogK.Loggable {
                 ?.takeIf { it.trim().isNotEmpty() }
 
         @Suppress("unused")
-        @Throws(SerializationException::class)
+        @Throws(IllegalArgumentException::class)
         abstract fun toJsonString(): String?
 
         fun toStringParts() = buildString {

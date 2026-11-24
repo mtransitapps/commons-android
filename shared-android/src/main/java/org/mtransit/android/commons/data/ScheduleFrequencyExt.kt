@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.data
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
@@ -24,8 +23,8 @@ fun JsonObject.toFrequency() = try {
         getValue(JSON_HEADWAY_IN_SEC).jsonPrimitive.int,
         get(JSON_OLD_SCHEDULE)?.jsonPrimitiveOrNull?.booleanOrNull,
     )
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", iae)
     null // skip this 1 only
 }
 
@@ -36,7 +35,7 @@ fun Schedule.Frequency.toJson() = try {
         putK(JSON_HEADWAY_IN_SEC, headwayInSec)
         oldSchedule?.let { putK(JSON_OLD_SCHEDULE, it) }
     }
-} catch (se: SerializationException) {
-    MTLogK.w(this, "Error while making JSON object '$this'", se)
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(this, "Error while making JSON object '$this'", iae)
     null // skip this 1 only
 }

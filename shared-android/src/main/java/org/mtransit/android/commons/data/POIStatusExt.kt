@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.data
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.booleanOrNull
@@ -27,9 +26,9 @@ private const val JSON_NO_DATA = "noData"
 
 fun String?.toJsonObject() = try {
     this?.let { sharedJson.parseToJsonElement(it).jsonObject }
-} catch (se: SerializationException) {
-    MTLogK.w(POIStatus.LOG_TAG, "Error while parsing JSON string '$this'", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(POIStatus.LOG_TAG, "Error while parsing JSON string '$this'", iae)
+    throw iae
 }
 
 fun JsonObject?.getSourceLabelFromJson() = this?.get(JSON_SOURCE_LABEL)?.jsonPrimitiveOrNull?.contentOrNull

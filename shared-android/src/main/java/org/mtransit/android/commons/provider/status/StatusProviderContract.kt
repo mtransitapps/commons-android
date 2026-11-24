@@ -2,7 +2,6 @@ package org.mtransit.android.commons.provider.status
 
 import android.net.Uri
 import android.provider.BaseColumns
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.int
@@ -157,19 +156,19 @@ interface StatusProviderContract : ProviderContract {
             @POI.ItemStatusType
             fun String.getTypeFromJsonString() = try {
                 sharedJson.parseToJsonElement(this).jsonObject.getTypeFromJson()
-            } catch (se: SerializationException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", se)
+            } catch (iae: IllegalArgumentException) {
+                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", iae)
                 POI.ITEM_STATUS_TYPE_NONE
             }
 
-            @Throws(SerializationException::class)
+            @Throws(IllegalArgumentException::class)
             fun JsonObject.getTypeFromJson() = getValue(JSON_TYPE).jsonPrimitive.int
 
             fun JsonObject.getTargetUUIDFromJson() = getValue(JSON_TARGET_UUID).jsonPrimitive.content
 
             fun toJson(statusFilter: Filter, json: JsonObjectBuilder) = json.toJson(statusFilter)
 
-            @Throws(SerializationException::class)
+            @Throws(IllegalArgumentException::class)
             fun JsonObjectBuilder.toJson(statusFilter: Filter) {
                 toJsonCommon(statusFilter)
                 put(JSON_TYPE, statusFilter.type)

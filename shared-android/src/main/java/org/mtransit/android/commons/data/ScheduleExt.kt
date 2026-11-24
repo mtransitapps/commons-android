@@ -2,7 +2,6 @@
 
 package org.mtransit.android.commons.data
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonArray
@@ -315,9 +314,9 @@ private const val JSON_LOCAL_TIME_ZONE_ID = "tz"
 
 fun POIStatus.toSchedule(jsonString: String) = try {
     this.toSchedule(sharedJson.parseToJsonElement(jsonString).jsonObject)
-} catch (se: SerializationException) {
-    MTLogK.w(Schedule.LOG_TAG, "Error while parsing JSON string '$jsonString'", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(Schedule.LOG_TAG, "Error while parsing JSON string '$jsonString'", iae)
+    throw iae
 }
 
 fun POIStatus.toSchedule(jsonObject: JsonObject) = try {
@@ -341,9 +340,9 @@ fun POIStatus.toSchedule(jsonObject: JsonObject) = try {
         setTimestampsAndSort(timestamps)
         setFrequenciesAndSort(frequencies)
     }
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$jsonObject'", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$jsonObject'", iae)
+    throw iae
 }
 
 fun Schedule.toJson() = try {
@@ -364,7 +363,7 @@ fun Schedule.toJson() = try {
             }
         )
     }
-} catch (se: SerializationException) {
-    MTLogK.w(this, "Error while making JSON object '$this'", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(this, "Error while making JSON object '$this'", iae)
+    throw iae
 }

@@ -4,11 +4,11 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.provider.status.StatusProviderContract
+import org.mtransit.commons.jsonObjectOrNull
 import org.mtransit.commons.jsonPrimitiveOrNull
 import org.mtransit.commons.model.Secret
 
@@ -34,10 +34,10 @@ data class AppStatusFilter(
         fun String?.toFilterN() = this?.toFilter()
 
         fun String.toFilter() = try {
-            sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-        } catch (se: SerializationException) {
-            MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", se)
-            throw se
+            sharedJson.parseToJsonElement(this).jsonObjectOrNull?.toFilter()
+        } catch (iae: IllegalArgumentException) {
+            MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", iae)
+            throw iae
         }
 
         private const val JSON_PKG = "pkg"
@@ -51,9 +51,9 @@ data class AppStatusFilter(
                 targetUUID = getTargetUUIDFromJson(),
                 pkg = this[JSON_PKG]?.jsonPrimitiveOrNull?.contentOrNull ?: throw SerializationException("Missing key '$JSON_PKG'!"),
             )
-        } catch (se: SerializationException) {
-            MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
-            throw se
+        } catch (iae: IllegalArgumentException) {
+            MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", iae)
+            throw iae
         }
 
         private fun StatusProviderContract.Filter.toJson() = try {
@@ -63,9 +63,9 @@ data class AppStatusFilter(
                     put(JSON_PKG, this@toJson.pkg)
                 }
             }
-        } catch (se: SerializationException) {
-            MTLogK.w(this, "Error while making JSON object '$this'", se)
-            throw se
+        } catch (iae: IllegalArgumentException) {
+            MTLogK.w(this, "Error while making JSON object '$this'", iae)
+            throw iae
         }
     }
 

@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.data
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.booleanOrNull
@@ -30,9 +29,9 @@ fun RouteDirectionStop.toJsonK() = try {
         }
         toJsonCommon(this@toJsonK)
     }
-} catch (se: SerializationException) {
-    MTLogK.w(this, "Error while converting to JSON ($this)!", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(this, "Error while converting to JSON ($this)!", iae)
+    throw iae
 }
 
 fun JsonObject.toRouteDirectionStop() = try {
@@ -48,7 +47,7 @@ fun JsonObject.toRouteDirectionStop() = try {
             applyTo(this)
         }
     }
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while converting from JSON ($this)!", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(LOG_TAG, "Error while converting from JSON ($this)!", iae)
+    throw iae
 }

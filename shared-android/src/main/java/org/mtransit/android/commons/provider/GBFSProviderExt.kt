@@ -1,7 +1,6 @@
 package org.mtransit.android.commons.provider
 
 import androidx.annotation.VisibleForTesting
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -37,18 +36,18 @@ private const val JSON_CAPACITY = "capacity"
 
 internal fun String.toJStationInfoList() = try {
     gbfsJson.parseToJsonElement(this).jsonObject.toJStationInfoList()
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
+    throw iae
 }
 
 internal fun JsonObject.toJStationInfoList() = try {
     get(JSON_DATA)?.jsonObjectOrNull?.get(JSON_STATIONS)?.jsonArrayOrNull?.map { jStation ->
         jStation.jsonObject.toJStationInfo()
     }.orEmpty()
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
+    throw iae
 }
 
 internal fun JsonObject.toJStationInfo() = GBFSProvider.JStationInformation.JData.JStation(
@@ -77,18 +76,18 @@ private const val JSON_LAST_REPORTED = "last_reported"
 
 internal fun String.toJStationStatusList() = try {
     gbfsJson.parseToJsonElement(this).jsonObject.toJStationStatusList()
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
+    throw iae
 }
 
 internal fun JsonObject.toJStationStatusList() = try {
     get(JSON_DATA)?.jsonObjectOrNull?.get(JSON_STATIONS)?.jsonArrayOrNull?.map { jStation ->
         jStation.jsonObject.toJStationStatus()
     }.orEmpty()
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
+    throw iae
 }
 
 internal fun JsonObject.toJStationStatus() = GBFSProvider.JStationStatus.JData.JStation(

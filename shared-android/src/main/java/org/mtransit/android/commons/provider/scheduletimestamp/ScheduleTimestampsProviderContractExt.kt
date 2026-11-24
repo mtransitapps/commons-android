@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.provider.scheduletimestamp
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
@@ -23,9 +22,9 @@ fun String?.toFilterN() = this?.toFilter()
 
 fun String.toFilter() = try {
     sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", iae)
+    throw iae
 }
 
 fun JsonObject.toFilter() = try {
@@ -36,9 +35,9 @@ fun JsonObject.toFilter() = try {
             getValue(JSON_ENDS_AT_IN_MS).jsonPrimitive.long
         )
     }
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", iae)
+    throw iae
 }
 
 fun ScheduleTimestampsProviderContract.Filter.toJson() = try {
@@ -47,9 +46,9 @@ fun ScheduleTimestampsProviderContract.Filter.toJson() = try {
         putK(JSON_STARTS_AT_IN_MS, this@toJson.startsAtInMs)
         putK(JSON_ENDS_AT_IN_MS, this@toJson.endsAtInMs)
     }
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while making JSON object '$this'", se)
-    throw se
+} catch (iae: IllegalArgumentException) {
+    MTLogK.w(LOG_TAG, "Error while making JSON object '$this'", iae)
+    throw iae
 }
 
 fun ScheduleTimestampsProviderContract.Filter.toJsonString() = sharedJson.encodeToString(this.toJson())
