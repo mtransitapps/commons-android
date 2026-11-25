@@ -209,7 +209,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				final String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				final Collection<POIStatus> statuses = ReginaTransitProviderExtKt.toStatuses(
+				final Collection<POIStatus> statuses = ReginaTransitProviderExtKt.toStatusesOrNull(
 						jsonString,
 						REGINA_TZ_ID,
 						newLastUpdateInMs - ONE_HOUR,

@@ -2,6 +2,7 @@ package org.mtransit.android.commons.provider
 
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
@@ -17,7 +18,7 @@ import org.mtransit.commons.jsonArrayOrNull
 import org.mtransit.commons.jsonObjectOrNull
 import org.mtransit.commons.jsonPrimitiveOrNull
 
-fun String?.toStatuses(
+fun String?.toStatusesOrNull(
     localTimeZoneId: String,
     makeSchedule: () -> Schedule,
     cleanDirectionHeadsign: (tripHeadsign: String, forRds: Boolean) -> String,
@@ -71,17 +72,15 @@ private fun JsonObject.toTimestamp(
     isSameRoute: (jRouteId: String, jRouteShortName: String) -> Boolean,
     isSameDirection: (tripHeadsign: String) -> Boolean,
 ) =
-    (this.getTimestamp() to this@toTimestamp.getValue(JSON_TRIP_HEADSIGN).jsonPrimitive.content)
+    (getTimestamp() to get(JSON_TRIP_HEADSIGN)?.jsonPrimitiveOrNull?.contentOrNull)
         .takeIf { (timestamp, tripHeadsign) ->
             timestamp > 0L
                 &&
-                isSameDirection(tripHeadsign)
-                &&
-                (this[JSON_PREDICTED]?.jsonPrimitiveOrNull?.booleanOrNull ?: false)
+                (tripHeadsign == null || isSameDirection(tripHeadsign))
                 &&
                 isSameRoute(
-                    this.getValue(JSON_ROUTE_ID).jsonPrimitive.content,
-                    this.getValue(JSON_ROUTE_SHORT_NAME).jsonPrimitive.content
+                    getValue(JSON_ROUTE_ID).jsonPrimitive.content,
+                    getValue(JSON_ROUTE_SHORT_NAME).jsonPrimitive.content
                 )
         }
         ?.let { (timestamp, tripHeadsign) ->
@@ -89,18 +88,18 @@ private fun JsonObject.toTimestamp(
                 TimeUtils.timeToTheTensSecondsMillis(timestamp),
                 localTimeZoneId,
             ).apply {
-                if (tripHeadsign.isNotEmpty()) {
+                if (!tripHeadsign.isNullOrEmpty()) {
                     var tripHeadsign = tripHeadsign
                     tripHeadsign = cleanDirectionHeadsign(tripHeadsign, false)
                     tripHeadsign = cleanDirectionHeadsign(tripHeadsign, true)
-                    val departureEnabled = this@toTimestamp[JSON_DEPARTURE_ENABLED]?.jsonPrimitiveOrNull?.booleanOrNull ?: true
+                    val departureEnabled = get(JSON_DEPARTURE_ENABLED)?.jsonPrimitiveOrNull?.booleanOrNull ?: true
                     if (!departureEnabled) {
                         setHeadsign(Direction.HEADSIGN_TYPE_NO_PICKUP, null)
                     } else {
                         setHeadsign(Direction.HEADSIGN_TYPE_STRING, tripHeadsign)
                     }
                 }
-                realTime = isRealTime
+                realTime = get(JSON_PREDICTED)?.jsonPrimitiveOrNull?.booleanOrNull ?: false
                 accessible = Accessibility.UNKNOWN
             }
         }

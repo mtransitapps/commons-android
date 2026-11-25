@@ -60,11 +60,9 @@ data class ScheduleStatusFilter(
         )
 
         @JvmStatic
-        fun String?.toFilterN() = this?.toFilter()
-
-        fun String.toFilter() = jsonRunCatching(LOG_TAG) {
+        fun String?.toFilterOrNull() = this?.jsonRunCatching(LOG_TAG) {
             sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-        }.getOrThrow()
+        }?.getOrNull()
 
         private const val JSON_MIN_USEFUL_DURATION_COVERED_IN_MS = "minUsefulDurationCoveredInMs"
         private const val JSON_MIN_USEFUL_RESULTS = "minUsefulResults"
@@ -73,7 +71,7 @@ data class ScheduleStatusFilter(
         private const val JSON_LOOK_BEHIND_IN_MS = "lookBehindInMs"
         private const val JSON_INCLUDE_CANCELLED_TIMESTAMPS = "includeCancelledTimestamps"
 
-        fun JsonObject.toFilter() = jsonRunCatching(LOG_TAG) {
+        private fun JsonObject.toFilter() =
             this[JSON_ROUTE_DIRECTION_STOP]?.jsonObjectOrNull?.toRouteDirectionStop()?.let { routeDirectionStop ->
                 ScheduleStatusFilter(
                     cacheOnly = getCacheOnlyFromJson(),
@@ -88,7 +86,6 @@ data class ScheduleStatusFilter(
                     includeCancelledTimestamps = this[JSON_INCLUDE_CANCELLED_TIMESTAMPS]?.jsonPrimitiveOrNull?.booleanOrNull,
                 )
             }
-        }.getOrThrow()
     }
 
     private fun toJson() = jsonRunCatching {

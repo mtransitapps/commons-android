@@ -23,7 +23,7 @@ fun JsonObject.toFrequency() = jsonRunCatching(LOG_TAG) {
         getValue(JSON_HEADWAY_IN_SEC).jsonPrimitive.int,
         get(JSON_OLD_SCHEDULE)?.jsonPrimitiveOrNull?.booleanOrNull,
     )
-}.getOrNull() // skip this 1 only
+}.getOrNull() // no partial results
 
 fun Schedule.Frequency.toJson() = jsonRunCatching {
     buildJsonObject {
@@ -32,4 +32,4 @@ fun Schedule.Frequency.toJson() = jsonRunCatching {
         putK(JSON_HEADWAY_IN_SEC, headwayInSec)
         oldSchedule?.let { putK(JSON_OLD_SCHEDULE, it) }
     }
-}.getOrNull() // skip this 1 only
+}.getOrNull() // no partial results

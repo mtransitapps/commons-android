@@ -718,7 +718,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 					final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 					final String jsonString = FileUtils.getString(response.body().byteStream());
 					MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-					final JArretParcours jArretParcours = RTCQuebecProviderExtKt.toJArretParcours(jsonString);
+					final JArretParcours jArretParcours = RTCQuebecProviderExtKt.toJArretParcoursOrNull(jsonString);
 					final Collection<POIStatus> statuses = parseAgencyJSONArretParcoursHoraires(jArretParcours, rds, sourceLabel, newLastUpdateInMs);
 					StatusProvider.deleteCachedStatus(this, Collections.singleton(getAgencyRouteStopTargetUUID(rds)));
 					if (statuses != null) {

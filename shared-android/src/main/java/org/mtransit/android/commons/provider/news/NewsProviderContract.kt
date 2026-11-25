@@ -181,11 +181,9 @@ interface NewsProviderContract : ProviderContract {
             fun newTargetsUUIDsFilter(targetsUUIDs: List<String>) = Filter(targetsUUIDs = targetsUUIDs)
 
             @JvmStatic
-            fun String?.toFilterN() = this?.toFilter()
-
-            fun String.toFilter() = jsonRunCatching(LOG_TAG) {
+            fun String?.toFilterOrNull() = this?.jsonRunCatching(LOG_TAG) {
                 sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-            }.getOrThrow()
+            }?.getOrNull()
 
             private const val JSON_ARTICLE_UUIDS = "uuids" // article UUIDs
             private const val JSON_TARGETS_UUIDS = "targets" // POI UUIDs

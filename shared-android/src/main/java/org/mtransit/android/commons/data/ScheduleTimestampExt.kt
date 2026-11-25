@@ -59,7 +59,7 @@ fun JsonObject.toTimestamp() = jsonRunCatching(LOG_TAG) {
         jsonObject[JSON_ACCESSIBLE]?.jsonPrimitiveOrNull?.intOrNull?.let { accessible = it }
         jsonObject[JSON_CANCELLED]?.jsonPrimitiveOrNull?.booleanOrNull?.let { cancelled = it }
     }
-}.getOrNull() // skip this 1 only
+}.getOrNull() // no partial results
 
 fun Schedule.Timestamp.toJson() = jsonRunCatching {
     buildJsonObject {
@@ -84,4 +84,4 @@ fun Schedule.Timestamp.toJson() = jsonRunCatching {
         accessible?.let { putK(JSON_ACCESSIBLE, it) }
         cancelled?.let { putK(JSON_CANCELLED, it) }
     }
-}.getOrNull() // skip this 1 only
+}.getOrNull() // no partial results

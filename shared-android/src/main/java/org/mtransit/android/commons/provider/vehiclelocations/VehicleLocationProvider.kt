@@ -12,7 +12,7 @@ import org.mtransit.android.commons.StringUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.provider.common.ContentProviderConstants
 import org.mtransit.android.commons.provider.common.MTContentProvider
-import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProviderContract.Filter.Companion.toFilter
+import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProviderContract.Filter.Companion.toFilterOrNull
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 
 abstract class VehicleLocationProvider :
@@ -44,7 +44,7 @@ abstract class VehicleLocationProvider :
         private const val LOG_NO_CACHE_OR_DATA_FROM_PROVIDER = false
 
         private fun <P : VehicleLocationProviderContract> P.getVehicleLocations(selection: String?): Cursor {
-            val filter = selection?.toFilter() ?: run {
+            val filter = selection?.toFilterOrNull() ?: run {
                 MTLogK.w(this, "Error while parsing vehicle location filter! ($selection)")
                 return getVehicleLocationCursor(null)
             }

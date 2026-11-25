@@ -26,28 +26,29 @@ private const val JSON_ACTION_TYPE = "actionsType"
 private const val JSON_SCORE_OPT = "scoreOpt"
 
 fun JsonObject.toPOI(): POI {
-    when (val type = this.getTypeFromJson()) {
-        POI.ITEM_VIEW_TYPE_BASIC_POI -> return this.toDefaultPOI(type)
-        POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP -> return this.toRouteDirectionStop()
-        POI.ITEM_VIEW_TYPE_MODULE, POI.ITEM_VIEW_TYPE_TEXT_MESSAGE -> {
+    when (val type = getTypeFromJsonOrDefault()) {
+        POI.ITEM_VIEW_TYPE_BASIC_POI -> return toDefaultPOI(type)
+        POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP -> return toRouteDirectionStop()
+        POI.ITEM_VIEW_TYPE_MODULE,
+        POI.ITEM_VIEW_TYPE_TEXT_MESSAGE -> {
             MTLogK.w(LOG_TAG, "Unexpected POI type '$type'! (using default) (json: $this)")
-            return this.toDefaultPOI(type)
+            return toDefaultPOI(type)
         }
 
         else -> {
             MTLogK.w(LOG_TAG, "Unexpected POI type '$type'! (using default) (json: $this)")
-            return this.toDefaultPOI(type)
+            return toDefaultPOI(type)
         }
     }
 }
 
 @ItemViewType
-private fun JsonObject.getTypeFromJson() = jsonRunCatching(LOG_TAG) {
+private fun JsonObject.getTypeFromJsonOrDefault() = jsonRunCatching(LOG_TAG) {
     getValue(JSON_TYPE).jsonPrimitive.int
 }.getOrDefault(POI.ITEM_VIEW_TYPE_BASIC_POI)
 
 private fun JsonObject.toDefaultPOI(
-    @ItemViewType type: Int = getTypeFromJson()
+    @ItemViewType type: Int = getTypeFromJsonOrDefault()
 ) = jsonRunCatching(LOG_TAG) {
     DefaultPOI(
         getAuthorityFromJson(),

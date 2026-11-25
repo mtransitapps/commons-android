@@ -30,24 +30,20 @@ data class AppStatusFilter(
         )
 
         @JvmStatic
-        fun String?.toFilterN() = this?.toFilter()
-
-        fun String.toFilter() = jsonRunCatching(LOG_TAG) {
+        fun String?.toFilterOrNull() = this?.jsonRunCatching(LOG_TAG) {
             sharedJson.parseToJsonElement(this).jsonObjectOrNull?.toFilter()
-        }.getOrThrow()
+        }?.getOrNull()
 
         private const val JSON_PKG = "pkg"
 
-        fun JsonObject.toFilter() = jsonRunCatching(LOG_TAG) {
-            AppStatusFilter(
-                cacheOnly = getCacheOnlyFromJson(),
-                cacheValidityInMs = getCacheValidityInMsFromJson(),
-                inFocus = getInFocusFromJson(),
-                providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
-                targetUUID = getTargetUUIDFromJson(),
-                pkg = this[JSON_PKG]?.jsonPrimitiveOrNull?.contentOrNull ?: throw IllegalArgumentException("Missing key '$JSON_PKG'!"),
-            )
-        }.getOrThrow()
+        private fun JsonObject.toFilter() = AppStatusFilter(
+            cacheOnly = getCacheOnlyFromJson(),
+            cacheValidityInMs = getCacheValidityInMsFromJson(),
+            inFocus = getInFocusFromJson(),
+            providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
+            targetUUID = getTargetUUIDFromJson(),
+            pkg = this[JSON_PKG]?.jsonPrimitiveOrNull?.contentOrNull ?: throw IllegalArgumentException("Missing key '$JSON_PKG'!"),
+        )
 
         private fun StatusProviderContract.Filter.toJson() = jsonRunCatching {
             buildJsonObject {

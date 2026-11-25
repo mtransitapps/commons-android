@@ -84,7 +84,7 @@ private fun JsonObject.toJArrivals(): JArrivals {
             }.orEmpty(),
         ),
         this[JSON_RESULT]?.jsonArrayOrNull?.mapNotNull {
-            it.jsonObject.toJResult()
+            it.jsonObjectOrNull?.toJResult()
         }.orEmpty(),
     )
 }

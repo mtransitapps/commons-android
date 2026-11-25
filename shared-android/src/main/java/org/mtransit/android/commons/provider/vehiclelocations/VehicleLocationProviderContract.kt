@@ -141,19 +141,16 @@ interface VehicleLocationProviderContract : ProviderContract {
             private const val JSON_ROUTE = "route"
             private const val JSON_ROUTE_DIRECTION = "routeDirection"
 
-            @JvmStatic
-            fun String?.toFilterN() = this?.toFilter()
-
-            fun String.toFilter() = jsonRunCatching(LOG_TAG) {
+            fun String?.toFilterOrNull() = this?.jsonRunCatching(LOG_TAG) {
                 sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-            }.getOrThrow()
+            }?.getOrNull()
 
             @SuppressLint("DiscouragedApi")
             private fun JsonObject.toFilter(): Filter? {
                 val poi = this[JSON_POI]?.jsonObjectOrNull?.toPOI()
                 val authority = this[JSON_AUTHORITY]?.jsonPrimitiveOrNull?.contentOrNull ?: poi?.authority ?: return null
                 val route = this[JSON_ROUTE]?.jsonObjectOrNull?.toRoute(authority)
-                val routeDirection = this[JSON_ROUTE]?.jsonObjectOrNull?.toRouteDirection(authority)
+                val routeDirection = this[JSON_ROUTE_DIRECTION]?.jsonObjectOrNull?.toRouteDirection(authority)
                 return Filter(
                     cacheOnly = getCacheOnlyFromJson(),
                     cacheValidityInMs = getCacheValidityInMsFromJson(),

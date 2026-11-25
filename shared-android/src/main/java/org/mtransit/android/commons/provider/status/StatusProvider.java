@@ -143,13 +143,13 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			statusFilter = null;
 			break;
 		case POI.ITEM_STATUS_TYPE_SCHEDULE:
-			statusFilter = ScheduleStatusFilter.toFilterN(selection);
+			statusFilter = ScheduleStatusFilter.toFilterOrNull(selection);
 			break;
 		case POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT:
-			statusFilter = AvailabilityPercentStatusFilter.toFilterN(selection);
+			statusFilter = AvailabilityPercentStatusFilter.toFilterOrNull(selection);
 			break;
 		case POI.ITEM_STATUS_TYPE_APP:
-			statusFilter = AppStatusFilter.toFilterN(selection);
+			statusFilter = AppStatusFilter.toFilterOrNull(selection);
 			break;
 		default:
 			MTLog.w(LOG_TAG, "Unexpected status filter type '%s'!", type);

@@ -18,7 +18,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import org.mtransit.android.commons.AppUpdateUtils.AppUpdateFilter.Companion.toFilter
+import org.mtransit.android.commons.AppUpdateUtils.AppUpdateFilter.Companion.toFilterOrNull
 import org.mtransit.android.commons.provider.GTFSProvider
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.receiver.DataChange
@@ -57,7 +57,7 @@ object AppUpdateUtils : MTLogK.Loggable {
             triggerRefreshIfNecessary(
                 context = context,
                 lastAvailableVersionCode = lastAvailableVersionCode,
-                filter = filterS?.toFilter()
+                filter = filterS?.toFilterOrNull()
                     ?: AppUpdateFilter(), // DEFAULT VALUES
             )
         }
@@ -209,16 +209,14 @@ object AppUpdateUtils : MTLogK.Loggable {
             private const val JSON_FORCE_REFRESH = "force_refresh"
             private const val JSON_IN_FOCUS = "in_focus"
 
-            fun String.toFilter() = jsonRunCatching(LOG_TAG) {
+            internal fun String?.toFilterOrNull() = this?.jsonRunCatching(LOG_TAG) {
                 sharedJson.parseToJsonElement(this).jsonObjectOrNull?.toFilter()
-            }.getOrThrow()
+            }?.getOrNull()
 
-            fun JsonObject.toFilter() = jsonRunCatching(LOG_TAG) {
-                AppUpdateFilter(
-                    forceRefresh = this[JSON_FORCE_REFRESH]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
-                    inFocus = this[JSON_IN_FOCUS]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
-                )
-            }.getOrThrow()
+            private fun JsonObject.toFilter() = AppUpdateFilter(
+                forceRefresh = this[JSON_FORCE_REFRESH]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
+                inFocus = this[JSON_IN_FOCUS]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
+            )
 
             fun AppUpdateFilter.toJson() = jsonRunCatching {
                 buildJsonObject {

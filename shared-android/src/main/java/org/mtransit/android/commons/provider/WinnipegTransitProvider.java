@@ -319,7 +319,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				final String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				final Collection<POIStatus> statuses = WinnipegTransitProviderExtKt.toStatuses(
+				final Collection<POIStatus> statuses = WinnipegTransitProviderExtKt.toStatusesOrNull(
 						jsonString,
 						rds.getDirection().getId(),
 						() -> new Schedule(

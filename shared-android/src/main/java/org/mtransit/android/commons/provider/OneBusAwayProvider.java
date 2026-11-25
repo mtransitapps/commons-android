@@ -310,7 +310,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				final String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadPredictionsFromWWW() > jsonString: %s.", jsonString);
-				final Collection<POIStatus> statuses = OneBusAwayProviderExtKt.toStatuses(
+				final Collection<POIStatus> statuses = OneBusAwayProviderExtKt.toStatusesOrNull(
 						jsonString,
 						AgencyUtils.getAgencyTimeZoneId(context),
 						() -> new Schedule(

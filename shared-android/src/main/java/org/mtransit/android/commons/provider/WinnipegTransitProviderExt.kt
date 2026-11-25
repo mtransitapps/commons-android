@@ -23,7 +23,7 @@ import java.util.Locale
 
 // region status
 
-fun String?.toStatuses(
+fun String?.toStatusesOrNull(
     directionId: Long,
     makeSchedule: () -> Schedule,
     cleanTripHeadsign: (String) -> String
@@ -69,7 +69,7 @@ private fun JsonObject.toScheduleTimestamp(
     directionId: String,
     cleanTripHeadsign: (String) -> String
 ): Schedule.Timestamp? {
-    val variant = this[JSON_VARIANT]?.jsonObject
+    val variant = this[JSON_VARIANT]?.jsonObjectOrNull
     val variantName = variant?.get(JSON_NAME)?.jsonPrimitiveOrNull?.contentOrNull
     val variantKey = variant?.get(JSON_KEY)?.jsonPrimitiveOrNull?.contentOrNull
     if (!variantKey.isNullOrEmpty() && !variantKey.contains(directionId)) {

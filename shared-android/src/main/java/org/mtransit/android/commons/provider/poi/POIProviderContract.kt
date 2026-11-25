@@ -281,11 +281,9 @@ interface POIProviderContract : ProviderContract {
             }
 
             @JvmStatic
-            fun String?.toFilterN() = this?.toFilter()
-
-            fun String.toFilter() = jsonRunCatching(LOG_TAG) {
+            fun String?.toFilterOrNull() = this?.jsonRunCatching(LOG_TAG) {
                 sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-            }.getOrThrow()
+            }?.getOrThrow()
 
             private fun JsonObject.toFilter(): Filter? {
                 var lat: Double?

@@ -28,21 +28,17 @@ data class AvailabilityPercentStatusFilter(
         )
 
         @JvmStatic
-        fun String?.toFilterN() = this?.toFilter()
-
-        fun String.toFilter() = jsonRunCatching(LOG_TAG) {
+        fun String?.toFilterOrNull() = this?.jsonRunCatching(LOG_TAG) {
             sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-        }.getOrThrow()
+        }?.getOrNull()
 
-        fun JsonObject.toFilter() = jsonRunCatching(LOG_TAG) {
-            AvailabilityPercentStatusFilter(
-                cacheOnly = getCacheOnlyFromJson(),
-                cacheValidityInMs = getCacheValidityInMsFromJson(),
-                inFocus = getInFocusFromJson(),
-                providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
-                targetUUID = getTargetUUIDFromJson(),
-            )
-        }.getOrThrow()
+        private fun JsonObject.toFilter() = AvailabilityPercentStatusFilter(
+            cacheOnly = getCacheOnlyFromJson(),
+            cacheValidityInMs = getCacheValidityInMsFromJson(),
+            inFocus = getInFocusFromJson(),
+            providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
+            targetUUID = getTargetUUIDFromJson(),
+        )
 
         private fun StatusProviderContract.Filter.toJson() = jsonRunCatching {
             buildJsonObject {

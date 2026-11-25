@@ -35,17 +35,16 @@ private const val JSON_LAT = "lat"
 private const val JSON_LON = "lon"
 private const val JSON_CAPACITY = "capacity"
 
-internal fun String.toJStationInfoList() = jsonRunCatching(LOG_TAG) {
+internal fun String.toJStationInfoListOrDefault() = jsonRunCatching(LOG_TAG) {
     gbfsJson.parseToJsonElement(this).jsonObject.toJStationInfoList()
-}.getOrThrow()
+}.getOrDefault(emptyList())
 
-internal fun JsonObject.toJStationInfoList() = jsonRunCatching(LOG_TAG) {
-    get(JSON_DATA)?.jsonObjectOrNull?.get(JSON_STATIONS)?.jsonArrayOrNull?.map { jStation ->
-        jStation.jsonObject.toJStationInfo()
+private fun JsonObject.toJStationInfoList() =
+    get(JSON_DATA)?.jsonObjectOrNull?.get(JSON_STATIONS)?.jsonArrayOrNull?.mapNotNull { jStation ->
+        jStation.jsonObjectOrNull?.toJStationInfo()
     }.orEmpty()
-}.getOrThrow()
 
-internal fun JsonObject.toJStationInfo() = GBFSProvider.JStationInformation.JData.JStation(
+private fun JsonObject.toJStationInfo() = GBFSProvider.JStationInformation.JData.JStation(
     this[JSON_STATION_ID]?.jsonPrimitiveOrNull?.contentOrNull,
     this[JSON_NAME]?.jsonPrimitiveOrNull?.contentOrNull,
     this[JSON_SHORT_NAME]?.jsonPrimitiveOrNull?.contentOrNull,
@@ -69,17 +68,16 @@ private const val JSON_IS_RENTING = "is_renting"
 private const val JSON_IS_RETURNING = "is_returning"
 private const val JSON_LAST_REPORTED = "last_reported"
 
-internal fun String.toJStationStatusList() = jsonRunCatching(LOG_TAG) {
+internal fun String.toJStationStatusListOrDefault() = jsonRunCatching(LOG_TAG) {
     gbfsJson.parseToJsonElement(this).jsonObject.toJStationStatusList()
-}.getOrThrow()
+}.getOrDefault(emptyList())
 
-internal fun JsonObject.toJStationStatusList() = jsonRunCatching {
-    get(JSON_DATA)?.jsonObjectOrNull?.get(JSON_STATIONS)?.jsonArrayOrNull?.map { jStation ->
-        jStation.jsonObject.toJStationStatus()
+private fun JsonObject.toJStationStatusList() =
+    get(JSON_DATA)?.jsonObjectOrNull?.get(JSON_STATIONS)?.jsonArrayOrNull?.mapNotNull { jStation ->
+        jStation.jsonObjectOrNull?.toJStationStatus()
     }.orEmpty()
-}.getOrThrow()
 
-internal fun JsonObject.toJStationStatus() = GBFSProvider.JStationStatus.JData.JStation(
+private fun JsonObject.toJStationStatus() = GBFSProvider.JStationStatus.JData.JStation(
     this[JSON_STATION_ID]?.jsonPrimitiveOrNull?.contentOrNull,
     this[JSON_NUM_BIKES_AVAILABLE]?.jsonPrimitiveOrNull?.intOrNull,
     this[JSON_NUM_EBIKES_AVAILABLE]?.jsonPrimitiveOrNull?.intOrNull,

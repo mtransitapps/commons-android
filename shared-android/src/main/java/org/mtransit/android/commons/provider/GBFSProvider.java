@@ -245,12 +245,7 @@ public class GBFSProvider extends BikeStationProvider {
 
 	@NonNull
 	private List<JStationInformation.JData.JStation> parseAgencyJSONStationInformation(@NonNull String jsonString) {
-		try {
-			return GBFSProviderExtKt.toJStationInfoList(jsonString);
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
-			return Collections.emptyList();
-		}
+		return GBFSProviderExtKt.toJStationInfoListOrDefault(jsonString);
 	}
 
 	@SuppressWarnings("UnusedReturnValue")
@@ -404,7 +399,7 @@ public class GBFSProvider extends BikeStationProvider {
 	@NonNull
 	private List<JStationStatus.JData.JStation> parseAgencyJsonStationStatus(@NonNull String jsonString) {
 		try {
-			return GBFSProviderExtKt.toJStationStatusList(jsonString);
+			return GBFSProviderExtKt.toJStationStatusListOrDefault(jsonString);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
 			return Collections.emptyList();

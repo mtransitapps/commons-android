@@ -19,7 +19,7 @@ import org.mtransit.commons.jsonPrimitiveOrNull
 import java.text.ParseException
 import java.util.concurrent.TimeUnit
 
-fun String?.toStatuses(
+fun String?.toStatusesOrNull(
     localTimeZoneId: String,
     afterMs: Long,
     stopCode: String,
