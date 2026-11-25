@@ -31,7 +31,7 @@ private const val JSON_ACCESSIBLE = "a11y"
 private const val JSON_CANCELLED = "cancelled"
 
 fun JsonObject.toTimestamp() = jsonRunCatching(LOG_TAG) {
-    val localTimeZoneId = jsonObject[JSON_LOCAL_TIME_ZONE_ID_]?.jsonPrimitiveOrNull?.contentOrNull
+    val localTimeZoneId = this[JSON_LOCAL_TIME_ZONE_ID_]?.jsonPrimitiveOrNull?.contentOrNull
     if (localTimeZoneId == null) {
         check(!BuildConfig.DEBUG) { "Timestamp missing timezone in JSON!" }
         MTLogK.w(LOG_TAG, "Timestamp missing timezone in JSON '$this'!")
@@ -40,13 +40,13 @@ fun JsonObject.toTimestamp() = jsonRunCatching(LOG_TAG) {
         getValue(JSON_DEPARTURE).jsonPrimitive.long,
         localTimeZoneId,
     ).apply {
-        jsonObject[JSON_ORIGINAL_DEPARTURE_DELAY]?.jsonPrimitiveOrNull?.longOrNull?.let { originalDepartureDelayMs = it }
-        jsonObject[JSON_DEPARTURE_ARRIVAL_DIFF]?.jsonPrimitiveOrNull?.longOrNull?.let { departureArrivalDiffMs = it }
-        jsonObject[JSON_ORIGINAL_ARRIVAL_DELAY]?.jsonPrimitiveOrNull?.longOrNull?.let { originalArrivalDelayMs = it }
-        jsonObject[JSON_TRIP_ID]?.jsonPrimitiveOrNull?.contentOrNull?.let { tripId = it }
-        jsonObject[JSON_STOP_SEQUENCE]?.jsonPrimitiveOrNull?.intOrNull?.let { setStopSequence(it) }
-        val headSignType = jsonObject[JSON_HEADSIGN_TYPE]?.jsonPrimitiveOrNull?.intOrNull ?: Direction.HEADSIGN_TYPE_NONE
-        val headSignValue = jsonObject[JSON_HEADSIGN_VALUE]?.jsonPrimitiveOrNull?.contentOrNull.orEmpty()
+        get(JSON_ORIGINAL_DEPARTURE_DELAY)?.jsonPrimitiveOrNull?.longOrNull?.let { originalDepartureDelayMs = it }
+        get(JSON_DEPARTURE_ARRIVAL_DIFF)?.jsonPrimitiveOrNull?.longOrNull?.let { departureArrivalDiffMs = it }
+        get(JSON_ORIGINAL_ARRIVAL_DELAY)?.jsonPrimitiveOrNull?.longOrNull?.let { originalArrivalDelayMs = it }
+        get(JSON_TRIP_ID)?.jsonPrimitiveOrNull?.contentOrNull?.let { tripId = it }
+        get(JSON_STOP_SEQUENCE)?.jsonPrimitiveOrNull?.intOrNull?.let { setStopSequence(it) }
+        val headSignType = get(JSON_HEADSIGN_TYPE)?.jsonPrimitiveOrNull?.intOrNull ?: Direction.HEADSIGN_TYPE_NONE
+        val headSignValue = get(JSON_HEADSIGN_VALUE)?.jsonPrimitiveOrNull?.contentOrNull.orEmpty()
         if (headSignType >= 0 && headSignValue.isNotEmpty()) {
             setHeadsign(headSignType, headSignValue)
         } else {
@@ -54,10 +54,10 @@ fun JsonObject.toTimestamp() = jsonRunCatching(LOG_TAG) {
                 setHeadsign(headSignType, null)
             }
         }
-        jsonObject[JSON_REAL_TIME]?.jsonPrimitiveOrNull?.booleanOrNull?.let { realTime = it }
-        jsonObject[JSON_OLD_SCHEDULE]?.jsonPrimitiveOrNull?.booleanOrNull?.let { oldSchedule = it }
-        jsonObject[JSON_ACCESSIBLE]?.jsonPrimitiveOrNull?.intOrNull?.let { accessible = it }
-        jsonObject[JSON_CANCELLED]?.jsonPrimitiveOrNull?.booleanOrNull?.let { cancelled = it }
+        get(JSON_REAL_TIME)?.jsonPrimitiveOrNull?.booleanOrNull?.let { realTime = it }
+        get(JSON_OLD_SCHEDULE)?.jsonPrimitiveOrNull?.booleanOrNull?.let { oldSchedule = it }
+        get(JSON_ACCESSIBLE)?.jsonPrimitiveOrNull?.intOrNull?.let { accessible = it }
+        get(JSON_CANCELLED)?.jsonPrimitiveOrNull?.booleanOrNull?.let { cancelled = it }
     }
 }.getOrNull() // no partial results
 

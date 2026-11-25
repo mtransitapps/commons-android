@@ -92,14 +92,14 @@ private fun JsonObject.toTimestamp(
                 },
                 localTimeZoneId
             ).apply {
-                get(JSON_LINE_NAME)?.jsonPrimitiveOrNull?.contentOrNull?.takeIf { it.isNotEmpty() }?.let { destinationName ->
+                this@toTimestamp[JSON_LINE_NAME]?.jsonPrimitiveOrNull?.contentOrNull?.takeIf { it.isNotEmpty() }?.let { destinationName ->
                     setHeadsign(Direction.HEADSIGN_TYPE_STRING, cleanTripHeadsign(destinationName))
                 }
-                get(JSON_BUS_ID)?.jsonPrimitiveOrNull?.contentOrNull?.let { busId ->
+                this@toTimestamp[JSON_BUS_ID]?.jsonPrimitiveOrNull?.contentOrNull?.let { busId ->
                     realTime = busId.isNotEmpty() // no bus ID = scheduled = not real-time
                 }
                 accessible = Accessibility.UNKNOWN // no info available on https://transitlive.com/mobile/
-                if (get(JSON_LAST_STOP)?.jsonPrimitiveOrNull?.contentOrNull == stopCode) {
+                if (this@toTimestamp[JSON_LAST_STOP]?.jsonPrimitiveOrNull?.contentOrNull == stopCode) {
                     setHeadsign(Direction.HEADSIGN_TYPE_NO_PICKUP, null)
                 }
             }

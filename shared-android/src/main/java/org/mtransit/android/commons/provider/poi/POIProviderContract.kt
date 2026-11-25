@@ -283,7 +283,7 @@ interface POIProviderContract : ProviderContract {
             @JvmStatic
             fun String?.toFilterOrNull() = this?.jsonRunCatching(LOG_TAG) {
                 sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-            }?.getOrThrow()
+            }?.getOrNull()
 
             private fun JsonObject.toFilter(): Filter? {
                 var lat: Double?
@@ -416,8 +416,8 @@ interface POIProviderContract : ProviderContract {
                             val key = this@toJson.extras.keyAt(i)
                             val jsonElement = runCatching {
                                 this@toJson.extras.valueAt(i).toJsonElement()
-                            }.onFailure {
-                                MTLogK.w(LOG_TAG, "Error while parsing '$key' JSON object '${this@toJson}'", it.cause)
+                            }.onFailure { t ->
+                                MTLogK.w(LOG_TAG, "Error while parsing '$key' JSON object '${this@toJson}'", t)
                             }.getOrNull() ?: continue
                             add(
                                 buildJsonObject {
