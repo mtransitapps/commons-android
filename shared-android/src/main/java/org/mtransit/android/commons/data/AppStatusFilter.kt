@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.data
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -46,7 +45,7 @@ data class AppStatusFilter(
                 inFocus = getInFocusFromJson(),
                 providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
                 targetUUID = getTargetUUIDFromJson(),
-                pkg = this[JSON_PKG]?.jsonPrimitiveOrNull?.contentOrNull ?: throw SerializationException("Missing key '$JSON_PKG'!"),
+                pkg = this[JSON_PKG]?.jsonPrimitiveOrNull?.contentOrNull ?: throw IllegalArgumentException("Missing key '$JSON_PKG'!"),
             )
         }.getOrThrow()
 

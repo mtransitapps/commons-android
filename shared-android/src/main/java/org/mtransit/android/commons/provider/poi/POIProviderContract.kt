@@ -7,7 +7,6 @@ import android.provider.BaseColumns
 import androidx.annotation.Discouraged
 import androidx.collection.ArrayMap
 import androidx.collection.SimpleArrayMap
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.addAll
 import kotlinx.serialization.json.buildJsonObject
@@ -411,7 +410,7 @@ interface POIProviderContract : ProviderContract {
                     } else if (isSQLSelection(this@toJson)) {
                         put(JSON_SQL_SELECTION, this@toJson.sqlSelection)
                     } else {
-                        throw SerializationException("Empty POI filter '${this@toJson}' converted to JSON!")
+                        error("Empty POI filter '${this@toJson}' converted to JSON!")
                     }
                     toJsonCommon(this@toJson)
                     putJsonArray(JSON_EXTRAS) {

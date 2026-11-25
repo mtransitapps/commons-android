@@ -32,32 +32,30 @@ private const val JSON_VALUE2_QUANTITY_RES = "value2QuantityRes"
 private const val JSON_VALUE2_COLOR = "value2Color"
 private const val JSON_VALUE2_COLOR_BG = "value2ColorBg"
 
-fun POIStatus.toAvailabilityPercent(jsonString: String) = jsonRunCatching(LOG_TAG) {
-    this.toAvailabilityPercent(sharedJson.parseToJsonElement(jsonString).jsonObject)
-}.getOrThrow()
+fun String?.toAvailabilityPercentOrNull(status: POIStatus) = this?.jsonRunCatching(LOG_TAG) {
+    sharedJson.parseToJsonElement(this).jsonObject.toAvailabilityPercent(status)
+}?.getOrNull()
 
-fun POIStatus.toAvailabilityPercent(jsonObject: JsonObject) = jsonRunCatching(LOG_TAG) {
-    AvailabilityPercent(this).apply {
-        statusMsgId = jsonObject.getValue(JSON_STATUS_MSG_ID).jsonPrimitive.int
-        value1 = jsonObject.getValue(JSON_VALUE1).jsonPrimitive.int
-        value1EmptyRes = jsonObject.getValue(JSON_VALUE1_EMPTY_RES).jsonPrimitive.content
-        value1QuantityRes = jsonObject.getValue(JSON_VALUE1_QUANTITY_RES).jsonPrimitive.content
-        value1Color = jsonObject.getValue(JSON_VALUE1_COLOR).jsonPrimitive.int
-        value1ColorBg = jsonObject.getValue(JSON_VALUE1_COLOR_BG).jsonPrimitive.int
-        value1SubValueDefaultEmptyRes = jsonObject[JSON_VALUE1_SUB_VALUE_DEFAULT_EMPTY_RES]?.jsonPrimitiveOrNull?.contentOrNull
-        value1SubValueDefaultQuantityRes = jsonObject[JSON_VALUE1_SUB_VALUE_DEFAULT_QUANTITY_RES]?.jsonPrimitiveOrNull?.contentOrNull
-        value1SubValue1 = jsonObject[JSON_VALUE1_SUB_VALUE1]?.jsonPrimitiveOrNull?.intOrNull
-        value1SubValue1EmptyRes = jsonObject[JSON_VALUE1_SUB_VALUE1_EMPTY_RES]?.jsonPrimitiveOrNull?.contentOrNull
-        value1SubValue1QuantityRes = jsonObject[JSON_VALUE1_SUB_VALUE1_QUANTITY_RES]?.jsonPrimitiveOrNull?.contentOrNull
-        value1SubValue1Color = jsonObject[JSON_VALUE1_SUB_VALUE1_COLOR]?.jsonPrimitiveOrNull?.intOrNull
-        value1SubValue1ColorBg = jsonObject[JSON_VALUE1_SUB_VALUE1_COLOR_BG]?.jsonPrimitiveOrNull?.intOrNull
-        value2 = jsonObject.getValue(JSON_VALUE2).jsonPrimitive.int
-        value2EmptyRes = jsonObject.getValue(JSON_VALUE2_EMPTY_RES).jsonPrimitive.content
-        value2QuantityRes = jsonObject.getValue(JSON_VALUE2_QUANTITY_RES).jsonPrimitive.content
-        value2Color = jsonObject.getValue(JSON_VALUE2_COLOR).jsonPrimitive.int
-        value2ColorBg = jsonObject.getValue(JSON_VALUE2_COLOR_BG).jsonPrimitive.int
-    }
-}.getOrThrow()
+private fun JsonObject.toAvailabilityPercent(status: POIStatus) = AvailabilityPercent(status).apply {
+    this.statusMsgId = getValue(JSON_STATUS_MSG_ID).jsonPrimitive.int
+    this.value1 = getValue(JSON_VALUE1).jsonPrimitive.int
+    this.value1EmptyRes = getValue(JSON_VALUE1_EMPTY_RES).jsonPrimitive.content
+    this.value1QuantityRes = getValue(JSON_VALUE1_QUANTITY_RES).jsonPrimitive.content
+    this.value1Color = getValue(JSON_VALUE1_COLOR).jsonPrimitive.int
+    this.value1ColorBg = getValue(JSON_VALUE1_COLOR_BG).jsonPrimitive.int
+    this.value1SubValueDefaultEmptyRes = this@toAvailabilityPercent[JSON_VALUE1_SUB_VALUE_DEFAULT_EMPTY_RES]?.jsonPrimitiveOrNull?.contentOrNull
+    this.value1SubValueDefaultQuantityRes = this@toAvailabilityPercent[JSON_VALUE1_SUB_VALUE_DEFAULT_QUANTITY_RES]?.jsonPrimitiveOrNull?.contentOrNull
+    this.value1SubValue1 = this@toAvailabilityPercent[JSON_VALUE1_SUB_VALUE1]?.jsonPrimitiveOrNull?.intOrNull
+    this.value1SubValue1EmptyRes = this@toAvailabilityPercent[JSON_VALUE1_SUB_VALUE1_EMPTY_RES]?.jsonPrimitiveOrNull?.contentOrNull
+    this.value1SubValue1QuantityRes = this@toAvailabilityPercent[JSON_VALUE1_SUB_VALUE1_QUANTITY_RES]?.jsonPrimitiveOrNull?.contentOrNull
+    this.value1SubValue1Color = this@toAvailabilityPercent[JSON_VALUE1_SUB_VALUE1_COLOR]?.jsonPrimitiveOrNull?.intOrNull
+    this.value1SubValue1ColorBg = this@toAvailabilityPercent[JSON_VALUE1_SUB_VALUE1_COLOR_BG]?.jsonPrimitiveOrNull?.intOrNull
+    this.value2 = getValue(JSON_VALUE2).jsonPrimitive.int
+    this.value2EmptyRes = getValue(JSON_VALUE2_EMPTY_RES).jsonPrimitive.content
+    this.value2QuantityRes = getValue(JSON_VALUE2_QUANTITY_RES).jsonPrimitive.content
+    this.value2Color = getValue(JSON_VALUE2_COLOR).jsonPrimitive.int
+    this.value2ColorBg = getValue(JSON_VALUE2_COLOR_BG).jsonPrimitive.int
+}
 
 fun AvailabilityPercent.toJson() = jsonRunCatching {
     buildJsonObject {

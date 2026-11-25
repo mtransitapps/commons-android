@@ -3,10 +3,10 @@ package org.mtransit.android.commons.data
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonObject
 import org.mtransit.android.commons.data.AppStatus.LOG_TAG
 import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.sharedJson
-import org.mtransit.commons.jsonObjectOrNull
 import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlinx.serialization.json.put as putK
 
@@ -15,18 +15,16 @@ private const val JSON_APP_ENABLED = "appEnabled"
 private const val JSON_UPDATE_AVAILABLE = "updateAvailable"
 
 @JvmOverloads
-fun POIStatus.toAppStatus(jsonString: String? = null) = jsonRunCatching(LOG_TAG) {
-    this.toAppStatus(jsonString?.let { sharedJson.parseToJsonElement(it).jsonObjectOrNull })
-}.getOrThrow()
+fun String?.toAppStatusOrDefault(status: POIStatus, getDefault: () -> AppStatus = { AppStatus(status, false, true, false) }) = this?.jsonRunCatching(LOG_TAG) {
+    sharedJson.parseToJsonElement(this).jsonObject.toAppStatus(status)
+}?.getOrDefault(getDefault()) ?: getDefault()
 
-private fun POIStatus.toAppStatus(jsonObject: JsonObject?) = jsonRunCatching(LOG_TAG) {
-    AppStatus(
-        this,
-        jsonObject?.get(JSON_APP_INSTALLED)?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
-        jsonObject?.get(JSON_APP_ENABLED)?.jsonPrimitiveOrNull?.booleanOrNull ?: true,
-        jsonObject?.get(JSON_UPDATE_AVAILABLE)?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
-    )
-}.getOrThrow()
+private fun JsonObject.toAppStatus(status: POIStatus) = AppStatus(
+    status,
+    this[JSON_APP_INSTALLED]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
+    this[JSON_APP_ENABLED]?.jsonPrimitiveOrNull?.booleanOrNull ?: true,
+    this[JSON_UPDATE_AVAILABLE]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
+)
 
 fun AppStatus.toJson() = jsonRunCatching {
     buildJsonObject {

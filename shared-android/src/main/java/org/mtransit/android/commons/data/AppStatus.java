@@ -13,9 +13,6 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
 
-import kotlinx.serialization.SerializationException;
-import kotlinx.serialization.json.JsonObject;
-
 public class AppStatus extends POIStatus implements MTLog.Loggable {
 
 	protected static final String LOG_TAG = AppStatus.class.getSimpleName();
@@ -201,19 +198,15 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 
 	@NonNull
 	public static AppStatus fromCursorWithExtra(@NonNull Cursor cursor) {
-		final POIStatus status = POIStatus.fromCursor(cursor);
-		final String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
-		return fromExtraJSONString(status, extrasJSONString);
+		return fromExtraJsonString(
+				POIStatus.fromCursor(cursor),
+				POIStatus.getExtrasFromCursor(cursor)
+		);
 	}
 
 	@NonNull
-	private static AppStatus fromExtraJSONString(@NonNull POIStatus status, @Nullable String extrasJSONString) {
-		try {
-			return AppStatusExtKt.toAppStatus(status, extrasJSONString);
-		} catch (SerializationException se) {
-			MTLog.w(LOG_TAG, se, "Error while retrieving extras information from cursor.");
-			return AppStatusExtKt.toAppStatus(status);
-		}
+	private static AppStatus fromExtraJsonString(@NonNull POIStatus status, @Nullable String extrasJsonString) {
+		return AppStatusExtKt.toAppStatusOrDefault(extrasJsonString, status);
 	}
 
 	@NonNull

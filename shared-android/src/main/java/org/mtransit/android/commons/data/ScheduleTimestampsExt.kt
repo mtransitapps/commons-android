@@ -17,9 +17,9 @@ private const val JSON_SOURCE_LABEL = "sourceLabel"
 private const val JSON_LOCAL_TIME_ZONE_ID = "tz"
 private const val JSON_TIMESTAMPS = "timestamps"
 
-fun String.toScheduleTimestamps(scheduleTimestamps: ScheduleTimestamps) = jsonRunCatching(LOG_TAG) {
+fun String?.toScheduleTimestampsOrNull(scheduleTimestamps: ScheduleTimestamps) = this?.jsonRunCatching(LOG_TAG) {
     sharedJson.parseToJsonElement(this).jsonObject.toScheduleTimestamps(scheduleTimestamps)
-}.getOrThrow()
+}?.getOrNull()
 
 private fun JsonObject.toScheduleTimestamps(scheduleTimestamps: ScheduleTimestamps) = scheduleTimestamps.apply {
     sourceLabel = this@toScheduleTimestamps[JSON_SOURCE_LABEL]?.jsonPrimitiveOrNull?.contentOrNull

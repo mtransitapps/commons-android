@@ -312,32 +312,30 @@ private const val JSON_TIMESTAMPS = "timestamps"
 private const val JSON_FREQUENCIES = "frequencies"
 private const val JSON_LOCAL_TIME_ZONE_ID = "tz"
 
-fun POIStatus.toSchedule(jsonString: String) = jsonRunCatching(LOG_TAG) {
-    this.toSchedule(sharedJson.parseToJsonElement(jsonString).jsonObject)
-}.getOrThrow()
+fun String?.toScheduleOrNull(status: POIStatus) = this?.jsonRunCatching(LOG_TAG) {
+    sharedJson.parseToJsonElement(this).jsonObject.toSchedule(status)
+}?.getOrNull()
 
-fun POIStatus.toSchedule(jsonObject: JsonObject) = jsonRunCatching(LOG_TAG) {
-    var localTimeZoneId = jsonObject[JSON_LOCAL_TIME_ZONE_ID]?.jsonPrimitiveOrNull?.contentOrNull
-    val timestamps = jsonObject[JSON_TIMESTAMPS]?.jsonArrayOrNull?.mapNotNull {
+private fun JsonObject.toSchedule(status: POIStatus) =
+    this[JSON_TIMESTAMPS]?.jsonArrayOrNull?.mapNotNull {
         it.jsonObjectOrNull?.toTimestamp()
-    }.orEmpty()
-    if (localTimeZoneId == null) {
-        //noinspection DiscouragedApi
-        localTimeZoneId = timestamps.find { it.localTimeZoneId != null }?.localTimeZoneId
+    }.orEmpty().let { timestamps ->
+        Schedule(
+            status,
+            getValue(JSON_PROVIDER_PRECISION_IN_MS).jsonPrimitive.long,
+            this[JSON_IS_NO_PICKUP]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
+            this[JSON_LOCAL_TIME_ZONE_ID]?.jsonPrimitiveOrNull?.contentOrNull
+                //noinspection DiscouragedApi
+                ?: timestamps.find { it.localTimeZoneId != null }?.localTimeZoneId
+        ).apply {
+            setTimestampsAndSort(timestamps)
+            setFrequenciesAndSort(
+                this@toSchedule[JSON_FREQUENCIES]?.jsonArrayOrNull?.mapNotNull {
+                    it.jsonObjectOrNull?.toFrequency()
+                }.orEmpty()
+            )
+        }
     }
-    val frequencies = jsonObject[JSON_FREQUENCIES]?.jsonArrayOrNull?.mapNotNull {
-        it.jsonObjectOrNull?.toFrequency()
-    }.orEmpty()
-    Schedule(
-        this,
-        jsonObject.getValue(JSON_PROVIDER_PRECISION_IN_MS).jsonPrimitive.long,
-        jsonObject[JSON_IS_NO_PICKUP]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
-        localTimeZoneId
-    ).apply {
-        setTimestampsAndSort(timestamps)
-        setFrequenciesAndSort(frequencies)
-    }
-}.getOrThrow()
 
 fun Schedule.toJson() = jsonRunCatching {
     buildJsonObject {

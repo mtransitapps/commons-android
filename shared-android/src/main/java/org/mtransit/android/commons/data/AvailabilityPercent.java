@@ -17,8 +17,6 @@ import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.StringUtils;
 
-import kotlinx.serialization.SerializationException;
-
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
@@ -504,20 +502,15 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 	@Nullable
 	public static AvailabilityPercent fromCursorWithExtra(@NonNull Cursor cursor) {
-		final POIStatus status = POIStatus.fromCursor(cursor);
-		final String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
-		return fromExtraJSONString(status, extrasJSONString);
+		return fromExtraJsonString(
+				POIStatus.fromCursor(cursor),
+				POIStatus.getExtrasFromCursor(cursor)
+		);
 	}
 
 	@Nullable
-	private static AvailabilityPercent fromExtraJSONString(@NonNull POIStatus status, @Nullable String extrasJSONString) {
-		try {
-			if (extrasJSONString == null) return null;
-			return AvailabilityPercentExtKt.toAvailabilityPercent(status, extrasJSONString);
-		} catch (SerializationException se) {
-			MTLog.w(LOG_TAG, se, "Error while retrieving extras information from cursor.");
-			return null;
-		}
+	private static AvailabilityPercent fromExtraJsonString(@NonNull POIStatus status, @Nullable String extrasJsonString) {
+		return AvailabilityPercentExtKt.toAvailabilityPercentOrNull(extrasJsonString, status);
 	}
 
 	@NonNull

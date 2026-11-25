@@ -141,7 +141,7 @@ public class GBFSProvider extends BikeStationProvider {
 				final String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadBikeStationDataFromWWW() > jsonString: %s.", jsonString);
 				final List<JStationInformation.JData.JStation> jStations = parseAgencyJSONStationInformation(jsonString);
-				final HashSet<DefaultPOI> newBikeStations = parseAgencyJSONStations(context, jStations);
+				final HashSet<DefaultPOI> newBikeStations = parseAgencyJsonStations(context, jStations);
 				MTLog.i(this, "Found %d stations.", newBikeStations.size());
 				final Area coverageArea = POITools.getCoverageArea(newBikeStations);
 				getStorage(context).saveArea(coverageArea);
@@ -191,7 +191,7 @@ public class GBFSProvider extends BikeStationProvider {
 	}
 
 	@NonNull
-	private HashSet<DefaultPOI> parseAgencyJSONStations(
+	private HashSet<DefaultPOI> parseAgencyJsonStations(
 			@NonNull Context context,
 			@NonNull List<JStationInformation.JData.JStation> jStations
 	) {
@@ -200,7 +200,7 @@ public class GBFSProvider extends BikeStationProvider {
 			final String authority = getAUTHORITY(context);
 			final int dataSourceTypeId = getAGENCY_TYPE_ID(context);
 			for (JStationInformation.JData.JStation jStation : jStations) {
-				final DefaultPOI newBikeStation = parseAgencyJSONStation(authority, dataSourceTypeId, jStation);
+				final DefaultPOI newBikeStation = parseAgencyJsonStation(authority, dataSourceTypeId, jStation);
 				if (newBikeStation != null) {
 					newBikeStations.add(newBikeStation);
 				}
@@ -212,7 +212,7 @@ public class GBFSProvider extends BikeStationProvider {
 	}
 
 	@Nullable
-	private DefaultPOI parseAgencyJSONStation(String authority, int dataSourceTypeId, JStationInformation.JData.JStation jStation) {
+	private DefaultPOI parseAgencyJsonStation(String authority, int dataSourceTypeId, JStationInformation.JData.JStation jStation) {
 		try {
 			if (jStation.getCapacity() != null // capacity known
 					&& jStation.getCapacity() <= 0) { // AND empty
@@ -272,8 +272,8 @@ public class GBFSProvider extends BikeStationProvider {
 				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				final String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadBikeStationStatusDataFromWWW() > jsonString: %s.", jsonString);
-				final List<JStationStatus.JData.JStation> jStationStatus = parseAgencyJSONStationStatus(jsonString);
-				final HashSet<POIStatus> newBikeStationStatus = parseAgencyJSONStationsStatus(context, jStationStatus, sourceLabel, newLastUpdateInMs);
+				final List<JStationStatus.JData.JStation> jStationStatus = parseAgencyJsonStationStatus(jsonString);
+				final HashSet<POIStatus> newBikeStationStatus = parseAgencyJsonStationsStatus(context, jStationStatus, sourceLabel, newLastUpdateInMs);
 				MTLog.i(this, "Found %d statuses.", newBikeStationStatus.size());
 				deleteAllBikeStationStatusData();
 				StatusProvider.cacheAllStatusesBulkLockDB(this, newBikeStationStatus);
@@ -304,7 +304,7 @@ public class GBFSProvider extends BikeStationProvider {
 	}
 
 	@NonNull
-	private HashSet<POIStatus> parseAgencyJSONStationsStatus(
+	private HashSet<POIStatus> parseAgencyJsonStationsStatus(
 			@NonNull Context context,
 			@NonNull List<JStationStatus.JData.JStation> jStations,
 			@Nullable String sourceLabel,
@@ -321,7 +321,7 @@ public class GBFSProvider extends BikeStationProvider {
 			final int value2Color = getValue2Color(context);
 			final int value2ColorBg = getValue2ColorBg(context);
 			for (JStationStatus.JData.JStation jStation : jStations) {
-				final POIStatus newBikeStationStatus = parseAgencyJSONStationStatus(
+				final POIStatus newBikeStationStatus = parseAgencyJsonStationStatus(
 						authority, jStation, sourceLabel, newLastUpdateInMs,
 						statusMaxValidityInMs,
 						value1Color, value1ColorBg,
@@ -338,7 +338,7 @@ public class GBFSProvider extends BikeStationProvider {
 	}
 
 	@Nullable
-	private POIStatus parseAgencyJSONStationStatus(
+	private POIStatus parseAgencyJsonStationStatus(
 			@NonNull String authority,
 			@NonNull JStationStatus.JData.JStation jStation,
 			@Nullable String sourceLabel,
@@ -402,7 +402,7 @@ public class GBFSProvider extends BikeStationProvider {
 	}
 
 	@NonNull
-	private List<JStationStatus.JData.JStation> parseAgencyJSONStationStatus(@NonNull String jsonString) {
+	private List<JStationStatus.JData.JStation> parseAgencyJsonStationStatus(@NonNull String jsonString) {
 		try {
 			return GBFSProviderExtKt.toJStationStatusList(jsonString);
 		} catch (Exception e) {

@@ -23,9 +23,6 @@ import java.util.Objects;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
-import kotlinx.serialization.SerializationException;
-import kotlinx.serialization.json.JsonObject;
-
 @SuppressWarnings("WeakerAccess")
 // aka. [route+direction+stop]>trips>stop_times
 public class Schedule extends POIStatus implements MTLog.Loggable {
@@ -130,20 +127,15 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	@Nullable
 	public static Schedule fromCursorWithExtra(@NonNull Cursor cursor) {
-		return fromExtraJSONString(
+		return fromExtraJsonString(
 				POIStatus.fromCursor(cursor),
 				POIStatus.getExtrasFromCursor(cursor)
 		);
 	}
 
 	@Nullable
-	private static Schedule fromExtraJSONString(@NonNull POIStatus status, @NonNull String extrasJSONString) {
-		try {
-			return ScheduleExtKt.toSchedule(status, extrasJSONString);
-		} catch (SerializationException se) {
-			MTLog.w(LOG_TAG, se, "Error while retrieving extras information from cursor.");
-			return null;
-		}
+	private static Schedule fromExtraJsonString(@NonNull POIStatus status, @NonNull String extrasJsonString) {
+		return ScheduleExtKt.toScheduleOrNull(extrasJsonString, status);
 	}
 
 	@NonNull

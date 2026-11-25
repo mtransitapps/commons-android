@@ -711,7 +711,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 					final String jsonString = FileUtils.getString(response.body().byteStream());
 					MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 					final JArrivals jArrivals = StmInfoApiProviderExtKt.toJArrivals(jsonString);
-					final ArrayList<POIStatus> statuses = parseAgencyJSONArrivalsStatuses(
+					final ArrayList<POIStatus> statuses = parseAgencyJsonArrivalsStatuses(
 							context,
 							jArrivals == null ? Collections.emptyList() : jArrivals.getResults(),
 							rds,
@@ -732,7 +732,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 					// }
 					// }
 					// }
-					final ServiceUpdates serviceUpdates = parseAgencyJSONArrivalsServiceUpdates(
+					final ServiceUpdates serviceUpdates = parseAgencyJsonArrivalsServiceUpdates(
 							context,
 							jArrivals == null ? Collections.emptyList() : jArrivals.getMessages().getLines(),
 							jArrivals == null ? Collections.emptyList() : jArrivals.getMessages().getStopPoints(),
@@ -771,7 +771,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 
 	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	@Nullable
-	private ServiceUpdates parseAgencyJSONArrivalsServiceUpdates(
+	private ServiceUpdates parseAgencyJsonArrivalsServiceUpdates(
 			@NonNull Context context,
 			@NonNull List<JArrivals.JMessages.JMessage> jLines,
 			@NonNull List<JArrivals.JMessages.JMessage> jStopPoints,
@@ -922,7 +922,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 					final String jsonString = FileUtils.getString(response.body().byteStream());
 					MTLog.d(this, "loadRealTimeServiceUpdateFromWWW() > jsonString: %s.", jsonString);
 					final List<JMessages.JResult> jMessageResults = StmInfoApiProviderExtKt.toLegacyMessagesResults(jsonString);
-					final ServiceUpdates serviceUpdates = parseAgencyJSONMessageResults(
+					final ServiceUpdates serviceUpdates = parseAgencyJsonMessageResults(
 							jMessageResults,
 							rds,
 							sourceLabel,
@@ -1088,7 +1088,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 	@SuppressWarnings("DeprecatedIsStillUsed")
 	@Deprecated
 	@Nullable
-	protected ServiceUpdates parseAgencyJSONMessageResults(
+	protected ServiceUpdates parseAgencyJsonMessageResults(
 			@NonNull List<JMessages.JResult> jResults,
 			@NonNull RouteDirectionStop rds,
 			@NonNull String sourceLabel,
@@ -1319,7 +1319,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 
 	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	@Nullable
-	protected ArrayList<POIStatus> parseAgencyJSONArrivalsStatuses(
+	protected ArrayList<POIStatus> parseAgencyJsonArrivalsStatuses(
 			@NonNull Context context,
 			@NonNull List<JArrivals.JResult> jResults,
 			@NonNull RouteDirectionStop rds,

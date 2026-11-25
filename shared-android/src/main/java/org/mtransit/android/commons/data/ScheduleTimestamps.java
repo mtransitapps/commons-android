@@ -13,8 +13,6 @@ import org.mtransit.commons.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import kotlinx.serialization.SerializationException;
-
 public class ScheduleTimestamps implements MTLog.Loggable {
 
 	protected static final String LOG_TAG = ScheduleTimestamps.class.getSimpleName();
@@ -96,14 +94,8 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 	}
 
 	@Nullable
-	private static ScheduleTimestamps fromExtraJSONString(ScheduleTimestamps scheduleTimestamps, String extrasJSONString) {
-		try {
-			if (extrasJSONString == null) return null;
-			return ScheduleTimestampsExtKt.toScheduleTimestamps(extrasJSONString, scheduleTimestamps);
-		} catch (SerializationException se) {
-			MTLog.w(LOG_TAG, se, "Error while retrieving extras information from cursor.");
-			return null;
-		}
+	private static ScheduleTimestamps fromExtraJSONString(ScheduleTimestamps scheduleTimestamps, String extrasJsonString) {
+		return ScheduleTimestampsExtKt.toScheduleTimestampsOrNull(extrasJsonString, scheduleTimestamps);
 	}
 
 	@NonNull
@@ -114,12 +106,12 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 				ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_ENDS_AT,
 				ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_EXTRAS
 		});
-		cursor.addRow(new Object[]{targetUUID, startsAtInMs, endsAtInMs, getExtrasJSONString()});
+		cursor.addRow(new Object[]{targetUUID, startsAtInMs, endsAtInMs, getExtrasJsonString()});
 		return cursor;
 	}
 
 	@Nullable
-	private String getExtrasJSONString() {
+	private String getExtrasJsonString() {
 		try {
 			return ScheduleTimestampsExtKt.toJsonString(this);
 		} catch (Exception e) {
