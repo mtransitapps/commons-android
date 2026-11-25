@@ -19,6 +19,7 @@ import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.data.POI
 import org.mtransit.android.commons.data.RouteDirectionStop
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.commons.jsonArrayOrNull
@@ -182,38 +183,30 @@ interface NewsProviderContract : ProviderContract {
             @JvmStatic
             fun String?.toFilterN() = this?.toFilter()
 
-            fun String.toFilter() = try {
+            fun String.toFilter() = jsonRunCatching(LOG_TAG) {
                 sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-            } catch (iae: IllegalArgumentException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", iae)
-                throw iae
-            }
+            }.getOrThrow()
 
             private const val JSON_ARTICLE_UUIDS = "uuids" // article UUIDs
             private const val JSON_TARGETS_UUIDS = "targets" // POI UUIDs
             private const val JSON_MIN_CREATED_AT_IN_MS = "minCreatedAtInMs"
 
-            fun JsonObject.toFilter() = try {
-                //noinspection DiscouragedApi
-                Filter(
-                    cacheOnly = getCacheOnlyFromJson(),
-                    cacheValidityInMs = getCacheValidityInMsFromJson(),
-                    inFocus = getInFocusFromJson(),
-                    providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
-                    articlesUUIDs = this[JSON_ARTICLE_UUIDS]?.jsonArrayOrNull?.takeIf { it.isNotEmpty() }?.mapNotNull {
-                        it.jsonPrimitiveOrNull?.contentOrNull
-                    },
-                    targetsUUIDs = this[JSON_TARGETS_UUIDS]?.jsonArrayOrNull?.takeIf { it.isNotEmpty() }?.mapNotNull {
-                        it.jsonPrimitiveOrNull?.contentOrNull
-                    },
-                    minCreatedAtInMs = this[JSON_MIN_CREATED_AT_IN_MS]?.jsonPrimitiveOrNull?.longOrNull,
-                )
-            } catch (iae: IllegalArgumentException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", iae)
-                throw iae
-            }
+            @SuppressLint("DiscouragedApi")
+            private fun JsonObject.toFilter() = Filter(
+                cacheOnly = getCacheOnlyFromJson(),
+                cacheValidityInMs = getCacheValidityInMsFromJson(),
+                inFocus = getInFocusFromJson(),
+                providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
+                articlesUUIDs = this[JSON_ARTICLE_UUIDS]?.jsonArrayOrNull?.takeIf { it.isNotEmpty() }?.mapNotNull {
+                    it.jsonPrimitiveOrNull?.contentOrNull
+                },
+                targetsUUIDs = this[JSON_TARGETS_UUIDS]?.jsonArrayOrNull?.takeIf { it.isNotEmpty() }?.mapNotNull {
+                    it.jsonPrimitiveOrNull?.contentOrNull
+                },
+                minCreatedAtInMs = this[JSON_MIN_CREATED_AT_IN_MS]?.jsonPrimitiveOrNull?.longOrNull,
+            )
 
-            fun Filter.toJson() = try {
+            fun Filter.toJson() = jsonRunCatching {
                 buildJsonObject {
                     toJsonCommon(this@toJson)
                     minCreatedAtInMs?.let { put(JSON_MIN_CREATED_AT_IN_MS, it) }
@@ -223,10 +216,7 @@ interface NewsProviderContract : ProviderContract {
                         putJsonArray(JSON_TARGETS_UUIDS) { addAll(targetsUUIDs) }
                     }
                 }
-            } catch (iae: IllegalArgumentException) {
-                MTLogK.w(LOG_TAG, "Error while making JSON object '$this'", iae)
-                throw iae
-            }
+            }.getOrThrow()
         }
 
         init {

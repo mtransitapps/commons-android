@@ -99,7 +99,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 	private static ScheduleTimestamps fromExtraJSONString(ScheduleTimestamps scheduleTimestamps, String extrasJSONString) {
 		try {
 			if (extrasJSONString == null) return null;
-			return ScheduleTimestampsExtKt.toScheduleTimestamps(scheduleTimestamps, extrasJSONString);
+			return ScheduleTimestampsExtKt.toScheduleTimestamps(extrasJSONString, scheduleTimestamps);
 		} catch (SerializationException se) {
 			MTLog.w(LOG_TAG, se, "Error while retrieving extras information from cursor.");
 			return null;

@@ -18,8 +18,6 @@ import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.status.StatusProviderContract;
 
-import java.util.Collections;
-
 import kotlinx.serialization.json.JsonObject;
 
 // TODO abstract
@@ -131,7 +129,7 @@ public class POIStatus implements MTLog.Loggable {
 				this.lastUpdateInMs,
 				this.maxValidityInMs,
 				this.readFromSourceAtInMs,
-				getExtrasJSONString()
+				getExtrasJsonStringOrNull()
 		});
 		return cursor;
 	}
@@ -164,7 +162,7 @@ public class POIStatus implements MTLog.Loggable {
 		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE, this.lastUpdateInMs);
 		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_MAX_VALIDITY, this.maxValidityInMs);
 		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_READ_FROM_SOURCE_AT, this.readFromSourceAtInMs);
-		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_EXTRAS, getExtrasJSONString());
+		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_EXTRAS, getExtrasJsonStringOrNull());
 		return contentValues;
 	}
 
@@ -194,24 +192,18 @@ public class POIStatus implements MTLog.Loggable {
 	}
 
 	@Nullable
-	private String getExtrasJSONString() {
+	private String getExtrasJsonStringOrNull() {
 		try {
-			JsonObject extrasJSON = getExtrasJson();
-			if (extrasJSON == null) {
-				extrasJSON = new JsonObject(Collections.emptyMap());
-			}
-			return POIStatusExtKt.toJsonString(
-					POIStatusExtKt.toJsonCommon(extrasJSON, this)
-			);
+			return getExtrasJsonString();
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while converting JSON to String!");
 			return null;
 		}
 	}
 
-	@Nullable
-	public JsonObject getExtrasJson() {
-		return null; // to override in super class
+	@NonNull
+	public String getExtrasJsonString() {
+		throw new UnsupportedOperationException(); // to override in super class
 	}
 
 	@Nullable

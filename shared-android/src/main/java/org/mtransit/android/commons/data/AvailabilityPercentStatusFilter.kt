@@ -3,7 +3,7 @@ package org.mtransit.android.commons.data
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
-import org.mtransit.android.commons.MTLogK
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.provider.status.StatusProviderContract
 import org.mtransit.commons.model.Secret
@@ -30,14 +30,11 @@ data class AvailabilityPercentStatusFilter(
         @JvmStatic
         fun String?.toFilterN() = this?.toFilter()
 
-        fun String.toFilter() = try {
+        fun String.toFilter() = jsonRunCatching(LOG_TAG) {
             sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-        } catch (iae: IllegalArgumentException) {
-            MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", iae)
-            throw iae
-        }
+        }.getOrThrow()
 
-        fun JsonObject.toFilter() = try {
+        fun JsonObject.toFilter() = jsonRunCatching(LOG_TAG) {
             AvailabilityPercentStatusFilter(
                 cacheOnly = getCacheOnlyFromJson(),
                 cacheValidityInMs = getCacheValidityInMsFromJson(),
@@ -45,19 +42,13 @@ data class AvailabilityPercentStatusFilter(
                 providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
                 targetUUID = getTargetUUIDFromJson(),
             )
-        } catch (iae: IllegalArgumentException) {
-            MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", iae)
-            throw iae
-        }
+        }.getOrThrow()
 
-        private fun StatusProviderContract.Filter.toJson() = try {
+        private fun StatusProviderContract.Filter.toJson() = jsonRunCatching {
             buildJsonObject {
                 toJson(this@toJson)
             }
-        } catch (iae: IllegalArgumentException) {
-            MTLogK.w(LOG_TAG, "Error while making JSON object '$this'", iae)
-            throw iae
-        }
+        }.getOrThrow()
     }
 
     override fun getLogTag() = LOG_TAG

@@ -5,8 +5,8 @@ import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
-import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.ScheduleTimestamps.LOG_TAG
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.commons.jsonArrayOrNull
 import org.mtransit.commons.jsonObjectOrNull
@@ -17,33 +17,25 @@ private const val JSON_SOURCE_LABEL = "sourceLabel"
 private const val JSON_LOCAL_TIME_ZONE_ID = "tz"
 private const val JSON_TIMESTAMPS = "timestamps"
 
-fun ScheduleTimestamps.toScheduleTimestamps(jsonString: String) = try {
-    this.toScheduleTimestamps(sharedJson.parseToJsonElement(jsonString).jsonObject)
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON string '$jsonString'", iae)
-    throw iae
-}
+fun String.toScheduleTimestamps(scheduleTimestamps: ScheduleTimestamps) = jsonRunCatching(LOG_TAG) {
+    sharedJson.parseToJsonElement(this).jsonObject.toScheduleTimestamps(scheduleTimestamps)
+}.getOrThrow()
 
-fun ScheduleTimestamps.toScheduleTimestamps(jsonObject: JsonObject) = this.apply {
-    try {
-        sourceLabel = jsonObject[JSON_SOURCE_LABEL]?.jsonPrimitiveOrNull?.contentOrNull
-        var localTimeZoneId = jsonObject[JSON_LOCAL_TIME_ZONE_ID]?.jsonPrimitiveOrNull?.contentOrNull
-        val timestamps = jsonObject[JSON_TIMESTAMPS]?.jsonArrayOrNull?.mapNotNull {
-            it.jsonObjectOrNull?.toTimestamp()
-        }.orEmpty()
-        if (localTimeZoneId == null) {
-            //noinspection DiscouragedApi
-            localTimeZoneId = timestamps.find { it.localTimeZoneId != null }?.localTimeZoneId
-        }
-        setTimestampsAndSort(timestamps)
-        setLocalTimeZoneId(localTimeZoneId)
-    } catch (iae: IllegalArgumentException) {
-        MTLogK.w(LOG_TAG, "Error while parsing JSON object '$jsonObject'", iae)
-        throw iae
+private fun JsonObject.toScheduleTimestamps(scheduleTimestamps: ScheduleTimestamps) = scheduleTimestamps.apply {
+    sourceLabel = this@toScheduleTimestamps[JSON_SOURCE_LABEL]?.jsonPrimitiveOrNull?.contentOrNull
+    var localTimeZoneId = this@toScheduleTimestamps[JSON_LOCAL_TIME_ZONE_ID]?.jsonPrimitiveOrNull?.contentOrNull
+    val timestamps = this@toScheduleTimestamps[JSON_TIMESTAMPS]?.jsonArrayOrNull?.mapNotNull {
+        it.jsonObjectOrNull?.toTimestamp()
+    }.orEmpty()
+    if (localTimeZoneId == null) {
+        //noinspection DiscouragedApi
+        localTimeZoneId = timestamps.find { it.localTimeZoneId != null }?.localTimeZoneId
     }
+    setTimestampsAndSort(timestamps)
+    setLocalTimeZoneId(localTimeZoneId)
 }
 
-fun ScheduleTimestamps.toJson() = try {
+fun ScheduleTimestamps.toJson() = jsonRunCatching {
     buildJsonObject {
         putK(JSON_SOURCE_LABEL, this@toJson.sourceLabel)
         putK(JSON_LOCAL_TIME_ZONE_ID, this@toJson.localTimeZoneId)
@@ -54,9 +46,6 @@ fun ScheduleTimestamps.toJson() = try {
             }
         )
     }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(this, "Error while making JSON object '$this'", iae)
-    throw iae
-}
+}.getOrThrow()
 
 fun ScheduleTimestamps.toJsonString() = sharedJson.encodeToString(toJson())

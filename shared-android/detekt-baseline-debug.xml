@@ -87,7 +87,7 @@
     <ID>CyclomaticComplexMethod:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
     <ID>CyclomaticComplexMethod:InstagramNewsProvider.kt:InstagramNewsProvider$private fun loadUserTimeline</ID>
     <ID>CyclomaticComplexMethod:POIProviderContract.kt:POIProviderContract.Filter$fun getSqlSelection: String?</ID>
-    <ID>CyclomaticComplexMethod:POIProviderContract.kt:POIProviderContract.Filter.Companion$private fun JsonObject.toFilter</ID>
+    <ID>CyclomaticComplexMethod:POIProviderContract.kt:POIProviderContract.Filter.Companion$private fun JsonObject.toFilter: Filter?</ID>
     <ID>CyclomaticComplexMethod:RouteShortNameComparator.kt:RouteShortNameComparator$override fun compare: Int</ID>
     <ID>CyclomaticComplexMethod:ScheduleTimestampExt.kt:fun JsonObject.toTimestamp</ID>
     <ID>CyclomaticComplexMethod:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$@VisibleForTesting internal fun EtatServiceResponse?.toServiceUpdates: ServiceUpdates</ID>

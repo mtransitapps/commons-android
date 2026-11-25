@@ -95,8 +95,6 @@ interface ProviderContract : MTLogK.Loggable {
             this.providedEncryptKeysMap?.data?.get(key = key)
                 ?.takeIf { it.trim().isNotEmpty() }
 
-        @Suppress("unused")
-        @Throws(IllegalArgumentException::class)
         abstract fun toJsonString(): String?
 
         fun toStringParts() = buildString {

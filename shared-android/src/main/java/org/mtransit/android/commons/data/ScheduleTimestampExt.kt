@@ -12,6 +12,7 @@ import kotlinx.serialization.json.longOrNull
 import org.mtransit.android.commons.BuildConfig
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.Schedule.Timestamp.LOG_TAG
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlinx.serialization.json.put as putK
 
@@ -29,7 +30,7 @@ private const val JSON_OLD_SCHEDULE = "old"
 private const val JSON_ACCESSIBLE = "a11y"
 private const val JSON_CANCELLED = "cancelled"
 
-fun JsonObject.toTimestamp() = try {
+fun JsonObject.toTimestamp() = jsonRunCatching(LOG_TAG) {
     val localTimeZoneId = jsonObject[JSON_LOCAL_TIME_ZONE_ID_]?.jsonPrimitiveOrNull?.contentOrNull
     if (localTimeZoneId == null) {
         check(!BuildConfig.DEBUG) { "Timestamp missing timezone in JSON!" }
@@ -58,12 +59,9 @@ fun JsonObject.toTimestamp() = try {
         jsonObject[JSON_ACCESSIBLE]?.jsonPrimitiveOrNull?.intOrNull?.let { accessible = it }
         jsonObject[JSON_CANCELLED]?.jsonPrimitiveOrNull?.booleanOrNull?.let { cancelled = it }
     }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$jsonObject'", iae)
-    null // skip this 1 only
-}
+}.getOrNull() // skip this 1 only
 
-fun Schedule.Timestamp.toJson() = try {
+fun Schedule.Timestamp.toJson() = jsonRunCatching {
     buildJsonObject {
         putK(JSON_DEPARTURE, departureT)
         //noinspection DiscouragedApi
@@ -86,7 +84,4 @@ fun Schedule.Timestamp.toJson() = try {
         accessible?.let { putK(JSON_ACCESSIBLE, it) }
         cancelled?.let { putK(JSON_CANCELLED, it) }
     }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(this, "Error while making JSON object '$this'", iae)
-    null // skip this 1 only
-}
+}.getOrNull() // skip this 1 only

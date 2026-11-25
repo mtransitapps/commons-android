@@ -8,8 +8,8 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
-import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.Stop.LOG_TAG
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.commons.FeatureFlags.F_EXPORT_STOP_TIMEZONE_ID
 import org.mtransit.commons.GTFSCommons
 import org.mtransit.commons.jsonPrimitiveOrNull
@@ -23,7 +23,7 @@ private const val JSON_ACCESSIBLE = "a11y"
 private const val JSON_ORIGINAL_ID_HASH = "o_id_hash"
 private const val JSON_TIMEZONE_ID = "tz"
 
-fun Stop.toJson() = try {
+fun Stop.toJson() = jsonRunCatching {
     buildJsonObject {
         put(JSON_ID, this@toJson.id)
         put(JSON_CODE, this@toJson.code)
@@ -36,13 +36,9 @@ fun Stop.toJson() = try {
             this@toJson.timeZoneId?.let { put(JSON_TIMEZONE_ID, it) }
         }
     }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(this, "Error while converting to JSON ($this)!", iae)
-    throw iae
-}
+}.getOrThrow()
 
-@Throws(IllegalArgumentException::class)
-fun JsonObject.toStop() = try {
+fun JsonObject.toStop() = jsonRunCatching(LOG_TAG) {
     Stop(
         getValue(JSON_ID).jsonPrimitive.int,
         getValue(JSON_CODE).jsonPrimitive.content,
@@ -53,7 +49,4 @@ fun JsonObject.toStop() = try {
         this[JSON_ORIGINAL_ID_HASH]?.jsonPrimitiveOrNull?.intOrNull ?: GTFSCommons.DEFAULT_ID_HASH,
         this[JSON_TIMEZONE_ID]?.jsonPrimitiveOrNull?.contentOrNull,
     )
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while converting from JSON ($this)!", iae)
-    throw iae
-}
+}.getOrThrow()

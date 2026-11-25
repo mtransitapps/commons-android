@@ -3,8 +3,8 @@ package org.mtransit.android.commons.data
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
-import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.AppStatus.LOG_TAG
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.commons.jsonObjectOrNull
 import org.mtransit.commons.jsonPrimitiveOrNull
@@ -15,32 +15,26 @@ private const val JSON_APP_ENABLED = "appEnabled"
 private const val JSON_UPDATE_AVAILABLE = "updateAvailable"
 
 @JvmOverloads
-fun POIStatus.toAppStatus(jsonString: String? = null) = try {
+fun POIStatus.toAppStatus(jsonString: String? = null) = jsonRunCatching(LOG_TAG) {
     this.toAppStatus(jsonString?.let { sharedJson.parseToJsonElement(it).jsonObjectOrNull })
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON string '$jsonString'", iae)
-    throw iae
-}
+}.getOrThrow()
 
-private fun POIStatus.toAppStatus(jsonObject: JsonObject?) = try {
+private fun POIStatus.toAppStatus(jsonObject: JsonObject?) = jsonRunCatching(LOG_TAG) {
     AppStatus(
         this,
         jsonObject?.get(JSON_APP_INSTALLED)?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
         jsonObject?.get(JSON_APP_ENABLED)?.jsonPrimitiveOrNull?.booleanOrNull ?: true,
         jsonObject?.get(JSON_UPDATE_AVAILABLE)?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
     )
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$jsonObject'", iae)
-    throw iae
-}
+}.getOrThrow()
 
-fun AppStatus.toJson() = try {
+fun AppStatus.toJson() = jsonRunCatching {
     buildJsonObject {
+        toJsonCommon(this@toJson)
         putK(JSON_APP_INSTALLED, this@toJson.isAppInstalled)
         putK(JSON_APP_ENABLED, this@toJson.isAppEnabled)
         putK(JSON_UPDATE_AVAILABLE, this@toJson.isUpdateAvailable)
     }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(this, "Error while making JSON object '$this'", iae)
-    throw iae
-}
+}.getOrThrow()
+
+fun AppStatus.toJsonString() = sharedJson.encodeToString(this.toJson())

@@ -11,9 +11,9 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
 import org.mtransit.android.commons.Constants
-import org.mtransit.android.commons.MTLogK
-import org.mtransit.android.commons.data.AvailabilityPercent.LOG_TAG
+import org.mtransit.android.commons.data.Schedule.LOG_TAG
 import org.mtransit.android.commons.floorBy
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.millisToInstant
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.roundToNearest
@@ -312,14 +312,11 @@ private const val JSON_TIMESTAMPS = "timestamps"
 private const val JSON_FREQUENCIES = "frequencies"
 private const val JSON_LOCAL_TIME_ZONE_ID = "tz"
 
-fun POIStatus.toSchedule(jsonString: String) = try {
+fun POIStatus.toSchedule(jsonString: String) = jsonRunCatching(LOG_TAG) {
     this.toSchedule(sharedJson.parseToJsonElement(jsonString).jsonObject)
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(Schedule.LOG_TAG, "Error while parsing JSON string '$jsonString'", iae)
-    throw iae
-}
+}.getOrThrow()
 
-fun POIStatus.toSchedule(jsonObject: JsonObject) = try {
+fun POIStatus.toSchedule(jsonObject: JsonObject) = jsonRunCatching(LOG_TAG) {
     var localTimeZoneId = jsonObject[JSON_LOCAL_TIME_ZONE_ID]?.jsonPrimitiveOrNull?.contentOrNull
     val timestamps = jsonObject[JSON_TIMESTAMPS]?.jsonArrayOrNull?.mapNotNull {
         it.jsonObjectOrNull?.toTimestamp()
@@ -340,13 +337,11 @@ fun POIStatus.toSchedule(jsonObject: JsonObject) = try {
         setTimestampsAndSort(timestamps)
         setFrequenciesAndSort(frequencies)
     }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$jsonObject'", iae)
-    throw iae
-}
+}.getOrThrow()
 
-fun Schedule.toJson() = try {
+fun Schedule.toJson() = jsonRunCatching {
     buildJsonObject {
+        toJsonCommon(this@toJson)
         putK(JSON_PROVIDER_PRECISION_IN_MS, this@toJson.providerPrecisionInMs)
         putK(JSON_IS_NO_PICKUP, this@toJson.isNoPickup)
         this@toJson.localTimeZoneId?.let { putK(JSON_LOCAL_TIME_ZONE_ID, it) }
@@ -363,7 +358,6 @@ fun Schedule.toJson() = try {
             }
         )
     }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(this, "Error while making JSON object '$this'", iae)
-    throw iae
-}
+}.getOrThrow()
+
+fun Schedule.toJsonString() = sharedJson.encodeToString(this.toJson())

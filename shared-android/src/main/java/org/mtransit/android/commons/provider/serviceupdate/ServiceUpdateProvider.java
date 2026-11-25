@@ -82,7 +82,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	private static final boolean LOG_NO_CACHE_OR_DATA_FROM_PROVIDER = false;
 
 	private static Cursor getServiceUpdates(ServiceUpdateProviderContract provider, String selection) {
-		final ServiceUpdateProviderContract.Filter serviceUpdateFilter = ServiceUpdateProviderContract.Filter.toFilterN(selection);
+		final ServiceUpdateProviderContract.Filter serviceUpdateFilter = ServiceUpdateProviderContract.Filter.toFilter(selection);
 		if (serviceUpdateFilter == null) {
 			MTLog.w(provider, "getServiceUpdates() > Error while parsing service update filter! (%s)", selection);
 			return getServiceUpdateCursor(null);

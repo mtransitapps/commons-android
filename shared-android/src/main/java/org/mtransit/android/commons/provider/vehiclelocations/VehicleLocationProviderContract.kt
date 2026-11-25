@@ -19,6 +19,7 @@ import org.mtransit.android.commons.data.toJson
 import org.mtransit.android.commons.data.toPOI
 import org.mtransit.android.commons.data.toRoute
 import org.mtransit.android.commons.data.toRouteDirection
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderFilter
@@ -143,15 +144,12 @@ interface VehicleLocationProviderContract : ProviderContract {
             @JvmStatic
             fun String?.toFilterN() = this?.toFilter()
 
-            fun String.toFilter() = try {
+            fun String.toFilter() = jsonRunCatching(LOG_TAG) {
                 sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-            } catch (iae: IllegalArgumentException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'!", iae)
-                throw iae
-            }
+            }.getOrThrow()
 
             @SuppressLint("DiscouragedApi")
-            fun JsonObject.toFilter(): Filter? {
+            private fun JsonObject.toFilter(): Filter? {
                 val poi = this[JSON_POI]?.jsonObjectOrNull?.toPOI()
                 val authority = this[JSON_AUTHORITY]?.jsonPrimitiveOrNull?.contentOrNull ?: poi?.authority ?: return null
                 val route = this[JSON_ROUTE]?.jsonObjectOrNull?.toRoute(authority)
@@ -168,7 +166,7 @@ interface VehicleLocationProviderContract : ProviderContract {
                 )
             }
 
-            fun toJson(vehicleLocationFilter: Filter) = try {
+            fun toJson(vehicleLocationFilter: Filter) = jsonRunCatching {
                 buildJsonObject {
                     toJsonCommon(vehicleLocationFilter)
                     put(JSON_AUTHORITY, vehicleLocationFilter.authority)
@@ -176,10 +174,7 @@ interface VehicleLocationProviderContract : ProviderContract {
                     vehicleLocationFilter.route?.let { put(JSON_ROUTE, it.toJson()) }
                     vehicleLocationFilter.routeDirection?.let { put(JSON_ROUTE_DIRECTION, it.toJson()) }
                 }
-            } catch (iae: IllegalArgumentException) {
-                MTLogK.w(LOG_TAG, "Error while making JSON object '$vehicleLocationFilter'!", iae)
-                throw iae
-            }
+            }.getOrThrow()
         }
 
         override fun getLogTag() = LOG_TAG

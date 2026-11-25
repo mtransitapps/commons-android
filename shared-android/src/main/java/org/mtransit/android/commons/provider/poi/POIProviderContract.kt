@@ -20,6 +20,7 @@ import kotlinx.serialization.json.putJsonArray
 import org.mtransit.android.commons.LocationUtils
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.SqlUtils
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.ContentProviderConstants
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.common.sharedJson
@@ -283,14 +284,11 @@ interface POIProviderContract : ProviderContract {
             @JvmStatic
             fun String?.toFilterN() = this?.toFilter()
 
-            fun String.toFilter() = try {
+            fun String.toFilter() = jsonRunCatching(LOG_TAG) {
                 sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-            } catch (iae: IllegalArgumentException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", iae)
-                throw iae
-            }
+            }.getOrThrow()
 
-            private fun JsonObject.toFilter() = try {
+            private fun JsonObject.toFilter(): Filter? {
                 var lat: Double?
                 var lng: Double?
                 var aroundDiff: Double?
@@ -331,7 +329,7 @@ interface POIProviderContract : ProviderContract {
                     optLoadedMaxLng = null
                 }
                 //noinspection DiscouragedApi
-                Filter(
+                return Filter(
                     cacheOnly = getCacheOnlyFromJson(),
                     cacheValidityInMs = getCacheValidityInMsFromJson(),
                     inFocus = getInFocusFromJson(),
@@ -370,9 +368,6 @@ interface POIProviderContract : ProviderContract {
                         || (it.searchKeywords?.isNotEmpty() == true)
                         || (it.sqlSelection != null)
                 }
-            } catch (iae: IllegalArgumentException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", iae)
-                null
             }
 
             private const val JSON_LAT = "lat"
@@ -394,7 +389,7 @@ interface POIProviderContract : ProviderContract {
             private const val JSON_EXTRAS_VALUE = "value"
 
             @JvmStatic
-            fun Filter.toJson() = try {
+            fun Filter.toJson() = jsonRunCatching {
                 buildJsonObject {
                     if (isAreaFilter(this@toJson)) {
                         put(JSON_LAT, this@toJson.lat)
@@ -436,10 +431,7 @@ interface POIProviderContract : ProviderContract {
                         }
                     }
                 }
-            } catch (iae: IllegalArgumentException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", iae)
-                throw iae
-            }
+            }.getOrThrow()
         }
 
         override fun getLogTag() = LOG_TAG

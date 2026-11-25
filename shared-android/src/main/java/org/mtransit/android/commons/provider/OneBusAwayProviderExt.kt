@@ -5,12 +5,12 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
-import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.data.Accessibility
 import org.mtransit.android.commons.data.Direction
 import org.mtransit.android.commons.data.POIStatus
 import org.mtransit.android.commons.data.Schedule
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.OneBusAwayProvider.LOG_TAG
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.commons.jsonArrayOrNull
@@ -23,20 +23,15 @@ fun String?.toStatuses(
     cleanDirectionHeadsign: (tripHeadsign: String, forRds: Boolean) -> String,
     isSameRoute: (jRouteId: String, jRouteShortName: String) -> Boolean,
     isSameDirection: (tripHeadsign: String) -> Boolean,
-) = try {
-    this?.let {
-        sharedJson.parseToJsonElement(it).jsonObject.toStatuses(
-            localTimeZoneId = localTimeZoneId,
-            makeSchedule = makeSchedule,
-            cleanDirectionHeadsign = cleanDirectionHeadsign,
-            isSameRoute = isSameRoute,
-            isSameDirection = isSameDirection
-        )
-    }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
-    null
-}
+): List<POIStatus>? = this?.jsonRunCatching(LOG_TAG) {
+    sharedJson.parseToJsonElement(this).jsonObject.toStatuses(
+        localTimeZoneId = localTimeZoneId,
+        makeSchedule = makeSchedule,
+        cleanDirectionHeadsign = cleanDirectionHeadsign,
+        isSameRoute = isSameRoute,
+        isSameDirection = isSameDirection
+    )
+}?.getOrNull()
 
 private const val JSON_DATA = "data"
 private const val JSON_ENTRY = "entry"
@@ -48,25 +43,20 @@ private fun JsonObject.toStatuses(
     cleanDirectionHeadsign: (tripHeadsign: String, forRds: Boolean) -> String,
     isSameRoute: (jRouteId: String, jRouteShortName: String) -> Boolean,
     isSameDirection: (tripHeadsign: String) -> Boolean,
-): List<POIStatus>? = try {
-    buildList {
-        this@toStatuses[JSON_DATA]?.jsonObjectOrNull
-            ?.get(JSON_ENTRY)?.jsonObjectOrNull
-            ?.get(JSON_ARRIVALS_AND_DEPARTURES)?.jsonArrayOrNull
-            ?.mapNotNull {
-                it.jsonObjectOrNull?.toTimestamp(localTimeZoneId, cleanDirectionHeadsign, isSameRoute, isSameDirection)
-            }?.takeIf { it.isNotEmpty() }
-            ?.let { timestamps ->
-                makeSchedule().apply {
-                    setTimestampsAndSort(timestamps)
-                }.let { newStatus ->
-                    add(newStatus)
-                }
+) = buildList {
+    this@toStatuses[JSON_DATA]?.jsonObjectOrNull
+        ?.get(JSON_ENTRY)?.jsonObjectOrNull
+        ?.get(JSON_ARRIVALS_AND_DEPARTURES)?.jsonArrayOrNull
+        ?.mapNotNull {
+            it.jsonObjectOrNull?.toTimestamp(localTimeZoneId, cleanDirectionHeadsign, isSameRoute, isSameDirection)
+        }?.takeIf { it.isNotEmpty() }
+        ?.let { timestamps ->
+            makeSchedule().apply {
+                setTimestampsAndSort(timestamps)
+            }.let { newStatus ->
+                add(newStatus)
             }
-    }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
-    null
+        }
 }
 
 private const val JSON_PREDICTED = "predicted"
@@ -99,20 +89,16 @@ private fun JsonObject.toTimestamp(
                 TimeUtils.timeToTheTensSecondsMillis(timestamp),
                 localTimeZoneId,
             ).apply {
-                try {
-                    if (tripHeadsign.isNotEmpty()) {
-                        var tripHeadsign = tripHeadsign
-                        tripHeadsign = cleanDirectionHeadsign(tripHeadsign, false)
-                        tripHeadsign = cleanDirectionHeadsign(tripHeadsign, true)
-                        val departureEnabled = this@toTimestamp[JSON_DEPARTURE_ENABLED]?.jsonPrimitiveOrNull?.booleanOrNull ?: true
-                        if (!departureEnabled) {
-                            setHeadsign(Direction.HEADSIGN_TYPE_NO_PICKUP, null)
-                        } else {
-                            setHeadsign(Direction.HEADSIGN_TYPE_STRING, tripHeadsign)
-                        }
+                if (tripHeadsign.isNotEmpty()) {
+                    var tripHeadsign = tripHeadsign
+                    tripHeadsign = cleanDirectionHeadsign(tripHeadsign, false)
+                    tripHeadsign = cleanDirectionHeadsign(tripHeadsign, true)
+                    val departureEnabled = this@toTimestamp[JSON_DEPARTURE_ENABLED]?.jsonPrimitiveOrNull?.booleanOrNull ?: true
+                    if (!departureEnabled) {
+                        setHeadsign(Direction.HEADSIGN_TYPE_NO_PICKUP, null)
+                    } else {
+                        setHeadsign(Direction.HEADSIGN_TYPE_STRING, tripHeadsign)
                     }
-                } catch (e: IllegalArgumentException) {
-                    MTLogK.w(this, "Error while reading trip headsign in '$this'!", e)
                 }
                 realTime = isRealTime
                 accessible = Accessibility.UNKNOWN
@@ -131,11 +117,8 @@ private val JSON_TIME_CANDIDATES = setOf(
     JSON_SCHEDULED_ARRIVAL_TIME,
 )
 
-private fun JsonObject.getTimestamp() = try {
+private fun JsonObject.getTimestamp() = jsonRunCatching(LOG_TAG) {
     JSON_TIME_CANDIDATES.firstNotNullOfOrNull { key ->
         this[key]?.jsonPrimitiveOrNull?.longOrNull?.takeIf { it > 0L }
     } ?: 0L
-} catch (e: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while reading timestamp!", e)
-    0L
-}
+}.getOrDefault(0L)

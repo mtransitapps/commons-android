@@ -7,8 +7,8 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
-import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.TimeUtils
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.provider.status.StatusProviderContract
 import org.mtransit.commons.jsonObjectOrNull
@@ -62,12 +62,9 @@ data class ScheduleStatusFilter(
         @JvmStatic
         fun String?.toFilterN() = this?.toFilter()
 
-        fun String.toFilter() = try {
+        fun String.toFilter() = jsonRunCatching(LOG_TAG) {
             sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-        } catch (iae: IllegalArgumentException) {
-            MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", iae)
-            throw iae
-        }
+        }.getOrThrow()
 
         private const val JSON_MIN_USEFUL_DURATION_COVERED_IN_MS = "minUsefulDurationCoveredInMs"
         private const val JSON_MIN_USEFUL_RESULTS = "minUsefulResults"
@@ -76,7 +73,7 @@ data class ScheduleStatusFilter(
         private const val JSON_LOOK_BEHIND_IN_MS = "lookBehindInMs"
         private const val JSON_INCLUDE_CANCELLED_TIMESTAMPS = "includeCancelledTimestamps"
 
-        fun JsonObject.toFilter() = try {
+        fun JsonObject.toFilter() = jsonRunCatching(LOG_TAG) {
             this[JSON_ROUTE_DIRECTION_STOP]?.jsonObjectOrNull?.toRouteDirectionStop()?.let { routeDirectionStop ->
                 ScheduleStatusFilter(
                     cacheOnly = getCacheOnlyFromJson(),
@@ -91,29 +88,20 @@ data class ScheduleStatusFilter(
                     includeCancelledTimestamps = this[JSON_INCLUDE_CANCELLED_TIMESTAMPS]?.jsonPrimitiveOrNull?.booleanOrNull,
                 )
             }
-        } catch (iae: IllegalArgumentException) {
-            MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", iae)
-            throw iae
-        }
+        }.getOrThrow()
     }
 
-    @Throws(IllegalArgumentException::class)
-    private fun StatusProviderContract.Filter.toJson() = try {
+    private fun toJson() = jsonRunCatching {
         buildJsonObject {
-            toJson(this@toJson)
-            with(this@toJson is ScheduleStatusFilter) {
-                put(JSON_ROUTE_DIRECTION_STOP, routeDirectionStop.toJson())
-                lookBehindInMs?.let { put(JSON_LOOK_BEHIND_IN_MS, it) }
-                minUsefulDurationCoveredInMs?.let { put(JSON_MIN_USEFUL_DURATION_COVERED_IN_MS, it) }
-                minUsefulResults?.let { put(JSON_MIN_USEFUL_RESULTS, it) }
-                maxDataRequests?.let { put(JSON_MAX_DATA_REQUESTS, it) }
-                includeCancelledTimestamps?.let { put(JSON_INCLUDE_CANCELLED_TIMESTAMPS, it) }
-            }
+            toJson(this@ScheduleStatusFilter)
+            put(JSON_ROUTE_DIRECTION_STOP, routeDirectionStop.toJson())
+            lookBehindInMs?.let { put(JSON_LOOK_BEHIND_IN_MS, it) }
+            minUsefulDurationCoveredInMs?.let { put(JSON_MIN_USEFUL_DURATION_COVERED_IN_MS, it) }
+            minUsefulResults?.let { put(JSON_MIN_USEFUL_RESULTS, it) }
+            maxDataRequests?.let { put(JSON_MAX_DATA_REQUESTS, it) }
+            includeCancelledTimestamps?.let { put(JSON_INCLUDE_CANCELLED_TIMESTAMPS, it) }
         }
-    } catch (iae: IllegalArgumentException) {
-        MTLogK.w(LOG_TAG, "Error while making JSON object '$this'", iae)
-        throw iae
-    }
+    }.getOrThrow()
 
     override fun getLogTag() = LOG_TAG
 
@@ -141,7 +129,6 @@ data class ScheduleStatusFilter(
 
     val isIncludeCancelledTimestampsOrDefault: Boolean get() = this.includeCancelledTimestamps == true
 
-    @Throws(IllegalArgumentException::class)
     override fun toJsonString() = sharedJson.encodeToString(this.toJson())
 
     override fun toString(): String {

@@ -209,32 +209,23 @@ object AppUpdateUtils : MTLogK.Loggable {
             private const val JSON_FORCE_REFRESH = "force_refresh"
             private const val JSON_IN_FOCUS = "in_focus"
 
-            fun String.toFilter() = try {
+            fun String.toFilter() = jsonRunCatching(LOG_TAG) {
                 sharedJson.parseToJsonElement(this).jsonObjectOrNull?.toFilter()
-            } catch (iae: IllegalArgumentException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", iae)
-                throw iae
-            }
+            }.getOrThrow()
 
-            fun JsonObject.toFilter() = try {
+            fun JsonObject.toFilter() = jsonRunCatching(LOG_TAG) {
                 AppUpdateFilter(
                     forceRefresh = this[JSON_FORCE_REFRESH]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
                     inFocus = this[JSON_IN_FOCUS]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
                 )
-            } catch (iae: IllegalArgumentException) {
-                MTLogK.w(LOG_TAG, "Error while parsing app update filter '$this'!", iae)
-                throw iae
-            }
+            }.getOrThrow()
 
-            fun AppUpdateFilter.toJson() = try {
+            fun AppUpdateFilter.toJson() = jsonRunCatching {
                 buildJsonObject {
                     put(JSON_FORCE_REFRESH, this@toJson.forceRefresh)
                     put(JSON_IN_FOCUS, this@toJson.inFocus)
                 }
-            } catch (iae: IllegalArgumentException) {
-                MTLogK.w(this, "Error while making JSON object '$this'", iae)
-                throw iae
-            }
+            }.getOrThrow()
         }
 
         fun toJsonString() = sharedJson.encodeToString(this.toJson())

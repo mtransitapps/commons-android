@@ -146,10 +146,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 	}
 
-	@Nullable
+	@NonNull
 	@Override
-	public JsonObject getExtrasJson() {
-		return ScheduleExtKt.toJson(this);
+	public String getExtrasJsonString() {
+		return ScheduleExtKt.toJsonString(this);
 	}
 
 	public void setNoPickup(boolean noPickup) {

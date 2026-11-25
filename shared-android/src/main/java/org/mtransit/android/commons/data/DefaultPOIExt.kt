@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.data
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.buildJsonObject
@@ -11,6 +10,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.DefaultPOI.LOG_TAG
 import org.mtransit.android.commons.data.POI.ItemViewType
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlinx.serialization.json.put as putK
 
@@ -42,16 +42,13 @@ fun JsonObject.toPOI(): POI {
 }
 
 @ItemViewType
-private fun JsonObject.getTypeFromJson() = try {
+private fun JsonObject.getTypeFromJson() = jsonRunCatching(LOG_TAG) {
     getValue(JSON_TYPE).jsonPrimitive.int
-} catch (e: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while retrieving POI type from '$this'!", e)
-    POI.ITEM_VIEW_TYPE_BASIC_POI // default
-}
+}.getOrDefault(POI.ITEM_VIEW_TYPE_BASIC_POI)
 
 private fun JsonObject.toDefaultPOI(
     @ItemViewType type: Int = getTypeFromJson()
-) = try {
+) = jsonRunCatching(LOG_TAG) {
     DefaultPOI(
         getAuthorityFromJson(),
         getIdFromJson(),
@@ -65,54 +62,40 @@ private fun JsonObject.toDefaultPOI(
     ).apply {
         applyTo(this)
     }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
-    throw iae
-}
+}.getOrThrow()
 
-@Throws(IllegalArgumentException::class)
 fun JsonObject.applyTo(defaultPOI: POI) {
     this[JSON_SCORE_OPT]?.let { defaultPOI.setScore(it.jsonPrimitive.int) }
 }
 
-@Throws(IllegalArgumentException::class)
 fun JsonObject.getIdFromJson(): Int {
     return getValue(JSON_ID).jsonPrimitive.int
 }
 
-@Throws(IllegalArgumentException::class)
 fun JsonObject.getAuthorityFromJson(): String {
     return getValue(JSON_AUTHORITY).jsonPrimitive.content
 }
 
-@Throws(IllegalArgumentException::class)
 fun JsonObject.getDSTypeIdFromJson(): @DataSourceTypeId.DataSourceType Int {
     return getValue(JSON_DATA_SOURCE_TYPE_ID).jsonPrimitive.int
 }
 
-@Throws(IllegalArgumentException::class)
 fun JsonObject.getLatFromJson(): Double {
     return getValue(JSON_LAT).jsonPrimitive.double
 }
 
-@Throws(IllegalArgumentException::class)
 fun JsonObject.getLngFromJson(): Double {
     return getValue(JSON_LNG).jsonPrimitive.double
 }
 
-@Throws(IllegalArgumentException::class)
 fun JsonObject.getNameFromJson(): String {
     return getValue(JSON_NAME).jsonPrimitive.content
 }
 
-fun DefaultPOI.toJsonK() = try {
+fun DefaultPOI.toJsonK() = jsonRunCatching {
     buildJsonObject { toJsonCommon(this@toJsonK) }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(this, "Error while parsing JSON '$this'", iae)
-    throw iae
-}
+}.getOrThrow()
 
-@Throws(IllegalArgumentException::class)
 fun JsonObjectBuilder.toJsonCommon(defaultPOI: DefaultPOI) {
     putK(JSON_AUTHORITY, defaultPOI.authority)
     putK(JSON_ID, defaultPOI.id)

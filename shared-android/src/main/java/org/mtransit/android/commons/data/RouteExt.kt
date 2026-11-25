@@ -6,8 +6,8 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
-import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.Route.LOG_TAG
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.commons.GTFSCommons
 import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlinx.serialization.json.put as putK
@@ -20,7 +20,7 @@ private const val JSON_COLOR = "color"
 private const val JSON_ORIGINAL_ID_HASH = "o_id_hash"
 private const val JSON_TYPE = "type"
 
-fun Route.toJson() = try {
+fun Route.toJson() = jsonRunCatching {
     buildJsonObject {
         putK(JSON_AUTHORITY, this@toJson.authority)
         putK(JSON_ID, this@toJson.id)
@@ -30,13 +30,9 @@ fun Route.toJson() = try {
         putK(JSON_ORIGINAL_ID_HASH, this@toJson.originalIdHash)
         putK(JSON_TYPE, this@toJson.type)
     }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(this, "Error while converting to JSON ($this)!", iae)
-    throw iae
-}
+}.getOrThrow()
 
-@Throws(IllegalArgumentException::class)
-fun JsonObject.toRoute(authority: String) = try {
+fun JsonObject.toRoute(authority: String) = jsonRunCatching(LOG_TAG) {
     Route(
         this[JSON_AUTHORITY]?.jsonPrimitiveOrNull?.contentOrNull ?: authority,
         getValue(JSON_ID).jsonPrimitive.long,
@@ -46,7 +42,4 @@ fun JsonObject.toRoute(authority: String) = try {
         this[JSON_ORIGINAL_ID_HASH]?.jsonPrimitiveOrNull?.intOrNull ?: GTFSCommons.DEFAULT_ID_HASH,
         this[JSON_TYPE]?.jsonPrimitiveOrNull?.intOrNull ?: GTFSCommons.DEFAULT_ROUTE_TYPE,
     )
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
-    throw iae
-}
+}.getOrThrow()

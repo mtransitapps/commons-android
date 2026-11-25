@@ -10,6 +10,7 @@ import org.mtransit.android.commons.data.Accessibility
 import org.mtransit.android.commons.data.Direction
 import org.mtransit.android.commons.data.POIStatus
 import org.mtransit.android.commons.data.Schedule
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.ReginaTransitProvider.LOG_TAG
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.commons.jsonArrayOrNull
@@ -25,21 +26,16 @@ fun String?.toStatuses(
     getBeginningOfTodayMs: () -> Long,
     makeSchedule: () -> Schedule,
     cleanTripHeadsign: (String) -> String,
-) = try {
-    this?.let {
-        sharedJson.parseToJsonElement(it).jsonArrayOrNull?.toStatuses(
-            localTimeZoneId = localTimeZoneId,
-            afterMs = afterMs,
-            stopCode = stopCode,
-            getBeginningOfTodayMs = getBeginningOfTodayMs,
-            makeSchedule = makeSchedule,
-            cleanTripHeadsign = cleanTripHeadsign,
-        )
-    }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
-    null
-}
+): List<POIStatus>? = this?.jsonRunCatching(LOG_TAG) {
+    sharedJson.parseToJsonElement(this).jsonArrayOrNull?.toStatuses(
+        localTimeZoneId = localTimeZoneId,
+        afterMs = afterMs,
+        stopCode = stopCode,
+        getBeginningOfTodayMs = getBeginningOfTodayMs,
+        makeSchedule = makeSchedule,
+        cleanTripHeadsign = cleanTripHeadsign,
+    )
+}?.getOrNull()
 
 private fun JsonArray.toStatuses(
     localTimeZoneId: String,
@@ -48,24 +44,19 @@ private fun JsonArray.toStatuses(
     getBeginningOfTodayMs: () -> Long,
     makeSchedule: () -> Schedule,
     cleanTripHeadsign: (String) -> String,
-): List<POIStatus>? = try {
+) = buildList {
     val beginningOfTodayMs = getBeginningOfTodayMs()
-    buildList {
-        this@toStatuses
-            .mapNotNull {
-                it.jsonObjectOrNull?.toTimestamp(localTimeZoneId, beginningOfTodayMs, afterMs, stopCode, cleanTripHeadsign)
-            }.takeIf { it.isNotEmpty() }
-            ?.let { timestamps ->
-                makeSchedule().apply {
-                    setTimestampsAndSort(timestamps)
-                }.let { newStatus ->
-                    add(newStatus)
-                }
+    this@toStatuses
+        .mapNotNull {
+            it.jsonObjectOrNull?.toTimestamp(localTimeZoneId, beginningOfTodayMs, afterMs, stopCode, cleanTripHeadsign)
+        }.takeIf { it.isNotEmpty() }
+        ?.let { timestamps ->
+            makeSchedule().apply {
+                setTimestampsAndSort(timestamps)
+            }.let { newStatus ->
+                add(newStatus)
             }
-    }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
-    null
+        }
 }
 
 private const val JSON_PRED_TIME = "pred_time"
@@ -101,13 +92,8 @@ private fun JsonObject.toTimestamp(
                 },
                 localTimeZoneId
             ).apply {
-                try {
-                    val destinationName = get(JSON_LINE_NAME)?.jsonPrimitiveOrNull?.contentOrNull
-                    if (!destinationName.isNullOrEmpty()) {
-                        setHeadsign(Direction.HEADSIGN_TYPE_STRING, cleanTripHeadsign(destinationName))
-                    }
-                } catch (e: IllegalArgumentException) {
-                    MTLogK.w(this, "Error while adding destination name '$this'!", e)
+                get(JSON_LINE_NAME)?.jsonPrimitiveOrNull?.contentOrNull?.takeIf { it.isNotEmpty() }?.let { destinationName ->
+                    setHeadsign(Direction.HEADSIGN_TYPE_STRING, cleanTripHeadsign(destinationName))
                 }
                 get(JSON_BUS_ID)?.jsonPrimitiveOrNull?.contentOrNull?.let { busId ->
                     realTime = busId.isNotEmpty() // no bus ID = scheduled = not real-time

@@ -20,6 +20,7 @@ import org.mtransit.android.commons.data.Targetable
 import org.mtransit.android.commons.data.toPOI
 import org.mtransit.android.commons.data.toRoute
 import org.mtransit.android.commons.data.toRouteDirection
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderFilter
@@ -127,60 +128,48 @@ interface ServiceUpdateProviderContract : ProviderContract {
             fun from(poi: POI, inFocus: Boolean? = null) = Filter(poi).copy(inFocus = inFocus)
 
             @JvmStatic
-            fun String?.toFilterN() = this?.toFilter()
-            fun String.toFilter() = try {
+            fun String?.toFilter() = this?.jsonRunCatching(LOG_TAG) {
                 sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-            } catch (iae: IllegalArgumentException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", iae)
-                throw iae
-            }
+            }?.getOrNull()
 
             private const val JSON_POI = "poi"
             private const val JSON_ROUTE = "route"
             private const val JSON_ROUTE_DIRECTION = "routeDirection"
             private const val JSON_AUTHORITY = "authority"
 
-            fun JsonObject.toFilter() =
-                try {
-                    val poi = this[JSON_POI]?.jsonObjectOrNull?.toPOI()
-                    val authority = this[JSON_AUTHORITY]?.jsonPrimitiveOrNull?.contentOrNull ?: poi?.authority
-                    val route = authority?.let { authority ->
-                        this[JSON_ROUTE]?.jsonObjectOrNull?.toRoute(authority)
-                    }
-                    val routeDirection = authority?.let { authority ->
-                        this[JSON_ROUTE_DIRECTION]?.jsonObjectOrNull?.toRouteDirection(authority)
-                    }
-                    //noinspection DiscouragedApi
-                    Filter(
-                        cacheOnly = getCacheOnlyFromJson(),
-                        cacheValidityInMs = getCacheValidityInMsFromJson(),
-                        inFocus = getInFocusFromJson(),
-                        providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
-                        authority = authority,
-                        poi = poi,
-                        route = route,
-                        routeDirection = routeDirection,
-                    ).takeIf {
-                        (it.poi != null) || (it.route != null) || (it.routeDirection != null)
-                    }
-                } catch (iae: IllegalArgumentException) {
-                    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", iae)
-                    throw iae
+            private fun JsonObject.toFilter(): Filter? {
+                val poi = this[JSON_POI]?.jsonObjectOrNull?.toPOI()
+                val authority = this[JSON_AUTHORITY]?.jsonPrimitiveOrNull?.contentOrNull ?: poi?.authority
+                val route = authority?.let { authority ->
+                    this[JSON_ROUTE]?.jsonObjectOrNull?.toRoute(authority)
                 }
+                val routeDirection = authority?.let { authority ->
+                    this[JSON_ROUTE_DIRECTION]?.jsonObjectOrNull?.toRouteDirection(authority)
+                }
+                //noinspection DiscouragedApi
+                return Filter(
+                    cacheOnly = getCacheOnlyFromJson(),
+                    cacheValidityInMs = getCacheValidityInMsFromJson(),
+                    inFocus = getInFocusFromJson(),
+                    providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
+                    authority = authority,
+                    poi = poi,
+                    route = route,
+                    routeDirection = routeDirection,
+                ).takeIf {
+                    (it.poi != null) || (it.route != null) || (it.routeDirection != null)
+                }
+            }
 
-            fun Filter.toJson() =
-                try {
-                    buildJsonObject {
-                        toJsonCommon(this@toJson)
-                        poi?.let { put(JSON_POI, it.toJson()) }
-                        route?.let { put(JSON_ROUTE, it.toJsonK()) }
-                        routeDirection?.let { put(JSON_ROUTE_DIRECTION, it.toJsonK()) }
-                        authority?.let { put(JSON_AUTHORITY, it) }
-                    }
-                } catch (iae: IllegalArgumentException) {
-                    MTLogK.w(this, "Error while making JSON object '$this'", iae)
-                    throw iae
+            fun Filter.toJson() = jsonRunCatching {
+                buildJsonObject {
+                    toJsonCommon(this@toJson)
+                    poi?.let { put(JSON_POI, it.toJson()) }
+                    route?.let { put(JSON_ROUTE, it.toJsonK()) }
+                    routeDirection?.let { put(JSON_ROUTE_DIRECTION, it.toJsonK()) }
+                    authority?.let { put(JSON_AUTHORITY, it) }
                 }
+            }.getOrThrow()
         }
 
         override fun getLogTag() = LOG_TAG

@@ -11,6 +11,7 @@ import org.mtransit.android.commons.data.Direction
 import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.data.POIStatus
 import org.mtransit.android.commons.data.Schedule
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.WinnipegTransitProvider.AGENCY_SOURCE_ID
 import org.mtransit.android.commons.provider.WinnipegTransitProvider.DEFAULT_LINK
 import org.mtransit.android.commons.provider.WinnipegTransitProvider.LOG_TAG
@@ -26,45 +27,35 @@ fun String?.toStatuses(
     directionId: Long,
     makeSchedule: () -> Schedule,
     cleanTripHeadsign: (String) -> String
-) = try {
-    this?.let {
-        sharedJson.parseToJsonElement(it).jsonObjectOrNull?.toStatuses(
-            directionId = directionId,
-            makeSchedule = makeSchedule,
-            cleanTripHeadsign = cleanTripHeadsign
-        )
-    }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
-    null
-}
+) = this?.jsonRunCatching(LOG_TAG) {
+    sharedJson.parseToJsonElement(this).jsonObjectOrNull?.toStatuses(
+        directionId = directionId,
+        makeSchedule = makeSchedule,
+        cleanTripHeadsign = cleanTripHeadsign
+    )
+}?.getOrNull()
 
 private const val JSON_STOP_SCHEDULE = "stop-schedule"
 private const val JSON_ROUTE_SCHEDULES = "route-schedules"
 private const val JSON_SCHEDULED_STOPS = "scheduled-stops"
 
-fun JsonObject.toStatuses(
+private fun JsonObject.toStatuses(
     directionId: Long,
     makeSchedule: () -> Schedule,
     cleanTripHeadsign: (String) -> String
-) = try {
-    buildList<POIStatus> {
-        val directionIdS = directionId.toString().last().toString()
-        this@toStatuses[JSON_STOP_SCHEDULE]?.jsonObjectOrNull
-            ?.get(JSON_ROUTE_SCHEDULES)?.jsonArrayOrNull?.firstOrNull()?.jsonObjectOrNull
-            ?.get(JSON_SCHEDULED_STOPS)?.jsonArrayOrNull?.mapNotNull {
-                it.jsonObjectOrNull?.toScheduleTimestamp(directionIdS, cleanTripHeadsign)
-            }?.let { timestamps ->
-                makeSchedule().apply {
-                    setTimestampsAndSort(timestamps)
-                }.let {
-                    add(it)
-                }
+) = buildList<POIStatus> {
+    val directionIdS = directionId.toString().last().toString()
+    this@toStatuses[JSON_STOP_SCHEDULE]?.jsonObjectOrNull
+        ?.get(JSON_ROUTE_SCHEDULES)?.jsonArrayOrNull?.firstOrNull()?.jsonObjectOrNull
+        ?.get(JSON_SCHEDULED_STOPS)?.jsonArrayOrNull?.mapNotNull {
+            it.jsonObjectOrNull?.toScheduleTimestamp(directionIdS, cleanTripHeadsign)
+        }?.let { timestamps ->
+            makeSchedule().apply {
+                setTimestampsAndSort(timestamps)
+            }.let {
+                add(it)
             }
-    }
-} catch (e: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", e)
-    null
+        }
 }
 
 private const val JSON_TIMES = "times"
@@ -107,35 +98,28 @@ private const val JSON_ESTIMATED = "estimated"
 private const val JSON_SCHEDULED = "scheduled"
 private val JSON_TIME_CANDIDATES = setOf(JSON_ESTIMATED, JSON_SCHEDULED)
 
-private fun JsonObject.timeString(): String? {
-    try {
-        for (period in JSON_PERIOD_CANDIDATES) {
-            val periodObject = this[period]?.jsonObjectOrNull ?: continue
-            for (timeType in JSON_TIME_CANDIDATES) {
-                val time = periodObject[timeType]?.jsonPrimitiveOrNull?.contentOrNull
-                if (!time.isNullOrEmpty()) return time
+private fun JsonObject.timeString(): String? = jsonRunCatching(LOG_TAG) {
+    JSON_PERIOD_CANDIDATES.firstNotNullOfOrNull { period ->
+        this[period]?.jsonObjectOrNull?.let { periodObject ->
+            JSON_TIME_CANDIDATES.firstNotNullOfOrNull { timeType ->
+                periodObject[timeType]?.jsonPrimitiveOrNull?.contentOrNull?.takeIf { time -> time.isNotEmpty() }
             }
         }
-    } catch (e: IllegalArgumentException) {
-        MTLogK.w(LOG_TAG, "Error while parsing time JSON '$this'!", e)
     }
-    return null
-}
+}.getOrNull()
 
-private fun JsonObject.isRealTime(): Boolean {
-    try {
-        for (period in JSON_PERIOD_CANDIDATES) {
-            val periodObject = this[period]?.jsonObjectOrNull ?: continue
-            val estimated = periodObject[JSON_ESTIMATED]?.jsonPrimitiveOrNull?.contentOrNull
-            if (!estimated.isNullOrEmpty()) return true
-            val scheduled = periodObject[JSON_SCHEDULED]?.jsonPrimitiveOrNull?.contentOrNull
-            if (!scheduled.isNullOrEmpty()) return false
+private fun JsonObject.isRealTime(): Boolean = jsonRunCatching(LOG_TAG) {
+    JSON_PERIOD_CANDIDATES.firstNotNullOfOrNull { period ->
+        this[period]?.jsonObjectOrNull?.let { periodObject ->
+            periodObject[JSON_ESTIMATED]?.jsonPrimitiveOrNull?.contentOrNull?.takeIf { it.isNotEmpty() }?.let {
+                return@firstNotNullOfOrNull false
+            }
+            periodObject[JSON_SCHEDULED]?.jsonPrimitiveOrNull?.contentOrNull?.takeIf { it.isNotEmpty() }?.let {
+                return@firstNotNullOfOrNull true
+            }
         }
-    } catch (e: IllegalArgumentException) {
-        MTLogK.w(LOG_TAG, "Error while parsing time JSON '$this'!", e)
-    }
-    return false
-}
+    } ?: false
+}.getOrDefault(false)
 
 // endregion
 
@@ -145,22 +129,14 @@ private const val JSON_SERVICE_ADVISORIES = "service-advisories"
 
 fun String?.toNews(
     makeNewsArticle: (uuid: String, priority: Int?, updatedAtMs: Long, text: String, textHTML: String, link: String) -> News,
-) = try {
-    this?.let { sharedJson.parseToJsonElement(it).jsonObject.toNews(makeNewsArticle) }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
-    null
-}
+) = this?.jsonRunCatching(LOG_TAG) {
+    sharedJson.parseToJsonElement(this).jsonObject.toNews(makeNewsArticle)
+}?.getOrNull()
 
 private fun JsonObject.toNews(
     makeNewsArticle: (uuid: String, priority: Int?, updatedAtMs: Long, text: String, textHTML: String, link: String) -> News,
-): ArrayList<News>? = try {
-    this[JSON_SERVICE_ADVISORIES]?.jsonArrayOrNull?.mapNotNullTo(ArrayList()) {
-        it.jsonObjectOrNull?.toNewsArticle(makeNewsArticle)
-    }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
-    null
+) = this[JSON_SERVICE_ADVISORIES]?.jsonArrayOrNull?.mapNotNullTo(ArrayList()) {
+    it.jsonObjectOrNull?.toNewsArticle(makeNewsArticle)
 }
 
 private const val JSON_PRIORITY = "priority"
@@ -173,7 +149,7 @@ private val TRANSIT_CATEGORIES_LC = setOf("all", "transit")
 
 private fun JsonObject.toNewsArticle(
     makeNewsArticle: (uuid: String, priority: Int?, updatedAtMs: Long, text: String, textHTML: String, link: String) -> News,
-): News? = try {
+): News? = jsonRunCatching(LOG_TAG) {
     this[JSON_CATEGORY]?.jsonPrimitiveOrNull?.contentOrNull?.lowercase(Locale.ENGLISH)?.let { categoryLC ->
         if (categoryLC !in TRANSIT_CATEGORIES_LC) {
             return null
@@ -205,10 +181,7 @@ private fun JsonObject.toNewsArticle(
         textHTML,
         link,
     )
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
-    null
-}
+}.getOrNull()
 
 private const val LINK_AND_KEY = "https://info.winnipegtransit.com/en/schedules-maps-tools/service-advisories/%s"
 

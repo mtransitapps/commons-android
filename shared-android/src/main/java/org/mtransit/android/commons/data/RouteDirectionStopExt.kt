@@ -6,8 +6,8 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.RouteDirectionStop.LOG_TAG
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.commons.FeatureFlags
 import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlinx.serialization.json.put as putK
@@ -18,7 +18,7 @@ private const val JSON_STOP = "stop"
 private const val JSON_NO_PICKUP = "decentOnly"
 private const val JSON_ALWAYS_LAST_TRIP_STOP = "lastStop"
 
-fun RouteDirectionStop.toJsonK() = try {
+fun RouteDirectionStop.toJsonK() = jsonRunCatching {
     buildJsonObject {
         put(JSON_ROUTE, route.toJson())
         put(JSON_DIRECTION, direction.toJson())
@@ -29,12 +29,9 @@ fun RouteDirectionStop.toJsonK() = try {
         }
         toJsonCommon(this@toJsonK)
     }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(this, "Error while converting to JSON ($this)!", iae)
-    throw iae
-}
+}.getOrThrow()
 
-fun JsonObject.toRouteDirectionStop() = try {
+fun JsonObject.toRouteDirectionStop() = jsonRunCatching(LOG_TAG) {
     getAuthorityFromJson().let { authority ->
         RouteDirectionStop(
             getDSTypeIdFromJson(),
@@ -47,7 +44,4 @@ fun JsonObject.toRouteDirectionStop() = try {
             applyTo(this)
         }
     }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while converting from JSON ($this)!", iae)
-    throw iae
-}
+}.getOrThrow()

@@ -18,7 +18,6 @@ import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.StringUtils;
 
 import kotlinx.serialization.SerializationException;
-import kotlinx.serialization.json.JsonObject;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
@@ -521,10 +520,10 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		}
 	}
 
-	@Nullable
+	@NonNull
 	@Override
-	public JsonObject getExtrasJson() {
-		return AvailabilityPercentExtKt.toJson(this);
+	public String getExtrasJsonString() {
+		return AvailabilityPercentExtKt.toJsonString(this);
 	}
 
 	@NonNull

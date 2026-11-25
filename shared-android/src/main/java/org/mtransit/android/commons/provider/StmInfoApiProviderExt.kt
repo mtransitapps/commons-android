@@ -8,7 +8,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import org.mtransit.android.commons.MTLogK
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.StmInfoApiProvider.JArrivals
 import org.mtransit.android.commons.provider.StmInfoApiProvider.LOG_TAG
 import org.mtransit.android.commons.provider.common.sharedJson
@@ -23,35 +23,26 @@ fun String?.toLegacyMessagesResults() = this?.toLegacyMessages()?.results.orEmpt
 
 @SuppressLint("DiscouragedApi")
 @Discouraged(message = "Using StmInfoServiceUpdateProvider instead") // USING same feed as real-time POI status schedule
-fun String?.toLegacyMessages() = try {
-    this?.let { sharedJson.parseToJsonElement(it).jsonObject.toLegacyMessages() }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
-    null
-}
+private fun String.toLegacyMessages() =
+    sharedJson.parseToJsonElement(this).jsonObject.toLegacyMessages()
 
 private const val JSON_RESULT = "result"
 
 @SuppressLint("DiscouragedApi")
 @Discouraged(message = "Using StmInfoServiceUpdateProvider instead") // USING same feed as real-time POI status schedule
-fun JsonObject.toLegacyMessages() = try {
-    LegacyMessages(
-        buildList {
-            val shortNameResultRouteList = mutableListOf<MutableMap<String, List<LegacyMessages.JResult.JResultRoute>>>()
-            this@toLegacyMessages[JSON_RESULT]?.jsonArrayOrNull?.forEach { jResult ->
-                val shortNameResultRoutes = mutableMapOf<String, List<LegacyMessages.JResult.JResultRoute>>()
-                jResult.jsonObject.forEach { (jResultKey, jResultRoutes) ->
-                    shortNameResultRoutes[jResultKey] = jResultRoutes.jsonArray.map { it.jsonObject.toJResultRoute() }
-                }
-                shortNameResultRouteList.add(shortNameResultRoutes)
+private fun JsonObject.toLegacyMessages() = LegacyMessages(
+    buildList {
+        val shortNameResultRouteList = mutableListOf<MutableMap<String, List<LegacyMessages.JResult.JResultRoute>>>()
+        this@toLegacyMessages[JSON_RESULT]?.jsonArrayOrNull?.forEach { jResult ->
+            val shortNameResultRoutes = mutableMapOf<String, List<LegacyMessages.JResult.JResultRoute>>()
+            jResult.jsonObject.forEach { (jResultKey, jResultRoutes) ->
+                shortNameResultRoutes[jResultKey] = jResultRoutes.jsonArray.map { it.jsonObject.toJResultRoute() }
             }
-            add(LegacyMessages.JResult(shortNameResultRouteList))
+            shortNameResultRouteList.add(shortNameResultRoutes)
         }
-    )
-} catch (e: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", e)
-    null
-}
+        add(LegacyMessages.JResult(shortNameResultRouteList))
+    }
+)
 
 private const val JSON_DIRECTION = "direction"
 private const val JSON_DIRECTION_NAME = "direction_name"
@@ -61,7 +52,7 @@ private const val JSON_CODE = "code"
 
 @SuppressLint("DiscouragedApi")
 @Discouraged(message = "Using StmInfoServiceUpdateProvider instead") // USING same feed as real-time POI status schedule
-fun JsonObject.toJResultRoute() = LegacyMessages.JResult.JResultRoute(
+private fun JsonObject.toJResultRoute() = LegacyMessages.JResult.JResultRoute(
     this.getValue(JSON_DIRECTION).jsonPrimitive.content,
     this.getValue(JSON_DIRECTION_NAME).jsonPrimitive.content,
     this.getValue(JSON_TEXT).jsonPrimitive.content,
@@ -71,12 +62,9 @@ fun JsonObject.toJResultRoute() = LegacyMessages.JResult.JResultRoute(
 
 @SuppressLint("DiscouragedApi")
 @Discouraged(message = "Using GTFS-RT Trip Updates instead")
-fun String?.toJArrivals() = try {
-    this?.let { sharedJson.parseToJsonElement(it).jsonObject.toJArrivals() }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
-    null
-}
+fun String?.toJArrivals() = this?.jsonRunCatching(LOG_TAG) {
+    sharedJson.parseToJsonElement(this).jsonObject.toJArrivals()
+}?.getOrNull()
 
 private const val JSON_MESSAGES = "messages"
 private const val JSON_LINE = "line"
@@ -84,9 +72,9 @@ private const val JSON_STOP_POINT = "stopPoint"
 
 @SuppressLint("DiscouragedApi")
 @Discouraged(message = "Using GTFS-RT Trip Updates instead")
-fun JsonObject.toJArrivals() = try {
+private fun JsonObject.toJArrivals(): JArrivals {
     val jMessages = this[JSON_MESSAGES]?.jsonObjectOrNull
-    JArrivals(
+    return JArrivals(
         JArrivals.JMessages(
             jMessages?.get(JSON_LINE)?.jsonArrayOrNull?.mapNotNull {
                 it.jsonObject.toJMessage()
@@ -99,9 +87,6 @@ fun JsonObject.toJArrivals() = try {
             it.jsonObject.toJResult()
         }.orEmpty(),
     )
-} catch (e: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", e)
-    null
 }
 
 private const val JSON_TIME = "time"
@@ -113,7 +98,7 @@ private const val JSON_IS_ON_REQUESTED_DAY = "is_on_requested_day"
 private const val TIME_RT_NOT_LENGTH = 4
 
 @Discouraged(message = "Using GTFS-RT Trip Updates instead")
-private fun JsonObject.toJResult() = try {
+private fun JsonObject.toJResult() =
     this[JSON_TIME]?.jsonPrimitiveOrNull?.contentOrNull?.let { time ->
         JArrivals.JResult(
             time,
@@ -123,10 +108,6 @@ private fun JsonObject.toJResult() = try {
             this[JSON_IS_ON_REQUESTED_DAY]?.jsonPrimitiveOrNull?.booleanOrNull ?: true
         )
     }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", iae)
-    null
-}
 
 private const val JSON_START_DATE = "start_date"
 

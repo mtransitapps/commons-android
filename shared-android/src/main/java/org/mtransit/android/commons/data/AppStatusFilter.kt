@@ -5,7 +5,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.put
-import org.mtransit.android.commons.MTLogK
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.provider.status.StatusProviderContract
 import org.mtransit.commons.jsonObjectOrNull
@@ -33,16 +33,13 @@ data class AppStatusFilter(
         @JvmStatic
         fun String?.toFilterN() = this?.toFilter()
 
-        fun String.toFilter() = try {
+        fun String.toFilter() = jsonRunCatching(LOG_TAG) {
             sharedJson.parseToJsonElement(this).jsonObjectOrNull?.toFilter()
-        } catch (iae: IllegalArgumentException) {
-            MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", iae)
-            throw iae
-        }
+        }.getOrThrow()
 
         private const val JSON_PKG = "pkg"
 
-        fun JsonObject.toFilter() = try {
+        fun JsonObject.toFilter() = jsonRunCatching(LOG_TAG) {
             AppStatusFilter(
                 cacheOnly = getCacheOnlyFromJson(),
                 cacheValidityInMs = getCacheValidityInMsFromJson(),
@@ -51,22 +48,16 @@ data class AppStatusFilter(
                 targetUUID = getTargetUUIDFromJson(),
                 pkg = this[JSON_PKG]?.jsonPrimitiveOrNull?.contentOrNull ?: throw SerializationException("Missing key '$JSON_PKG'!"),
             )
-        } catch (iae: IllegalArgumentException) {
-            MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", iae)
-            throw iae
-        }
+        }.getOrThrow()
 
-        private fun StatusProviderContract.Filter.toJson() = try {
+        private fun StatusProviderContract.Filter.toJson() = jsonRunCatching {
             buildJsonObject {
                 toJson(this@toJson)
                 if (this@toJson is AppStatusFilter) {
                     put(JSON_PKG, this@toJson.pkg)
                 }
             }
-        } catch (iae: IllegalArgumentException) {
-            MTLogK.w(this, "Error while making JSON object '$this'", iae)
-            throw iae
-        }
+        }.getOrThrow()
     }
 
     override fun getLogTag() = LOG_TAG

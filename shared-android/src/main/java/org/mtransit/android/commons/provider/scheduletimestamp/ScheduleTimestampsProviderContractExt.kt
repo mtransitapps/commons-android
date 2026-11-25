@@ -5,8 +5,8 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
-import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.toRouteDirectionStop
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.provider.scheduletimestamp.ScheduleTimestampsProviderContract.Filter.LOG_TAG
 import org.mtransit.commons.jsonObjectOrNull
@@ -18,16 +18,11 @@ private const val JSON_ROUTE_DIRECTION_STOP = "routeTripStop" // do not change t
 private const val JSON_STARTS_AT_IN_MS = "startsAtInMs"
 private const val JSON_ENDS_AT_IN_MS = "endsAtInMs"
 
-fun String?.toFilterN() = this?.toFilter()
-
-fun String.toFilter() = try {
+fun String?.toFilter() = this?.jsonRunCatching(LOG_TAG) {
     sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", iae)
-    throw iae
-}
+}?.getOrNull()
 
-fun JsonObject.toFilter() = try {
+private fun JsonObject.toFilter() =
     this[JSON_ROUTE_DIRECTION_STOP]?.jsonObjectOrNull?.toRouteDirectionStop()?.let { rds ->
         ScheduleTimestampsProviderContract.Filter(
             rds,
@@ -35,21 +30,14 @@ fun JsonObject.toFilter() = try {
             getValue(JSON_ENDS_AT_IN_MS).jsonPrimitive.long
         )
     }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", iae)
-    throw iae
-}
 
-fun ScheduleTimestampsProviderContract.Filter.toJson() = try {
+fun ScheduleTimestampsProviderContract.Filter.toJson() = jsonRunCatching {
     buildJsonObject {
         put(JSON_ROUTE_DIRECTION_STOP, this@toJson.routeDirectionStop.toJson())
         putK(JSON_STARTS_AT_IN_MS, this@toJson.startsAtInMs)
         putK(JSON_ENDS_AT_IN_MS, this@toJson.endsAtInMs)
     }
-} catch (iae: IllegalArgumentException) {
-    MTLogK.w(LOG_TAG, "Error while making JSON object '$this'", iae)
-    throw iae
-}
+}.getOrThrow()
 
 fun ScheduleTimestampsProviderContract.Filter.toJsonString() = sharedJson.encodeToString(this.toJson())
 
