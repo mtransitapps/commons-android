@@ -19,7 +19,7 @@ import org.mtransit.android.commons.provider.StmInfoApiProvider.JMessages as Leg
 
 @SuppressLint("DiscouragedApi")
 @Discouraged(message = "Using StmInfoServiceUpdateProvider instead") // USING same feed as real-time POI status schedule
-fun String?.toLegacyMessagesResults() = this?.toLegacyMessages()?.results.orEmpty()
+fun String?.toLegacyMessagesResults() = this?.takeIf { it.isNotBlank() }?.toLegacyMessages()?.results.orEmpty()
 
 @SuppressLint("DiscouragedApi")
 @Discouraged(message = "Using StmInfoServiceUpdateProvider instead") // USING same feed as real-time POI status schedule
