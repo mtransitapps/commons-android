@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mtransit.android.commons.data.DataSourceTypeId;
 import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
@@ -17,6 +18,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mtransit.android.commons.data.RouteDirectionStopExtKt.makeRouteDirectionStop;
 
 public class OneBusAwayProviderTests {
 
@@ -200,15 +202,18 @@ public class OneBusAwayProviderTests {
 	}
 
 	@NonNull
-	private RouteDirectionStop getRouteDirectionStop(Route route,
-													 Direction direction,
-													 @SuppressWarnings("SameParameterValue") Stop stop,
-													 boolean noPickup) {
-		return new RouteDirectionStop(
-				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
+	private RouteDirectionStop getRouteDirectionStop(
+			Route route,
+			Direction direction,
+			@SuppressWarnings("SameParameterValue") Stop stop,
+			boolean noPickup
+	) {
+		return makeRouteDirectionStop(
+				DataSourceTypeId.BUS,
 				route,
 				direction,
 				stop,
-				noPickup);
+				noPickup
+		);
 	}
 }

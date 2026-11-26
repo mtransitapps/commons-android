@@ -2,7 +2,7 @@ package org.mtransit.android.commons.data
 
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 
-fun makeDefaultPOI(
+fun mkDefaultPOI(
     authority: String = "authority",
     id: Int = 1,
     @DataSourceTypeId.DataSourceType dataSourceTypeId: Int = DataSourceTypeId.INVALID,
@@ -12,16 +12,16 @@ fun makeDefaultPOI(
     name: String = "name #$id",
     lat: Double = 1.0,
     lng: Double = 2.0,
-) = DefaultPOI(
-    authority,
-    id,
-    dataSourceTypeId,
-    type,
-    statusType,
-    actionsType,
-    lat,
-    lng,
-    name
+) = makeDefaultPOI(
+    authority = authority,
+    id = id,
+    dataSourceTypeId = dataSourceTypeId,
+    type = type,
+    statusType = statusType,
+    actionsType = actionsType,
+    lat = lat,
+    lng = lng,
+    name = name,
 )
 
 fun makeBikeStation(
@@ -31,7 +31,7 @@ fun makeBikeStation(
     name: String = "name #$id",
     lat: Double = 1.0,
     lng: Double = 2.0,
-) = makeDefaultPOI(
+) = mkDefaultPOI(
     authority = authority,
     id = id,
     dataSourceTypeId = dataSourceTypeId,
@@ -78,13 +78,13 @@ fun makeRDS(
     ),
     isNoPickup: Boolean = false,
     alwaysLastTripStop: Boolean = false,
-) = RouteDirectionStop(
-    dataSourceTypeId,
-    route,
-    direction,
-    stop,
-    isNoPickup,
-    alwaysLastTripStop,
+) = makeRouteDirectionStop(
+    dataSourceTypeId = dataSourceTypeId,
+    route = route,
+    direction = direction,
+    stop = stop,
+    noPickup = isNoPickup,
+    alwaysLastTripStop = alwaysLastTripStop,
 )
 
 fun makeRoute(

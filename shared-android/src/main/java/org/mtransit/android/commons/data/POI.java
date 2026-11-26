@@ -88,8 +88,6 @@ public interface POI extends Targetable, MTLog.Loggable {
 	@Nullable
 	Integer getScore();
 
-	void setScore(@Nullable Integer score);
-
 	@NonNull
 	JsonObject toJson();
 

@@ -19,12 +19,13 @@ import org.mtransit.android.commons.provider.StmInfoApiProvider.JMessages as Leg
 
 @SuppressLint("DiscouragedApi")
 @Discouraged(message = "Using StmInfoServiceUpdateProvider instead") // USING same feed as real-time POI status schedule
-fun String?.toLegacyMessagesResults() = this?.takeIf { it.isNotBlank() }?.toLegacyMessages()?.results.orEmpty()
+fun String?.toLegacyMessagesResults() = this?.toLegacyMessages()?.results.orEmpty()
 
 @SuppressLint("DiscouragedApi")
 @Discouraged(message = "Using StmInfoServiceUpdateProvider instead") // USING same feed as real-time POI status schedule
-private fun String.toLegacyMessages() =
+private fun String?.toLegacyMessages() = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
     sharedJson.parseToJsonElement(this).jsonObject.toLegacyMessages()
+}?.getOrNull()
 
 private const val JSON_RESULT = "result"
 

@@ -137,7 +137,7 @@ interface ServiceUpdateProviderContract : ProviderContract {
             private const val JSON_ROUTE_DIRECTION = "routeDirection"
             private const val JSON_AUTHORITY = "authority"
 
-            private fun JsonObject.toFilter(): Filter {
+            private fun JsonObject.toFilter(): Filter? {
                 val poi = this[JSON_POI]?.jsonObjectOrNull?.toPOIOrThrow()
                 val authority = this[JSON_AUTHORITY]?.jsonPrimitiveOrNull?.contentOrNull ?: poi?.authority
                 val route = authority?.let { authority ->
@@ -156,7 +156,9 @@ interface ServiceUpdateProviderContract : ProviderContract {
                     poi = poi,
                     route = route,
                     routeDirection = routeDirection,
-                )
+                ).takeIf {
+                    it.poi != null || it.route != null || it.routeDirection != null
+                }
             }
 
             fun Filter.toJson() = jsonRunCatching {

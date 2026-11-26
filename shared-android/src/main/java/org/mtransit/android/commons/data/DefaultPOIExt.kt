@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package org.mtransit.android.commons.data
 
 import kotlinx.serialization.json.JsonObject
@@ -13,6 +15,45 @@ import org.mtransit.android.commons.data.POI.ItemViewType
 import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlinx.serialization.json.put as putK
+
+@Suppress("LongParameterList")
+@JvmOverloads
+fun makeDefaultPOI(
+    authority: String,
+    id: Int,
+    @DataSourceTypeId.DataSourceType dataSourceTypeId: Int,
+    @ItemViewType type: Int,
+    @POI.ItemStatusType statusType: Int,
+    @POI.ItemActionType actionsType: Int,
+    lat: Double,
+    lng: Double,
+    name: String,
+    score: Int? = null,
+    accessible: Int = Accessibility.DEFAULT
+) = DefaultPOI(
+    authority,
+    id,
+    dataSourceTypeId,
+    type,
+    statusType,
+    actionsType,
+    lat,
+    lng,
+    name
+).apply {
+    optDefaultPOIInit(
+        score = score,
+        accessible = accessible
+    )
+}
+
+fun <T : DefaultPOI> T.optDefaultPOIInit(
+    score: Int? = null,
+    @Accessibility.AccessibilityType accessible: Int = Accessibility.DEFAULT,
+) = this.apply {
+    this.scoreOpt = score
+    this.accessible = accessible
+}
 
 private const val JSON_AUTHORITY = "authority"
 private const val JSON_ID = "id"
@@ -50,48 +91,33 @@ private fun JsonObject.getTypeFromJsonOrDefault() = jsonRunCatching(LOG_TAG) {
 private fun JsonObject.toDefaultPOIOrThrow(
     @ItemViewType type: Int = getTypeFromJsonOrDefault()
 ) = jsonRunCatching(LOG_TAG) {
-    DefaultPOI(
-        getAuthorityFromJson(),
-        getIdFromJson(),
-        getDSTypeIdFromJson(),
-        type,
-        getValue(JSON_STATUS_TYPE).jsonPrimitive.int,
-        this[JSON_ACTION_TYPE]?.jsonPrimitiveOrNull?.intOrNull ?: POI.ITEM_ACTION_TYPE_NONE,
-        getLatFromJson(),
-        getLngFromJson(),
-        getNameFromJson()
-    ).apply {
-        applyTo(this)
-    }
+    makeDefaultPOI(
+        authority = getAuthorityFromJson(),
+        id = getIdFromJson(),
+        dataSourceTypeId = getDSTypeIdFromJson(),
+        type = type,
+        statusType = getValue(JSON_STATUS_TYPE).jsonPrimitive.int,
+        actionsType = this[JSON_ACTION_TYPE]?.jsonPrimitiveOrNull?.intOrNull ?: POI.ITEM_ACTION_TYPE_NONE,
+        lat = getLatFromJson(),
+        lng = getLngFromJson(),
+        name = getNameFromJson(),
+        score = getScoreFromJson(),
+    )
 }.getOrThrow()
 
-fun JsonObject.applyTo(defaultPOI: POI) {
-    this[JSON_SCORE_OPT]?.let { defaultPOI.setScore(it.jsonPrimitive.int) }
-}
+fun JsonObject.getScoreFromJson(): Int? = this[JSON_SCORE_OPT]?.jsonPrimitiveOrNull?.intOrNull
 
-fun JsonObject.getIdFromJson(): Int {
-    return getValue(JSON_ID).jsonPrimitive.int
-}
+fun JsonObject.getIdFromJson() = getValue(JSON_ID).jsonPrimitive.int
 
-fun JsonObject.getAuthorityFromJson(): String {
-    return getValue(JSON_AUTHORITY).jsonPrimitive.content
-}
+fun JsonObject.getAuthorityFromJson() = getValue(JSON_AUTHORITY).jsonPrimitive.content
 
-fun JsonObject.getDSTypeIdFromJson(): @DataSourceTypeId.DataSourceType Int {
-    return getValue(JSON_DATA_SOURCE_TYPE_ID).jsonPrimitive.int
-}
+fun JsonObject.getDSTypeIdFromJson(): @DataSourceTypeId.DataSourceType Int = getValue(JSON_DATA_SOURCE_TYPE_ID).jsonPrimitive.int
 
-fun JsonObject.getLatFromJson(): Double {
-    return getValue(JSON_LAT).jsonPrimitive.double
-}
+fun JsonObject.getLatFromJson() = getValue(JSON_LAT).jsonPrimitive.double
 
-fun JsonObject.getLngFromJson(): Double {
-    return getValue(JSON_LNG).jsonPrimitive.double
-}
+fun JsonObject.getLngFromJson() = getValue(JSON_LNG).jsonPrimitive.double
 
-fun JsonObject.getNameFromJson(): String {
-    return getValue(JSON_NAME).jsonPrimitive.content
-}
+fun JsonObject.getNameFromJson() = getValue(JSON_NAME).jsonPrimitive.content
 
 fun DefaultPOI.toJsonK() = jsonRunCatching {
     buildJsonObject { toJsonCommon(this@toJsonK) }

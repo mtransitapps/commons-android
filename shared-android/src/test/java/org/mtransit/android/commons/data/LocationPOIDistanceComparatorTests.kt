@@ -17,10 +17,10 @@ class LocationPOIDistanceComparatorTests {
     @Test
     fun test_compare_distinct_authority_distance() {
         val poiList = buildList<LocationPOI> {
-            add(SimpleLocationPOI(makeDefaultPOI("authority1")).apply { distance = 3f })
-            add(SimpleLocationPOI(makeDefaultPOI("authority2")).apply { distance = 1f })
-            add(SimpleLocationPOI(makeDefaultPOI("authority3")).apply { distance = 20_000f })
-            add(SimpleLocationPOI(makeDefaultPOI("authority4")).apply { distance = .5f })
+            add(SimpleLocationPOI(mkDefaultPOI("authority1")).apply { distance = 3f })
+            add(SimpleLocationPOI(mkDefaultPOI("authority2")).apply { distance = 1f })
+            add(SimpleLocationPOI(mkDefaultPOI("authority3")).apply { distance = 20_000f })
+            add(SimpleLocationPOI(mkDefaultPOI("authority4")).apply { distance = .5f })
         }
 
         val result = poiList.sortedWith(subject)
@@ -35,10 +35,10 @@ class LocationPOIDistanceComparatorTests {
     @Test
     fun test_POIDistanceComparatorRDS_SameStop_DistinctRoute_compare_equal() {
         val poiList = buildList<LocationPOI> {
-            add(SimpleLocationPOI(makeDefaultPOI("authority1")).apply { distance = 3f })
+            add(SimpleLocationPOI(mkDefaultPOI("authority1")).apply { distance = 3f })
             add(SimpleLocationPOI(makeRDS("authority2", routeId = 2L, originalDirectionId = 0, stopId = 100)).apply { distance = 1f })
             add(SimpleLocationPOI(makeRDS("authority3", routeId = 1L, originalDirectionId = 0, stopId = 100)).apply { distance = 1f })
-            add(SimpleLocationPOI(makeDefaultPOI("authority4")).apply { distance = .5f })
+            add(SimpleLocationPOI(mkDefaultPOI("authority4")).apply { distance = .5f })
         }
 
         val result = poiList.sortedWith(subject.then(LocationPOI.ALPHA_COMPARATOR))

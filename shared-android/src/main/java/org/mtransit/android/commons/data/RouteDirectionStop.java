@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.data;
 
+import static org.mtransit.android.commons.data.RouteDirectionStopExtKt.makeRouteDirectionStop;
+
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.text.SpannableStringBuilder;
@@ -47,30 +49,7 @@ public class RouteDirectionStop extends DefaultPOI {
 	@Nullable
 	private final Boolean alwaysLastTripStop;
 
-	@VisibleForTesting
-	public RouteDirectionStop(
-			@SuppressWarnings("unused") @NonNull String authority,
-			@DataSourceType int dataSourceTypeId,
-			@NonNull Route route,
-			@NonNull Direction direction,
-			@NonNull Stop stop,
-			boolean noPickup
-	) {
-		this(dataSourceTypeId, route, direction, stop, noPickup);
-	}
-
-	@VisibleForTesting
-	public RouteDirectionStop(
-			@DataSourceType int dataSourceTypeId,
-			@NonNull Route route,
-			@NonNull Direction direction,
-			@NonNull Stop stop,
-			boolean noPickup
-	) {
-		this(dataSourceTypeId, route, direction, stop, noPickup, null);
-	}
-
-	public RouteDirectionStop(
+	protected RouteDirectionStop(
 			@DataSourceType int dataSourceTypeId,
 			@NonNull Route route,
 			@NonNull Direction direction,
@@ -275,7 +254,7 @@ public class RouteDirectionStop extends DefaultPOI {
 
 	@NonNull
 	public static RouteDirectionStop fromCursorStatic(@NonNull Cursor c, @NonNull String authority) {
-		final RouteDirectionStop rds = new RouteDirectionStop(
+		return makeRouteDirectionStop(
 				getDataSourceTypeIdFromCursor(c),
 				new Route(
 						authority,
@@ -304,10 +283,10 @@ public class RouteDirectionStop extends DefaultPOI {
 						CursorExtKt.optString(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_TIMEZONE_ID, null)
 				),
 				CursorExtKt.getBoolean(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP),
-				CursorExtKt.optBoolean(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_ALWAYS_LAST_TRIP_STOP)
+				CursorExtKt.optBoolean(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_ALWAYS_LAST_TRIP_STOP),
+				getScoreFromCursor(c),
+				getAccessibleFromCursor(c)
 		);
-		DefaultPOI.fromCursor(c, rds);
-		return rds;
 	}
 
 	@Deprecated

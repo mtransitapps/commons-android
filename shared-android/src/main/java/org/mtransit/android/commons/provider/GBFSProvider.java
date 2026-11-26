@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.provider;
 
+import static org.mtransit.android.commons.data.DefaultPOIExtKt.makeDefaultPOI;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
@@ -228,7 +230,7 @@ public class GBFSProvider extends BikeStationProvider {
 			final String idString = jStation.getStationId();
 			final int bikeStationId = idString == null ? -1 : Integer.parseInt(idString);
 			if (bikeStationId < 0) return null;
-			return new DefaultPOI(
+			return makeDefaultPOI(
 					authority,
 					bikeStationId,
 					dataSourceTypeId,

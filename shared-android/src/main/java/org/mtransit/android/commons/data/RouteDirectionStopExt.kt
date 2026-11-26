@@ -12,6 +12,30 @@ import org.mtransit.commons.FeatureFlags
 import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlinx.serialization.json.put as putK
 
+@JvmOverloads
+fun makeRouteDirectionStop(
+    @DataSourceTypeId.DataSourceType dataSourceTypeId: Int,
+    route: Route,
+    direction: Direction,
+    stop: Stop,
+    noPickup: Boolean = false,
+    alwaysLastTripStop: Boolean? = null,
+    score: Int? = null,
+    accessible: Int = stop.accessible,
+) = RouteDirectionStop(
+    dataSourceTypeId,
+    route,
+    direction,
+    stop,
+    noPickup,
+    alwaysLastTripStop,
+).apply {
+    optDefaultPOIInit(
+        score = score,
+        accessible = accessible,
+    )
+}
+
 private const val JSON_ROUTE = "route"
 private const val JSON_DIRECTION = "trip" // do not change to avoid breaking compat w/ old modules
 private const val JSON_STOP = "stop"
@@ -33,15 +57,14 @@ fun RouteDirectionStop.toJsonK() = jsonRunCatching {
 
 fun JsonObject.toRouteDirectionStop() = jsonRunCatching(LOG_TAG) {
     getAuthorityFromJson().let { authority ->
-        RouteDirectionStop(
-            getDSTypeIdFromJson(),
-            getValue(JSON_ROUTE).jsonObject.toRoute(authority),
-            getValue(JSON_DIRECTION).jsonObject.toDirection(authority),
-            getValue(JSON_STOP).jsonObject.toStop(),
-            getValue(JSON_NO_PICKUP).jsonPrimitive.boolean,
-            get(JSON_ALWAYS_LAST_TRIP_STOP)?.jsonPrimitiveOrNull?.booleanOrNull,
-        ).apply {
-            applyTo(this)
-        }
+        makeRouteDirectionStop(
+            dataSourceTypeId = getDSTypeIdFromJson(),
+            route = getValue(JSON_ROUTE).jsonObject.toRoute(authority),
+            direction = getValue(JSON_DIRECTION).jsonObject.toDirection(authority),
+            stop = getValue(JSON_STOP).jsonObject.toStop(),
+            noPickup = getValue(JSON_NO_PICKUP).jsonPrimitive.boolean,
+            alwaysLastTripStop = get(JSON_ALWAYS_LAST_TRIP_STOP)?.jsonPrimitiveOrNull?.booleanOrNull,
+            score = getScoreFromJson(),
+        )
     }
 }.getOrThrow()

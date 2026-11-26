@@ -6,5 +6,5 @@ inline fun <T> Any.jsonRunCatching(
 ): Result<T> = runCatching(
     block = block
 ).onFailure { t ->
-    MTLogK.w(loggable, "Error while [de]serializating JSON '$this'!", t)
+    MTLogK.w(loggable, "Error while [de]serializing JSON '$this'!", t)
 }

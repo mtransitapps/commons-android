@@ -17,6 +17,7 @@ import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.departureArrivalDiff
+import org.mtransit.android.commons.data.makeRouteDirectionStop
 import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.makeStop
 import org.mtransit.android.commons.data.toScheduleTimestamp
@@ -1522,28 +1523,28 @@ class GTFSRealTimeTripUpdatesProviderTests {
         setTimestampsAndSort(timestamps)
     }
 
-    private fun makeRDS(stopId: Int = 1) = RouteDirectionStop(
-        DataSourceTypeId.BUS,
-        Route(
+    private fun makeRDS(stopId: Int = 1) = makeRouteDirectionStop(
+        dataSourceTypeId = DataSourceTypeId.BUS,
+        route = Route(
             "authority",
             1,
             "1",
             "route 1",
             "color"
         ),
-        Direction(
+        direction = Direction(
             "authority",
             1,
             1,
             "headsign",
             1
         ),
-        makeStop(
+        stop = makeStop(
             stopId = stopId,
             stopOriginalIdHash = stopId, // "$stopId".hashCode()
             stopTimeZoneId = AGENCY_TZ_ID
         ),
-        false,
-        false,
+        noPickup = false,
+        alwaysLastTripStop = false,
     )
 }
