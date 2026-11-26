@@ -30,7 +30,7 @@ data class AppStatusFilter(
         )
 
         @JvmStatic
-        fun String?.toFilterOrNull() = this?.jsonRunCatching(LOG_TAG) {
+        fun String?.toFilterOrNull() = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
             sharedJson.parseToJsonElement(this).jsonObjectOrNull?.toFilter()
         }?.getOrNull()
 

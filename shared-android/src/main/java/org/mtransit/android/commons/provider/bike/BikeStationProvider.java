@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
@@ -130,6 +131,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
+	@ColorInt
 	public static int getValue1Color(@NonNull Context context) {
 		if (value1Color < 0) {
 			value1Color = ContextCompat.getColor(context, R.color.bike_station_value1_color);
@@ -142,6 +144,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
+	@ColorInt
 	public static int getValue1ColorBg(@NonNull Context context) {
 		if (value1ColorBg < 0) {
 			value1ColorBg = ContextCompat.getColor(context, R.color.bike_station_value1_color_bg);
@@ -154,6 +157,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
+	@ColorInt
 	public static int getValue1SubValue1Color(@NonNull Context context) {
 		if (value1SubValue1Color < 0) {
 			value1SubValue1Color = ContextCompat.getColor(context, R.color.bike_station_value1_sub_value1_color);
@@ -166,6 +170,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
+	@ColorInt
 	public static int getValue1SubValue1ColorBg(@NonNull Context context) {
 		if (value1ColorSubValue1Bg < 0) {
 			value1ColorSubValue1Bg = ContextCompat.getColor(context, R.color.bike_station_value1_sub_value1_color_bg);
@@ -178,6 +183,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
+	@ColorInt
 	public static int getValue2Color(@NonNull Context context) {
 		if (value2Color < 0) {
 			value2Color = ContextCompat.getColor(context, R.color.bike_station_value2_color);
@@ -190,6 +196,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
+	@ColorInt
 	public static int getValue2ColorBg(@NonNull Context context) {
 		if (value2ColorBg < 0) {
 			value2ColorBg = ContextCompat.getColor(context, R.color.bike_station_value2_color_bg);

@@ -209,7 +209,7 @@ object AppUpdateUtils : MTLogK.Loggable {
             private const val JSON_FORCE_REFRESH = "force_refresh"
             private const val JSON_IN_FOCUS = "in_focus"
 
-            internal fun String?.toFilterOrNull() = this?.jsonRunCatching(LOG_TAG) {
+            internal fun String?.toFilterOrNull() = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
                 sharedJson.parseToJsonElement(this).jsonObjectOrNull?.toFilter()
             }?.getOrNull()
 

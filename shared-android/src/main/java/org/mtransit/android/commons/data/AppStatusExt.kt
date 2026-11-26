@@ -15,7 +15,10 @@ private const val JSON_APP_ENABLED = "appEnabled"
 private const val JSON_UPDATE_AVAILABLE = "updateAvailable"
 
 @JvmOverloads
-fun String?.toAppStatusOrDefault(status: POIStatus, getDefault: () -> AppStatus = { AppStatus(status, false, true, false) }) = this?.jsonRunCatching(LOG_TAG) {
+fun String?.toAppStatusOrDefault(
+    status: POIStatus,
+    getDefault: () -> AppStatus = { AppStatus(status, false, true, false) },
+) = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
     sharedJson.parseToJsonElement(this).jsonObject.toAppStatus(status)
 }?.getOrDefault(getDefault()) ?: getDefault()
 

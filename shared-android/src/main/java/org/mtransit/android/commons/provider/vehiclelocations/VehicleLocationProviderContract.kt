@@ -141,7 +141,7 @@ interface VehicleLocationProviderContract : ProviderContract {
             private const val JSON_ROUTE = "route"
             private const val JSON_ROUTE_DIRECTION = "routeDirection"
 
-            fun String?.toFilterOrNull() = this?.jsonRunCatching(LOG_TAG) {
+            fun String?.toFilterOrNull() = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
                 sharedJson.parseToJsonElement(this).jsonObject.toFilter()
             }?.getOrNull()
 

@@ -26,7 +26,7 @@ fun String?.toStatusesOrNull(
     getBeginningOfTodayMs: () -> Long,
     makeSchedule: () -> Schedule,
     cleanTripHeadsign: (String) -> String,
-): List<POIStatus>? = this?.jsonRunCatching(LOG_TAG) {
+): List<POIStatus>? = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
     sharedJson.parseToJsonElement(this).jsonArrayOrNull?.toStatuses(
         localTimeZoneId = localTimeZoneId,
         afterMs = afterMs,

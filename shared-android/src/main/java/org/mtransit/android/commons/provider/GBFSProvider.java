@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -13,7 +14,8 @@ import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.data.Area;
 import org.mtransit.android.commons.data.AvailabilityPercentStatusFilter;
-import org.mtransit.android.commons.data.BikeStationAvailabilityPercent;
+import org.mtransit.android.commons.data.AvailabilityPercentValue;
+import org.mtransit.android.commons.data.BikeStationAvailabilityPercentKt;
 import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
@@ -317,11 +319,18 @@ public class GBFSProvider extends BikeStationProvider {
 			final int value2ColorBg = getValue2ColorBg(context);
 			for (JStationStatus.JData.JStation jStation : jStations) {
 				final POIStatus newBikeStationStatus = parseAgencyJsonStationStatus(
-						authority, jStation, sourceLabel, newLastUpdateInMs,
+						authority,
+						jStation,
+						sourceLabel,
+						newLastUpdateInMs,
 						statusMaxValidityInMs,
-						value1Color, value1ColorBg,
-						value1SubValue1Color, value1SubValue1ColorBg,
-						value2Color, value2ColorBg);
+						value1Color,
+						value1ColorBg,
+						value1SubValue1Color,
+						value1SubValue1ColorBg,
+						value2Color,
+						value2ColorBg
+				);
 				if (newBikeStationStatus != null) {
 					newBikeStationStatuses.add(newBikeStationStatus);
 				}
@@ -339,57 +348,66 @@ public class GBFSProvider extends BikeStationProvider {
 			@Nullable String sourceLabel,
 			long newLastUpdateInMs,
 			long statusMaxValidityInMs,
-			int value1Color,
-			int value1ColorBg,
-			int value1SubValue1Color,
-			int value1SubValue1ColorBg,
-			int value2Color,
-			int value2ColorBg
+			@ColorInt int value1Color,
+			@ColorInt int value1ColorBg,
+			@ColorInt int value1SubValue1Color,
+			@ColorInt int value1SubValue1ColorBg,
+			@ColorInt int value2Color,
+			@ColorInt int value2ColorBg
 	) {
 		try {
 			final String idString = jStation.getStationId();
-			int bikeStationId = idString == null ? -1 : Integer.parseInt(idString);
+			final int bikeStationId = idString == null ? -1 : Integer.parseInt(idString);
 			if (bikeStationId < 0) return null;
-			final BikeStationAvailabilityPercent newBikeStationStatus = new BikeStationAvailabilityPercent(
-					null,
-					POI.POIUtils.makeUUID(authority, bikeStationId),
-					newLastUpdateInMs,
-					statusMaxValidityInMs,
-					newLastUpdateInMs,
-					sourceLabel,
-					value1Color,
-					value1ColorBg,
-					value1SubValue1Color,
-					value1SubValue1ColorBg,
-					value2Color,
-					value2ColorBg
-			);
-			final boolean isInstalled = Boolean.TRUE.equals(jStation.getIsInstalled());
+			boolean isInstalled = Boolean.TRUE.equals(jStation.getIsInstalled());
 			final boolean isRenting = Boolean.TRUE.equals(jStation.getIsRenting());
 			final boolean isReturning = Boolean.TRUE.equals(jStation.getIsReturning());
-			newBikeStationStatus.setStatusInstalled(isInstalled);
-			int numBikesAvailable = jStation.getNumBikesAvailable() == null ? 0 : jStation.getNumBikesAvailable();
+			int numBikesAvailable = jStation.getNumBikesAvailable() == null ? 0 : jStation.getNumBikesAvailable(); // includes e-bikes
 			if (!isRenting) {
 				numBikesAvailable = 0; // not renting = no bikes available
 			}
-			Integer numEBikesAvailable = jStation.getNumEBikesAvailable();
+			@Nullable Integer numEBikesAvailable = jStation.getNumEBikesAvailable();
 			if (numEBikesAvailable == null) {
 				if (jStation.getNumBikesAvailableTypes() != null
 						&& jStation.getNumBikesAvailableTypes().getEBikes() != null) {
 					numEBikesAvailable = jStation.getNumBikesAvailableTypes().getEBikes();
 				}
 			}
+			@Nullable AvailabilityPercentValue value1SubValue = null;
+			if (numEBikesAvailable!= null) {
+				value1SubValue = BikeStationAvailabilityPercentKt.makeValue1SubValue1(
+						numEBikesAvailable,
+						value1SubValue1Color,
+						value1SubValue1ColorBg
+				);
+			}
 			int numDocksAvailable = jStation.getNumDocksAvailable() == null ? 0 : jStation.getNumDocksAvailable();
 			if (!isReturning) {
 				numDocksAvailable = 0; // not returning = no docks available
 			}
-			newBikeStationStatus.setValue1(numBikesAvailable);
-			newBikeStationStatus.setValue1SubValue1(numEBikesAvailable);
-			newBikeStationStatus.setValue2(numDocksAvailable);
-			if (newBikeStationStatus.getTotalValue() == 0) {
-				newBikeStationStatus.setStatusInstalled(false);
+			if (numBikesAvailable <= 0 && numDocksAvailable <= 0) {
+				isInstalled = false;
 			}
-			return newBikeStationStatus;
+			return BikeStationAvailabilityPercentKt.makeBikeStationAvailabilityPercent(
+					null,
+					POI.POIUtils.makeUUID(authority, bikeStationId),
+					newLastUpdateInMs,
+					statusMaxValidityInMs,
+					newLastUpdateInMs,
+					sourceLabel,
+					BikeStationAvailabilityPercentKt.makeValue1(
+							numBikesAvailable,
+							value1Color,
+							value1ColorBg
+					),
+					value1SubValue,
+					BikeStationAvailabilityPercentKt.makeValue2(
+							numDocksAvailable,
+							value2Color,
+							value2ColorBg
+					),
+					isInstalled
+			);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing station JSON '%s'!", jStation);
 			return null;
@@ -571,7 +589,7 @@ public class GBFSProvider extends BikeStationProvider {
 				@Nullable
 				private final String stationId;
 				@Nullable
-				private final Integer numBikesAvailable;
+				private final Integer numBikesAvailable; // includes e-bikes
 				@Nullable
 				private final Integer numEBikesAvailable;
 				@Nullable
@@ -649,6 +667,7 @@ public class GBFSProvider extends BikeStationProvider {
 					return isReturning;
 				}
 
+				@SuppressWarnings("unused")
 				@Nullable
 				Long getLastReported() {
 					return lastReported;
@@ -682,6 +701,7 @@ public class GBFSProvider extends BikeStationProvider {
 						this.eBikes = eBikes;
 					}
 
+					@SuppressWarnings("unused")
 					@Nullable
 					public Integer getMechanical() {
 						return mechanical;

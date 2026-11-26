@@ -24,7 +24,7 @@ fun String?.toStatusesOrNull(
     cleanDirectionHeadsign: (tripHeadsign: String, forRds: Boolean) -> String,
     isSameRoute: (jRouteId: String, jRouteShortName: String) -> Boolean,
     isSameDirection: (tripHeadsign: String) -> Boolean,
-): List<POIStatus>? = this?.jsonRunCatching(LOG_TAG) {
+): List<POIStatus>? = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
     sharedJson.parseToJsonElement(this).jsonObject.toStatuses(
         localTimeZoneId = localTimeZoneId,
         makeSchedule = makeSchedule,

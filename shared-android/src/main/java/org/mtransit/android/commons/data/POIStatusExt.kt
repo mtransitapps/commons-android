@@ -24,9 +24,9 @@ fun POIStatus.setReadFromSourceAtInMsKeepMostRecent(readFromSourceAtInMs: Long) 
 private const val JSON_SOURCE_LABEL = "sourceLabel"
 private const val JSON_NO_DATA = "noData"
 
-fun String?.toJsonObject() = this?.jsonRunCatching(LOG_TAG) {
+fun String?.toJsonObject() = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
     sharedJson.parseToJsonElement(this).jsonObject
-}?.getOrThrow()
+}?.getOrNull()
 
 fun JsonObject?.getSourceLabelFromJson() = this?.get(JSON_SOURCE_LABEL)?.jsonPrimitiveOrNull?.contentOrNull
 fun JsonObject?.getNoDataFromJson() = this?.get(JSON_NO_DATA)?.jsonPrimitiveOrNull?.booleanOrNull

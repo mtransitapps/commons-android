@@ -312,7 +312,7 @@ private const val JSON_TIMESTAMPS = "timestamps"
 private const val JSON_FREQUENCIES = "frequencies"
 private const val JSON_LOCAL_TIME_ZONE_ID = "tz"
 
-fun String?.toScheduleOrNull(status: POIStatus) = this?.jsonRunCatching(LOG_TAG) {
+fun String?.toScheduleOrNull(status: POIStatus) = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
     sharedJson.parseToJsonElement(this).jsonObject.toSchedule(status)
 }?.getOrNull()
 

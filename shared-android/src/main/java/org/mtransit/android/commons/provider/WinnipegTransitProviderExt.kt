@@ -27,7 +27,7 @@ fun String?.toStatusesOrNull(
     directionId: Long,
     makeSchedule: () -> Schedule,
     cleanTripHeadsign: (String) -> String
-) = this?.jsonRunCatching(LOG_TAG) {
+) = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
     sharedJson.parseToJsonElement(this).jsonObjectOrNull?.toStatuses(
         directionId = directionId,
         makeSchedule = makeSchedule,
@@ -77,7 +77,7 @@ private fun JsonObject.toScheduleTimestamp(
         return null
     }
     val jTimes = this[JSON_TIMES]?.jsonObjectOrNull
-    val timeString = jTimes?.timeString()?.takeIf { it.isNotEmpty() } ?: return null
+    val (timeString, isRealTime) = jTimes?.timeStringAndRealTime()?.takeIf { (time, _) -> time.isNotEmpty() } ?: return null
     val date = runCatching { WinnipegTransitProvider.DATE_FORMATTER.parseThreadSafe(timeString) }.getOrNull() ?: return null
     return Schedule.Timestamp(
         TimeUtils.timeToTheTensSecondsMillis(date.time),
@@ -86,7 +86,7 @@ private fun JsonObject.toScheduleTimestamp(
         if (!variantName.isNullOrEmpty()) {
             setHeadsign(Direction.HEADSIGN_TYPE_STRING, cleanTripHeadsign(variantName))
         }
-        realTime = this@toScheduleTimestamp[JSON_BUS] != null && jTimes.isRealTime()
+        realTime = this@toScheduleTimestamp[JSON_BUS] != null && isRealTime
         accessible = Accessibility.UNKNOWN
     }
 }
@@ -98,28 +98,17 @@ private const val JSON_ESTIMATED = "estimated"
 private const val JSON_SCHEDULED = "scheduled"
 private val JSON_TIME_CANDIDATES = setOf(JSON_ESTIMATED, JSON_SCHEDULED)
 
-private fun JsonObject.timeString(): String? = jsonRunCatching(LOG_TAG) {
+private fun JsonObject.timeStringAndRealTime(): Pair<String, Boolean>? = jsonRunCatching(LOG_TAG) {
     JSON_PERIOD_CANDIDATES.firstNotNullOfOrNull { period ->
         this[period]?.jsonObjectOrNull?.let { periodObject ->
             JSON_TIME_CANDIDATES.firstNotNullOfOrNull { timeType ->
-                periodObject[timeType]?.jsonPrimitiveOrNull?.contentOrNull?.takeIf { time -> time.isNotEmpty() }
+                periodObject[timeType]?.jsonPrimitiveOrNull?.contentOrNull?.takeIf { time -> time.isNotEmpty() }?.let {
+                    it to (timeType == JSON_ESTIMATED)
+                }
             }
         }
     }
 }.getOrNull()
-
-private fun JsonObject.isRealTime(): Boolean = jsonRunCatching(LOG_TAG) {
-    JSON_PERIOD_CANDIDATES.firstNotNullOfOrNull { period ->
-        this[period]?.jsonObjectOrNull?.let { periodObject ->
-            periodObject[JSON_ESTIMATED]?.jsonPrimitiveOrNull?.contentOrNull?.takeIf { it.isNotEmpty() }?.let {
-                return@firstNotNullOfOrNull false
-            }
-            periodObject[JSON_SCHEDULED]?.jsonPrimitiveOrNull?.contentOrNull?.takeIf { it.isNotEmpty() }?.let {
-                return@firstNotNullOfOrNull true
-            }
-        }
-    } ?: false
-}.getOrDefault(false)
 
 // endregion
 
@@ -129,7 +118,7 @@ private const val JSON_SERVICE_ADVISORIES = "service-advisories"
 
 fun String?.toNews(
     makeNewsArticle: (uuid: String, priority: Int?, updatedAtMs: Long, text: String, textHTML: String, link: String) -> News,
-) = this?.jsonRunCatching(LOG_TAG) {
+) = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
     sharedJson.parseToJsonElement(this).jsonObject.toNews(makeNewsArticle)
 }?.getOrNull()
 

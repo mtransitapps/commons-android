@@ -62,7 +62,7 @@ private fun JsonObject.toJResultRoute() = LegacyMessages.JResult.JResultRoute(
 
 @SuppressLint("DiscouragedApi")
 @Discouraged(message = "Using GTFS-RT Trip Updates instead")
-fun String?.toJArrivals() = this?.jsonRunCatching(LOG_TAG) {
+fun String?.toJArrivals() = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
     sharedJson.parseToJsonElement(this).jsonObject.toJArrivals()
 }?.getOrNull()
 

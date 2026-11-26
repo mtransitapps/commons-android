@@ -11,7 +11,7 @@ import org.mtransit.commons.jsonArrayOrNull
 import org.mtransit.commons.jsonObjectOrNull
 import org.mtransit.commons.jsonPrimitiveOrNull
 
-fun String?.toJArretParcoursOrNull() = this?.jsonRunCatching(LOG_TAG) {
+fun String?.toJArretParcoursOrNull() = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
     sharedJson.parseToJsonElement(this).jsonObjectOrNull?.toJArretParcours()
 }?.getOrNull()
 

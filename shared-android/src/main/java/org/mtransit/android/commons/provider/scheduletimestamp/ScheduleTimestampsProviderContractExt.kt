@@ -18,7 +18,7 @@ private const val JSON_ROUTE_DIRECTION_STOP = "routeTripStop" // do not change t
 private const val JSON_STARTS_AT_IN_MS = "startsAtInMs"
 private const val JSON_ENDS_AT_IN_MS = "endsAtInMs"
 
-internal fun String?.toFilterOrNull() = this?.jsonRunCatching(LOG_TAG) {
+internal fun String?.toFilterOrNull() = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
     sharedJson.parseToJsonElement(this).jsonObject.toFilter()
 }?.getOrNull()
 
