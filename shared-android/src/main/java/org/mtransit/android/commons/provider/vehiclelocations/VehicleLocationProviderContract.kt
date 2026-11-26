@@ -118,7 +118,7 @@ interface VehicleLocationProviderContract : ProviderContract {
         override val cacheValidityInMs: Long? = null,
         override val inFocus: Boolean? = null,
         override val providedEncryptKeysMap: Secret<Map<String, String>>? = null,
-        val authority: String,
+        private val authority: String,
         override val poi: POI? = null, // RouteDirectionStop or DefaultPOI
         override val route: Route? = null,
         override val routeDirection: RouteDirection? = null,
