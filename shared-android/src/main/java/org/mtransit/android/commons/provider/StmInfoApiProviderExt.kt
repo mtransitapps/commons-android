@@ -77,10 +77,10 @@ private fun JsonObject.toJArrivals(): JArrivals {
     return JArrivals(
         JArrivals.JMessages(
             jMessages?.get(JSON_LINE)?.jsonArrayOrNull?.mapNotNull {
-                it.jsonObject.toJMessage()
+                it.jsonObjectOrNull?.toJMessage()
             }.orEmpty(),
             jMessages?.get(JSON_STOP_POINT)?.jsonArrayOrNull?.mapNotNull {
-                it.jsonObject.toJMessage()
+                it.jsonObjectOrNull?.toJMessage()
             }.orEmpty(),
         ),
         this[JSON_RESULT]?.jsonArrayOrNull?.mapNotNull {

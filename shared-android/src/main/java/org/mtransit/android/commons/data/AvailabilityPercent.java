@@ -106,7 +106,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 	public boolean isShowingLowerValue() {
 		return hasValueStrictlyLowerThan(ENOUGH_AVAILABILITY)
-				&& this.value1 != this.value2;
+				&& this.value1.getValue() != this.value2.getValue();
 	}
 
 	@NonNull

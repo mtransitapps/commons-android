@@ -7,6 +7,7 @@ import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.ScheduleStatusFilter
+import org.mtransit.android.commons.provider.gtfs.GTFSStatusProvider.LOG_TAG
 import org.mtransit.android.commons.provider.status.StatusProviderContract
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
@@ -37,7 +38,7 @@ private fun Context.getRDSSchedule(
     includeCancelledTimestamps: Boolean = false,
     lookBehind: Duration = DEFAULT_LOOK_BEHIND,
     maxDataRequest: Int = DEFAULT_MAX_DATA_REQUEST,
-): Schedule? = try {
+): Schedule? = runCatching {
     contentResolver.query(
         Uri.withAppendedPath(
             UriUtils.newContentUri(authority),
@@ -57,7 +58,6 @@ private fun Context.getRDSSchedule(
             Schedule.fromCursorWithExtra(it)
         }
     }
-} catch (e: Exception) {
-    MTLogK.w(this, "Error!", e)
-    null
-}
+}.onFailure { e ->
+    MTLogK.w(LOG_TAG, "Error!", e)
+}.getOrNull()

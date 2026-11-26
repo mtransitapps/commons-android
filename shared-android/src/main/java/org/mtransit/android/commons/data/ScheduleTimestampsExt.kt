@@ -4,6 +4,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import org.mtransit.android.commons.data.ScheduleTimestamps.LOG_TAG
 import org.mtransit.android.commons.jsonRunCatching
@@ -24,9 +25,9 @@ fun String?.toScheduleTimestampsOrNull(scheduleTimestamps: ScheduleTimestamps) =
 private fun JsonObject.toScheduleTimestamps(scheduleTimestamps: ScheduleTimestamps) = scheduleTimestamps.apply {
     sourceLabel = this@toScheduleTimestamps[JSON_SOURCE_LABEL]?.jsonPrimitiveOrNull?.contentOrNull
     var localTimeZoneId = this@toScheduleTimestamps[JSON_LOCAL_TIME_ZONE_ID]?.jsonPrimitiveOrNull?.contentOrNull
-    val timestamps = this@toScheduleTimestamps[JSON_TIMESTAMPS]?.jsonArrayOrNull?.mapNotNull {
+    val timestamps = this@toScheduleTimestamps.getValue(JSON_TIMESTAMPS).jsonArray.mapNotNull {
         it.jsonObjectOrNull?.toTimestamp()
-    }.orEmpty()
+    }
     if (localTimeZoneId == null) {
         //noinspection DiscouragedApi
         localTimeZoneId = timestamps.find { it.localTimeZoneId != null }?.localTimeZoneId
@@ -37,8 +38,8 @@ private fun JsonObject.toScheduleTimestamps(scheduleTimestamps: ScheduleTimestam
 
 fun ScheduleTimestamps.toJson() = jsonRunCatching {
     buildJsonObject {
-        putK(JSON_SOURCE_LABEL, this@toJson.sourceLabel)
-        putK(JSON_LOCAL_TIME_ZONE_ID, this@toJson.localTimeZoneId)
+        this@toJson.sourceLabel?.let { putK(JSON_SOURCE_LABEL, it) }
+        this@toJson.localTimeZoneId?.let { putK(JSON_LOCAL_TIME_ZONE_ID, it) }
         put(
             JSON_TIMESTAMPS,
             buildJsonArray {
