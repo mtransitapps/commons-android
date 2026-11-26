@@ -265,7 +265,6 @@ public class DefaultPOI implements POI {
 		return fromCursorStatic(c, authority);
 	}
 
-	@Deprecated
 	@NonNull
 	public static DefaultPOI fromCursorStatic(@NonNull Cursor c, @NonNull String authority) {
 		return makeDefaultPOI(
