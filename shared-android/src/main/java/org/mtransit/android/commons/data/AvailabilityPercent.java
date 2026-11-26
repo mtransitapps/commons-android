@@ -120,11 +120,6 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 	@NonNull
 	public CharSequence getValue1Text(@NonNull Context context) {
-		return getValue1Text(context, false);
-	}
-
-	@NonNull
-	public CharSequence getValue1Text(@NonNull Context context, boolean excludeSubValue1) {
 		return getValueText(
 				context,
 				getValue1(),
@@ -272,10 +267,10 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		return AvailabilityPercentExtKt.toAvailabilityPercentOrNull(extrasJsonString, status);
 	}
 
-	@NonNull
+	@Nullable
 	@Override
-	public String getExtrasJsonString() {
-		return AvailabilityPercentExtKt.toJsonString(this);
+	public String getExtrasJsonStringOrNull() {
+		return AvailabilityPercentExtKt.toJsonStringOrNull(this);
 	}
 
 	@NonNull

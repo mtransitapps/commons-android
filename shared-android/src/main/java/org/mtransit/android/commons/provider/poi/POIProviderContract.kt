@@ -12,6 +12,7 @@ import kotlinx.serialization.json.addAll
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.double
+import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
@@ -311,10 +312,10 @@ interface POIProviderContract : ProviderContract {
                     maxLat = getValue(JSON_MAX_LAT).jsonPrimitive.double
                     minLng = getValue(JSON_MIN_LNG).jsonPrimitive.double
                     maxLng = getValue(JSON_MAX_LNG).jsonPrimitive.double
-                    optLoadedMinLat = this[JSON_OPT_LOADED_MIN_LAT]?.jsonPrimitiveOrNull?.double
-                    optLoadedMaxLat = this[JSON_OPT_LOADED_MAX_LAT]?.jsonPrimitiveOrNull?.double
-                    optLoadedMinLng = this[JSON_OPT_LOADED_MIN_LNG]?.jsonPrimitiveOrNull?.double
-                    optLoadedMaxLng = this[JSON_OPT_LOADED_MAX_LNG]?.jsonPrimitiveOrNull?.double
+                    optLoadedMinLat = this[JSON_OPT_LOADED_MIN_LAT]?.jsonPrimitiveOrNull?.doubleOrNull
+                    optLoadedMaxLat = this[JSON_OPT_LOADED_MAX_LAT]?.jsonPrimitiveOrNull?.doubleOrNull
+                    optLoadedMinLng = this[JSON_OPT_LOADED_MIN_LNG]?.jsonPrimitiveOrNull?.doubleOrNull
+                    optLoadedMaxLng = this[JSON_OPT_LOADED_MAX_LNG]?.jsonPrimitiveOrNull?.doubleOrNull
                 } catch (_: RuntimeException) { // expected
                     minLat = null
                     maxLat = null

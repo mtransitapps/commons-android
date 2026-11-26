@@ -17,7 +17,7 @@ import org.mtransit.android.commons.data.RouteDirection
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.ServiceUpdates
 import org.mtransit.android.commons.data.Targetable
-import org.mtransit.android.commons.data.toPOI
+import org.mtransit.android.commons.data.toPOIOrThrow
 import org.mtransit.android.commons.data.toRoute
 import org.mtransit.android.commons.data.toRouteDirection
 import org.mtransit.android.commons.jsonRunCatching
@@ -138,7 +138,7 @@ interface ServiceUpdateProviderContract : ProviderContract {
             private const val JSON_AUTHORITY = "authority"
 
             private fun JsonObject.toFilter(): Filter {
-                val poi = this[JSON_POI]?.jsonObjectOrNull?.toPOI()
+                val poi = this[JSON_POI]?.jsonObjectOrNull?.toPOIOrThrow()
                 val authority = this[JSON_AUTHORITY]?.jsonPrimitiveOrNull?.contentOrNull ?: poi?.authority
                 val route = authority?.let { authority ->
                     this[JSON_ROUTE]?.jsonObjectOrNull?.toRoute(authority)

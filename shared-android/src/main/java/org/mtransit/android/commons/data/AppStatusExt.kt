@@ -20,7 +20,7 @@ fun String?.toAppStatusOrDefault(
     getDefault: () -> AppStatus = { AppStatus(status, false, true, false) },
 ) = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
     sharedJson.parseToJsonElement(this).jsonObject.toAppStatus(status)
-}?.getOrDefault(getDefault()) ?: getDefault()
+}?.getOrElse { getDefault() } ?: getDefault()
 
 private fun JsonObject.toAppStatus(status: POIStatus) = AppStatus(
     status,
@@ -38,4 +38,6 @@ fun AppStatus.toJson() = jsonRunCatching {
     }
 }.getOrThrow()
 
-fun AppStatus.toJsonString() = sharedJson.encodeToString(this.toJson())
+fun AppStatus.toJsonStringOrNull() = jsonRunCatching {
+    sharedJson.encodeToString(this.toJson())
+}.getOrNull()

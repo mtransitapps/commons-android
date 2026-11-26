@@ -80,17 +80,14 @@ fun AvailabilityPercent.toJson() = jsonRunCatching {
             putK(JSON_VALUE1_COLOR, color)
             putK(JSON_VALUE1_COLOR_BG, colorBg)
         }
-        if (this@toJson.value1SubValueDefaultEmptyRes != null
-            && this@toJson.value1SubValueDefaultQuantityRes != null
-            && this@toJson.value1SubValue1 != null
-        ) {
-            putK(JSON_VALUE1_SUB_VALUE_DEFAULT_EMPTY_RES, this@toJson.value1SubValueDefaultEmptyRes)
-            putK(JSON_VALUE1_SUB_VALUE_DEFAULT_QUANTITY_RES, this@toJson.value1SubValueDefaultQuantityRes)
-            putK(JSON_VALUE1_SUB_VALUE1, this@toJson.value1SubValue1.value)
-            putK(JSON_VALUE1_SUB_VALUE1_EMPTY_RES, this@toJson.value1SubValue1.emptyRes)
-            putK(JSON_VALUE1_SUB_VALUE1_QUANTITY_RES, this@toJson.value1SubValue1.quantityRes)
-            putK(JSON_VALUE1_SUB_VALUE1_COLOR, this@toJson.value1SubValue1.color)
-            putK(JSON_VALUE1_SUB_VALUE1_COLOR_BG, this@toJson.value1SubValue1.colorBg)
+        this@toJson.value1SubValueDefaultEmptyRes?.let { putK(JSON_VALUE1_SUB_VALUE_DEFAULT_EMPTY_RES, it) }
+        this@toJson.value1SubValueDefaultQuantityRes?.let { putK(JSON_VALUE1_SUB_VALUE_DEFAULT_QUANTITY_RES, it) }
+        this@toJson.value1SubValue1?.let { value1SubValue1 ->
+            putK(JSON_VALUE1_SUB_VALUE1, value1SubValue1.value)
+            putK(JSON_VALUE1_SUB_VALUE1_EMPTY_RES, value1SubValue1.emptyRes)
+            putK(JSON_VALUE1_SUB_VALUE1_QUANTITY_RES, value1SubValue1.quantityRes)
+            putK(JSON_VALUE1_SUB_VALUE1_COLOR, value1SubValue1.color)
+            putK(JSON_VALUE1_SUB_VALUE1_COLOR_BG, value1SubValue1.colorBg)
         }
         with(this@toJson.value2) {
             putK(JSON_VALUE2, value)
@@ -102,7 +99,9 @@ fun AvailabilityPercent.toJson() = jsonRunCatching {
     }
 }.getOrThrow()
 
-fun AvailabilityPercent.toJsonString() = sharedJson.encodeToString(this.toJson())
+fun AvailabilityPercent.toJsonStringOrNull() = jsonRunCatching {
+    sharedJson.encodeToString(this.toJson())
+}.getOrNull()
 
 val AvailabilityPercent.value1Default
     get() = this.value1.copy(

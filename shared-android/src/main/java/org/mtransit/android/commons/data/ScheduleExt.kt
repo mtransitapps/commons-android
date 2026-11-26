@@ -358,4 +358,6 @@ fun Schedule.toJson() = jsonRunCatching {
     }
 }.getOrThrow()
 
-fun Schedule.toJsonString() = sharedJson.encodeToString(this.toJson())
+fun Schedule.toJsonStringOrNull() = jsonRunCatching {
+    sharedJson.encodeToString(this.toJson())
+}.getOrNull()

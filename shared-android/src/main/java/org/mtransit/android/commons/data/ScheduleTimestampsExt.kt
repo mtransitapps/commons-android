@@ -9,7 +9,6 @@ import kotlinx.serialization.json.jsonObject
 import org.mtransit.android.commons.data.ScheduleTimestamps.LOG_TAG
 import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.sharedJson
-import org.mtransit.commons.jsonArrayOrNull
 import org.mtransit.commons.jsonObjectOrNull
 import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlinx.serialization.json.put as putK

@@ -16,7 +16,7 @@ import org.mtransit.android.commons.data.Route
 import org.mtransit.android.commons.data.RouteDirection
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.toJson
-import org.mtransit.android.commons.data.toPOI
+import org.mtransit.android.commons.data.toPOIOrThrow
 import org.mtransit.android.commons.data.toRoute
 import org.mtransit.android.commons.data.toRouteDirection
 import org.mtransit.android.commons.jsonRunCatching
@@ -147,7 +147,7 @@ interface VehicleLocationProviderContract : ProviderContract {
 
             @SuppressLint("DiscouragedApi")
             private fun JsonObject.toFilter(): Filter? {
-                val poi = this[JSON_POI]?.jsonObjectOrNull?.toPOI()
+                val poi = this[JSON_POI]?.jsonObjectOrNull?.toPOIOrThrow()
                 val authority = this[JSON_AUTHORITY]?.jsonPrimitiveOrNull?.contentOrNull ?: poi?.authority ?: return null
                 val route = this[JSON_ROUTE]?.jsonObjectOrNull?.toRoute(authority)
                 val routeDirection = this[JSON_ROUTE_DIRECTION]?.jsonObjectOrNull?.toRouteDirection(authority)

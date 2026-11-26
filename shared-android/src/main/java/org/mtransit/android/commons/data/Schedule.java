@@ -138,10 +138,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return ScheduleExtKt.toScheduleOrNull(extrasJsonString, status);
 	}
 
-	@NonNull
+	@Nullable
 	@Override
-	public String getExtrasJsonString() {
-		return ScheduleExtKt.toJsonString(this);
+	public String getExtrasJsonStringOrNull() {
+		return ScheduleExtKt.toJsonStringOrNull(this);
 	}
 
 	public void setNoPickup(boolean noPickup) {
@@ -163,6 +163,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private void addFrequencyWithoutSort(Frequency newFrequency) {
 		this.frequencies.add(newFrequency);
 	}

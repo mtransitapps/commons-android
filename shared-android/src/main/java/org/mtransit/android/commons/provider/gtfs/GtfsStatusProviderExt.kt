@@ -7,7 +7,6 @@ import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.ScheduleStatusFilter
-import org.mtransit.android.commons.provider.gtfs.GTFSStatusProvider.LOG_TAG
 import org.mtransit.android.commons.provider.status.StatusProviderContract
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
@@ -59,5 +58,5 @@ private fun Context.getRDSSchedule(
         }
     }
 }.onFailure { e ->
-    MTLogK.w(LOG_TAG, "Error!", e)
+    MTLogK.w(GTFSStatusProvider.LOG_TAG, "Error!", e)
 }.getOrNull()

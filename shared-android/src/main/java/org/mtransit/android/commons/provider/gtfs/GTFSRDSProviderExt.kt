@@ -8,7 +8,6 @@ import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Trip
 import org.mtransit.android.commons.provider.GTFSProviderContract
-import org.mtransit.android.commons.provider.gtfs.GTFSRDSProvider.LOG_TAG
 import org.mtransit.android.commons.provider.poi.POIProviderContract
 
 fun Context.getRDS(
@@ -52,7 +51,7 @@ fun Context.getRDS(
         }
     }
 }.onFailure { e ->
-    MTLogK.w(LOG_TAG, "Error!", e)
+    MTLogK.w(GTFSRDSProvider.LOG_TAG, "Error!", e)
 }.getOrNull()
 
 fun Context.getTripIds(authority: String, routeId: Long, directionId: Long? = null, serviceIds: List<String>? = null) =
@@ -103,5 +102,5 @@ fun Context.getTrips(
         }
     }
 }.onFailure { e ->
-    MTLogK.w(LOG_TAG, "Error!", e)
+    MTLogK.w(GTFSRDSProvider.LOG_TAG, "Error!", e)
 }.getOrNull()

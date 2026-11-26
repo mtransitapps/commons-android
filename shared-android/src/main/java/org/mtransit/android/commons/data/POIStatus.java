@@ -42,17 +42,17 @@ public class POIStatus implements MTLog.Loggable {
 	}
 
 	@Nullable
-	private final Integer id; // internal DB ID (useful to delete) OR NULL
+	protected final Integer id; // internal DB ID (useful to delete) OR NULL
 	@NonNull
-	private String targetUUID;
+	protected String targetUUID;
 	@ItemStatusType
 	private final int type;
-	private long lastUpdateInMs;
-	private long maxValidityInMs;
-	private long readFromSourceAtInMs;
+	protected long lastUpdateInMs;
+	protected long maxValidityInMs;
+	protected long readFromSourceAtInMs;
 	@Nullable
-	private String sourceLabel;
-	private final boolean noData; // status with 'no data' means loaded from provider w/o any data, no need to fetch another one
+	protected String sourceLabel;
+	protected final boolean noData; // status with 'no data' means loaded from provider w/o any data, no need to fetch another one
 
 	public POIStatus(
 			@Nullable Integer id,
@@ -91,14 +91,14 @@ public class POIStatus implements MTLog.Loggable {
 
 	@NonNull
 	public static POIStatus fromCursor(@NonNull Cursor cursor) {
-		int idIdx = cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_ID);
-		Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
-		String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID));
-		int type = cursor.getInt(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_TYPE));
-		long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE));
-		long validityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_MAX_VALIDITY));
-		long readFromSourceAtInMs; // optional
-		int readFromSourceAtColumnIndex = cursor.getColumnIndex(StatusProviderContract.Columns.T_STATUS_K_READ_FROM_SOURCE_AT);
+		final int idIdx = cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_ID);
+		final Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
+		final String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID));
+		final int type = cursor.getInt(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_TYPE));
+		final long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE));
+		final long validityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_MAX_VALIDITY));
+		final long readFromSourceAtInMs; // optional
+		final int readFromSourceAtColumnIndex = cursor.getColumnIndex(StatusProviderContract.Columns.T_STATUS_K_READ_FROM_SOURCE_AT);
 		if (readFromSourceAtColumnIndex < 0) {
 			readFromSourceAtInMs = -1L;
 		} else {
@@ -192,18 +192,8 @@ public class POIStatus implements MTLog.Loggable {
 	}
 
 	@Nullable
-	private String getExtrasJsonStringOrNull() {
-		try {
-			return getExtrasJsonString();
-		} catch (Exception e) {
-			MTLog.w(LOG_TAG, e, "Error while converting JSON to String!");
-			return null;
-		}
-	}
-
-	@NonNull
-	public String getExtrasJsonString() {
-		throw new UnsupportedOperationException(); // to override in super class
+	public String getExtrasJsonStringOrNull() {
+		return POIStatusExtKt.toJsonStringOrNull(this); // to override in super class
 	}
 
 	@Nullable

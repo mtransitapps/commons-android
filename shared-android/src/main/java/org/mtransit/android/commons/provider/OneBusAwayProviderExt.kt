@@ -76,7 +76,7 @@ private fun JsonObject.toTimestamp(
         .takeIf { (timestamp, tripHeadsign) ->
             timestamp > 0L
                 &&
-                (tripHeadsign == null || isSameDirection(tripHeadsign))
+                (tripHeadsign.isNullOrEmpty() || isSameDirection(tripHeadsign))
                 &&
                 isSameRoute(
                     getValue(JSON_ROUTE_ID).jsonPrimitive.content,

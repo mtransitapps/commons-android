@@ -3,6 +3,7 @@ package org.mtransit.android.commons.data
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
@@ -32,7 +33,15 @@ fun JsonObject?.getSourceLabelFromJson() = this?.get(JSON_SOURCE_LABEL)?.jsonPri
 fun JsonObject?.getNoDataFromJson() = this?.get(JSON_NO_DATA)?.jsonPrimitiveOrNull?.booleanOrNull
 fun JsonObject?.getNoDataFromJsonOrDefault() = getNoDataFromJson() ?: false
 
+fun POIStatus.toJsonStringOrNull() = jsonRunCatching {
+    sharedJson.encodeToString(this.toJson())
+}.getOrNull()
+
+fun POIStatus.toJson() = buildJsonObject {
+    toJsonCommon(this@toJson)
+}
+
 fun JsonObjectBuilder.toJsonCommon(poiStatus: POIStatus) = poiStatus.apply {
-    put(JSON_SOURCE_LABEL, sourceLabel)
-    put(JSON_NO_DATA, isNoData)
+    sourceLabel?.let { put(JSON_SOURCE_LABEL, it) }
+    put(JSON_NO_DATA, noData)
 }

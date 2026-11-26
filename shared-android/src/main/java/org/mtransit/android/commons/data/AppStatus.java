@@ -209,9 +209,9 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		return AppStatusExtKt.toAppStatusOrDefault(extrasJsonString, status);
 	}
 
-	@NonNull
+	@Nullable
 	@Override
-	public String getExtrasJsonString() {
-		return AppStatusExtKt.toJsonString(this);
+	public String getExtrasJsonStringOrNull() {
+		return AppStatusExtKt.toJsonStringOrNull(this);
 	}
 }
