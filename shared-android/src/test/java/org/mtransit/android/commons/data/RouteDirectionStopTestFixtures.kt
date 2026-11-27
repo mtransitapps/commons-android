@@ -9,9 +9,9 @@ fun mkDefaultPOI(
     @POI.ItemViewType type: Int = POI.ITEM_VIEW_TYPE_BASIC_POI,
     @POI.ItemStatusType statusType: Int = POI.ITEM_STATUS_TYPE_NONE,
     @POI.ItemActionType actionsType: Int = POI.ITEM_ACTION_TYPE_NONE,
-    name: String = "name #$id",
     lat: Double = 1.0,
     lng: Double = 2.0,
+    name: String = "name #$id",
 ) = makeDefaultPOI(
     authority = authority,
     id = id,
@@ -24,19 +24,17 @@ fun mkDefaultPOI(
     name = name,
 )
 
-fun makeBikeStation(
+fun mkBikeStation(
     authority: String = "authority",
     @DataSourceTypeId.DataSourceType dataSourceTypeId: Int = DataSourceTypeId.BIKE,
     id: Int = 1,
     name: String = "name #$id",
     lat: Double = 1.0,
     lng: Double = 2.0,
-) = mkDefaultPOI(
+) = makeBikeStation(
     authority = authority,
     id = id,
     dataSourceTypeId = dataSourceTypeId,
-    statusType = POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT,
-    actionsType = POI.ITEM_ACTION_TYPE_FAVORITABLE,
     name = name,
     lat = lat,
     lng = lng,

@@ -33,7 +33,7 @@ private fun JsonObject.toFilter() =
 
 fun ScheduleTimestampsProviderContract.Filter.toJson() = jsonRunCatching {
     buildJsonObject {
-        put(JSON_ROUTE_DIRECTION_STOP, this@toJson.routeDirectionStop.toJson())
+        put(JSON_ROUTE_DIRECTION_STOP, this@toJson.rds.toJson())
         putK(JSON_STARTS_AT_IN_MS, this@toJson.startsAtInMs)
         putK(JSON_ENDS_AT_IN_MS, this@toJson.endsAtInMs)
     }
