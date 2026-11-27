@@ -1,16 +1,35 @@
 package org.mtransit.android.commons.data
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
-import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.Route.LOG_TAG
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.commons.GTFSCommons
+import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlinx.serialization.json.put as putK
+
+@JvmOverloads
+fun makeRoute(
+    authority: String,
+    id: Long,
+    shortName: String,
+    longName: String,
+    color: String,
+    originalIdHash: Int? = GTFSCommons.DEFAULT_ID_HASH,
+    type: Int? = GTFSCommons.DEFAULT_ROUTE_TYPE,
+) = Route(
+    authority,
+    id,
+    shortName,
+    longName,
+    color,
+    originalIdHash,
+    type,
+)
 
 private const val JSON_AUTHORITY = "authority"
 private const val JSON_ID = "id"
@@ -20,7 +39,7 @@ private const val JSON_COLOR = "color"
 private const val JSON_ORIGINAL_ID_HASH = "o_id_hash"
 private const val JSON_TYPE = "type"
 
-fun Route.toJson() = try {
+fun Route.toJson() = jsonRunCatching {
     buildJsonObject {
         putK(JSON_AUTHORITY, this@toJson.authority)
         putK(JSON_ID, this@toJson.id)
@@ -30,23 +49,16 @@ fun Route.toJson() = try {
         putK(JSON_ORIGINAL_ID_HASH, this@toJson.originalIdHash)
         putK(JSON_TYPE, this@toJson.type)
     }
-} catch (se: SerializationException) {
-    MTLogK.w(this, "Error while converting to JSON ($this)!", se)
-    throw se
-}
+}.getOrThrow()
 
-@Throws(SerializationException::class)
-fun JsonObject.toRoute(authority: String) = try {
-    Route(
-        this[JSON_AUTHORITY]?.jsonPrimitive?.contentOrNull ?: authority,
-        getValue(JSON_ID).jsonPrimitive.long,
-        getValue(JSON_SHORT_NAME).jsonPrimitive.content,
-        getValue(JSON_LONG_NAME).jsonPrimitive.content,
-        getValue(JSON_COLOR).jsonPrimitive.content,
-        this[JSON_ORIGINAL_ID_HASH]?.jsonPrimitive?.intOrNull ?: GTFSCommons.DEFAULT_ID_HASH,
-        this[JSON_TYPE]?.jsonPrimitive?.intOrNull ?: GTFSCommons.DEFAULT_ROUTE_TYPE,
+fun JsonObject.toRoute(authority: String) = jsonRunCatching(LOG_TAG) {
+    makeRoute(
+        authority = this[JSON_AUTHORITY]?.jsonPrimitiveOrNull?.contentOrNull ?: authority,
+        id = getValue(JSON_ID).jsonPrimitive.long,
+        shortName = getValue(JSON_SHORT_NAME).jsonPrimitive.content,
+        longName = getValue(JSON_LONG_NAME).jsonPrimitive.content,
+        color = getValue(JSON_COLOR).jsonPrimitive.content,
+        originalIdHash = this[JSON_ORIGINAL_ID_HASH]?.jsonPrimitiveOrNull?.intOrNull ?: GTFSCommons.DEFAULT_ID_HASH,
+        type = this[JSON_TYPE]?.jsonPrimitiveOrNull?.intOrNull ?: GTFSCommons.DEFAULT_ROUTE_TYPE,
     )
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON '$this'!", se)
-    throw se
-}
+}.getOrThrow()

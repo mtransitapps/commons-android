@@ -24,7 +24,7 @@ jobs:
         run: |
           # https://wiki.mozilla.org/CA/Included_Certificates
           echo "MOZILLA_ROOTS_URL=https://ccadb.my.salesforce-sites.com/mozilla/IncludedRootsPEMTxt?TrustBitsInclude=Websites" >> "$GITHUB_ENV"
-          echo "MOZILLA_ROOTS_PEM_FILE=src/main/res-cert/raw/mozilla_roots_pem" >> "$GITHUB_ENV"
+          echo "MOZILLA_ROOTS_PEM_FILE=shared-android/src/main/res-cert/raw/mozilla_roots_pem" >> "$GITHUB_ENV"
 
       - name: MT fetch latest SSL cert
         run: |
@@ -48,4 +48,4 @@ jobs:
           branch: update_ssl_cert_${{ env.MT_BASE_BRANCH }}
           base: ${{ env.MT_BASE_BRANCH }}
           add-paths: |
-            src/main/res-cert/raw/mozilla_roots_pem
+            shared-android/src/main/res-cert/raw/mozilla_roots_pem

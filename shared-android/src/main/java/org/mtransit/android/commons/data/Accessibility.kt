@@ -1,11 +1,25 @@
 package org.mtransit.android.commons.data
 
+import androidx.annotation.IntDef
+
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 object Accessibility {
 
     const val UNKNOWN = 0 // no info
     const val POSSIBLE = 1
     const val NOT_POSSIBLE = 2
+
+    @Target(
+        AnnotationTarget.TYPE, // compat with Kotlin lambda functions like (@AccessibilityType Int) -> ()
+        AnnotationTarget.VALUE_PARAMETER,
+    )
+    @Retention(AnnotationRetention.SOURCE)
+    @IntDef(
+        UNKNOWN,
+        POSSIBLE,
+        NOT_POSSIBLE
+    )
+    annotation class AccessibilityType
 
     const val UNKNOWN_CHAR = "" // TODO ?
     const val POSSIBLE_CHAR = "[a11y]"
@@ -17,7 +31,7 @@ object Accessibility {
 
     @JvmStatic
     @JvmOverloads
-    fun decorate(name: String, accessible: Int, before: Boolean = false): String {
+    fun decorate(name: String, @AccessibilityType accessible: Int, before: Boolean = false): String {
         return when (accessible) {
             POSSIBLE -> if (name.isEmpty()) {
                 POSSIBLE_CHAR

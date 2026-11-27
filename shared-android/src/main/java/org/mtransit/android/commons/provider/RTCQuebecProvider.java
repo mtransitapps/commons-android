@@ -14,8 +14,6 @@ import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
@@ -24,7 +22,6 @@ import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
@@ -88,7 +85,7 @@ import okhttp3.Response;
 @SuppressLint("Registered")
 public class RTCQuebecProvider extends MTContentProvider implements StatusProviderContract, ServiceUpdateProviderContract {
 
-	private static final String LOG_TAG = RTCQuebecProvider.class.getSimpleName();
+	protected static final String LOG_TAG = RTCQuebecProvider.class.getSimpleName();
 
 	@NonNull
 	@Override
@@ -337,6 +334,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	}
 
 	// TODO escape HTML 1st instead of using special HTML characters
+	@SuppressWarnings("SpellCheckingInspection")
 	private static final Cleaner CLEAN_BOLD_FR = ServiceUpdateCleaner.make("d&eacute;plac&eacute;s?", true);
 
 	private String enhanceHtmlSeverity(int severity, String html) {
@@ -351,12 +349,14 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		return html;
 	}
 
+	@SuppressWarnings("SpellCheckingInspection")
 	private static final Cleaner NOT_SERVED = new Cleaner("(" + //
 			"arr[e|ê]ts? non desservis?" //
 			+ "|" //
 			+ "arr&ecirc;ts? non desservis?" //
 			+ ")", true);
 
+	@SuppressWarnings("SpellCheckingInspection")
 	private static final Cleaner SUGGESTED = new Cleaner("(" //
 			+ "arr[e|ê]ts? sugg[e|é]r[e|é]s?" //
 			+ "|" //
@@ -521,21 +521,18 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	@Nullable
 	private ServiceUpdates getNewServiceUpdates(@NonNull RouteDirectionStop rds, boolean inFocus) {
-		//noinspection deprecation // TODO fix & re-enable
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
 		return getCachedServiceUpdates(rds);
 	}
 
 	@Nullable
 	private ServiceUpdates getNewServiceUpdates(@NonNull RouteDirection routeDirection, boolean inFocus) {
-		//noinspection deprecation // TODO fix & re-enable
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
 		return getCachedServiceUpdates(routeDirection);
 	}
 
 	@Nullable
 	private ServiceUpdates getNewServiceUpdates(@NonNull Route route, boolean inFocus) {
-		//noinspection deprecation // TODO fix & re-enable
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
 		return getCachedServiceUpdates(route);
 	}
@@ -708,9 +705,9 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		try {
-			String urlString = getRealTimeStatusUrlString(rds);
+			final String urlString = getRealTimeStatusUrlString(rds);
 			MTLog.i(this, "Loading from '%s'...", urlString);
-			String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_ROUTE_NUMBER);
+			final String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_ROUTE_NUMBER);
 			final Request urlRequest = new Request.Builder()
 					.url(urlString)
 					.addHeader(ACCEPT, APPLICATION_JSON)
@@ -718,11 +715,11 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			try (Response response = getOkHttpClient(context).newCall(urlRequest).execute()) {
 				switch (response.code()) {
 				case HttpURLConnection.HTTP_OK:
-					long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-					String jsonString = FileUtils.getString(response.body().byteStream());
+					final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+					final String jsonString = FileUtils.getString(response.body().byteStream());
 					MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-					JArretParcours jArretParcours = parseAgencyJSONArretParcours(jsonString);
-					Collection<POIStatus> statuses = parseAgencyJSONArretParcoursHoraires(jArretParcours, rds, sourceLabel, newLastUpdateInMs);
+					final JArretParcours jArretParcours = RTCQuebecProviderExtKt.toJArretParcoursOrNull(jsonString);
+					final Collection<POIStatus> statuses = parseAgencyJSONArretParcoursHoraires(jArretParcours, rds, sourceLabel, newLastUpdateInMs);
 					StatusProvider.deleteCachedStatus(this, Collections.singleton(getAgencyRouteStopTargetUUID(rds)));
 					if (statuses != null) {
 						MTLog.i(this, "Loaded %d statuses.", statuses.size());
@@ -749,92 +746,6 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
-	private static final String JSON_ARRET_NON_DESSERVI = "arretNonDesservi";
-	private static final String JSON_DESCENTE_SEULEMENT = "descenteSeulement";
-	private static final String JSON_HORAIRES = "horaires";
-	private static final String JSON_ARRET = "arret";
-	private static final String JSON_PARCOURS = "parcours";
-	private static final String JSON_ACCESSIBLE = "accessible";
-	private static final Boolean JSON_ACCESSIBLE_DEFAULT = null;
-	private static final String JSON_DEPART = "depart";
-	private static final String JSON_DEPART_MINUTES = "departMinutes";
-	private static final String JSON_NTR = "ntr";
-	private static final String JSON_ANNULE = "annule";
-	private static final String JSON_NOM_DESTINATION = "nomDestination";
-
-	@NonNull
-	private JArretParcours parseAgencyJSONArretParcours(@Nullable String jsonString) {
-		JArretParcours.JArret arret = new JArretParcours.JArret(JSON_ACCESSIBLE_DEFAULT);
-		boolean arretNonDesservi = false;
-		boolean descenteSeulement = false;
-		List<JArretParcours.JHoraires> horaires = new ArrayList<>();
-		JArretParcours.JParcours parcours = new JArretParcours.JParcours(JSON_ACCESSIBLE_DEFAULT);
-		try {
-			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
-			arret = parseAgencyJSONArretParcoursArret(json);
-			arretNonDesservi = json != null && json.optBoolean(JSON_ARRET_NON_DESSERVI, false);
-			descenteSeulement = json != null && json.optBoolean(JSON_DESCENTE_SEULEMENT, false);
-			parseAgencyJSONArretParcoursHoraires(horaires, json);
-			parcours = parseAgencyJSONArretParcoursParcours(json);
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
-		}
-		return new JArretParcours(arret, arretNonDesservi, descenteSeulement, horaires, parcours);
-	}
-
-	@NonNull
-	private JArretParcours.JArret parseAgencyJSONArretParcoursArret(@Nullable JSONObject json) {
-		try {
-			if (json != null && json.has(JSON_ARRET)) {
-				JSONObject jParcours = json.optJSONObject(JSON_ARRET);
-				if (jParcours != null && jParcours.has(JSON_ACCESSIBLE)) {
-					return new JArretParcours.JArret(jParcours.getBoolean(JSON_ACCESSIBLE));
-				}
-			}
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON '%s'!", json);
-		}
-		return new JArretParcours.JArret(JSON_ACCESSIBLE_DEFAULT);
-	}
-
-	@NonNull
-	private JArretParcours.JParcours parseAgencyJSONArretParcoursParcours(@Nullable JSONObject json) {
-		try {
-			if (json != null && json.has(JSON_PARCOURS)) {
-				JSONObject jParcours = json.optJSONObject(JSON_PARCOURS);
-				if (jParcours != null && jParcours.has(JSON_ACCESSIBLE)) {
-					return new JArretParcours.JParcours(jParcours.getBoolean(JSON_ACCESSIBLE));
-				}
-			}
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON '%s'!", json);
-		}
-		return new JArretParcours.JParcours(JSON_ACCESSIBLE_DEFAULT);
-	}
-
-	private void parseAgencyJSONArretParcoursHoraires(@NonNull List<JArretParcours.JHoraires> horaires, @Nullable JSONObject json) {
-		try {
-			if (json != null && json.has(JSON_HORAIRES)) {
-				JSONArray jHoraires = json.getJSONArray(JSON_HORAIRES);
-				if (jHoraires.length() > 0) {
-					for (int r = 0; r < jHoraires.length(); r++) {
-						JSONObject jHoraire = jHoraires.getJSONObject(r);
-						if (jHoraire != null && jHoraire.has(JSON_DEPART)) {
-							String jDepart = jHoraire.getString(JSON_DEPART);
-							int jDepartMinutes = jHoraire.optInt(JSON_DEPART_MINUTES, -1);
-							boolean jNTR = jHoraire.optBoolean(JSON_NTR, false);
-							boolean jAnnule = jHoraire.optBoolean(JSON_ANNULE, false);
-							String jNomDestination = jHoraire.optString(JSON_NOM_DESTINATION, StringUtils.EMPTY);
-							horaires.add(new JArretParcours.JHoraires(jDepart, jDepartMinutes, jNTR, jAnnule, jNomDestination));
-						}
-					}
-				}
-			}
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON '%s'!", json);
-		}
-	}
-
 	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(60L);
 
 	// 2020-03-19 T 13:58:00-04:00 #ISO_8601
@@ -843,10 +754,11 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	@Nullable
 	private Collection<POIStatus> parseAgencyJSONArretParcoursHoraires(
-			@NonNull JArretParcours jArretParcours,
+			@Nullable JArretParcours jArretParcours,
 			@NonNull RouteDirectionStop rds,
 			@Nullable String sourceLabel,
-			long newLastUpdateInMs) {
+			long newLastUpdateInMs
+	) {
 		try {
 			// As seen on https://www.rtcquebec.ca/ :
 			// - 1094 route 1 : jArretAccessible false | jParcoursAccessible true = POSSIBLE
@@ -854,12 +766,12 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			// - 1040 route 19 : jArretAccessible true | jParcoursAccessible false = UNKNOWN
 			// - 1287 route 4: jArretAccessible true | jParcoursAccessible false = UNKNOWN
 			//noinspection unused
-			final Boolean jArretAccessible = jArretParcours.getArret().isAccessible();
-			final Boolean jParcoursAccessible = jArretParcours.getParcours().isAccessible();
+			final Boolean jArretAccessible = jArretParcours == null ? null : jArretParcours.getArret().isAccessible();
+			final Boolean jParcoursAccessible = jArretParcours == null ? null : jArretParcours.getParcours().isAccessible();
 			final int accessible = Boolean.TRUE.equals(jParcoursAccessible) ? Accessibility.POSSIBLE : Accessibility.UNKNOWN;
-			ArrayList<POIStatus> result = new ArrayList<>();
-			List<JArretParcours.JHoraires> jHoraires = jArretParcours.getHoraires();
-			if (jHoraires.isEmpty()) {
+			final ArrayList<POIStatus> result = new ArrayList<>();
+			final List<JArretParcours.JHoraires> jHoraires = jArretParcours == null ? null : jArretParcours.getHoraires();
+			if (jHoraires == null || jHoraires.isEmpty()) {
 				result.add(
 						new Schedule(
 								null,
@@ -868,7 +780,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 								getStatusMaxValidityInMs(),
 								newLastUpdateInMs,
 								PROVIDER_PRECISION_IN_MS,
-								jArretParcours.isDescenteSeulement(),
+								jArretParcours != null && jArretParcours.isDescenteSeulement(),
 								QUEBEC_CITY_TZ.getID(),
 								sourceLabel,
 								true // NO DATA // keep = no service today
@@ -889,12 +801,8 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			);
 			for (int r = 0; r < jHoraires.size(); r++) {
 				JArretParcours.JHoraires jHoraire = jHoraires.get(r);
-				if (jHoraire == null) {
-					continue;
-				}
-				if (jHoraire.isAnnule()) {
-					continue; // SKIP cancelled scheduled
-				}
+				if (jHoraire == null) continue;
+				if (jHoraire.isAnnule()) continue; // SKIP cancelled scheduled
 				long departInMs = -1L;
 				if (!jHoraire.getDepart().isEmpty()) {
 					String jDepart = jHoraire.getDepart();
@@ -914,7 +822,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 					}
 				}
 				if (departInMs < 0L) {
-					MTLog.w(this, "Skip '%s' w/o readable '%s' '%s'!", JSON_HORAIRES, JSON_DEPART, jHoraire);
+					MTLog.w(this, "Skip 'horaires' w/o readable 'depart' '%s'!", jHoraire);
 					continue;
 				}
 				Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheMinuteMillis(departInMs), QUEBEC_CITY_TZ);

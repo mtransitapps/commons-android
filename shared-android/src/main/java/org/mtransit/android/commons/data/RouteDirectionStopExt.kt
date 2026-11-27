@@ -1,16 +1,40 @@
 package org.mtransit.android.commons.data
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.RouteDirectionStop.LOG_TAG
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.commons.FeatureFlags
+import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlinx.serialization.json.put as putK
+
+@JvmOverloads
+fun makeRouteDirectionStop(
+    @DataSourceTypeId.DataSourceType dataSourceTypeId: Int,
+    route: Route,
+    direction: Direction,
+    stop: Stop,
+    noPickup: Boolean = false,
+    alwaysLastTripStop: Boolean? = null,
+    score: Int? = null,
+    @Accessibility.AccessibilityType accessible: Int = stop.accessible,
+) = RouteDirectionStop(
+    dataSourceTypeId,
+    route,
+    direction,
+    stop,
+    noPickup,
+    alwaysLastTripStop,
+).apply {
+    optDefaultPOIInit(
+        score = score,
+        accessible = accessible,
+    )
+}
 
 private const val JSON_ROUTE = "route"
 private const val JSON_DIRECTION = "trip" // do not change to avoid breaking compat w/ old modules
@@ -18,7 +42,7 @@ private const val JSON_STOP = "stop"
 private const val JSON_NO_PICKUP = "decentOnly"
 private const val JSON_ALWAYS_LAST_TRIP_STOP = "lastStop"
 
-fun RouteDirectionStop.toJsonK() = try {
+fun RouteDirectionStop.toJsonK() = jsonRunCatching {
     buildJsonObject {
         put(JSON_ROUTE, route.toJson())
         put(JSON_DIRECTION, direction.toJson())
@@ -29,25 +53,18 @@ fun RouteDirectionStop.toJsonK() = try {
         }
         toJsonCommon(this@toJsonK)
     }
-} catch (se: SerializationException) {
-    MTLogK.w(this, "Error while converting to JSON ($this)!", se)
-    throw se
-}
+}.getOrThrow()
 
-fun JsonObject.toRouteDirectionStop() = try {
+fun JsonObject.toRouteDirectionStop() = jsonRunCatching(LOG_TAG) {
     getAuthorityFromJson().let { authority ->
-        RouteDirectionStop(
-            getDSTypeIdFromJson(),
-            getValue(JSON_ROUTE).jsonObject.toRoute(authority),
-            getValue(JSON_DIRECTION).jsonObject.toDirection(authority),
-            getValue(JSON_STOP).jsonObject.toStop(),
-            getValue(JSON_NO_PICKUP).jsonPrimitive.boolean,
-            get(JSON_ALWAYS_LAST_TRIP_STOP)?.jsonPrimitive?.booleanOrNull,
-        ).apply {
-            applyTo(this)
-        }
+        makeRouteDirectionStop(
+            dataSourceTypeId = getDSTypeIdFromJson(),
+            route = getValue(JSON_ROUTE).jsonObject.toRoute(authority),
+            direction = getValue(JSON_DIRECTION).jsonObject.toDirection(authority),
+            stop = getValue(JSON_STOP).jsonObject.toStop(),
+            noPickup = getValue(JSON_NO_PICKUP).jsonPrimitive.boolean,
+            alwaysLastTripStop = get(JSON_ALWAYS_LAST_TRIP_STOP)?.jsonPrimitiveOrNull?.booleanOrNull,
+            score = getScoreFromJson(),
+        )
     }
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while converting from JSON ($this)!", se)
-    throw se
-}
+}.getOrThrow()

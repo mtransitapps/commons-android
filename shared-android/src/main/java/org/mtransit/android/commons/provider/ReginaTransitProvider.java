@@ -8,26 +8,19 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.text.TextUtils;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
-import org.mtransit.android.commons.data.Accessibility;
-import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
@@ -45,12 +38,9 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
-import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -60,7 +50,7 @@ import java.util.regex.Pattern;
 @SuppressLint("Registered")
 public class ReginaTransitProvider extends MTContentProvider implements StatusProviderContract {
 
-	private static final String LOG_TAG = ReginaTransitProvider.class.getSimpleName();
+	protected static final String LOG_TAG = ReginaTransitProvider.class.getSimpleName();
 
 	@NonNull
 	@Override
@@ -175,14 +165,16 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 		return getCachedStatus(statusFilter);
 	}
 
-	private static final TimeZone REGINA_TZ = TimeZone.getTimeZone("America/Regina");
+	private static final String REGINA_TZ_ID = "America/Regina";
+
+	private static final TimeZone REGINA_TZ = TimeZone.getTimeZone(REGINA_TZ_ID);
 
 	private static final TimeZone UTC_TZ = TimeZone.getTimeZone("UTC");
 
-	private static final ThreadSafeDateFormatter DATE_FORMATTER_UTC;
+	protected static final ThreadSafeDateFormatter DATE_FORMATTER_UTC;
 
 	static {
-		ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter("hh:mm a", Locale.ENGLISH);
+		final ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter("hh:mm a", Locale.ENGLISH);
 		dateFormatter.setTimeZone(UTC_TZ);
 		DATE_FORMATTER_UTC = dateFormatter;
 	}
@@ -199,21 +191,51 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 				REAL_TIME_URL_PART_3;
 	}
 
+	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
+
+	private static final long ONE_HOUR = TimeUnit.HOURS.toMillis(1L);
+
 	private void loadRealTimeStatusFromWWW(@NonNull RouteDirectionStop rds) {
 		try {
-			String urlString = getRealTimeStatusUrlString(rds);
+			final String urlString = getRealTimeStatusUrlString(rds);
 			MTLog.i(this, "Loading from '%s'...", urlString);
-			String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_STOP_CODE);
-			URL url = new URL(urlString);
-			URLConnection urlc = url.openConnection();
+			final String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_STOP_CODE);
+			final URL url = new URL(urlString);
+			final URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			final HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				String jsonString = FileUtils.getString(urlc.getInputStream());
+				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+				final String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rds, sourceLabel, newLastUpdateInMs);
+				final Collection<POIStatus> statuses = ReginaTransitProviderExtKt.toStatusesOrNull(
+						jsonString,
+						REGINA_TZ_ID,
+						newLastUpdateInMs - ONE_HOUR,
+						rds.getStop().getCode(),
+						() -> {
+							final Calendar beginningOfTodayCal = Calendar.getInstance(REGINA_TZ);
+							beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);
+							beginningOfTodayCal.set(Calendar.MINUTE, 0);
+							beginningOfTodayCal.set(Calendar.SECOND, 0);
+							beginningOfTodayCal.set(Calendar.MILLISECOND, 0);
+							return beginningOfTodayCal.getTimeInMillis();
+						},
+						() -> new Schedule(
+								null,
+								rds.getUUID(),
+								newLastUpdateInMs,
+								getStatusMaxValidityInMs(),
+								newLastUpdateInMs,
+								PROVIDER_PRECISION_IN_MS,
+								false,
+								REGINA_TZ_ID,
+								sourceLabel,
+								false
+						),
+						this::cleanTripHeadsign
+				);
 				StatusProvider.deleteCachedStatus(this, Collections.singleton(rds.getUUID()));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
@@ -236,98 +258,6 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 		} catch (Exception e) { // Unknown error
 			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 		}
-	}
-
-	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
-
-	private static final long ONE_DAY = TimeUnit.DAYS.toMillis(1L);
-	private static final long ONE_HOUR = TimeUnit.HOURS.toMillis(1L);
-
-	private static final String JSON_PRED_TIME = "pred_time";
-	private static final String JSON_LINE_NAME = "line_name";
-	private static final String JSON_BUS_ID = "bus_id";
-	private static final String JSON_LAST_STOP = "last_stop";
-
-	@Nullable
-	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteDirectionStop rds, @Nullable String sourceLabel, long newLastUpdateInMs) {
-		try {
-			ArrayList<POIStatus> result = new ArrayList<>();
-			JSONArray json = jsonString == null ? null : new JSONArray(jsonString);
-			if (json != null && json.length() > 0) {
-				final Schedule newSchedule = new Schedule(
-						null,
-						rds.getUUID(),
-						newLastUpdateInMs,
-						getStatusMaxValidityInMs(),
-						newLastUpdateInMs,
-						PROVIDER_PRECISION_IN_MS,
-						false,
-						REGINA_TZ.getID(),
-						sourceLabel
-				);
-				Calendar beginningOfTodayCal = Calendar.getInstance(REGINA_TZ);
-				beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);
-				beginningOfTodayCal.set(Calendar.MINUTE, 0);
-				beginningOfTodayCal.set(Calendar.SECOND, 0);
-				beginningOfTodayCal.set(Calendar.MILLISECOND, 0);
-				long beginningOfTodayMs = beginningOfTodayCal.getTimeInMillis();
-				long after = newLastUpdateInMs - ONE_HOUR;
-				for (int s = 0; s < json.length(); s++) {
-					JSONObject j = json.getJSONObject(s);
-					if (j == null) {
-						continue;
-					}
-					if (j.has(JSON_PRED_TIME)) {
-						final long time = parseTime(j.getString(JSON_PRED_TIME));
-						long t = beginningOfTodayMs + TimeUtils.timeToTheTensSecondsMillis(time);
-						if (t < after) {
-							t += ONE_DAY; // TOMORROW
-						}
-						Schedule.Timestamp timestamp = new Schedule.Timestamp(t, REGINA_TZ);
-						try {
-							if (j.has(JSON_LINE_NAME)) {
-								String jDestinationName = j.getString(JSON_LINE_NAME);
-								if (!TextUtils.isEmpty(jDestinationName)) {
-									timestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, cleanTripHeadsign(jDestinationName));
-								}
-							}
-						} catch (Exception e) {
-							MTLog.w(this, e, "Error while adding destination name %s!", j);
-						}
-						if (j.has(JSON_BUS_ID)) {
-							final String jBusId = j.optString(JSON_BUS_ID, StringUtils.EMPTY);
-							timestamp.setRealTime(!jBusId.isEmpty()); // no bus ID = scheduled = not real-time
-						}
-						timestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://transitlive.com/mobile/
-						if (j.has(JSON_LAST_STOP)) {
-							final String lastStopS = j.optString(JSON_LAST_STOP);
-							if (lastStopS.equals(rds.getStop().getCode())) {
-								timestamp.setHeadsign(Direction.HEADSIGN_TYPE_NO_PICKUP, null);
-							}
-						}
-						newSchedule.addTimestampWithoutSort(timestamp);
-					}
-				}
-				newSchedule.sortTimestamps();
-				result.add(newSchedule);
-			}
-			return result;
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
-			return null;
-		}
-	}
-
-	@VisibleForTesting
-	protected static long parseTime(@Nullable String predictionTimeS) throws ParseException {
-		if (predictionTimeS == null || predictionTimeS.isEmpty()) {
-			return -1L;
-		}
-		final Date date = DATE_FORMATTER_UTC.parseThreadSafe(predictionTimeS);
-		if (date == null) {
-			return -1L;
-		}
-		return date.getTime();
 	}
 
 	private static final Pattern ALBERT_NORTH = Pattern.compile("((^|\\W)(albert north)(\\W|$))", Pattern.CASE_INSENSITIVE);

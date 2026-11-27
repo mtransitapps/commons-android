@@ -6,14 +6,11 @@ import android.net.Uri
 import android.provider.BaseColumns
 import androidx.annotation.Discouraged
 import androidx.collection.ArrayMap
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.addAll
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
@@ -22,8 +19,11 @@ import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.data.POI
 import org.mtransit.android.commons.data.RouteDirectionStop
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.common.sharedJson
+import org.mtransit.commons.jsonArrayOrNull
+import org.mtransit.commons.jsonPrimitiveOrNull
 import org.mtransit.commons.model.Secret
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -181,40 +181,30 @@ interface NewsProviderContract : ProviderContract {
             fun newTargetsUUIDsFilter(targetsUUIDs: List<String>) = Filter(targetsUUIDs = targetsUUIDs)
 
             @JvmStatic
-            fun String?.toFilterN() = this?.toFilter()
-
-            fun String.toFilter() = try {
+            fun String?.toFilterOrNull() = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
                 sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-            } catch (se: SerializationException) {
-                MTLogK.w(this@Companion, "Error while parsing JSON string '$this'", se)
-                throw se
-            }
+            }?.getOrNull()
 
             private const val JSON_ARTICLE_UUIDS = "uuids" // article UUIDs
             private const val JSON_TARGETS_UUIDS = "targets" // POI UUIDs
             private const val JSON_MIN_CREATED_AT_IN_MS = "minCreatedAtInMs"
 
-            fun JsonObject.toFilter() = try {
-                //noinspection DiscouragedApi
-                Filter(
-                    cacheOnly = getCacheOnlyFromJson(),
-                    cacheValidityInMs = getCacheValidityInMsFromJson(),
-                    inFocus = getInFocusFromJson(),
-                    providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
-                    articlesUUIDs = this[JSON_ARTICLE_UUIDS]?.jsonArray?.takeIf { it.isNotEmpty() }?.mapNotNull {
-                        it.jsonPrimitive.contentOrNull
-                    },
-                    targetsUUIDs = this[JSON_TARGETS_UUIDS]?.jsonArray?.takeIf { it.isNotEmpty() }?.mapNotNull {
-                        it.jsonPrimitive.contentOrNull
-                    },
-                    minCreatedAtInMs = this[JSON_MIN_CREATED_AT_IN_MS]?.jsonPrimitive?.longOrNull,
-                )
-            } catch (se: SerializationException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
-                throw se
-            }
+            @SuppressLint("DiscouragedApi")
+            private fun JsonObject.toFilter() = Filter(
+                cacheOnly = getCacheOnlyFromJson(),
+                cacheValidityInMs = getCacheValidityInMsFromJson(),
+                inFocus = getInFocusFromJson(),
+                providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
+                articlesUUIDs = this[JSON_ARTICLE_UUIDS]?.jsonArrayOrNull?.takeIf { it.isNotEmpty() }?.mapNotNull {
+                    it.jsonPrimitiveOrNull?.contentOrNull
+                },
+                targetsUUIDs = this[JSON_TARGETS_UUIDS]?.jsonArrayOrNull?.takeIf { it.isNotEmpty() }?.mapNotNull {
+                    it.jsonPrimitiveOrNull?.contentOrNull
+                },
+                minCreatedAtInMs = this[JSON_MIN_CREATED_AT_IN_MS]?.jsonPrimitiveOrNull?.longOrNull,
+            )
 
-            fun Filter.toJson() = try {
+            fun Filter.toJson() = jsonRunCatching {
                 buildJsonObject {
                     toJsonCommon(this@toJson)
                     minCreatedAtInMs?.let { put(JSON_MIN_CREATED_AT_IN_MS, it) }
@@ -224,10 +214,7 @@ interface NewsProviderContract : ProviderContract {
                         putJsonArray(JSON_TARGETS_UUIDS) { addAll(targetsUUIDs) }
                     }
                 }
-            } catch (se: SerializationException) {
-                MTLogK.w(LOG_TAG, "Error while making JSON object '$this'", se)
-                throw se
-            }
+            }.getOrThrow()
         }
 
         init {

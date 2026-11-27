@@ -76,6 +76,7 @@
     <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private val _userNamesTarget: List&lt;String&gt; by lazy { ContentProviderCompat.requireContext(this).resources.getStringArray( R.array.youtube_channels_target ).toList() }</ID>
     <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private var _dbHelper: YouTubeNewsDbHelper? = null</ID>
     <ID>BackingPropertyNaming:YouTubeNewsProvider.kt:YouTubeNewsProvider$private var _youtubeApi: YouTubeV3Api? = null</ID>
+    <ID>ComplexCondition:AvailabilityPercentExt.kt:this@toJson.value1SubValueDefaultEmptyRes != null &amp;&amp; this@toJson.value1SubValueDefaultQuantityRes != null &amp;&amp; this@toJson.value1SubValue1 != null &amp;&amp; this@toJson.value1SubValue1EmptyRes != null &amp;&amp; this@toJson.value1SubValue1QuantityRes != null &amp;&amp; this@toJson.value1SubValue1Color != null &amp;&amp; this@toJson.value1SubValue1ColorBg != null</ID>
     <ID>CyclomaticComplexMethod:AppUpdateUtils.kt:AppUpdateUtils$private fun triggerRefreshIfNecessary</ID>
     <ID>CyclomaticComplexMethod:BatteryUtils.kt:BatteryUtils$@JvmStatic fun shouldUseBatteryForOptionalWork: Boolean</ID>
     <ID>CyclomaticComplexMethod:GTFSRealTimeTripUpdatesFilter.kt:internal fun GTripUpdate.isUseful: Boolean</ID>
@@ -86,8 +87,9 @@
     <ID>CyclomaticComplexMethod:GTFSRealTimeVehiclePositionsProvider.kt:GTFSRealTimeVehiclePositionsProvider$private fun GTFSRealTimeProvider.loadAgencyDataFromWWW: List&lt;VehicleLocation&gt;?</ID>
     <ID>CyclomaticComplexMethod:InstagramNewsProvider.kt:InstagramNewsProvider$private fun loadUserTimeline</ID>
     <ID>CyclomaticComplexMethod:POIProviderContract.kt:POIProviderContract.Filter$fun getSqlSelection: String?</ID>
-    <ID>CyclomaticComplexMethod:POIProviderContract.kt:POIProviderContract.Filter.Companion$private fun JsonObject.toFilter</ID>
+    <ID>CyclomaticComplexMethod:POIProviderContract.kt:POIProviderContract.Filter.Companion$private fun JsonObject.toFilter: Filter?</ID>
     <ID>CyclomaticComplexMethod:RouteShortNameComparator.kt:RouteShortNameComparator$override fun compare: Int</ID>
+    <ID>CyclomaticComplexMethod:ScheduleTimestampExt.kt:fun JsonObject.toTimestamp</ID>
     <ID>CyclomaticComplexMethod:StmInfoServiceUpdateProvider.kt:StmInfoServiceUpdateProvider$@VisibleForTesting internal fun EtatServiceResponse?.toServiceUpdates: ServiceUpdates</ID>
     <ID>CyclomaticComplexMethod:TwitterNewsProvider.kt:TwitterNewsProvider$private fun loadUserTimeline</ID>
     <ID>CyclomaticComplexMethod:VehicleLocationProvider.kt:VehicleLocationProvider.Companion$private fun &lt;P : VehicleLocationProviderContract&gt; P.getVehicleLocations: Cursor</ID>

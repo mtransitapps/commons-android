@@ -14,7 +14,7 @@ fun Context.getRDS(
     authority: String,
     routeId: Long? = null,
     directionId: Long? = null,
-): List<RouteDirectionStop>? = try {
+): List<RouteDirectionStop>? = runCatching {
     contentResolver.query(
         Uri.withAppendedPath(
             UriUtils.newContentUri(authority),
@@ -50,10 +50,9 @@ fun Context.getRDS(
             }
         }
     }
-} catch (e: Exception) {
-    MTLogK.w(this, "Error!", e)
-    null
-}
+}.onFailure { e ->
+    MTLogK.w(GTFSRDSProvider.LOG_TAG, "Error!", e)
+}.getOrNull()
 
 fun Context.getTripIds(authority: String, routeId: Long, directionId: Long? = null, serviceIds: List<String>? = null) =
     getTrips(authority, routeId, directionId, serviceIds)?.map { it.tripId }?.toSet()
@@ -65,7 +64,7 @@ fun Context.getTrips(
     directionId: Long? = null,
     serviceIds: List<String>? = null,
     tripIds: List<String>? = null,
-): List<Trip>? = try {
+): List<Trip>? = runCatching {
     contentResolver.query(
         Uri.withAppendedPath(
             UriUtils.newContentUri(authority),
@@ -102,7 +101,6 @@ fun Context.getTrips(
             }
         }
     }
-} catch (e: Exception) {
-    MTLogK.w(this, "Error!", e)
-    null
-}
+}.onFailure { e ->
+    MTLogK.w(GTFSRDSProvider.LOG_TAG, "Error!", e)
+}.getOrNull()

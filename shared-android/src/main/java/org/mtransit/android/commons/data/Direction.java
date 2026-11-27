@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.data;
 
+import static org.mtransit.android.commons.data.DirectionExtKt.makeDirection;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 import android.content.Context;
@@ -48,7 +49,7 @@ public class Direction implements Targetable {
 	private final String headsignValue;
 	private final long routeId;
 
-	public Direction(
+	protected Direction(
 			@NonNull String authority,
 			long id,
 			@HeadSignType int headsignType,
@@ -64,7 +65,7 @@ public class Direction implements Targetable {
 
 	@NonNull
 	public static Direction fromCursor(@NonNull Cursor c, @NonNull String authority) {
-		return new Direction(
+		return makeDirection(
 				authority,
 				CursorExtKt.getLong(c, GTFSProviderContract.DirectionColumns.T_DIRECTION_K_ID),
 				CursorExtKt.getInt(c, GTFSProviderContract.DirectionColumns.T_DIRECTION_K_HEADSIGN_TYPE),

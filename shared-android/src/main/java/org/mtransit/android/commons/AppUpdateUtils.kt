@@ -14,17 +14,16 @@ import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.android.play.core.ktx.installStatus
 import com.google.android.play.core.ktx.isFlexibleUpdateAllowed
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
-import org.mtransit.android.commons.AppUpdateUtils.AppUpdateFilter.Companion.toFilter
+import org.mtransit.android.commons.AppUpdateUtils.AppUpdateFilter.Companion.toFilterOrNull
 import org.mtransit.android.commons.provider.GTFSProvider
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.receiver.DataChange
+import org.mtransit.commons.jsonObjectOrNull
+import org.mtransit.commons.jsonPrimitiveOrNull
 import java.util.concurrent.TimeUnit
 
 object AppUpdateUtils : MTLogK.Loggable {
@@ -58,7 +57,7 @@ object AppUpdateUtils : MTLogK.Loggable {
             triggerRefreshIfNecessary(
                 context = context,
                 lastAvailableVersionCode = lastAvailableVersionCode,
-                filter = filterS?.toFilter()
+                filter = filterS?.toFilterOrNull()
                     ?: AppUpdateFilter(), // DEFAULT VALUES
             )
         }
@@ -210,32 +209,21 @@ object AppUpdateUtils : MTLogK.Loggable {
             private const val JSON_FORCE_REFRESH = "force_refresh"
             private const val JSON_IN_FOCUS = "in_focus"
 
-            fun String.toFilter() = try {
-                sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-            } catch (se: SerializationException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", se)
-                throw se
-            }
+            internal fun String?.toFilterOrNull() = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
+                sharedJson.parseToJsonElement(this).jsonObjectOrNull?.toFilter()
+            }?.getOrNull()
 
-            fun JsonObject.toFilter() = try {
-                AppUpdateFilter(
-                    forceRefresh = this[JSON_FORCE_REFRESH]?.jsonPrimitive?.booleanOrNull ?: false,
-                    inFocus = this[JSON_IN_FOCUS]?.jsonPrimitive?.booleanOrNull ?: false,
-                )
-            } catch (se: SerializationException) {
-                MTLogK.w(LOG_TAG, "Error while parsing app update filter '$this'!", se)
-                throw se
-            }
+            private fun JsonObject.toFilter() = AppUpdateFilter(
+                forceRefresh = this[JSON_FORCE_REFRESH]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
+                inFocus = this[JSON_IN_FOCUS]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
+            )
 
-            fun AppUpdateFilter.toJson() = try {
+            fun AppUpdateFilter.toJson() = jsonRunCatching {
                 buildJsonObject {
                     put(JSON_FORCE_REFRESH, this@toJson.forceRefresh)
                     put(JSON_IN_FOCUS, this@toJson.inFocus)
                 }
-            } catch (se: SerializationException) {
-                MTLogK.w(this, "Error while making JSON object '$this'", se)
-                throw se
-            }
+            }.getOrThrow()
         }
 
         fun toJsonString() = sharedJson.encodeToString(this.toJson())

@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.data;
 
 import static org.mtransit.android.commons.StringUtils.EMPTY;
+import static org.mtransit.android.commons.data.StopExtKt.makeStop;
 
 import android.database.Cursor;
 import android.text.TextUtils;
@@ -8,13 +9,8 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.mtransit.android.commons.CursorExtKt;
-import org.mtransit.android.commons.JSONUtils;
-import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 
 import java.util.Objects;
@@ -34,6 +30,7 @@ public class Stop {
 	private final double lat;
 	private final double lng;
 
+	@Accessibility.AccessibilityType
 	private final int accessible;
 
 	@Nullable
@@ -41,13 +38,13 @@ public class Stop {
 	@Nullable
 	protected final String timeZoneId;
 
-	public Stop(
+	protected Stop(
 			int id,
 			@NonNull String code,
 			@NonNull String name,
 			double lat,
 			double lng,
-			int accessible,
+			@Accessibility.AccessibilityType int accessible,
 			@Nullable Integer originalIdHash,
 			@Nullable String timeZoneId
 	) {
@@ -61,22 +58,9 @@ public class Stop {
 		this.timeZoneId = timeZoneId;
 	}
 
-	public Stop(@NonNull Stop stop) {
-		this(
-				stop.id,
-				stop.code,
-				stop.name,
-				stop.lat,
-				stop.lng,
-				stop.accessible,
-				stop.originalIdHash,
-				stop.timeZoneId
-		);
-	}
-
 	@NonNull
 	public static Stop fromCursor(@NonNull Cursor c) {
-		return new Stop(
+		return makeStop(
 				CursorExtKt.getInt(c, GTFSProviderContract.StopColumns.T_STOP_K_ID),
 				CursorExtKt.getString(c, GTFSProviderContract.StopColumns.T_STOP_K_CODE),
 				CursorExtKt.getString(c, GTFSProviderContract.StopColumns.T_STOP_K_NAME),
@@ -130,6 +114,7 @@ public class Stop {
 		return this.lng;
 	}
 
+	@Accessibility.AccessibilityType
 	public int getAccessible() {
 		return accessible;
 	}

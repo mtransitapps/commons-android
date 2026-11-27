@@ -5,6 +5,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mtransit.android.commons.data.DirectionExtKt.makeDirection;
+import static org.mtransit.android.commons.data.RouteDirectionStopExtKt.makeRouteDirectionStop;
+import static org.mtransit.android.commons.data.RouteExtKt.makeRoute;
+import static org.mtransit.android.commons.data.StopExtKt.makeStop;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -14,8 +18,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.data.DataSourceTypeId;
 import org.mtransit.android.commons.data.Direction;
-import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirectionStop;
@@ -45,9 +49,9 @@ public class StmInfoApiProviderTests {
 
 	private static final String SOURCE_LABEL = "example.org";
 
-	private static final Route DEFAULT_ROUTE = new Route(AUTHORITY, 1, "1", "route 1", "color");
-	private static final Direction DEFAULT_DIRECTION = new Direction(AUTHORITY, 1, Direction.HEADSIGN_TYPE_STRING, "trip 1", 1);
-	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0, 1, null);
+	private static final Route DEFAULT_ROUTE = makeRoute(AUTHORITY, 1, "1", "route 1", "color");
+	private static final Direction DEFAULT_DIRECTION = makeDirection(AUTHORITY, 1, Direction.HEADSIGN_TYPE_STRING, "trip 1", 1);
+	private static final Stop DEFAULT_STOP = makeStop(1, "1", "stop 1", 0, 0, 0, 1, null);
 
 	private final Context context = mock();
 	private final Resources resources = mock();
@@ -56,16 +60,48 @@ public class StmInfoApiProviderTests {
 
 	private RouteDirectionStop rds;
 
+	@Test
+	public void test_toJArrivals() {
+		final String jsonString = "{" +
+				"\"messages\":" +
+				"{" +
+				"\"line\":[" + "{\"text\":\"Line message\"," + "\"start_date\":\"2025-01-01\"}]," +
+				"\"stopPoint\":[{\"text\":\"Stop message\"}]" +
+				"}," +
+				"\"result\":[" +
+				"{\"time\":\"12\"}," +
+				"{\"time\":\"1234\",\"is_real\":true,\"is_congestion\":true,\"is_ramp_cancelled\":true,\"is_on_requested_day\":false}" +
+				"]" +
+				"}";
+
+		final JArrivals result = StmInfoApiProviderExtKt.toJArrivals(
+				jsonString
+		);
+
+		assertNotNull(result);
+		assertEquals(1, result.getMessages().getLines().size());
+		assertEquals("2025-01-01", result.getMessages().getLines().get(0).getStartDate());
+		assertEquals(1, result.getMessages().getStopPoints().size());
+		assertEquals(2, result.getResults().size());
+		assertTrue(result.getResults().get(0).isReal());
+		assertFalse(result.getResults().get(0).isCongestion());
+		assertTrue(result.getResults().get(0).isOnRequestedDay());
+		assertTrue(result.getResults().get(1).isReal());
+		assertTrue(result.getResults().get(1).isRampCancelled());
+		assertFalse(result.getResults().get(1).isOnRequestedDay());
+	}
+
 	@Before
 	public void setUp() {
 		Mockito.when(context.getResources()).thenReturn(resources);
 		Mockito.when(resources.getString(R.string.gtfs_rts_agency_id)).thenReturn("org.authority.gtfs");
-		rds = new RouteDirectionStop(
-				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
+		rds = makeRouteDirectionStop(
+				DataSourceTypeId.BUS,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
-				false);
+				false
+		);
 	}
 
 	@After
@@ -74,7 +110,7 @@ public class StmInfoApiProviderTests {
 	}
 
 	@Test
-	public void testParseAgencyJSONArrivalsResults() {
+	public void testParseAgencyJsonArrivalsResults() {
 		// Arrange
 		long newLastUpdateInMs = 1533067200000L; // 1600 (4:00 pm)
 		List<JArrivals.JResult> jResults = new ArrayList<>();
@@ -87,7 +123,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1500", false, false, false, false)); // 82800 (3:00 pm, tomorrow)
 		jResults.add(new JArrivals.JResult("1616", false, false, false, false)); // 87360 (4:16 pm, tomorrow)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(context, jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJsonArrivalsStatuses(context, jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -116,7 +152,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1713", false, true, false, true)); // 73 (5:13 pm)
 		jResults.add(new JArrivals.JResult("1723", false, false, false, true)); // 83 (5:23 pm)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(context, jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJsonArrivalsStatuses(context, jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -139,7 +175,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1500", false, false, false, false)); // 82800 (3:00 pm, tomorrow)
 		jResults.add(new JArrivals.JResult("1616", false, false, false, false)); // 87360 (4:16 pm, tomorrow)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(context, jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJsonArrivalsStatuses(context, jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(0, result.size());
@@ -156,7 +192,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1923", false, false, false, true)); // 96 (7:23 pm, today)
 		jResults.add(new JArrivals.JResult("1956", false, false, false, true)); // 129 (7:56 pm, today)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(context, jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJsonArrivalsStatuses(context, jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -176,9 +212,9 @@ public class StmInfoApiProviderTests {
 	public void testParseAgencyJSONMessageResults() {
 		// Arrange
 		String routeShortName = "10";
-		rds = new RouteDirectionStop(
-				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
-				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
+		rds = makeRouteDirectionStop(
+				DataSourceTypeId.BUS,
+				makeRoute(AUTHORITY, 1, routeShortName, "route 1", "color"),
 				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
@@ -219,7 +255,7 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		ServiceUpdates serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
+		ServiceUpdates serviceUpdates = provider.parseAgencyJsonMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(3, serviceUpdates.size());
@@ -243,9 +279,9 @@ public class StmInfoApiProviderTests {
 	public void testParseAgencyJSONMessageResultsFr() {
 		// Arrange
 		String routeShortName = "10";
-		rds = new RouteDirectionStop(
-				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
-				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
+		rds = makeRouteDirectionStop(
+				DataSourceTypeId.BUS,
+				makeRoute(AUTHORITY, 1, routeShortName, "route 1", "color"),
 				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
@@ -286,7 +322,7 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		ServiceUpdates serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
+		ServiceUpdates serviceUpdates = provider.parseAgencyJsonMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(3, serviceUpdates.size());
@@ -307,12 +343,12 @@ public class StmInfoApiProviderTests {
 
 	@SuppressWarnings("deprecation")
 	@Test
-	public void testParseAgencyJSONMessageResultsNonStandardDirectionName() {
+	public void testParseAgencyJsonMessageResultsNonStandardDirectionName() {
 		// Arrange
 		String routeShortName = "37";
-		rds = new RouteDirectionStop(
-				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
-				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
+		rds = makeRouteDirectionStop(
+				DataSourceTypeId.BUS,
+				makeRoute(AUTHORITY, 1, routeShortName, "route 1", "color"),
 				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
@@ -393,7 +429,7 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		ServiceUpdates serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
+		ServiceUpdates serviceUpdates = provider.parseAgencyJsonMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(10, serviceUpdates.size());
@@ -445,9 +481,9 @@ public class StmInfoApiProviderTests {
 	public void testParseAgencyJSONMessageResultsNonStandardDirectionName2() {
 		// Arrange
 		String routeShortName = "747";
-		rds = new RouteDirectionStop(
-				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
-				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
+		rds = makeRouteDirectionStop(
+				DataSourceTypeId.BUS,
+				makeRoute(AUTHORITY, 1, routeShortName, "route 1", "color"),
 				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
@@ -496,7 +532,7 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		ServiceUpdates serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
+		ServiceUpdates serviceUpdates = provider.parseAgencyJsonMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(6, serviceUpdates.size());
@@ -532,9 +568,9 @@ public class StmInfoApiProviderTests {
 	public void testParseAgencyJSONMessageResultsServiceNormal() {
 		// Arrange
 		String routeShortName = "14";
-		rds = new RouteDirectionStop(
-				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
-				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
+		rds = makeRouteDirectionStop(
+				DataSourceTypeId.BUS,
+				makeRoute(AUTHORITY, 1, routeShortName, "route 1", "color"),
 				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
@@ -563,7 +599,7 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		ServiceUpdates serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
+		ServiceUpdates serviceUpdates = provider.parseAgencyJsonMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(2, serviceUpdates.size());
@@ -586,10 +622,10 @@ public class StmInfoApiProviderTests {
 		// Arrange
 		String routeShortName = "1234";
 		String headsignValue = "ABCD";
-		rds = new RouteDirectionStop(
-				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
-				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
-				new Direction(AUTHORITY, 1, Direction.HEADSIGN_TYPE_STRING, headsignValue, 1),
+		rds = makeRouteDirectionStop(
+				DataSourceTypeId.BUS,
+				makeRoute(AUTHORITY, 1, routeShortName, "route 1", "color"),
+				makeDirection(AUTHORITY, 1, Direction.HEADSIGN_TYPE_STRING, headsignValue, 1),
 				DEFAULT_STOP,
 				false);
 		long newLastUpdateInMs = System.currentTimeMillis();
@@ -597,7 +633,7 @@ public class StmInfoApiProviderTests {
 		ArrayList<Map<String, List<JMessages.JResult.JResultRoute>>> shortNameResultRoutes = new ArrayList<>();
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		ServiceUpdates serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
+		ServiceUpdates serviceUpdates = provider.parseAgencyJsonMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(1, serviceUpdates.size());
@@ -615,11 +651,11 @@ public class StmInfoApiProviderTests {
 		String text = "Because of roadwork, some bus stops have been relocated: " +
 				stopCode + " (Station Berri-UQAM (Berri / Ste-Catherine)). " +
 				"In effect from 4 September 2018 at 18 h 10 for an indefinite period";
-		rds = new RouteDirectionStop(
-				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
+		rds = makeRouteDirectionStop(
+				DataSourceTypeId.BUS,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
-				new Stop(1, stopCode, "stop 1", 0, 0, 0, 1, null),
+				makeStop(1, stopCode, "stop 1", 0, 0, 0, 1, null),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP;
 		// Act
@@ -635,11 +671,11 @@ public class StmInfoApiProviderTests {
 		String text = "En raison de travaux de voirie, certains arrêts ont été déplacés: " +
 				stopCode + " (Station Berri-UQAM (1621 rue Berri)). " +
 				"En vigueur du 30 octobre 2017 à 7 h 31 pour une durée indéterminée";
-		rds = new RouteDirectionStop(
-				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
+		rds = makeRouteDirectionStop(
+				DataSourceTypeId.BUS,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
-				new Stop(1, stopCode, "stop 1", 0, 0, 0, 1, null),
+				makeStop(1, stopCode, "stop 1", 0, 0, 0, 1, null),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
@@ -655,11 +691,11 @@ public class StmInfoApiProviderTests {
 		String text = "Because of roadwork, some bus stops have been relocated: " +
 				stopCode + " (Station Berri-UQAM (Berri / Ste-Catherine)). " +
 				"In effect from 4 September 2018 at 18 h 10 for an indefinite period";
-		rds = new RouteDirectionStop(
-				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
+		rds = makeRouteDirectionStop(
+				DataSourceTypeId.BUS,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
-				new Stop(1, "67890", "stop 1", 0, 0, 0, 1, null),
+				makeStop(1, "67890", "stop 1", 0, 0, 0, 1, null),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP;
 		// Act
@@ -675,11 +711,11 @@ public class StmInfoApiProviderTests {
 		String text = "En raison de travaux de voirie, certains arrêts ont été déplacés: " +
 				stopCode + " (Station Berri-UQAM (1621 rue Berri)). " +
 				"En vigueur du 30 octobre 2017 à 7 h 31 pour une durée indéterminée";
-		rds = new RouteDirectionStop(
-				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
+		rds = makeRouteDirectionStop(
+				DataSourceTypeId.BUS,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
-				new Stop(1, "67890", "stop 1", 0, 0, 0, 1, null),
+				makeStop(1, "67890", "stop 1", 0, 0, 0, 1, null),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
@@ -693,11 +729,11 @@ public class StmInfoApiProviderTests {
 		// Arrange
 		String text = "Due to major roadworks around Turcot, Bonaventure and Champlain, " +
 				"bus service is running late on this line.";
-		rds = new RouteDirectionStop(
-				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
+		rds = makeRouteDirectionStop(
+				DataSourceTypeId.BUS,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
-				new Stop(1, "12345", "stop 1", 0, 0, 0, 1, null),
+				makeStop(1, "12345", "stop 1", 0, 0, 0, 1, null),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP;
 		// Act
@@ -711,11 +747,11 @@ public class StmInfoApiProviderTests {
 		// Arrange
 		String text = "En raison des travaux entourant le grand chantier Turcot, Bonaventure et Champlain " +
 				"des retards sont à prévoir sur cette ligne.";
-		rds = new RouteDirectionStop(
-				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
+		rds = makeRouteDirectionStop(
+				DataSourceTypeId.BUS,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
-				new Stop(1, "12345", "stop 1", 0, 0, 0, 1, null),
+				makeStop(1, "12345", "stop 1", 0, 0, 0, 1, null),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act

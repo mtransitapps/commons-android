@@ -4,12 +4,10 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import android.provider.BaseColumns
 import androidx.annotation.Discouraged
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.data.Direction
@@ -19,12 +17,15 @@ import org.mtransit.android.commons.data.RouteDirection
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.ServiceUpdates
 import org.mtransit.android.commons.data.Targetable
-import org.mtransit.android.commons.data.toPOI
+import org.mtransit.android.commons.data.toPOIOrThrow
 import org.mtransit.android.commons.data.toRoute
 import org.mtransit.android.commons.data.toRouteDirection
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderFilter
+import org.mtransit.commons.jsonObjectOrNull
+import org.mtransit.commons.jsonPrimitiveOrNull
 import org.mtransit.commons.model.Secret
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -113,7 +114,7 @@ interface ServiceUpdateProviderContract : ProviderContract {
         override val cacheValidityInMs: Long? = null,
         override val inFocus: Boolean? = null,
         override val providedEncryptKeysMap: Secret<Map<String, String>>? = null,
-        val authority: String?,
+        private val authority: String?,
         override val poi: POI? = null, // RouteDirectionStop or DefaultPOI
         override val route: Route? = null,
         override val routeDirection: RouteDirection? = null,
@@ -127,60 +128,47 @@ interface ServiceUpdateProviderContract : ProviderContract {
             fun from(poi: POI, inFocus: Boolean? = null) = Filter(poi).copy(inFocus = inFocus)
 
             @JvmStatic
-            fun String?.toFilterN() = this?.toFilter()
-            fun String.toFilter() = try {
+            fun String?.toFilterOrNull() = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
                 sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-            } catch (se: SerializationException) {
-                MTLogK.w(this@Companion, "Error while parsing JSON string '$this'", se)
-                throw se
-            }
+            }?.getOrNull()
 
             private const val JSON_POI = "poi"
             private const val JSON_ROUTE = "route"
             private const val JSON_ROUTE_DIRECTION = "routeDirection"
             private const val JSON_AUTHORITY = "authority"
 
-            fun JsonObject.toFilter() =
-                try {
-                    val poi = this[JSON_POI]?.jsonObject?.toPOI()
-                    val authority = this[JSON_AUTHORITY]?.jsonPrimitive?.contentOrNull ?: poi?.authority
-                    val route = authority?.let { authority ->
-                        this[JSON_ROUTE]?.jsonObject?.toRoute(authority)
-                    }
-                    val routeDirection = authority?.let { authority ->
-                        this[JSON_ROUTE_DIRECTION]?.jsonObject?.toRouteDirection(authority)
-                    }
-                    //noinspection DiscouragedApi
-                    Filter(
-                        cacheOnly = getCacheOnlyFromJson(),
-                        cacheValidityInMs = getCacheValidityInMsFromJson(),
-                        inFocus = getInFocusFromJson(),
-                        providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
-                        authority = authority,
-                        poi = poi,
-                        route = route,
-                        routeDirection = routeDirection,
-                    ).takeIf {
-                        (it.poi != null) || (it.route != null) || (it.routeDirection != null)
-                    }
-                } catch (se: SerializationException) {
-                    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
-                    throw se
+            private fun JsonObject.toFilter(): Filter? {
+                val poi = this[JSON_POI]?.jsonObjectOrNull?.toPOIOrThrow()
+                val authority = this[JSON_AUTHORITY]?.jsonPrimitiveOrNull?.contentOrNull ?: poi?.authority
+                val route = authority?.let { authority ->
+                    this[JSON_ROUTE]?.jsonObjectOrNull?.toRoute(authority)
+                }
+                val routeDirection = authority?.let { authority ->
+                    this[JSON_ROUTE_DIRECTION]?.jsonObjectOrNull?.toRouteDirection(authority)
+                }
+                //noinspection DiscouragedApi
+                return Filter(
+                    cacheOnly = getCacheOnlyFromJson(),
+                    cacheValidityInMs = getCacheValidityInMsFromJson(),
+                    inFocus = getInFocusFromJson(),
+                    providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
+                    authority = authority,
+                    poi = poi,
+                    route = route,
+                    routeDirection = routeDirection,
+                ).takeIf {
+                    it.poi != null || it.route != null || it.routeDirection != null
                 }
 
-            fun Filter.toJson() =
-                try {
-                    buildJsonObject {
-                        toJsonCommon(this@toJson)
-                        poi?.let { put(JSON_POI, it.toJson()) }
-                        route?.let { put(JSON_ROUTE, it.toJsonK()) }
-                        routeDirection?.let { put(JSON_ROUTE_DIRECTION, it.toJsonK()) }
-                        authority?.let { put(JSON_AUTHORITY, it) }
-                    }
-                } catch (se: SerializationException) {
-                    MTLogK.w(this, "Error while making JSON object '$this'", se)
-                    throw se
+            fun Filter.toJson() = jsonRunCatching {
+                buildJsonObject {
+                    toJsonCommon(this@toJson)
+                    poi?.let { put(JSON_POI, it.toJson()) }
+                    route?.let { put(JSON_ROUTE, it.toJsonK()) }
+                    routeDirection?.let { put(JSON_ROUTE_DIRECTION, it.toJsonK()) }
+                    authority?.let { put(JSON_AUTHORITY, it) }
                 }
+            }.getOrThrow()
         }
 
         override fun getLogTag() = LOG_TAG

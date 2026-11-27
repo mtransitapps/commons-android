@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.data;
 
+import static org.mtransit.android.commons.data.DefaultPOIExtKt.makeDefaultPOI;
+
 import android.content.ContentValues;
 import android.database.Cursor;
 
@@ -37,7 +39,7 @@ public class DefaultPOI implements POI {
 	private final String name;
 	private final double lat;
 	private final double lng;
-	private int accessible = Accessibility.DEFAULT;
+	protected @Accessibility.AccessibilityType int accessible = Accessibility.DEFAULT;
 	@ItemViewType
 	private final int type;
 	@DataSourceType
@@ -47,12 +49,12 @@ public class DefaultPOI implements POI {
 	@ItemActionType
 	private final int actionsType;
 	@Nullable
-	private Integer scoreOpt = null; // optional
+	protected Integer scoreOpt = null; // optional
 
 	/**
 	 * @param id useful to store in DB
 	 */
-	public DefaultPOI(
+	protected DefaultPOI(
 			@NonNull String authority,
 			int id,
 			@DataSourceType int dataSourceTypeId,
@@ -211,10 +213,7 @@ public class DefaultPOI implements POI {
 		return lng;
 	}
 
-	public void setAccessible(int accessible) {
-		this.accessible = accessible;
-	}
-
+	@Accessibility.AccessibilityType
 	public int getAccessible() {
 		return accessible;
 	}
@@ -234,11 +233,6 @@ public class DefaultPOI implements POI {
 	@Override
 	public int getActionsType() {
 		return this.actionsType;
-	}
-
-	@Override
-	public void setScore(@Nullable Integer score) {
-		this.scoreOpt = score;
 	}
 
 	@Nullable
@@ -273,7 +267,7 @@ public class DefaultPOI implements POI {
 
 	@NonNull
 	public static DefaultPOI fromCursorStatic(@NonNull Cursor c, @NonNull String authority) {
-		final DefaultPOI defaultPOI = new DefaultPOI(
+		return makeDefaultPOI(
 				authority,
 				getIdFromCursor(c),
 				getDataSourceTypeIdFromCursor(c),
@@ -282,15 +276,19 @@ public class DefaultPOI implements POI {
 				CursorExtKt.optIntNN(c, POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE, POI.ITEM_ACTION_TYPE_NONE),
 				getLatFromCursor(c),
 				getLngFromCursor(c),
-				getNameFromCursor(c)
+				getNameFromCursor(c),
+				getScoreFromCursor(c),
+				getAccessibleFromCursor(c)
 		);
-		fromCursor(c, defaultPOI);
-		return defaultPOI;
 	}
 
-	public static void fromCursor(@NonNull Cursor c, @NonNull DefaultPOI defaultPOI) {
-		defaultPOI.setAccessible(CursorExtKt.optIntNN(c, POIProviderContract.Columns.T_POI_K_ACCESSIBLE, Accessibility.DEFAULT));
-		defaultPOI.setScore(CursorExtKt.optInt(c, POIProviderContract.Columns.T_POI_K_SCORE_META_OPT, null));
+	@Nullable
+	public static Integer getScoreFromCursor(@NonNull Cursor c) {
+		return CursorExtKt.optInt(c, POIProviderContract.Columns.T_POI_K_SCORE_META_OPT, null);
+	}
+
+	public static int getAccessibleFromCursor(@NonNull Cursor c) {
+		return CursorExtKt.optIntNN(c, POIProviderContract.Columns.T_POI_K_ACCESSIBLE, Accessibility.DEFAULT);
 	}
 
 	public static int getIdFromCursor(@NonNull Cursor c) {

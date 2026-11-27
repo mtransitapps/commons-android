@@ -1,10 +1,9 @@
 package org.mtransit.android.commons.data
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
-import org.mtransit.android.commons.MTLogK
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.provider.status.StatusProviderContract
 import org.mtransit.commons.model.Secret
@@ -29,36 +28,23 @@ data class AvailabilityPercentStatusFilter(
         )
 
         @JvmStatic
-        fun String?.toFilterN() = this?.toFilter()
-
-        fun String.toFilter() = try {
+        fun String?.toFilterOrNull() = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
             sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-        } catch (se: SerializationException) {
-            MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", se)
-            throw se
-        }
+        }?.getOrNull()
 
-        fun JsonObject.toFilter() = try {
-            AvailabilityPercentStatusFilter(
-                cacheOnly = getCacheOnlyFromJson(),
-                cacheValidityInMs = getCacheValidityInMsFromJson(),
-                inFocus = getInFocusFromJson(),
-                providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
-                targetUUID = getTargetUUIDFromJson(),
-            )
-        } catch (se: SerializationException) {
-            MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
-            throw se
-        }
+        private fun JsonObject.toFilter() = AvailabilityPercentStatusFilter(
+            cacheOnly = getCacheOnlyFromJson(),
+            cacheValidityInMs = getCacheValidityInMsFromJson(),
+            inFocus = getInFocusFromJson(),
+            providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
+            targetUUID = getTargetUUIDFromJson(),
+        )
 
-        private fun StatusProviderContract.Filter.toJson() = try {
+        private fun StatusProviderContract.Filter.toJson() = jsonRunCatching {
             buildJsonObject {
                 toJson(this@toJson)
             }
-        } catch (se: SerializationException) {
-            MTLogK.w(LOG_TAG, "Error while making JSON object '$this'", se)
-            throw se
-        }
+        }.getOrThrow()
     }
 
     override fun getLogTag() = LOG_TAG

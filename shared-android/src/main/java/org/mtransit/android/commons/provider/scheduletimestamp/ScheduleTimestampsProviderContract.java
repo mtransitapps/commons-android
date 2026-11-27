@@ -33,9 +33,9 @@ public interface ScheduleTimestampsProviderContract extends ProviderContract {
 		}
 
 		@NonNull
-		private final RouteDirectionStop rds;
-		private final long startsAtInMs;
-		private final long endsAtInMs;
+		protected final RouteDirectionStop rds;
+		protected final long startsAtInMs;
+		protected final long endsAtInMs;
 
 		public Filter(@NonNull RouteDirectionStop rds, long startsAtInMs, long endsAtInMs) {
 			this.rds = rds;

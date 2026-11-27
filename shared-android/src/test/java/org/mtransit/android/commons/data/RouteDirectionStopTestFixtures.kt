@@ -2,41 +2,39 @@ package org.mtransit.android.commons.data
 
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 
-fun makeDefaultPOI(
+fun mkDefaultPOI(
     authority: String = "authority",
     id: Int = 1,
     @DataSourceTypeId.DataSourceType dataSourceTypeId: Int = DataSourceTypeId.INVALID,
     @POI.ItemViewType type: Int = POI.ITEM_VIEW_TYPE_BASIC_POI,
     @POI.ItemStatusType statusType: Int = POI.ITEM_STATUS_TYPE_NONE,
     @POI.ItemActionType actionsType: Int = POI.ITEM_ACTION_TYPE_NONE,
-    name: String = "name #$id",
     lat: Double = 1.0,
     lng: Double = 2.0,
-) = DefaultPOI(
-    authority,
-    id,
-    dataSourceTypeId,
-    type,
-    statusType,
-    actionsType,
-    lat,
-    lng,
-    name
+    name: String = "name #$id",
+) = makeDefaultPOI(
+    authority = authority,
+    id = id,
+    dataSourceTypeId = dataSourceTypeId,
+    type = type,
+    statusType = statusType,
+    actionsType = actionsType,
+    lat = lat,
+    lng = lng,
+    name = name,
 )
 
-fun makeBikeStation(
+fun mkBikeStation(
     authority: String = "authority",
     @DataSourceTypeId.DataSourceType dataSourceTypeId: Int = DataSourceTypeId.BIKE,
     id: Int = 1,
     name: String = "name #$id",
     lat: Double = 1.0,
     lng: Double = 2.0,
-) = makeDefaultPOI(
+) = makeBikeStation(
     authority = authority,
     id = id,
     dataSourceTypeId = dataSourceTypeId,
-    statusType = POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT,
-    actionsType = POI.ITEM_ACTION_TYPE_FAVORITABLE,
     name = name,
     lat = lat,
     lng = lng,
@@ -48,7 +46,7 @@ fun makeRDS(
     routeId: Long = 1L,
     routeOriginalIdHash: Int? = routeId.toString().hashCode(),
     routeType: Int? = null, // custom route type != agency type
-    route: Route = makeRoute(
+    route: Route = mkRoute(
         authority = authority,
         id = routeId,
         originalIdHash = routeOriginalIdHash,
@@ -56,7 +54,7 @@ fun makeRDS(
     ),
     originalDirectionId: Int? = 1,
     directionId: Long = originalDirectionId?.let { routeId * 100L + it } ?: (routeId * 100L + 9L),
-    direction: Direction = makeDirection(
+    direction: Direction = mkDirection(
         authority = authority,
         originalId = originalDirectionId,
         id = directionId,
@@ -68,7 +66,7 @@ fun makeRDS(
     stopLat: Double = 1.0,
     stopLng: Double = 2.0,
     stopTimeZoneId: String? = "UTC",
-    stop: Stop = makeStop(
+    stop: Stop = mkStop(
         stopId = stopId,
         stopName = stopName,
         stopLat = stopLat,
@@ -78,16 +76,16 @@ fun makeRDS(
     ),
     isNoPickup: Boolean = false,
     alwaysLastTripStop: Boolean = false,
-) = RouteDirectionStop(
-    dataSourceTypeId,
-    route,
-    direction,
-    stop,
-    isNoPickup,
-    alwaysLastTripStop,
+) = makeRouteDirectionStop(
+    dataSourceTypeId = dataSourceTypeId,
+    route = route,
+    direction = direction,
+    stop = stop,
+    noPickup = isNoPickup,
+    alwaysLastTripStop = alwaysLastTripStop,
 )
 
-fun makeRoute(
+fun mkRoute(
     authority: String = "authority",
     id: Long = 1L,
     shortName: String = "#$id",
@@ -95,32 +93,32 @@ fun makeRoute(
     color: String = "color",
     originalIdHash: Int? = id.toString().hashCode(),
     type: Int? = null, // custom route type != agency type
-) = Route(
-    authority,
-    id,
-    shortName,
-    longName,
-    color,
-    originalIdHash,
-    type,
+) = makeRoute(
+    authority = authority,
+    id = id,
+    shortName = shortName,
+    longName = longName,
+    color = color,
+    originalIdHash = originalIdHash,
+    type = type,
 )
 
-fun makeDirection(
+fun mkDirection(
     authority: String = "authority",
     routeId: Long = 1L,
     originalId: Int? = 1,
     id: Long = originalId?.let { routeId * 100L + it } ?: (routeId * 100L + 9L),
     headsign: String = "Head-Sign $originalId",
     headsignType: Int = Direction.HEADSIGN_TYPE_STRING,
-) = Direction(
-    authority,
-    id,
-    headsignType,
-    headsign,
-    routeId,
+) = makeDirection(
+    authority = authority,
+    id = id,
+    headsignType = headsignType,
+    headsignValue = headsign,
+    routeId = routeId,
 )
 
-fun makeStop(
+fun mkStop(
     stopId: Int = 1,
     stopCode: String = "#$stopId",
     stopName: String = "Stop #$stopId",
@@ -129,15 +127,15 @@ fun makeStop(
     stopAccessibility: Int = Accessibility.DEFAULT,
     stopOriginalIdHash: Int? = stopId.toString().hashCode(), // stopId, // "$stopId".hashCode()
     stopTimeZoneId: String? = "UTC",
-) = Stop(
-    stopId,
-    stopCode,
-    stopName,
-    stopLat,
-    stopLng,
-    stopAccessibility,
-    stopOriginalIdHash,
-    stopTimeZoneId,
+) = makeStop(
+    stopId = stopId,
+    stopCode = stopCode,
+    stopName = stopName,
+    stopLat = stopLat,
+    stopLng = stopLng,
+    stopAccessibility = stopAccessibility,
+    stopOriginalIdHash = stopOriginalIdHash,
+    stopTimeZoneId = stopTimeZoneId,
 )
 
 fun Route.getGTFSRTTargetUUID(): String =

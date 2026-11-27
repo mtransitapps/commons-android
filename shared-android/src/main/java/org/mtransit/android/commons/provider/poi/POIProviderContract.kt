@@ -7,13 +7,12 @@ import android.provider.BaseColumns
 import androidx.annotation.Discouraged
 import androidx.collection.ArrayMap
 import androidx.collection.SimpleArrayMap
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.addAll
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.double
-import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
@@ -21,9 +20,12 @@ import kotlinx.serialization.json.putJsonArray
 import org.mtransit.android.commons.LocationUtils
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.SqlUtils
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.ContentProviderConstants
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.common.sharedJson
+import org.mtransit.commons.jsonArrayOrNull
+import org.mtransit.commons.jsonPrimitiveOrNull
 import org.mtransit.commons.model.Secret
 import org.mtransit.commons.toAny
 import org.mtransit.commons.toJsonElement
@@ -280,16 +282,11 @@ interface POIProviderContract : ProviderContract {
             }
 
             @JvmStatic
-            fun String?.toFilterN() = this?.toFilter()
-
-            fun String.toFilter() = try {
+            fun String?.toFilterOrNull() = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
                 sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-            } catch (se: SerializationException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", se)
-                throw se
-            }
+            }?.getOrNull()
 
-            private fun JsonObject.toFilter() = try {
+            private fun JsonObject.toFilter(): Filter? {
                 var lat: Double?
                 var lng: Double?
                 var aroundDiff: Double?
@@ -309,6 +306,65 @@ interface POIProviderContract : ProviderContract {
                     lat = null
                     lng = null
                     aroundDiff = null
+                }
+                try {
+                    minLat = getValue(JSON_MIN_LAT).jsonPrimitive.double
+                    maxLat = getValue(JSON_MAX_LAT).jsonPrimitive.double
+                    minLng = getValue(JSON_MIN_LNG).jsonPrimitive.double
+                    maxLng = getValue(JSON_MAX_LNG).jsonPrimitive.double
+                    optLoadedMinLat = this[JSON_OPT_LOADED_MIN_LAT]?.jsonPrimitiveOrNull?.doubleOrNull
+                    optLoadedMaxLat = this[JSON_OPT_LOADED_MAX_LAT]?.jsonPrimitiveOrNull?.doubleOrNull
+                    optLoadedMinLng = this[JSON_OPT_LOADED_MIN_LNG]?.jsonPrimitiveOrNull?.doubleOrNull
+                    optLoadedMaxLng = this[JSON_OPT_LOADED_MAX_LNG]?.jsonPrimitiveOrNull?.doubleOrNull
+                } catch (_: RuntimeException) { // expected
+                    minLat = null
+                    maxLat = null
+                    minLng = null
+                    maxLng = null
+                    optLoadedMinLat = null
+                    optLoadedMaxLat = null
+                    optLoadedMinLng = null
+                    optLoadedMaxLng = null
+                }
+                //noinspection DiscouragedApi
+                return Filter(
+                    cacheOnly = getCacheOnlyFromJson(),
+                    cacheValidityInMs = getCacheValidityInMsFromJson(),
+                    inFocus = getInFocusFromJson(),
+                    providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
+                    lat = lat,
+                    lng = lng,
+                    aroundDiff = aroundDiff,
+                    minLat = minLat,
+                    maxLat = maxLat,
+                    minLng = minLng,
+                    maxLng = maxLng,
+                    optLoadedMinLat = optLoadedMinLat,
+                    optLoadedMaxLat = optLoadedMaxLat,
+                    optLoadedMinLng = optLoadedMinLng,
+                    optLoadedMaxLng = optLoadedMaxLng,
+                    uuids = this[JSON_UUIDS]?.jsonArrayOrNull?.mapNotNull { it.jsonPrimitiveOrNull?.contentOrNull },
+                    extras = SimpleArrayMap<String, Any>().apply {
+                        this@toFilter[JSON_EXTRAS]?.jsonArrayOrNull?.let { jExtras ->
+                            jExtras.forEach { jExtra ->
+                                val key = runCatching {
+                                    jExtra.jsonObject.getValue(JSON_EXTRAS_KEY).jsonPrimitive.content
+                                }.onFailure {
+                                    MTLogK.w(LOG_TAG, "Error while parsing extra key JSON object '$jExtra'", it)
+                                }.getOrNull() ?: return@forEach
+                                val value = jExtra.jsonObject[JSON_EXTRAS_VALUE]?.toAny() ?: return@forEach
+                                put(key, value)
+                            }
+                        }
+                    },
+                    sqlSelection = this[JSON_SQL_SELECTION]?.jsonPrimitiveOrNull?.contentOrNull,
+                    searchKeywords = this[JSON_SEARCH_KEYWORDS]?.jsonArrayOrNull?.mapNotNull { it.jsonPrimitiveOrNull?.contentOrNull },
+                ).takeIf {
+                    (it.lat != null && it.lng != null && it.aroundDiff != null)
+                        || (it.minLat != null && it.maxLat != null && it.minLng != null && it.maxLng != null)
+                        || (it.uuids?.isNotEmpty() == true)
+                        || (it.searchKeywords?.isNotEmpty() == true)
+                        || (it.sqlSelection != null)
                 }
                 try {
                     minLat = getValue(JSON_MIN_LAT).jsonPrimitive.double
@@ -393,7 +449,7 @@ interface POIProviderContract : ProviderContract {
             private const val JSON_EXTRAS_VALUE = "value"
 
             @JvmStatic
-            fun Filter.toJson() = try {
+            fun Filter.toJson() = jsonRunCatching {
                 buildJsonObject {
                     if (isAreaFilter(this@toJson)) {
                         put(JSON_LAT, this@toJson.lat)
@@ -415,7 +471,7 @@ interface POIProviderContract : ProviderContract {
                     } else if (isSQLSelection(this@toJson)) {
                         put(JSON_SQL_SELECTION, this@toJson.sqlSelection)
                     } else {
-                        throw SerializationException("Empty POI filter '${this@toJson}' converted to JSON!")
+                        error("Empty POI filter '${this@toJson}' converted to JSON!")
                     }
                     toJsonCommon(this@toJson)
                     putJsonArray(JSON_EXTRAS) {
@@ -423,8 +479,8 @@ interface POIProviderContract : ProviderContract {
                             val key = this@toJson.extras.keyAt(i)
                             val jsonElement = runCatching {
                                 this@toJson.extras.valueAt(i).toJsonElement()
-                            }.onFailure {
-                                MTLogK.w(LOG_TAG, "Error while parsing '$key' JSON object '${this@toJson}'", it.cause)
+                            }.onFailure { t ->
+                                MTLogK.w(LOG_TAG, "Error while parsing '$key' JSON object '${this@toJson}'", t)
                             }.getOrNull() ?: continue
                             add(
                                 buildJsonObject {
@@ -435,10 +491,7 @@ interface POIProviderContract : ProviderContract {
                         }
                     }
                 }
-            } catch (se: SerializationException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
-                throw se
-            }
+            }.getOrThrow()
         }
 
         override fun getLogTag() = LOG_TAG

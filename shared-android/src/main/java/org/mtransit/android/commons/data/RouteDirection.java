@@ -1,5 +1,8 @@
 package org.mtransit.android.commons.data;
 
+import static org.mtransit.android.commons.data.DirectionExtKt.makeDirection;
+import static org.mtransit.android.commons.data.RouteExtKt.makeRoute;
+
 import android.content.ContentValues;
 import android.database.Cursor;
 
@@ -127,7 +130,7 @@ public class RouteDirection implements Targetable, MTLog.Loggable {
 	@NonNull
 	public static RouteDirection fromCursorStatic(@NonNull Cursor c, @NonNull String authority) {
 		return new RouteDirection(
-				new Route(
+				makeRoute(
 						authority,
 						CursorExtKt.getLong(c, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_ID),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_SHORT_NAME),
@@ -136,7 +139,7 @@ public class RouteDirection implements Targetable, MTLog.Loggable {
 						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH),
 						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE)
 				),
-				new Direction(
+				makeDirection(
 						authority,
 						CursorExtKt.getLong(c, GTFSProviderContract.RouteDirectionColumns.T_DIRECTION_K_ID),
 						CursorExtKt.getInt(c, GTFSProviderContract.RouteDirectionColumns.T_DIRECTION_K_HEADSIGN_TYPE),

@@ -37,7 +37,7 @@ private fun Context.getRDSSchedule(
     includeCancelledTimestamps: Boolean = false,
     lookBehind: Duration = DEFAULT_LOOK_BEHIND,
     maxDataRequest: Int = DEFAULT_MAX_DATA_REQUEST,
-): Schedule? = try {
+): Schedule? = runCatching {
     contentResolver.query(
         Uri.withAppendedPath(
             UriUtils.newContentUri(authority),
@@ -57,7 +57,6 @@ private fun Context.getRDSSchedule(
             Schedule.fromCursorWithExtra(it)
         }
     }
-} catch (e: Exception) {
-    MTLogK.w(this, "Error!", e)
-    null
-}
+}.onFailure { e ->
+    MTLogK.w(GTFSStatusProvider.LOG_TAG, "Error!", e)
+}.getOrNull()

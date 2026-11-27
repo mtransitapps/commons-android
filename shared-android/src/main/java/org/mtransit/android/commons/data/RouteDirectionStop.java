@@ -1,5 +1,10 @@
 package org.mtransit.android.commons.data;
 
+import static org.mtransit.android.commons.data.DirectionExtKt.makeDirection;
+import static org.mtransit.android.commons.data.RouteDirectionStopExtKt.makeRouteDirectionStop;
+import static org.mtransit.android.commons.data.RouteExtKt.makeRoute;
+import static org.mtransit.android.commons.data.StopExtKt.makeStop;
+
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.text.SpannableStringBuilder;
@@ -9,7 +14,6 @@ import android.text.style.RelativeSizeSpan;
 import androidx.annotation.Discouraged;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 
 import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.CursorExtKt;
@@ -47,30 +51,7 @@ public class RouteDirectionStop extends DefaultPOI {
 	@Nullable
 	private final Boolean alwaysLastTripStop;
 
-	@VisibleForTesting
-	public RouteDirectionStop(
-			@SuppressWarnings("unused") @NonNull String authority,
-			@DataSourceType int dataSourceTypeId,
-			@NonNull Route route,
-			@NonNull Direction direction,
-			@NonNull Stop stop,
-			boolean noPickup
-	) {
-		this(dataSourceTypeId, route, direction, stop, noPickup);
-	}
-
-	@VisibleForTesting
-	public RouteDirectionStop(
-			@DataSourceType int dataSourceTypeId,
-			@NonNull Route route,
-			@NonNull Direction direction,
-			@NonNull Stop stop,
-			boolean noPickup
-	) {
-		this(dataSourceTypeId, route, direction, stop, noPickup, null);
-	}
-
-	public RouteDirectionStop(
+	protected RouteDirectionStop(
 			@DataSourceType int dataSourceTypeId,
 			@NonNull Route route,
 			@NonNull Direction direction,
@@ -275,9 +256,9 @@ public class RouteDirectionStop extends DefaultPOI {
 
 	@NonNull
 	public static RouteDirectionStop fromCursorStatic(@NonNull Cursor c, @NonNull String authority) {
-		final RouteDirectionStop rds = new RouteDirectionStop(
+		return makeRouteDirectionStop(
 				getDataSourceTypeIdFromCursor(c),
-				new Route(
+				makeRoute(
 						authority,
 						CursorExtKt.getLong(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ID),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_SHORT_NAME),
@@ -286,14 +267,14 @@ public class RouteDirectionStop extends DefaultPOI {
 						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH),
 						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE)
 				),
-				new Direction(
+				makeDirection(
 						authority,
 						CursorExtKt.getLong(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_ID),
 						CursorExtKt.getInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_HEADSIGN_TYPE),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_HEADSIGN_VALUE),
 						CursorExtKt.getInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_ROUTE_ID)
 				),
-				new Stop(
+				makeStop(
 						CursorExtKt.getInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ID),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_CODE),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_NAME),
@@ -304,10 +285,10 @@ public class RouteDirectionStop extends DefaultPOI {
 						CursorExtKt.optString(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_TIMEZONE_ID, null)
 				),
 				CursorExtKt.getBoolean(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP),
-				CursorExtKt.optBoolean(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_ALWAYS_LAST_TRIP_STOP)
+				CursorExtKt.optBoolean(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_ALWAYS_LAST_TRIP_STOP),
+				getScoreFromCursor(c),
+				getAccessibleFromCursor(c)
 		);
-		DefaultPOI.fromCursor(c, rds);
-		return rds;
 	}
 
 	@Deprecated

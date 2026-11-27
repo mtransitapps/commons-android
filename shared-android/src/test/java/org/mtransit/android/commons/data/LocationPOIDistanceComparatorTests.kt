@@ -17,10 +17,10 @@ class LocationPOIDistanceComparatorTests {
     @Test
     fun test_compare_distinct_authority_distance() {
         val poiList = buildList<LocationPOI> {
-            add(SimpleLocationPOI(makeDefaultPOI("authority1")).apply { distance = 3f })
-            add(SimpleLocationPOI(makeDefaultPOI("authority2")).apply { distance = 1f })
-            add(SimpleLocationPOI(makeDefaultPOI("authority3")).apply { distance = 20_000f })
-            add(SimpleLocationPOI(makeDefaultPOI("authority4")).apply { distance = .5f })
+            add(SimpleLocationPOI(mkDefaultPOI("authority1")).apply { distance = 3f })
+            add(SimpleLocationPOI(mkDefaultPOI("authority2")).apply { distance = 1f })
+            add(SimpleLocationPOI(mkDefaultPOI("authority3")).apply { distance = 20_000f })
+            add(SimpleLocationPOI(mkDefaultPOI("authority4")).apply { distance = .5f })
         }
 
         val result = poiList.sortedWith(subject)
@@ -35,10 +35,10 @@ class LocationPOIDistanceComparatorTests {
     @Test
     fun test_POIDistanceComparatorRDS_SameStop_DistinctRoute_compare_equal() {
         val poiList = buildList<LocationPOI> {
-            add(SimpleLocationPOI(makeDefaultPOI("authority1")).apply { distance = 3f })
+            add(SimpleLocationPOI(mkDefaultPOI("authority1")).apply { distance = 3f })
             add(SimpleLocationPOI(makeRDS("authority2", routeId = 2L, originalDirectionId = 0, stopId = 100)).apply { distance = 1f })
             add(SimpleLocationPOI(makeRDS("authority3", routeId = 1L, originalDirectionId = 0, stopId = 100)).apply { distance = 1f })
-            add(SimpleLocationPOI(makeDefaultPOI("authority4")).apply { distance = .5f })
+            add(SimpleLocationPOI(mkDefaultPOI("authority4")).apply { distance = .5f })
         }
 
         val result = poiList.sortedWith(subject.then(LocationPOI.ALPHA_COMPARATOR))
@@ -53,10 +53,10 @@ class LocationPOIDistanceComparatorTests {
     @Test
     fun test_POIDistanceComparatorRDS_SameStop_DistinctTrip_compare_equal() {
         val poiList = buildList<LocationPOI> {
-            add(SimpleLocationPOI(makeBikeStation("authority1", id = 100)).apply { distance = 3f })
+            add(SimpleLocationPOI(mkBikeStation("authority1", id = 100)).apply { distance = 3f })
             add(SimpleLocationPOI(makeRDS("authority2", routeId = 1L, originalDirectionId = 1, stopId = 100)).apply { distance = 1f })
             add(SimpleLocationPOI(makeRDS("authority3", routeId = 1L, originalDirectionId = 0, stopId = 100)).apply { distance = 1f })
-            add(SimpleLocationPOI(makeBikeStation("authority4", id = 400)).apply { distance = .5f })
+            add(SimpleLocationPOI(mkBikeStation("authority4", id = 400)).apply { distance = .5f })
         }
 
         val result = poiList.sortedWith(subject.then(LocationPOI.ALPHA_COMPARATOR))
@@ -89,11 +89,11 @@ class LocationPOIDistanceComparatorTests {
     @Test
     fun test_compare_same_distance_RDS_and_Bike() {
         val poiList = buildList<LocationPOI> {
-            add(SimpleLocationPOI(makeBikeStation("authorityFarAway", id = 1, name = "Bike Station A")).apply { distance = 1_000f }) // farthest
+            add(SimpleLocationPOI(mkBikeStation("authorityFarAway", id = 1, name = "Bike Station A")).apply { distance = 1_000f }) // farthest
             add(SimpleLocationPOI(makeRDS(routeId = 10L, stopId = 100, stopName = "Bus Stop 100")).apply { distance = 100f })
-            add(SimpleLocationPOI(makeBikeStation("authority1", id = 2, name = "Bike Station B")).apply { distance = 100f })
+            add(SimpleLocationPOI(mkBikeStation("authority1", id = 2, name = "Bike Station B")).apply { distance = 100f })
             add(SimpleLocationPOI(makeRDS(routeId = 20L, stopId = 200, stopName = "Bus Stop 200")).apply { distance = 100f })
-            add(SimpleLocationPOI(makeBikeStation("authority2", id = 3, name = "Bike Station C")).apply { distance = 100f })
+            add(SimpleLocationPOI(mkBikeStation("authority2", id = 3, name = "Bike Station C")).apply { distance = 100f })
             add(SimpleLocationPOI(makeRDS(routeId = 99L, stopId = 999, stopName = "Bus Stop 999")).apply { distance = 1f }) // closest
         }.shuffled()
 

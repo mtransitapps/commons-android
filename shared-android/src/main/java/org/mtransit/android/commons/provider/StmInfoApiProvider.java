@@ -26,8 +26,6 @@ import androidx.annotation.Nullable;
 
 import com.google.android.gms.security.ProviderInstaller;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
@@ -77,7 +75,6 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -97,7 +94,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		ServiceUpdateProviderContract, // using StmInfoServiceUpdateProvider #USE_NEW_API
 		ProviderInstaller.ProviderInstallListener {
 
-	private static final String LOG_TAG = StmInfoApiProvider.class.getSimpleName();
+	protected static final String LOG_TAG = StmInfoApiProvider.class.getSimpleName();
 
 	// private static final boolean USE_NEW_API = false;
 	private static final boolean USE_NEW_API = true; // WIP
@@ -713,10 +710,10 @@ public class StmInfoApiProvider extends MTContentProvider implements
 					final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 					final String jsonString = FileUtils.getString(response.body().byteStream());
 					MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-					final JArrivals jArrivals = parseAgencyJSONArrivals(jsonString);
-					final ArrayList<POIStatus> statuses = parseAgencyJSONArrivalsStatuses(
+					final JArrivals jArrivals = StmInfoApiProviderExtKt.toJArrivals(jsonString);
+					final ArrayList<POIStatus> statuses = parseAgencyJsonArrivalsStatuses(
 							context,
-							jArrivals.getResults(),
+							jArrivals == null ? Collections.emptyList() : jArrivals.getResults(),
 							rds,
 							sourceLabel,
 							newLastUpdateInMs
@@ -735,9 +732,10 @@ public class StmInfoApiProvider extends MTContentProvider implements
 					// }
 					// }
 					// }
-					final ServiceUpdates serviceUpdates = parseAgencyJSONArrivalsServiceUpdates(
+					final ServiceUpdates serviceUpdates = parseAgencyJsonArrivalsServiceUpdates(
 							context,
-							jArrivals.getMessages(),
+							jArrivals == null ? Collections.emptyList() : jArrivals.getMessages().getLines(),
+							jArrivals == null ? Collections.emptyList() : jArrivals.getMessages().getStopPoints(),
 							rds,
 							sourceLabel,
 							language,
@@ -773,9 +771,10 @@ public class StmInfoApiProvider extends MTContentProvider implements
 
 	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	@Nullable
-	private ServiceUpdates parseAgencyJSONArrivalsServiceUpdates(
+	private ServiceUpdates parseAgencyJsonArrivalsServiceUpdates(
 			@NonNull Context context,
-			@NonNull JArrivals.JMessages jMessages,
+			@NonNull List<JArrivals.JMessages.JMessage> jLines,
+			@NonNull List<JArrivals.JMessages.JMessage> jStopPoints,
 			@NonNull RouteDirectionStop rds,
 			@NonNull String sourceLabel,
 			@NonNull String language,
@@ -788,7 +787,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 			final String rdsTargetUUID = getStopServiceUpdateTargetUUID(context, rds);
 			int rdsServiceUpdateAdded = 0;
 			// ROUTE DIRECTION messages
-			for (JArrivals.JMessages.JMessage jLine : jMessages.getLines()) {
+			for (JArrivals.JMessages.JMessage jLine : jLines) {
 				final int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI; // service updates target this route stops
 				final String routeLink = makeRouteServiceUpdateLink(rds.getRoute());
 				final String routeTitle = rds.getRoute().getShortName() + " " + rds.getDirection().getHeading(context);
@@ -820,7 +819,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 				// NOT adding duplicates for route since UI cannot fetch from routes screen
 			}
 			// STOPS messages
-			for (JArrivals.JMessages.JMessage stopPoint : jMessages.getStopPoints()) {
+			for (JArrivals.JMessages.JMessage stopPoint : jStopPoints) {
 				final int severity = ServiceUpdate.SEVERITY_WARNING_POI;
 				final String stopLink = null;
 				final String stopTitle = rds.getStop().getCode() + " (" + rds.getStop().getName() + ")";
@@ -863,7 +862,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 			}
 			return serviceUpdates;
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON results '%s'!", jMessages);
+			MTLog.w(this, e, "Error while parsing JSON results '%s' & '%s'!", jLines, jStopPoints);
 			return null;
 		}
 	}
@@ -903,12 +902,12 @@ public class StmInfoApiProvider extends MTContentProvider implements
 
 	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	// USING same feed as real-time POI status schedule
-	@SuppressWarnings({"deprecation", "unused"})
+	@SuppressWarnings({"unused"})
 	@Deprecated
 	private void loadRealTimeServiceUpdateFromWWW(@NonNull Context context, RouteDirectionStop rds) {
 		try {
 			final String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
-			String urlString = getRealTimeServiceUpdateUrlString(rds, language);
+			final String urlString = getRealTimeServiceUpdateUrlString(rds, language);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			final String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_SERVICE_UPDATE_URL_PART_1_BEFORE_LANG);
 			final Request urlRequest = new Request.Builder()
@@ -919,14 +918,17 @@ public class StmInfoApiProvider extends MTContentProvider implements
 			try (Response response = getOkHttpClient(context).newCall(urlRequest).execute()) {
 				switch (response.code()) {
 				case HttpURLConnection.HTTP_OK:
-					long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-					String jsonString = FileUtils.getString(response.body().byteStream());
+					final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+					final String jsonString = FileUtils.getString(response.body().byteStream());
 					MTLog.d(this, "loadRealTimeServiceUpdateFromWWW() > jsonString: %s.", jsonString);
-					JMessages jMessages = parseAgencyJSONMessages(jsonString);
-					List<JMessages.JResult> jResults = jMessages.getResults();
-					ServiceUpdates serviceUpdates = parseAgencyJSONMessageResults(
-							jResults,
-							rds, sourceLabel, language, newLastUpdateInMs);
+					final List<JMessages.JResult> jMessageResults = StmInfoApiProviderExtKt.toLegacyMessagesResults(jsonString);
+					final ServiceUpdates serviceUpdates = parseAgencyJsonMessageResults(
+							jMessageResults,
+							rds,
+							sourceLabel,
+							language,
+							newLastUpdateInMs
+					);
 					MTLog.i(this, "Found %d service updates.", serviceUpdates == null ? null : serviceUpdates.size());
 					deleteOldAndCacheNewServiceUpdates(serviceUpdates);
 					return;
@@ -1082,50 +1084,11 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return affectedRows;
 	}
 
-	@Deprecated
-	private JMessages parseAgencyJSONMessages(String jsonString) {
-		List<JMessages.JResult> results = new ArrayList<>();
-		try {
-			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
-			if (json != null && json.has(JSON_RESULT)) {
-				JSONArray jResults = json.getJSONArray(JSON_RESULT);
-				List<Map<String, List<JMessages.JResult.JResultRoute>>> shortNameResultRouteList = new ArrayList<>();
-				for (int r = 0; r < jResults.length(); r++) {
-					Map<String, List<JMessages.JResult.JResultRoute>> shortNameResultRoutes = new HashMap<>();
-					JSONObject jResult = jResults.getJSONObject(r);
-					Iterator<String> it = jResult.keys();
-					while (it.hasNext()) {
-						String jResultKey = it.next();
-						ArrayList<JMessages.JResult.JResultRoute> resultRoutes = new ArrayList<>();
-						if (jResult.has(jResultKey)) {
-							JSONArray jResultRoutes = jResult.getJSONArray(jResultKey);
-							for (int rr = 0; rr < jResultRoutes.length(); rr++) {
-								JSONObject jResultRoute = jResultRoutes.getJSONObject(rr);
-								String direction = jResultRoute.getString(JSON_DIRECTION);
-								String directionName = jResultRoute.getString(JSON_DIRECTION_NAME);
-								String text = jResultRoute.getString(JSON_TEXT);
-								String code = jResultRoute.getString(JSON_CODE);
-								String date = jResultRoute.getString(JSON_DATE);
-								resultRoutes.add(new JMessages.JResult.JResultRoute(direction, directionName, text, code, date));
-							}
-						}
-						shortNameResultRoutes.put(jResultKey, resultRoutes);
-					}
-					shortNameResultRouteList.add(shortNameResultRoutes);
-				}
-				results.add(new JMessages.JResult(shortNameResultRouteList));
-			}
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
-		}
-		return new JMessages(results);
-	}
-
 	@Discouraged(message = "Using StmInfoServiceUpdateProvider instead")
 	@SuppressWarnings("DeprecatedIsStillUsed")
 	@Deprecated
 	@Nullable
-	protected ServiceUpdates parseAgencyJSONMessageResults(
+	protected ServiceUpdates parseAgencyJsonMessageResults(
 			@NonNull List<JMessages.JResult> jResults,
 			@NonNull RouteDirectionStop rds,
 			@NonNull String sourceLabel,
@@ -1175,7 +1138,6 @@ public class StmInfoApiProvider extends MTContentProvider implements
 									title,
 									enhanceHtml(text, null, null) // no severity|stop based enhancement here
 							);
-							//noinspection UnnecessaryLocalVariable
 							final String originalId = routeShortName + "-" + directionName + "-" + index; // TODO original ID?
 							serviceUpdates.add(new ServiceUpdate(
 									null,
@@ -1269,7 +1231,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 	private static final Cleaner CLEAN_STOP_CODE_AND_NAME = new Cleaner(
 			true ? group(ANY_STOP_CODE + zeroOrMore(except("<" + END)))
 					: "(" + ANY_STOP_CODE + ")[\\s]*" + PARENTHESES1 + "([^" + SLASH + "]*)" + SLASH
-					  + "([^" + PARENTHESES2 + "]*)" + PARENTHESES2 + "([" + PARENTHESES2 + "]*)" + "([,]*)([.]*)",
+					+ "([^" + PARENTHESES2 + "]*)" + PARENTHESES2 + "([" + PARENTHESES2 + "]*)" + "([,]*)([.]*)",
 			true ? "- $1"
 					: "- $2" + SLASH + "$3$4 " + PARENTHESES1 + "$1" + PARENTHESES2 + "$5$6",
 			false
@@ -1357,7 +1319,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 
 	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
 	@Nullable
-	protected ArrayList<POIStatus> parseAgencyJSONArrivalsStatuses(
+	protected ArrayList<POIStatus> parseAgencyJsonArrivalsStatuses(
 			@NonNull Context context,
 			@NonNull List<JArrivals.JResult> jResults,
 			@NonNull RouteDirectionStop rds,
@@ -1432,116 +1394,6 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON results '%s'!", jResults);
 			return null;
-		}
-	}
-
-	private static final String JSON_DIRECTION = "direction";
-	private static final String JSON_DIRECTION_NAME = "direction_name";
-	private static final String JSON_DATE = "date";
-	private static final String JSON_MESSAGES = "messages";
-	private static final String JSON_LINE = "line";
-	private static final String JSON_STOP_POINT = "stopPoint";
-	private static final String JSON_START_DATE = "start_date";
-	private static final String JSON_TEXT = "text";
-	private static final String JSON_CODE = "code";
-	private static final String JSON_RESULT = "result";
-	private static final String JSON_TIME = "time";
-	private static final String JSON_IS_REAL = "is_real";
-	private static final String JSON_IS_CONGESTION = "is_congestion";
-	private static final String JSON_IS_RAMP_CANCELLED = "is_ramp_cancelled";
-	private static final String JSON_IS_ON_REQUESTED_DAY = "is_on_requested_day";
-
-	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
-	@NonNull
-	private JArrivals parseAgencyJSONArrivals(@Nullable String jsonString) {
-		List<JArrivals.JMessages.JMessage> lines = new ArrayList<>();
-		List<JArrivals.JMessages.JMessage> stopPoints = new ArrayList<>();
-		List<JArrivals.JResult> results = new ArrayList<>();
-		try {
-			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
-			parseAgencyJSONArrivalsMessages(lines, stopPoints, json);
-			parseAgencyJSONArrivalsResults(results, json);
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
-		}
-		return new JArrivals(new JArrivals.JMessages(lines, stopPoints), results);
-	}
-
-	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
-	private void parseAgencyJSONArrivalsResults(@NonNull List<JArrivals.JResult> results, @Nullable JSONObject json) {
-		try {
-			if (json != null && json.has(JSON_RESULT)) {
-				JSONArray jResults = json.getJSONArray(JSON_RESULT);
-				if (jResults.length() > 0) {
-					for (int r = 0; r < jResults.length(); r++) {
-						JSONObject jResult = jResults.getJSONObject(r);
-						if (jResult != null && jResult.has(JSON_TIME)) {
-							String jTime = jResult.getString(JSON_TIME);
-							boolean isReal;
-							if (jResult.has(JSON_IS_REAL)) {
-								isReal = jResult.getBoolean(JSON_IS_REAL);
-							} else {
-								isReal = jTime.length() != 4;
-							}
-							boolean isCongestion = false;
-							if (jResult.has(JSON_IS_CONGESTION)) {
-								isCongestion = jResult.getBoolean(JSON_IS_CONGESTION);
-							}
-							boolean isRampCancelled = false;
-							if (jResult.has(JSON_IS_RAMP_CANCELLED)) {
-								isRampCancelled = jResult.getBoolean(JSON_IS_RAMP_CANCELLED);
-							}
-							boolean isOnRequestedDay = true;
-							if (jResult.has(JSON_IS_ON_REQUESTED_DAY)) {
-								isOnRequestedDay = jResult.getBoolean(JSON_IS_ON_REQUESTED_DAY);
-							}
-							results.add(new JArrivals.JResult(jTime, isReal, isCongestion, isRampCancelled, isOnRequestedDay));
-						}
-					}
-				}
-			}
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON '%s'!", json);
-		}
-	}
-
-	@Discouraged(message = "Using GTFS-RT Trip Updates instead")
-	private void parseAgencyJSONArrivalsMessages(
-			@NonNull List<JArrivals.JMessages.JMessage> lines,
-			@NonNull List<JArrivals.JMessages.JMessage> stopPoints,
-			@Nullable JSONObject json) {
-		try {
-			if (json != null && json.has(JSON_MESSAGES)) {
-				JSONObject jMessages = json.optJSONObject(JSON_MESSAGES); // returns an array[] when no messages!
-				if (jMessages != null && jMessages.has(JSON_LINE)) {
-					JSONArray jLines = jMessages.getJSONArray(JSON_LINE);
-					for (int l = 0; l < jLines.length(); l++) {
-						JSONObject jLine = jLines.getJSONObject(l);
-						if (jLine != null && jLine.has(JSON_TEXT)) {
-							String jText = jLine.getString(JSON_TEXT);
-							if (!jText.isEmpty()) {
-								String jStartDate = jLine.optString(JSON_START_DATE);
-								lines.add(new JArrivals.JMessages.JMessage(jText, jStartDate));
-							}
-						}
-					}
-				}
-				if (jMessages != null && jMessages.has(JSON_STOP_POINT)) {
-					JSONArray jStopPoints = jMessages.getJSONArray(JSON_STOP_POINT);
-					for (int l = 0; l < jStopPoints.length(); l++) {
-						JSONObject jStopPoint = jStopPoints.getJSONObject(l);
-						if (jStopPoint != null && jStopPoint.has(JSON_TEXT)) {
-							String jText = jStopPoint.getString(JSON_TEXT);
-							if (!jText.isEmpty()) {
-								String jStartDate = jStopPoint.optString(JSON_START_DATE);
-								stopPoints.add(new JArrivals.JMessages.JMessage(jText, jStartDate));
-							}
-						}
-					}
-				}
-			}
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON '%s'!", json);
 		}
 	}
 

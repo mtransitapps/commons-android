@@ -9,16 +9,13 @@ import android.text.style.TypefaceSpan;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
 
 public class AppStatus extends POIStatus implements MTLog.Loggable {
 
-	private static final String LOG_TAG = AppStatus.class.getSimpleName();
+	protected static final String LOG_TAG = AppStatus.class.getSimpleName();
 
 	@NonNull
 	@Override
@@ -32,7 +29,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 
 	private boolean updateAvailable = false;
 
-	private AppStatus(@NonNull POIStatus status, boolean appInstalled, boolean appEnabled, boolean updateAvailable) {
+	protected AppStatus(@NonNull POIStatus status, boolean appInstalled, boolean appEnabled, boolean updateAvailable) {
 		this(
 				status.getId(),
 				status.getTargetUUID(),
@@ -122,7 +119,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		return appEnabled;
 	}
 
-	private boolean isUpdateAvailable() {
+	public boolean isUpdateAvailable() {
 		return updateAvailable;
 	}
 
@@ -201,47 +198,20 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 
 	@NonNull
 	public static AppStatus fromCursorWithExtra(@NonNull Cursor cursor) {
-		POIStatus status = POIStatus.fromCursor(cursor);
-		String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
-		return fromExtraJSONString(status, extrasJSONString);
-	}
-
-	@NonNull
-	private static AppStatus fromExtraJSONString(@NonNull POIStatus status, @Nullable String extrasJSONString) {
-		try {
-			final JSONObject json = extrasJSONString == null ? null : new JSONObject(extrasJSONString);
-			return fromExtraJSON(status, json);
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while retrieving extras information from cursor.");
-			return fromExtraJSON(status, null);
-		}
-	}
-
-	private static final String JSON_APP_INSTALLED = "appInstalled";
-	private static final String JSON_APP_ENABLED = "appEnabled";
-	private static final String JSON_UPDATE_AVAILABLE = "updateAvailable";
-
-	@NonNull
-	private static AppStatus fromExtraJSON(@NonNull POIStatus status, @Nullable JSONObject extrasJSON) {
-		return new AppStatus(status,
-				JSONUtils.optBoolean(extrasJSON, JSON_APP_INSTALLED, false),
-				JSONUtils.optBoolean(extrasJSON, JSON_APP_ENABLED, true),
-				JSONUtils.optBoolean(extrasJSON, JSON_UPDATE_AVAILABLE, false)
+		return fromExtraJsonString(
+				POIStatus.fromCursor(cursor),
+				POIStatus.getExtrasFromCursor(cursor)
 		);
+	}
+
+	@NonNull
+	private static AppStatus fromExtraJsonString(@NonNull POIStatus status, @Nullable String extrasJsonString) {
+		return AppStatusExtKt.toAppStatusOrDefault(extrasJsonString, status);
 	}
 
 	@Nullable
 	@Override
-	public JSONObject getExtrasJSON() {
-		try {
-			JSONObject json = new JSONObject();
-			json.put(JSON_APP_INSTALLED, this.appInstalled);
-			json.put(JSON_APP_ENABLED, this.appEnabled);
-			json.put(JSON_UPDATE_AVAILABLE, this.updateAvailable);
-			return json;
-		} catch (Exception e) {
-			MTLog.w(LOG_TAG, e, "Error while converting object '%s' to JSON!", this);
-			return null; // no partial result
-		}
+	public String getExtrasJsonStringOrNull() {
+		return AppStatusExtKt.toJsonStringOrNull(this);
 	}
 }

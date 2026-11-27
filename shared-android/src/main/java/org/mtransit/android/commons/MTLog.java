@@ -73,24 +73,6 @@ public final class MTLog {
 
 	// VERBOSE
 
-	public static void v(@NonNull Loggable loggable, @NonNull String msg) {
-		v(loggable.getLogTag(), msg);
-	}
-
-	public static void v(@NonNull Object object, @NonNull String msg) {
-		v(object.getClass(), msg);
-	}
-
-	public static void v(@NonNull Class<?> clazz, @NonNull String msg) {
-		v(clazz.getSimpleName(), msg);
-	}
-
-	public static void v(@NonNull String tag, @NonNull String msg) {
-		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.VERBOSE)) {
-			doLog(fMsg -> Log.v(MAIN_TAG, fMsg), tag, msg);
-		}
-	}
-
 	public static void v(@NonNull Object object, @NonNull String msg, @NonNull Object... args) {
 		v(object.getClass(), msg, args);
 	}
@@ -130,24 +112,6 @@ public final class MTLog {
 
 	// DEBUG
 
-	public static void d(@NonNull Loggable loggable, @NonNull String msg) {
-		d(loggable.getLogTag(), msg);
-	}
-
-	public static void d(@NonNull Object object, @NonNull String msg) {
-		d(object.getClass(), msg);
-	}
-
-	public static void d(@NonNull Class<?> clazz, @NonNull String msg) {
-		d(clazz.getSimpleName(), msg);
-	}
-
-	public static void d(@NonNull String tag, @NonNull String msg) {
-		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.DEBUG)) {
-			doLog(fMsg -> Log.d(MAIN_TAG, fMsg), tag, msg);
-		}
-	}
-
 	public static void d(@NonNull Loggable loggable, @NonNull String msg, @NonNull Object... args) {
 		d(loggable.getLogTag(), msg, args);
 	}
@@ -186,24 +150,6 @@ public final class MTLog {
 	}
 
 	// INFO
-
-	public static void i(@NonNull Loggable loggable, @NonNull String msg) {
-		i(loggable.getLogTag(), msg);
-	}
-
-	public static void i(@NonNull Object object, @NonNull String msg) {
-		i(object.getClass(), msg);
-	}
-
-	public static void i(@NonNull Class<?> clazz, @NonNull String msg) {
-		i(clazz.getSimpleName(), msg);
-	}
-
-	public static void i(@NonNull String tag, @NonNull String msg) {
-		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.INFO)) {
-			doLog(fMsg -> Log.i(MAIN_TAG, fMsg), tag, msg);
-		}
-	}
 
 	public static void i(@NonNull Loggable loggable, @NonNull String msg, @NonNull Object... args) {
 		i(loggable.getLogTag(), msg, args);
@@ -248,20 +194,6 @@ public final class MTLog {
 		w(loggable.getLogTag(), msg, args);
 	}
 
-	public static void w(@NonNull Object object, @NonNull String msg) {
-		w(object.getClass(), msg);
-	}
-
-	public static void w(@NonNull Class<?> clazz, @NonNull String msg) {
-		w(clazz.getSimpleName(), msg);
-	}
-
-	public static void w(@NonNull String tag, @NonNull String msg) {
-		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.WARN)) {
-			doLog(fMsg -> Log.w(MAIN_TAG, fMsg), tag, msg);
-		}
-	}
-
 	public static void w(@NonNull Object object, @NonNull String msg, @NonNull Object... args) {
 		w(object.getClass(), msg, args);
 	}
@@ -296,24 +228,6 @@ public final class MTLog {
 	}
 
 	// ERROR
-
-	public static void e(@NonNull Loggable loggable, @NonNull String msg) {
-		e(loggable.getLogTag(), msg);
-	}
-
-	public static void e(@NonNull Object object, @NonNull String msg) {
-		e(object.getClass(), msg);
-	}
-
-	public static void e(@NonNull Class<?> clazz, @NonNull String msg) {
-		e(clazz.getSimpleName(), msg);
-	}
-
-	public static void e(@NonNull String tag, @NonNull String msg) {
-		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.ERROR)) {
-			doLog(fMsg -> Log.e(MAIN_TAG, fMsg), tag, msg);
-		}
-	}
 
 	public static void e(@NonNull Loggable loggable, @NonNull String msg, @NonNull Object... args) {
 		e(loggable.getLogTag(), msg, args);
@@ -352,12 +266,8 @@ public final class MTLog {
 		}
 	}
 
-	private static void doLog(@NonNull LogMethod logMethod, @NonNull String tag, @NonNull String msg) {
-		doLog(logMethod, getLogMsg(tag, msg));
-	}
-
 	private static void doLog(@NonNull LogMethod logMethod, @NonNull String tag, @NonNull String msg, @NonNull Object... args) {
-		doLog(logMethod, getLogMsg(tag, String.format(msg, args)));
+		doLog(logMethod, getLogMsg(tag, args.length == 0 ? msg : String.format(msg, args)));
 	}
 
 	private static void doLog(@NonNull LogMethod logMethod, @NonNull String logMsg) {

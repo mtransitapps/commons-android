@@ -1,18 +1,18 @@
 package org.mtransit.android.commons.data
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
-import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.TimeUtils
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.provider.status.StatusProviderContract
+import org.mtransit.commons.jsonObjectOrNull
+import org.mtransit.commons.jsonPrimitiveOrNull
 import org.mtransit.commons.model.Secret
 import java.util.concurrent.TimeUnit
 
@@ -60,14 +60,9 @@ data class ScheduleStatusFilter(
         )
 
         @JvmStatic
-        fun String?.toFilterN() = this?.toFilter()
-
-        fun String.toFilter() = try {
+        fun String?.toFilterOrNull() = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
             sharedJson.parseToJsonElement(this).jsonObject.toFilter()
-        } catch (se: SerializationException) {
-            MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", se)
-            throw se
-        }
+        }?.getOrNull()
 
         private const val JSON_MIN_USEFUL_DURATION_COVERED_IN_MS = "minUsefulDurationCoveredInMs"
         private const val JSON_MIN_USEFUL_RESULTS = "minUsefulResults"
@@ -76,44 +71,34 @@ data class ScheduleStatusFilter(
         private const val JSON_LOOK_BEHIND_IN_MS = "lookBehindInMs"
         private const val JSON_INCLUDE_CANCELLED_TIMESTAMPS = "includeCancelledTimestamps"
 
-        fun JsonObject.toFilter() = try {
-            this[JSON_ROUTE_DIRECTION_STOP]?.jsonObject?.toRouteDirectionStop()?.let { routeDirectionStop ->
+        private fun JsonObject.toFilter() =
+            this[JSON_ROUTE_DIRECTION_STOP]?.jsonObjectOrNull?.toRouteDirectionStop()?.let { routeDirectionStop ->
                 ScheduleStatusFilter(
                     cacheOnly = getCacheOnlyFromJson(),
                     cacheValidityInMs = getCacheValidityInMsFromJson(),
                     inFocus = getInFocusFromJson(),
                     providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
                     routeDirectionStop = routeDirectionStop,
-                    lookBehindInMs = this[JSON_LOOK_BEHIND_IN_MS]?.jsonPrimitive?.longOrNull,
-                    minUsefulDurationCoveredInMs = this[JSON_MIN_USEFUL_DURATION_COVERED_IN_MS]?.jsonPrimitive?.longOrNull,
-                    minUsefulResults = this[JSON_MIN_USEFUL_RESULTS]?.jsonPrimitive?.intOrNull,
-                    maxDataRequests = this[JSON_MAX_DATA_REQUESTS]?.jsonPrimitive?.intOrNull,
-                    includeCancelledTimestamps = this[JSON_INCLUDE_CANCELLED_TIMESTAMPS]?.jsonPrimitive?.booleanOrNull,
+                    lookBehindInMs = this[JSON_LOOK_BEHIND_IN_MS]?.jsonPrimitiveOrNull?.longOrNull,
+                    minUsefulDurationCoveredInMs = this[JSON_MIN_USEFUL_DURATION_COVERED_IN_MS]?.jsonPrimitiveOrNull?.longOrNull,
+                    minUsefulResults = this[JSON_MIN_USEFUL_RESULTS]?.jsonPrimitiveOrNull?.intOrNull,
+                    maxDataRequests = this[JSON_MAX_DATA_REQUESTS]?.jsonPrimitiveOrNull?.intOrNull,
+                    includeCancelledTimestamps = this[JSON_INCLUDE_CANCELLED_TIMESTAMPS]?.jsonPrimitiveOrNull?.booleanOrNull,
                 )
             }
-        } catch (se: SerializationException) {
-            MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
-            throw se
-        }
     }
 
-    @Throws(SerializationException::class)
-    private fun StatusProviderContract.Filter.toJson() = try {
+    private fun toJson() = jsonRunCatching {
         buildJsonObject {
-            toJson(this@toJson)
-            with(this@toJson is ScheduleStatusFilter) {
-                put(JSON_ROUTE_DIRECTION_STOP, routeDirectionStop.toJson())
-                lookBehindInMs?.let { put(JSON_LOOK_BEHIND_IN_MS, it) }
-                minUsefulDurationCoveredInMs?.let { put(JSON_MIN_USEFUL_DURATION_COVERED_IN_MS, it) }
-                minUsefulResults?.let { put(JSON_MIN_USEFUL_RESULTS, it) }
-                maxDataRequests?.let { put(JSON_MAX_DATA_REQUESTS, it) }
-                includeCancelledTimestamps?.let { put(JSON_INCLUDE_CANCELLED_TIMESTAMPS, it) }
-            }
+            toJson(this@ScheduleStatusFilter)
+            put(JSON_ROUTE_DIRECTION_STOP, routeDirectionStop.toJson())
+            lookBehindInMs?.let { put(JSON_LOOK_BEHIND_IN_MS, it) }
+            minUsefulDurationCoveredInMs?.let { put(JSON_MIN_USEFUL_DURATION_COVERED_IN_MS, it) }
+            minUsefulResults?.let { put(JSON_MIN_USEFUL_RESULTS, it) }
+            maxDataRequests?.let { put(JSON_MAX_DATA_REQUESTS, it) }
+            includeCancelledTimestamps?.let { put(JSON_INCLUDE_CANCELLED_TIMESTAMPS, it) }
         }
-    } catch (se: SerializationException) {
-        MTLogK.w(LOG_TAG, "Error while making JSON object '$this'", se)
-        throw se
-    }
+    }.getOrThrow()
 
     override fun getLogTag() = LOG_TAG
 
@@ -141,7 +126,6 @@ data class ScheduleStatusFilter(
 
     val isIncludeCancelledTimestampsOrDefault: Boolean get() = this.includeCancelledTimestamps == true
 
-    @Throws(SerializationException::class)
     override fun toJsonString() = sharedJson.encodeToString(this.toJson())
 
     override fun toString(): String {

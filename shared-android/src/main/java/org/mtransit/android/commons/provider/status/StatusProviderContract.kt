@@ -2,7 +2,6 @@ package org.mtransit.android.commons.provider.status
 
 import android.net.Uri
 import android.provider.BaseColumns
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.int
@@ -16,6 +15,7 @@ import org.mtransit.android.commons.data.POI
 import org.mtransit.android.commons.data.POIStatus
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.ScheduleStatusFilter
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.commons.model.Secret
@@ -155,21 +155,16 @@ interface StatusProviderContract : ProviderContract {
             fun String?.getTypeFromJsonStringN() = this?.getTypeFromJsonString() ?: POI.ITEM_STATUS_TYPE_NONE
 
             @POI.ItemStatusType
-            fun String.getTypeFromJsonString() = try {
+            fun String.getTypeFromJsonString() = jsonRunCatching(LOG_TAG) {
                 sharedJson.parseToJsonElement(this).jsonObject.getTypeFromJson()
-            } catch (se: SerializationException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$this'", se)
-                POI.ITEM_STATUS_TYPE_NONE
-            }
+            }.getOrDefault(POI.ITEM_STATUS_TYPE_NONE)
 
-            @Throws(SerializationException::class)
             fun JsonObject.getTypeFromJson() = getValue(JSON_TYPE).jsonPrimitive.int
 
             fun JsonObject.getTargetUUIDFromJson() = getValue(JSON_TARGET_UUID).jsonPrimitive.content
 
             fun toJson(statusFilter: Filter, json: JsonObjectBuilder) = json.toJson(statusFilter)
 
-            @Throws(SerializationException::class)
             fun JsonObjectBuilder.toJson(statusFilter: Filter) {
                 toJsonCommon(statusFilter)
                 put(JSON_TYPE, statusFilter.type)

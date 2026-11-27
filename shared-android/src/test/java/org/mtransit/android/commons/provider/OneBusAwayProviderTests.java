@@ -1,28 +1,32 @@
 package org.mtransit.android.commons.provider;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mtransit.android.commons.data.DirectionExtKt.makeDirection;
+import static org.mtransit.android.commons.data.RouteDirectionStopExtKt.makeRouteDirectionStop;
+import static org.mtransit.android.commons.data.RouteExtKt.makeRoute;
+import static org.mtransit.android.commons.data.StopExtKt.makeStop;
+
 import android.content.Context;
 
 import androidx.annotation.NonNull;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mtransit.android.commons.data.DataSourceTypeId;
 import org.mtransit.android.commons.data.Direction;
-import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.commons.CommonsApp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-
 public class OneBusAwayProviderTests {
 
 	private static final String AUTHORITY = "authority.test";
 
-	private static final Route DEFAULT_ROUTE = new Route(
+	private static final Route DEFAULT_ROUTE = makeRoute(
 			AUTHORITY,
 			1,
 			"1",
@@ -30,7 +34,7 @@ public class OneBusAwayProviderTests {
 			"blue"
 	);
 
-	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0, 1, null);
+	private static final Stop DEFAULT_STOP = makeStop(1, "1", "stop 1", 0, 0, 0, 1, null);
 
 	private final Context context = mock();
 
@@ -164,7 +168,7 @@ public class OneBusAwayProviderTests {
 		OneBusAwayProvider provider = new OneBusAwayProvider();
 
 		String tripHeadsign = "Martin Grv Via Vaughan Metropolitan Ctr";
-		Direction direction = new Direction(
+		Direction direction = makeDirection(
 				AUTHORITY,
 				-1,
 				Direction.HEADSIGN_TYPE_STRING,
@@ -180,14 +184,14 @@ public class OneBusAwayProviderTests {
 
 	@NonNull
 	private RouteDirectionStop getRouteDirectionStop(String routeShortName, long routeId, long directionId) {
-		Route route = new Route(
+		Route route = makeRoute(
 				AUTHORITY,
 				routeId,
 				routeShortName,
 				"route " + routeShortName,
 				"color"
 		);
-		Direction direction = new Direction(
+		Direction direction = makeDirection(
 				AUTHORITY,
 				directionId,
 				Direction.HEADSIGN_TYPE_STRING,
@@ -200,15 +204,18 @@ public class OneBusAwayProviderTests {
 	}
 
 	@NonNull
-	private RouteDirectionStop getRouteDirectionStop(Route route,
-													 Direction direction,
-													 @SuppressWarnings("SameParameterValue") Stop stop,
-													 boolean noPickup) {
-		return new RouteDirectionStop(
-				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
+	private RouteDirectionStop getRouteDirectionStop(
+			Route route,
+			Direction direction,
+			@SuppressWarnings("SameParameterValue") Stop stop,
+			boolean noPickup
+	) {
+		return makeRouteDirectionStop(
+				DataSourceTypeId.BUS,
 				route,
 				direction,
 				stop,
-				noPickup);
+				noPickup
+		);
 	}
 }

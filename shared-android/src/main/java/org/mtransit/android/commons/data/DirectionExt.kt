@@ -1,42 +1,49 @@
 package org.mtransit.android.commons.data
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
-import org.mtransit.android.commons.MTLogK
+import org.mtransit.android.commons.data.Direction.HeadSignType
 import org.mtransit.android.commons.data.Direction.LOG_TAG
+import org.mtransit.android.commons.jsonRunCatching
 import kotlinx.serialization.json.put as putK
+
+fun makeDirection(
+    authority: String,
+    id: Long,
+    @HeadSignType headsignType: Int,
+    headsignValue: String,
+    routeId: Long,
+) = Direction(
+    authority,
+    id,
+    headsignType,
+    headsignValue,
+    routeId,
+)
 
 private const val JSON_ID = "id"
 private const val JSON_HEADSIGN_TYPE = "headsignType"
 private const val JSON_HEADSIGN_VALUE = "headsignValue"
 private const val JSON_ROUTE_ID = "routeId"
 
-fun Direction.toJson() = try {
+fun Direction.toJson() = jsonRunCatching {
     buildJsonObject {
         putK(JSON_ID, this@toJson.id)
         putK(JSON_HEADSIGN_TYPE, this@toJson.headsignType)
         putK(JSON_HEADSIGN_VALUE, this@toJson.headsignValue)
         putK(JSON_ROUTE_ID, this@toJson.routeId)
     }
-} catch (se: SerializationException) {
-    MTLogK.w(this, "Error while making JSON object", se)
-    throw se
-}
+}.getOrThrow()
 
-@Throws(SerializationException::class)
-fun JsonObject.toDirection(authority: String) = try {
-    Direction(
-        authority,
-        getValue(JSON_ID).jsonPrimitive.long,
-        getValue(JSON_HEADSIGN_TYPE).jsonPrimitive.int,
-        getValue(JSON_HEADSIGN_VALUE).jsonPrimitive.content,
-        getValue(JSON_ROUTE_ID).jsonPrimitive.long,
+fun JsonObject.toDirection(authority: String) = jsonRunCatching(LOG_TAG) {
+    makeDirection(
+        authority = authority,
+        id = getValue(JSON_ID).jsonPrimitive.long,
+        headsignType = getValue(JSON_HEADSIGN_TYPE).jsonPrimitive.int,
+        headsignValue = getValue(JSON_HEADSIGN_VALUE).jsonPrimitive.content,
+        routeId = getValue(JSON_ROUTE_ID).jsonPrimitive.long,
     )
-} catch (se: SerializationException) {
-    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
-    throw se
-}
+}.getOrThrow()
