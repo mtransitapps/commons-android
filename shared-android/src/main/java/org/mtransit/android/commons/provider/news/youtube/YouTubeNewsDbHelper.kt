@@ -9,8 +9,9 @@ import org.mtransit.android.commons.provider.news.NewsProvider.NewsDbHelper
 class YouTubeNewsDbHelper(
     private val context: Context,
     private val storage: YouTubeStorage,
-    dbName: String = DB_NAME,
-    dbVersion: Int = getDbVersion(context)
+    private val dbNamePrefix: String? = null,
+    private val dbName: String = dbNamePrefix?.let { "${it}_$DB_NAME" } ?: DB_NAME,
+    dbVersion: Int = getDbVersion(context),
 ) : NewsDbHelper(context, dbName, dbVersion) {
 
     companion object {
@@ -43,9 +44,7 @@ class YouTubeNewsDbHelper(
 
     override fun getLogTag() = LOG_TAG
 
-    override fun getDbName(): String {
-        return DB_NAME
-    }
+    override fun getDbName() = dbName
 
     override fun onCreateMT(db: SQLiteDatabase) {
         initAllDbTables(db)
@@ -58,7 +57,6 @@ class YouTubeNewsDbHelper(
 
     private fun initAllDbTables(db: SQLiteDatabase) {
         db.execSQL(T_YOUTUBE_NEWS_SQL_CREATE)
-        storage.saveLastUpdateMs(null)
-        storage.saveLastUpdateLang(null)
+        storage.saveLastUpdate(null, null)
     }
 }

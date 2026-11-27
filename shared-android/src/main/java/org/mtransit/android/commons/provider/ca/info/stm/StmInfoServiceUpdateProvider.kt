@@ -132,10 +132,10 @@ object StmInfoServiceUpdateProvider : MTLogK.Loggable {
     }
 
     @Volatile
-    private var _storage: StmInfoServiceUpdateStorage? = null
+    private var storage: StmInfoServiceUpdateStorage? = null
 
-    private fun getStorage(context: Context) = _storage ?: synchronized(this) {
-        _storage ?: StmInfoServiceUpdateStorage(context.applicationContext).also { _storage = it }
+    private fun getStorage(context: Context) = storage ?: synchronized(this) {
+        storage ?: StmInfoServiceUpdateStorage(context.applicationContext).also { storage = it }
     }
 
     @JvmStatic

@@ -20,6 +20,7 @@ object AppUpdateLauncher : MTLogK.Loggable {
                 setClassName(pkg, AppUpdateActivity.CLASS_NAME)
             }
             // DISABLED FOR NOW > works randomly
+            @Suppress("KotlinUnreachableCode")
             if (false && intent.resolveActivity(context.packageManager) != null) {
                 context.startActivity(intent)
                 true

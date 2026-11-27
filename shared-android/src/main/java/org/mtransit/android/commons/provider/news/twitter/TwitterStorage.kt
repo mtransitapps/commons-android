@@ -8,6 +8,7 @@ import org.mtransit.android.commons.PreferenceUtils
 
 class TwitterStorage(
     context: Context,
+    private val prefix: String? = null,
 ) {
 
     companion object {
@@ -22,39 +23,63 @@ class TwitterStorage(
 
     private val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context.applicationContext) }
 
-    @WorkerThread
-    fun getLastUpdateMs(default: Long) =
-        prefLcl.getLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, default)
+    private fun prefKey(key: String) = prefix?.let { "$it:$key" } ?: key
 
     @WorkerThread
-    fun saveLastUpdateMs(lastUpdateInMs: Long) {
-        prefLcl.edit { putLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, lastUpdateInMs) }
+    fun getLastUpdateMs(default: Long) =
+        prefLcl.getLong(prefKey(PREF_KEY_AGENCY_LAST_UPDATE_MS), default)
+
+    @WorkerThread
+    fun saveLastUpdateMs(lastUpdateInMs: Long?) {
+        prefLcl.edit {
+            saveLastUpdateMs(lastUpdateInMs)
+        }
+    }
+
+    private fun SharedPreferences.Editor.saveLastUpdateMs(lastUpdateInMs: Long?) {
+        lastUpdateInMs?.let { putLong(prefKey(PREF_KEY_AGENCY_LAST_UPDATE_MS), it) }
+            ?: run { remove(prefKey(PREF_KEY_AGENCY_LAST_UPDATE_MS)) }
     }
 
     @WorkerThread
     fun getLastUpdateLang(default: String) =
-        prefLcl.getString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, default) ?: default
+        prefLcl.getString(prefKey(PREF_KEY_AGENCY_LAST_UPDATE_LANG), default) ?: default
 
     @WorkerThread
-    fun saveLastUpdateLang(lang: String) {
-        prefLcl.edit { putString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, lang) }
+    fun saveLastUpdateLang(lang: String?) {
+        prefLcl.edit {
+            saveLastUpdateLang(lang)
+        }
+    }
+
+    private fun SharedPreferences.Editor.saveLastUpdateLang(lang: String?) {
+        lang?.let { putString(prefKey(PREF_KEY_AGENCY_LAST_UPDATE_LANG), lang) }
+            ?: run { remove(prefKey(PREF_KEY_AGENCY_LAST_UPDATE_LANG)) }
+    }
+
+    @WorkerThread
+    fun saveLastUpdate(lastUpdateInMs: Long?, lang: String?) {
+        prefLcl.edit {
+            saveLastUpdateMs(lastUpdateInMs)
+            saveLastUpdateLang(lang)
+        }
     }
 
     @WorkerThread
     fun saveUserNameId(userName: String, id: String) {
-        prefLcl.edit { putString("$PREF_KEY_AGENCY_USER_NAME_ID$userName", id) }
+        prefLcl.edit { putString(prefKey("$PREF_KEY_AGENCY_USER_NAME_ID$userName"), id) }
     }
 
     @WorkerThread
     fun getUserNameId(userName: String, default: String) =
-        prefLcl.getString("$PREF_KEY_AGENCY_USER_NAME_ID$userName", default) ?: default
+        prefLcl.getString(prefKey("$PREF_KEY_AGENCY_USER_NAME_ID$userName"), default) ?: default
 
     @WorkerThread
     fun saveUserNameSinceId(userName: String, sinceId: String) {
-        prefLcl.edit { putString("$PREF_KEY_AGENCY_USER_NAME_SINCE_ID$userName", sinceId) }
+        prefLcl.edit { putString(prefKey("$PREF_KEY_AGENCY_USER_NAME_SINCE_ID$userName"), sinceId) }
     }
 
     @WorkerThread
     fun getUserNameSinceId(userName: String, default: String) =
-        prefLcl.getString("$PREF_KEY_AGENCY_USER_NAME_SINCE_ID$userName", default) ?: default
+        prefLcl.getString(prefKey("$PREF_KEY_AGENCY_USER_NAME_SINCE_ID$userName"), default) ?: default
 }

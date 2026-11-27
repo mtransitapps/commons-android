@@ -208,7 +208,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLogK.Loggable {
                             if (outdated) {
                                 MTLogK.w(LOG_TAG, "loadAgencyDataFromWWW() > IGNORE cached feed (too old: ${feedTimestampMs.toDateTimeLog()})")
                             }
-                            val gVehiclePositions = gFeedMessage.takeIf { !outdated }?.entityList?.toVehicles() ?: emptyList()
+                            val gVehiclePositions = gFeedMessage.takeIf { !outdated }?.entityList?.toVehicles().orEmpty()
                             if (Constants.DEBUG) {
                                 MTLogK.d(LOG_TAG, "loadAgencyDataFromWWW() > GTFS vehicles[${gVehiclePositions.size}]: ")
                             }

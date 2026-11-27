@@ -32,8 +32,10 @@ object RssNewProviderUtils : MTLogK.Loggable {
             .also { _feedsColors = it }
 
     @JvmStatic
-    fun pickColor(context: Context, i: Int) =
-        getFeedsColors(context).getOrNull(i)?.takeIf { it.isNotBlank() }
+    @JvmOverloads
+    fun pickColor(context: Context, i: Int, config: RssNewsConfig? = null) =
+        (config?.feedsColors ?: getFeedsColors(context)).getOrNull(i)?.takeIf { it.isNotBlank() }
+            ?: config?.color
             ?: getColor(context).takeIf { it.isNotBlank() }
             ?: AgencyUtils.getAgencyColor(context)
             ?: ColorUtils.BLACK
@@ -50,9 +52,10 @@ object RssNewProviderUtils : MTLogK.Loggable {
             .also { _feedsAuthorName = it }
 
     @JvmStatic
-    fun pickAuthorName(context: Context, i: Int) =
-        getFeedsAuthorName(context).getOrNull(i)?.takeIf { it.isNotBlank() }
-            ?: AgencyUtils.getAgencyShortName(context)
+    @JvmOverloads
+    fun pickAuthorName(context: Context, i: Int, config: RssNewsConfig? = null) =
+        (config?.feedsAuthorName ?: getFeedsAuthorName(context)).getOrNull(i)?.takeIf { it.isNotBlank() }
+            ?: if (config == null) AgencyUtils.getAgencyShortName(context) else config.defaultAuthorName
 
     @Suppress("SpellCheckingInspection")
     private val LABEL_BLACK_LIST = listOf(
@@ -99,8 +102,9 @@ object RssNewProviderUtils : MTLogK.Loggable {
             .also { _feedsLang = it }
 
     @JvmStatic
-    fun pickLang(context: Context, i: Int): String {
-        return getFeedsLang(context).getOrNull(i)
+    @JvmOverloads
+    fun pickLang(context: Context, i: Int, config: RssNewsConfig? = null): String {
+        return (config?.feedsLang ?: getFeedsLang(context)).getOrNull(i)
             ?: LocaleUtils.UNKNOWN
     }
 
@@ -119,11 +123,16 @@ object RssNewProviderUtils : MTLogK.Loggable {
             .also { _feedsTarget = it }
 
     @JvmStatic
-    fun pickTarget(context: Context, i: Int) =
-        getFeedsTarget(context).getOrNull(i)?.takeIf { it.isNotBlank() }
+    @JvmOverloads
+    fun pickTarget(context: Context, i: Int, config: RssNewsConfig? = null, targetAuthority: String? = null): String? {
+        if (config != null) {
+            return config.feedsTarget.getOrNull(i)?.takeIf { it.isNotBlank() } ?: targetAuthority
+        }
+        return getFeedsTarget(context).getOrNull(i)?.takeIf { it.isNotBlank() }
             ?: getTargetAuthority(context).takeIf { it.isNotBlank() }
             ?: AgencyUtils.getAgencyAuthority(context)
             ?: EMPTY.takeIf { context.packageName == Constants.MAIN_APP_PACKAGE_NAME } // target all allowed for main app
+    }
 
     private var _feedsSeverity: List<Int>? = null
 
@@ -134,8 +143,10 @@ object RssNewProviderUtils : MTLogK.Loggable {
             .also { _feedsSeverity = it }
 
     @JvmStatic
-    fun pickSeverity(context: Context, i: Int): Int {
-        return getFeedsSeverity(context).getOrNull(i)
+    @JvmOverloads
+    fun pickSeverity(context: Context, i: Int, config: RssNewsConfig? = null): Int {
+        return (config?.feedsSeverity ?: getFeedsSeverity(context)).getOrNull(i)
+            ?: config?.defaultSeverity
             ?: context.resources.getInteger(R.integer.news_provider_severity_info_agency)
     }
 
@@ -148,8 +159,10 @@ object RssNewProviderUtils : MTLogK.Loggable {
             .also { _feedsNoteworthy = it }
 
     @JvmStatic
-    fun pickNoteworthy(context: Context, i: Int): Long {
-        return getFeedsNoteworthy(context).getOrNull(i)
+    @JvmOverloads
+    fun pickNoteworthy(context: Context, i: Int, config: RssNewsConfig? = null): Long {
+        return (config?.feedsNoteworthy ?: getFeedsNoteworthy(context)).getOrNull(i)
+            ?: config?.defaultNoteworthy
             ?: context.resources.getString(R.string.news_provider_noteworthy_long_term).toLong()
     }
 
@@ -164,8 +177,9 @@ object RssNewProviderUtils : MTLogK.Loggable {
             .also { _feedsIgnoreGUID = it }
 
     @JvmStatic
-    fun pickIgnoreGUID(context: Context, i: Int) =
-        getFeedsIgnoreGUID(context).getOrNull(i)
+    @JvmOverloads
+    fun pickIgnoreGUID(context: Context, i: Int, config: RssNewsConfig? = null) =
+        (config?.feedsIgnoreGuid ?: getFeedsIgnoreGUID(context)).getOrNull(i)
             ?: IGNORE_GUID_DEFAULT
 
     private const val IGNORE_LINK_DEFAULT = false
@@ -179,8 +193,9 @@ object RssNewProviderUtils : MTLogK.Loggable {
             .also { _feedsIgnoreLink = it }
 
     @JvmStatic
-    fun pickIgnoreLink(context: Context, i: Int) =
-        getFeedsIgnoreLink(context).getOrNull(i)
+    @JvmOverloads
+    fun pickIgnoreLink(context: Context, i: Int, config: RssNewsConfig? = null) =
+        (config?.feedsIgnoreLink ?: getFeedsIgnoreLink(context)).getOrNull(i)
             ?: IGNORE_LINK_DEFAULT
 
     private const val ENCODING_DEFAULT = "UTF-8"
@@ -192,8 +207,9 @@ object RssNewProviderUtils : MTLogK.Loggable {
             .also { _encoding = it }
 
     @JvmStatic
-    fun pickEncoding(context: Context) =
-        getEncoding(context).takeIf { it.isNotBlank() }
+    @JvmOverloads
+    fun pickEncoding(context: Context, config: RssNewsConfig? = null) =
+        (config?.encoding ?: getEncoding(context)).takeIf { it.isNotBlank() }
             ?: ENCODING_DEFAULT
 
     private var _feedsDateLinkFallback: List<Pair<String, String>>? = null
@@ -207,6 +223,13 @@ object RssNewProviderUtils : MTLogK.Loggable {
             .also { _feedsDateLinkFallback = it }
 
     @JvmStatic
-    fun pickDateLinkFallback(context: Context, i: Int) =
-        getFeedsDateLinkFallback(context).getOrNull(i)
+    @JvmOverloads
+    fun pickDateLinkFallback(context: Context, i: Int, config: RssNewsConfig? = null): Pair<String, String>? {
+        if (config != null) {
+            val regex = config.feedsDateLinkFallbackRegex.getOrNull(i) ?: return null
+            val format = config.feedsDateLinkFallbackFormat.getOrNull(i) ?: return null
+            return regex to format
+        }
+        return getFeedsDateLinkFallback(context).getOrNull(i)
+    }
 }

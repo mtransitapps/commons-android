@@ -243,10 +243,8 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	private static Cursor getNewsCursor(ArrayList<News> news) {
-		if (news == null) {
-			return ContentProviderConstants.EMPTY_CURSOR;
-		}
-		MatrixCursor matrixCursor = new MatrixCursor(NewsProviderContract.getPROJECTION_NEWS());
+		if (news == null) return ContentProviderConstants.EMPTY_CURSOR;
+		final MatrixCursor matrixCursor = new MatrixCursor(NewsProviderContract.getPROJECTION_NEWS());
 		for (News oneNews : news) {
 			matrixCursor.addRow(oneNews.getCursorRow());
 		}
