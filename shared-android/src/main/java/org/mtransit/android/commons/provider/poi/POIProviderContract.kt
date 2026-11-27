@@ -366,68 +366,6 @@ interface POIProviderContract : ProviderContract {
                         || (it.searchKeywords?.isNotEmpty() == true)
                         || (it.sqlSelection != null)
                 }
-                try {
-                    minLat = getValue(JSON_MIN_LAT).jsonPrimitive.double
-                    maxLat = getValue(JSON_MAX_LAT).jsonPrimitive.double
-                    minLng = getValue(JSON_MIN_LNG).jsonPrimitive.double
-                    maxLng = getValue(JSON_MAX_LNG).jsonPrimitive.double
-                    optLoadedMinLat = this[JSON_OPT_LOADED_MIN_LAT]?.jsonPrimitive?.double
-                    optLoadedMaxLat = this[JSON_OPT_LOADED_MAX_LAT]?.jsonPrimitive?.double
-                    optLoadedMinLng = this[JSON_OPT_LOADED_MIN_LNG]?.jsonPrimitive?.double
-                    optLoadedMaxLng = this[JSON_OPT_LOADED_MAX_LNG]?.jsonPrimitive?.double
-                } catch (_: RuntimeException) { // expected
-                    minLat = null
-                    maxLat = null
-                    minLng = null
-                    maxLng = null
-                    optLoadedMinLat = null
-                    optLoadedMaxLat = null
-                    optLoadedMinLng = null
-                    optLoadedMaxLng = null
-                }
-                //noinspection DiscouragedApi
-                Filter(
-                    cacheOnly = getCacheOnlyFromJson(),
-                    cacheValidityInMs = getCacheValidityInMsFromJson(),
-                    inFocus = getInFocusFromJson(),
-                    providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
-                    lat = lat,
-                    lng = lng,
-                    aroundDiff = aroundDiff,
-                    minLat = minLat,
-                    maxLat = maxLat,
-                    minLng = minLng,
-                    maxLng = maxLng,
-                    optLoadedMinLat = optLoadedMinLat,
-                    optLoadedMaxLat = optLoadedMaxLat,
-                    optLoadedMinLng = optLoadedMinLng,
-                    optLoadedMaxLng = optLoadedMaxLng,
-                    uuids = this[JSON_UUIDS]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull },
-                    extras = SimpleArrayMap<String, Any>().apply {
-                        this@toFilter[JSON_EXTRAS]?.jsonArray?.let { jExtras ->
-                            jExtras.forEach { jExtra ->
-                                val key = runCatching {
-                                    jExtra.jsonObject.getValue(JSON_EXTRAS_KEY).jsonPrimitive.content
-                                }.onFailure {
-                                    MTLogK.w(LOG_TAG, "Error while parsing extra key JSON object '$jExtra'", it)
-                                }.getOrNull() ?: return@forEach
-                                val value = jExtra.jsonObject[JSON_EXTRAS_VALUE]?.toAny() ?: return@forEach
-                                put(key, value)
-                            }
-                        }
-                    },
-                    sqlSelection = this[JSON_SQL_SELECTION]?.jsonPrimitive?.contentOrNull,
-                    searchKeywords = this[JSON_SEARCH_KEYWORDS]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull },
-                ).takeIf {
-                    (it.lat != null && it.lng != null && it.aroundDiff != null)
-                        || (it.minLat != null && it.maxLat != null && it.minLng != null && it.maxLng != null)
-                        || (it.uuids?.isNotEmpty() == true)
-                        || (it.searchKeywords?.isNotEmpty() == true)
-                        || (it.sqlSelection != null)
-                }
-            } catch (se: SerializationException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$this'", se)
-                null
             }
 
             private const val JSON_LAT = "lat"

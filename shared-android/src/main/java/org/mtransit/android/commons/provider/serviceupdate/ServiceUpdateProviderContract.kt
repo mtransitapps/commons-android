@@ -159,6 +159,7 @@ interface ServiceUpdateProviderContract : ProviderContract {
                 ).takeIf {
                     it.poi != null || it.route != null || it.routeDirection != null
                 }
+            }
 
             fun Filter.toJson() = jsonRunCatching {
                 buildJsonObject {
