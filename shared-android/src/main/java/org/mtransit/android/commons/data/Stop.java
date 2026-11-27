@@ -29,6 +29,7 @@ public class Stop {
 	private final double lat;
 	private final double lng;
 
+	@Accessibility.AccessibilityType
 	private final int accessible;
 
 	@Nullable
@@ -42,7 +43,7 @@ public class Stop {
 			@NonNull String name,
 			double lat,
 			double lng,
-			int accessible,
+			@Accessibility.AccessibilityType int accessible,
 			@Nullable Integer originalIdHash,
 			@Nullable String timeZoneId
 	) {
@@ -125,6 +126,7 @@ public class Stop {
 		return this.lng;
 	}
 
+	@Accessibility.AccessibilityType
 	public int getAccessible() {
 		return accessible;
 	}

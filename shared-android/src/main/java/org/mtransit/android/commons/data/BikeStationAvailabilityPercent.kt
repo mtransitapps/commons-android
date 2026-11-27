@@ -59,10 +59,12 @@ fun makeValue1SubValue1(
     value1SubValue1: Int?,
     value1SubValue1Color: Int?,
     value1SubValue1ColorBg: Int?
-): AvailabilityPercentValue? = AvailabilityPercentValue(
-    value1SubValue1 ?: return null,
-    "no_e_bikes", // WARNING: R8
-    "e_bikes_quantity", // WARNING: R8
-    value1SubValue1Color ?: return null,
-    value1SubValue1ColorBg ?: return null,
-)
+): AvailabilityPercentValue? {
+    return AvailabilityPercentValue(
+        value1SubValue1 ?: return null,
+        "no_e_bikes", // WARNING: R8
+        "e_bikes_quantity", // WARNING: R8
+        value1SubValue1Color ?: return null,
+        value1SubValue1ColorBg ?: return null,
+    )
+}

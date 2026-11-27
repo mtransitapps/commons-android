@@ -11,7 +11,6 @@ import android.text.style.RelativeSizeSpan;
 import androidx.annotation.Discouraged;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 
 import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.CursorExtKt;

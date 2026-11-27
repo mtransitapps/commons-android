@@ -21,7 +21,7 @@ fun makeRouteDirectionStop(
     noPickup: Boolean = false,
     alwaysLastTripStop: Boolean? = null,
     score: Int? = null,
-    accessible: Int = stop.accessible,
+    @Accessibility.AccessibilityType accessible: Int = stop.accessible,
 ) = RouteDirectionStop(
     dataSourceTypeId,
     route,

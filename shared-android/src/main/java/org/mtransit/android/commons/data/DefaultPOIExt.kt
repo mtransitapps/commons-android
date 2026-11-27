@@ -29,7 +29,7 @@ fun makeDefaultPOI(
     lng: Double,
     name: String,
     score: Int? = null,
-    accessible: Int = Accessibility.DEFAULT
+    @Accessibility.AccessibilityType accessible: Int = Accessibility.DEFAULT
 ) = DefaultPOI(
     authority,
     id,
