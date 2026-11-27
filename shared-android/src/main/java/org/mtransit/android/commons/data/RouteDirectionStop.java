@@ -1,5 +1,10 @@
 package org.mtransit.android.commons.data;
 
+import static org.mtransit.android.commons.data.DirectionExtKt.makeDirection;
+import static org.mtransit.android.commons.data.RouteDirectionStopExtKt.makeRouteDirectionStop;
+import static org.mtransit.android.commons.data.RouteExtKt.makeRoute;
+import static org.mtransit.android.commons.data.StopExtKt.makeStop;
+
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.text.SpannableStringBuilder;
@@ -9,14 +14,9 @@ import android.text.style.RelativeSizeSpan;
 import androidx.annotation.Discouraged;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.CursorExtKt;
-import org.mtransit.android.commons.JSONUtils;
-import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
@@ -29,9 +29,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 
+import kotlinx.serialization.json.JsonObject;
+
 public class RouteDirectionStop extends DefaultPOI {
 
-	private static final String LOG_TAG = RouteDirectionStop.class.getSimpleName();
+	protected static final String LOG_TAG = RouteDirectionStop.class.getSimpleName();
 
 	@NonNull
 	@Override
@@ -49,30 +51,7 @@ public class RouteDirectionStop extends DefaultPOI {
 	@Nullable
 	private final Boolean alwaysLastTripStop;
 
-	@VisibleForTesting
-	public RouteDirectionStop(
-			@SuppressWarnings("unused") @NonNull String authority,
-			@DataSourceType int dataSourceTypeId,
-			@NonNull Route route,
-			@NonNull Direction direction,
-			@NonNull Stop stop,
-			boolean noPickup
-	) {
-		this(dataSourceTypeId, route, direction, stop, noPickup);
-	}
-
-	@VisibleForTesting
-	public RouteDirectionStop(
-			@DataSourceType int dataSourceTypeId,
-			@NonNull Route route,
-			@NonNull Direction direction,
-			@NonNull Stop stop,
-			boolean noPickup
-	) {
-		this(dataSourceTypeId, route, direction, stop, noPickup, null);
-	}
-
-	public RouteDirectionStop(
+	protected RouteDirectionStop(
 			@DataSourceType int dataSourceTypeId,
 			@NonNull Route route,
 			@NonNull Direction direction,
@@ -229,56 +208,10 @@ public class RouteDirectionStop extends DefaultPOI {
 				getStop().getCode();
 	}
 
-	private static final String JSON_ROUTE = "route";
-	private static final String JSON_DIRECTION = "trip"; // do not change to avoid breaking compat w/ old modules
-	private static final String JSON_STOP = "stop";
-	private static final String JSON_NO_PICKUP = "decentOnly";
-	private static final String JSON_ALWAYS_LAST_TRIP_STOP = "lastStop";
-
-	@Nullable
+	@NonNull
 	@Override
-	public JSONObject toJSON() {
-		try {
-			final JSONObject json = new JSONObject();
-			json.put(JSON_ROUTE, Route.toJSON(getRoute()));
-			json.put(JSON_DIRECTION, Direction.toJSON(getDirection()));
-			json.put(JSON_STOP, Stop.toJSON(getStop()));
-			json.put(JSON_NO_PICKUP, isNoPickup());
-			if (FeatureFlags.F_EXPORT_DIRECTION_STOP_LAST) {
-				json.put(JSON_ALWAYS_LAST_TRIP_STOP, isAlwaysLastTripStop());
-			}
-			DefaultPOI.toJSON(this, json);
-			return json;
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while converting to JSON (%s)!", this);
-			return null;
-		}
-	}
-
-	@Nullable
-	@Override
-	public POI fromJSON(@NonNull JSONObject json) {
-		return fromJSONStatic(json);
-	}
-
-	@Nullable
-	public static RouteDirectionStop fromJSONStatic(@NonNull JSONObject json) {
-		try {
-			final String authority = DefaultPOI.getAuthorityFromJSON(json);
-			final RouteDirectionStop rds = new RouteDirectionStop(
-					DefaultPOI.getDSTypeIdFromJSON(json),
-					Route.fromJSON(json.getJSONObject(JSON_ROUTE), authority),
-					Direction.fromJSON(json.getJSONObject(JSON_DIRECTION), authority),
-					Stop.fromJSON(json.getJSONObject(JSON_STOP)),
-					json.getBoolean(JSON_NO_PICKUP),
-					JSONUtils.optBoolean(json, JSON_ALWAYS_LAST_TRIP_STOP)
-			);
-			DefaultPOI.fromJSON(json, rds);
-			return rds;
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", json);
-			return null;
-		}
+	public JsonObject toJson() {
+		return RouteDirectionStopExtKt.toJsonK(this);
 	}
 
 	@NonNull
@@ -323,9 +256,9 @@ public class RouteDirectionStop extends DefaultPOI {
 
 	@NonNull
 	public static RouteDirectionStop fromCursorStatic(@NonNull Cursor c, @NonNull String authority) {
-		final RouteDirectionStop rds = new RouteDirectionStop(
+		return makeRouteDirectionStop(
 				getDataSourceTypeIdFromCursor(c),
-				new Route(
+				makeRoute(
 						authority,
 						CursorExtKt.getLong(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ID),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_SHORT_NAME),
@@ -334,14 +267,14 @@ public class RouteDirectionStop extends DefaultPOI {
 						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH),
 						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE)
 				),
-				new Direction(
+				makeDirection(
 						authority,
 						CursorExtKt.getLong(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_ID),
 						CursorExtKt.getInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_HEADSIGN_TYPE),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_HEADSIGN_VALUE),
 						CursorExtKt.getInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_ROUTE_ID)
 				),
-				new Stop(
+				makeStop(
 						CursorExtKt.getInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ID),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_CODE),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_NAME),
@@ -352,10 +285,10 @@ public class RouteDirectionStop extends DefaultPOI {
 						CursorExtKt.optString(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_TIMEZONE_ID, null)
 				),
 				CursorExtKt.getBoolean(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP),
-				CursorExtKt.optBoolean(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_ALWAYS_LAST_TRIP_STOP)
+				CursorExtKt.optBoolean(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_ALWAYS_LAST_TRIP_STOP),
+				getScoreFromCursor(c),
+				getAccessibleFromCursor(c)
 		);
-		DefaultPOI.fromCursor(c, rds);
-		return rds;
 	}
 
 	@Deprecated

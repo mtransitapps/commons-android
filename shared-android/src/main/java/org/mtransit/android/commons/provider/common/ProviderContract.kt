@@ -4,14 +4,18 @@ import android.content.Context
 import android.content.UriMatcher
 import android.database.sqlite.SQLiteDatabase
 import androidx.annotation.WorkerThread
-import org.json.JSONException
-import org.json.JSONObject
-import org.mtransit.android.commons.JSONUtils
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonObjectBuilder
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.longOrNull
+import kotlinx.serialization.json.put
 import org.mtransit.android.commons.MTLogK
-import org.mtransit.android.commons.SecureStringUtils.enc
-import org.mtransit.android.commons.TimeUtilsK
-import org.mtransit.android.commons.optBoolean
-import org.mtransit.android.commons.optLong
+import org.mtransit.android.commons.SecureStringUtils
+import org.mtransit.android.commons.toDurationLog
+import org.mtransit.commons.jsonObjectOrNull
+import org.mtransit.commons.jsonPrimitiveOrNull
 import org.mtransit.commons.model.Secret
 import kotlin.time.Duration.Companion.days
 
@@ -46,31 +50,34 @@ interface ProviderContract : MTLogK.Loggable {
             private const val JSON_IN_FOCUS = "inFocus"
             private const val JSON_PROVIDED_ENCRYPT_KEYS_MAP = "providedEncryptKeysMap"
 
-            @Throws(JSONException::class)
-            fun getCacheOnlyFromJSON(json: JSONObject) = json.optBoolean(JSON_CACHE_ONLY, null)
+            fun JsonObject.getCacheOnlyFromJson() = this[JSON_CACHE_ONLY]?.jsonPrimitiveOrNull?.booleanOrNull
 
-            @Throws(JSONException::class)
-            fun getInFocusFromJSON(json: JSONObject) = json.optBoolean(JSON_IN_FOCUS, null)
+            fun JsonObject.getInFocusFromJson() = this[JSON_IN_FOCUS]?.jsonPrimitiveOrNull?.booleanOrNull
 
-            @Throws(JSONException::class)
-            fun getCacheValidityInMsFromJSON(json: JSONObject) = json.optLong(JSON_CACHE_VALIDITY_IN_MS, null)
+            fun JsonObject.getCacheValidityInMsFromJson() = this[JSON_CACHE_VALIDITY_IN_MS]?.jsonPrimitiveOrNull?.longOrNull
 
-            @Throws(JSONException::class)
-            fun getProvidedEncryptKeysMapFromJSON(json: JSONObject): Secret<Map<String, String>>? =
-                json.optJSONObject(JSON_PROVIDED_ENCRYPT_KEYS_MAP)?.let { JSONUtils.toMapOfStrings(it) }?.let { Secret(it) }
+            fun JsonObject.getProvidedEncryptKeysMapFromJson(): Secret<Map<String, String>>? =
+                this[JSON_PROVIDED_ENCRYPT_KEYS_MAP]?.jsonObjectOrNull?.mapNotNull { (key, jsonElement) ->
+                    jsonElement.jsonPrimitiveOrNull?.contentOrNull?.takeIf { it.isNotBlank() }?.let { key to it }
+                }?.toMap()?.let { Secret(it) }
 
-            @JvmStatic
-            @Throws(JSONException::class)
-            fun toJSON(filter: Filter, json: JSONObject) = filter.apply {
-                cacheOnly?.let { json.put(JSON_CACHE_ONLY, it) }
-                cacheValidityInMs?.let { json.put(JSON_CACHE_VALIDITY_IN_MS, it) }
-                inFocus?.let { json.put(JSON_IN_FOCUS, it) }
-                providedEncryptKeysMap?.let { json.put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, JSONUtils.toJSONObject(it.data)) }
+            fun JsonObjectBuilder.toJsonCommon(filter: Filter) = filter.apply {
+                cacheOnly?.let { put(JSON_CACHE_ONLY, it) }
+                cacheValidityInMs?.let { put(JSON_CACHE_VALIDITY_IN_MS, it) }
+                inFocus?.let { put(JSON_IN_FOCUS, it) }
+                providedEncryptKeysMap?.let {
+                    put(
+                        JSON_PROVIDED_ENCRYPT_KEYS_MAP,
+                        buildJsonObject {
+                            it.data.forEach { (key, value) -> put(key, value) }
+                        }
+                    )
+                }
             }
 
-            fun toProvidedKeys(keysMap: Map<String, String>?) = keysMap?.mapNotNull {
-                val enc = enc(it.value) ?: return@mapNotNull null
-                it.key to enc
+            fun toProvidedKeys(keysMap: Map<String, String>?) = keysMap?.mapNotNull { (key, clear) ->
+                val enc = SecureStringUtils.enc(clear) ?: return@mapNotNull null
+                key to enc
             }?.toMap()?.let { Secret(it) }
         }
 
@@ -88,12 +95,11 @@ interface ProviderContract : MTLogK.Loggable {
             this.providedEncryptKeysMap?.data?.get(key = key)
                 ?.takeIf { it.trim().isNotEmpty() }
 
-        @Suppress("unused")
-        abstract fun toJSONString(): String?
+        abstract fun toJsonString(): String?
 
         fun toStringParts() = buildString {
             cacheOnly?.let { append("cacheOnly:").append(it).append(",") }
-            cacheValidityInMs?.let { append("cacheValidityInMs:").append(TimeUtilsK.formatSimpleDuration(it)).append(",") }
+            cacheValidityInMs?.let { append("cacheValidityInMs:").append(it.toDurationLog()).append(",") }
             inFocus?.let { append("inFocus:").append(it).append(",") }
             providedEncryptKeysMap?.let { append("providedEncryptKeysMap:").append(it.data.size).append(",") } // no not print keys
         }

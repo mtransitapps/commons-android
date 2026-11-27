@@ -8,15 +8,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.text.TextUtils;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.KeysIds;
@@ -27,11 +24,9 @@ import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SecureStringUtils;
 import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
-import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.data.POI;
@@ -58,9 +53,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -71,7 +64,7 @@ import javax.net.ssl.SSLHandshakeException;
 @SuppressLint("Registered")
 public class WinnipegTransitProvider extends MTContentProvider implements StatusProviderContract, NewsProviderContract {
 
-	private static final String LOG_TAG = WinnipegTransitProvider.class.getSimpleName();
+	protected static final String LOG_TAG = WinnipegTransitProvider.class.getSimpleName();
 
 	@NonNull
 	@Override
@@ -270,9 +263,11 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		return getCachedStatus(statusFilter);
 	}
 
-	private static final TimeZone WINNIPEG_TZ = TimeZone.getTimeZone("America/Winnipeg");
+	protected static final String WINNIPEG_TZ_ID = "America/Cancun"; // "America/Winnipeg"; // UTC-5 forever starting Nov 2026, compat w/ old Android devices
 
-	private static final ThreadSafeDateFormatter DATE_FORMATTER;
+	private static final TimeZone WINNIPEG_TZ = TimeZone.getTimeZone(WINNIPEG_TZ_ID);
+
+	protected static final ThreadSafeDateFormatter DATE_FORMATTER;
 
 	static {
 		ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
@@ -309,22 +304,38 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 
 	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		try {
-			String urlString = getRealTimeStatusUrlString(
+			final String urlString = getRealTimeStatusUrlString(
 					(this.providedApiKey != null ? this.providedApiKey : getAPI_KEY(context)),
 					rds
 			);
-			URL url = new URL(urlString);
+			final URL url = new URL(urlString);
 			MTLog.i(this, "Loading from '%s'...", getRealTimeStatusUrlString("API_KEY", rds));
-			String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_STOP_ID);
-			URLConnection urlc = url.openConnection();
+			final String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_STOP_ID);
+			final URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			final HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				String jsonString = FileUtils.getString(urlc.getInputStream());
+				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+				final String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rds, sourceLabel, newLastUpdateInMs);
+				final Collection<POIStatus> statuses = WinnipegTransitProviderExtKt.toStatusesOrNull(
+						jsonString,
+						rds.getDirection().getId(),
+						() -> new Schedule(
+								null,
+								rds.getUUID(),
+								newLastUpdateInMs,
+								getStatusMaxValidityInMs(),
+								newLastUpdateInMs,
+								PROVIDER_PRECISION_IN_MS,
+								false,
+								WINNIPEG_TZ_ID,
+								sourceLabel,
+								false
+						),
+						(tripHeadsign) -> cleanTripHeadsign(context, tripHeadsign, rds)
+				);
 				StatusProvider.deleteCachedStatus(this, Collections.singleton(rds.getUUID()));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
@@ -349,111 +360,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		}
 	}
 
-	private static final String JSON_STOP_SCHEDULE = "stop-schedule";
-	private static final String JSON_ROUTE_SCHEDULES = "route-schedules";
-	private static final String JSON_SCHEDULED_STOPS = "scheduled-stops";
-	private static final String JSON_TIMES = "times";
-	private static final String JSON_DEPARTURE = "departure";
-	private static final String JSON_ESTIMATED = "estimated";
-	private static final String JSON_SCHEDULED = "scheduled";
-	private static final String JSON_ARRIVAL = "arrival";
-	private static final String JSON_VARIANT = "variant";
-	private static final String JSON_NAME = "name";
-	private static final String JSON_BUS = "bus";
-
 	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
-
-	@Nullable
-	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteDirectionStop rds, @Nullable String sourceLabel, long newLastUpdateInMs) {
-		try {
-			ArrayList<POIStatus> result = new ArrayList<>();
-			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
-			if (json != null && json.has(JSON_STOP_SCHEDULE)) {
-				JSONObject jStopSchedule = json.getJSONObject(JSON_STOP_SCHEDULE);
-				if (jStopSchedule.has(JSON_ROUTE_SCHEDULES)) {
-					JSONArray jRouteSchedules = jStopSchedule.getJSONArray(JSON_ROUTE_SCHEDULES);
-					if (jRouteSchedules.length() > 0) {
-						JSONObject jRouteSchedule = jRouteSchedules.getJSONObject(0);
-						if (jRouteSchedule != null && jRouteSchedule.has(JSON_SCHEDULED_STOPS)) {
-							JSONArray jScheduledStops = jRouteSchedule.getJSONArray(JSON_SCHEDULED_STOPS);
-							if (jScheduledStops.length() > 0) {
-								Schedule newSchedule = parseAgencySchedule(context, rds, sourceLabel, newLastUpdateInMs, jScheduledStops);
-								result.add(newSchedule);
-							}
-						}
-					}
-				}
-			}
-			return result;
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
-			return null;
-		}
-	}
-
-	@Nullable
-	private Schedule parseAgencySchedule(@NonNull Context context, @NonNull RouteDirectionStop rds, @Nullable String sourceLabel, long newLastUpdateInMs, @NonNull JSONArray jScheduledStops) {
-		try {
-			final Schedule newSchedule = new Schedule(
-					null,
-					rds.getUUID(),
-					newLastUpdateInMs,
-					getStatusMaxValidityInMs(),
-					newLastUpdateInMs,
-					PROVIDER_PRECISION_IN_MS,
-					false,
-					WINNIPEG_TZ.getID(),
-					sourceLabel
-			);
-			String directionIdS = String.valueOf(rds.getDirection().getId());
-			String directionId = directionIdS.substring(directionIdS.length() - 1); // keep last character
-			for (int s = 0; s < jScheduledStops.length(); s++) {
-				JSONObject jScheduledStop = jScheduledStops.getJSONObject(s);
-				String variantName = null;
-				String variantKey = null;
-				if (jScheduledStop != null && jScheduledStop.has(JSON_VARIANT)) {
-					JSONObject jVariant = jScheduledStop.getJSONObject(JSON_VARIANT);
-					if (jVariant.has(JSON_NAME)) {
-						variantName = jVariant.getString(JSON_NAME);
-					}
-					if (jVariant.has(JSON_KEY)) {
-						variantKey = jVariant.getString(JSON_KEY);
-					}
-				}
-				if (variantKey != null
-						&& !variantKey.isEmpty()
-						&& !variantKey.contains(directionId)) {
-					MTLog.d(this, "Skip direction > other variant direction: '%s' VS '%s' (%s).", variantKey, directionId, directionIdS);
-					continue;
-				}
-				if (jScheduledStop != null && jScheduledStop.has(JSON_TIMES)) {
-					JSONObject jTimes = jScheduledStop.getJSONObject(JSON_TIMES);
-					String timeS = getTimeString(jTimes);
-					boolean isRealTime = jScheduledStop.has(JSON_BUS) & isRealTime(jTimes);
-					if (timeS != null && !timeS.isEmpty()) {
-						final Date date = DATE_FORMATTER.parseThreadSafe(timeS);
-						if (date == null) {
-							continue;
-						}
-						final long time = date.getTime();
-						long t = TimeUtils.timeToTheTensSecondsMillis(time);
-						Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t, WINNIPEG_TZ);
-						if (variantName != null && !variantName.isEmpty()) {
-							newTimestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, cleanTripHeadsign(context, variantName, rds));
-						}
-						newTimestamp.setRealTime(isRealTime);
-						newTimestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://www.winnipegtransit.com/
-						newSchedule.addTimestampWithoutSort(newTimestamp);
-					}
-				}
-			}
-			newSchedule.sortTimestamps();
-			return newSchedule;
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing schedule JSON '%s'!", jScheduledStops);
-			return null;
-		}
-	}
 
 	private String cleanTripHeadsign(@NonNull Context context, @NonNull String tripHeadsign, @NonNull RouteDirectionStop rds) {
 		try {
@@ -468,86 +375,6 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
 			return tripHeadsign;
-		}
-	}
-
-	private String getTimeString(JSONObject jTimes) {
-		try {
-			String timeS;
-			if (jTimes.has(JSON_DEPARTURE)) {
-				JSONObject jDeparture = jTimes.getJSONObject(JSON_DEPARTURE);
-				if (jDeparture.has(JSON_ESTIMATED)) {
-					timeS = jDeparture.getString(JSON_ESTIMATED);
-					if (!TextUtils.isEmpty(timeS)) {
-						return timeS;
-					}
-				}
-				if (jDeparture.has(JSON_SCHEDULED)) {
-					timeS = jDeparture.getString(JSON_SCHEDULED);
-					if (!TextUtils.isEmpty(timeS)) {
-						return timeS;
-					}
-				}
-			}
-			if (jTimes.has(JSON_ARRIVAL)) {
-				JSONObject jArrival = jTimes.getJSONObject(JSON_ARRIVAL);
-				if (jArrival.has(JSON_ESTIMATED)) {
-					timeS = jArrival.getString(JSON_ESTIMATED);
-					if (!TextUtils.isEmpty(timeS)) {
-						return timeS;
-					}
-				}
-				if (jArrival.has(JSON_SCHEDULED)) {
-					timeS = jArrival.getString(JSON_SCHEDULED);
-					if (!TextUtils.isEmpty(timeS)) {
-						return timeS;
-					}
-				}
-			}
-			return null;
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing time JSON '%s'!", jTimes);
-			return null;
-		}
-	}
-
-	private boolean isRealTime(@NonNull JSONObject jTimes) {
-		try {
-			String timeS;
-			if (jTimes.has(JSON_DEPARTURE)) {
-				JSONObject jDeparture = jTimes.getJSONObject(JSON_DEPARTURE);
-				if (jDeparture.has(JSON_ESTIMATED)) {
-					timeS = jDeparture.getString(JSON_ESTIMATED);
-					if (!timeS.isEmpty()) {
-						return true;
-					}
-				}
-				if (jDeparture.has(JSON_SCHEDULED)) {
-					timeS = jDeparture.getString(JSON_SCHEDULED);
-					if (!timeS.isEmpty()) {
-						return false;
-					}
-				}
-			}
-			if (jTimes.has(JSON_ARRIVAL)) {
-				JSONObject jArrival = jTimes.getJSONObject(JSON_ARRIVAL);
-				if (jArrival.has(JSON_ESTIMATED)) {
-					timeS = jArrival.getString(JSON_ESTIMATED);
-					if (!timeS.isEmpty()) {
-						return true;
-					}
-				}
-				if (jArrival.has(JSON_SCHEDULED)) {
-					timeS = jArrival.getString(JSON_SCHEDULED);
-					if (!timeS.isEmpty()) {
-						return false;
-					}
-				}
-			}
-			return false;
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing time JSON '%s'!", jTimes);
-			return false;
 		}
 	}
 
@@ -566,7 +393,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		return NewsProvider.deleteCachedNews(this, serviceUpdateId);
 	}
 
-	private static final String AGENCY_SOURCE_ID = "api_winnipegtransit_com_service_advisories";
+	protected static final String AGENCY_SOURCE_ID = "api_winnipegtransit_com_service_advisories";
 
 	@SuppressWarnings("UnusedReturnValue")
 	private int deleteAllAgencyNewsData() {
@@ -677,20 +504,46 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private ArrayList<News> loadAgencyNewsDataFromWWW(@NonNull Context context) {
 		try {
 			MTLog.i(this, "Loading from '%s'...", NEWS_URL_PART_1_BEFORE_API_KEY);
-			String sourceLabel = SourceUtils.getSourceLabel(NEWS_URL_PART_1_BEFORE_API_KEY);
-			String urlString = getNewsUrlString(context);
-			URL url = new URL(urlString);
-			URLConnection urlc = url.openConnection();
+			final String sourceLabel = SourceUtils.getSourceLabel(NEWS_URL_PART_1_BEFORE_API_KEY);
+			final String urlString = getNewsUrlString(context);
+			final URL url = new URL(urlString);
+			final URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			final HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				String jsonString = FileUtils.getString(urlc.getInputStream());
+				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+				final String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadAgencyNewsDataFromWWW() > jsonString: %s.", jsonString);
-				return parseAgencyNewsJSON(context,
-						httpUrlConnection.getURL(),
-						jsonString, sourceLabel, newLastUpdateInMs
+				final long noteworthyInMs = Long.parseLong(context.getResources().getString(R.string.news_provider_noteworthy_long_term));
+				final int defaultPriority = context.getResources().getInteger(R.integer.news_provider_severity_info_agency);
+				final String language = Locale.ENGLISH.getLanguage();
+				final URL formURL = httpUrlConnection.getURL();
+				return WinnipegTransitProviderExtKt.toNews(
+						jsonString,
+						(uuid, priority, updatedAtMs, text, textHTML, link) -> new News(
+								null,
+								getAuthority(),
+								uuid,
+								priority != null ? priority : defaultPriority,
+								noteworthyInMs,
+								newLastUpdateInMs,
+								getNewsMaxValidityInMs(),
+								updatedAtMs,
+								getNEWS_TARGET_AUTHORITY(context),
+								getNEWS_COLOR(context),
+								getNEWS_AUTHOR_NAME(context),
+								null,
+								AUTHOR_ICON,
+								DEFAULT_LINK,
+								text,
+								textHTML,
+								link,
+								language,
+								AGENCY_SOURCE_ID,
+								sourceLabel,
+								HtmlUtils.extractImagesUrls(formURL, textHTML)
+						)
 				);
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
@@ -716,182 +569,9 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		}
 	}
 
-	private static final String JSON_SERVICE_ADVISORIES = "service-advisories";
-	private static final String JSON_KEY = "key";
-	private static final String JSON_PRIORITY = "priority";
-	private static final String JSON_TITLE = "title";
-	private static final String JSON_BODY = "body";
-	private static final String JSON_CATEGORY = "category";
-	private static final String JSON_UPDATED_AT = "updated-at";
-
-	private static final HashSet<String> TRANSIT_CATEGORIES_LC;
-
-	static {
-		HashSet<String> hashSet = new HashSet<>();
-		hashSet.add("all");
-		hashSet.add("transit");
-		TRANSIT_CATEGORIES_LC = hashSet;
-	}
-
-	private static final String LINK_AND_KEY = "https://info.winnipegtransit.com/en/schedules-maps-tools/service-advisories/%s";
-
-	private static final String DEFAULT_LINK = "https://info.winnipegtransit.com/en/schedules-maps-tools/service-advisories";
-
-	private static final String COLON = ": ";
-
-	@Nullable
-	private ArrayList<News> parseAgencyNewsJSON(@NonNull Context context, URL fromURL, String jsonString, String sourceLabel, long lastUpdateInMs) {
-		try {
-			ArrayList<News> news = new ArrayList<>();
-			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
-			if (json != null && json.has(JSON_SERVICE_ADVISORIES)) {
-				JSONArray jServiceAdvisories = json.getJSONArray(JSON_SERVICE_ADVISORIES);
-				long noteworthyInMs = Long.parseLong(context.getResources().getString(R.string.news_provider_noteworthy_long_term));
-				int defaultPriority = context.getResources().getInteger(R.integer.news_provider_severity_info_agency);
-				String target = getNEWS_TARGET_AUTHORITY(context);
-				String color = getNEWS_COLOR(context);
-				String authorName = getNEWS_AUTHOR_NAME(context);
-				String language = Locale.ENGLISH.getLanguage();
-				long maxValidityInMs = getNewsMaxValidityInMs();
-				String authority = getAuthority();
-				if (jServiceAdvisories.length() > 0) {
-					for (int s = 0; s < jServiceAdvisories.length(); s++) {
-						parseServiceAdvisory(
-								fromURL,
-								jServiceAdvisories,
-								s,
-								news,
-								sourceLabel,
-								lastUpdateInMs,
-								noteworthyInMs,
-								defaultPriority,
-								target,
-								color,
-								authorName,
-								language,
-								maxValidityInMs,
-								authority
-						);
-					}
-				}
-			}
-			return news;
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
-			return null;
-		}
-	}
+	protected static final String DEFAULT_LINK = "https://info.winnipegtransit.com/en/schedules-maps-tools/service-advisories";
 
 	private static final String AUTHOR_ICON = "https://winnipegtransit.com/favicon.ico";
-
-	private void parseServiceAdvisory(
-			URL fromURL,
-			JSONArray jServiceAdvisories,
-			int s,
-			ArrayList<News> news,
-			String sourceLabel,
-			long lastUpdateInMs,
-			long noteworthyInMs,
-			int defaultPriority,
-			String target,
-			String color,
-			String authorName,
-			String language,
-			long maxValidityInMs,
-			String authority
-	) {
-		try {
-			JSONObject jServiceAdvisory = jServiceAdvisories.getJSONObject(s);
-			if (jServiceAdvisory == null) {
-				return;
-			}
-			if (jServiceAdvisory.has(JSON_CATEGORY)) {
-				String category = jServiceAdvisory.optString(JSON_CATEGORY, StringUtils.EMPTY);
-				if (!TRANSIT_CATEGORIES_LC.contains(category.toLowerCase(Locale.ENGLISH))) {
-					return;
-				}
-			}
-			String updatedAt = jServiceAdvisory.optString(JSON_UPDATED_AT, StringUtils.EMPTY);
-			if (updatedAt.isEmpty()) {
-				return;
-			}
-			final Date date = DATE_FORMATTER.parseThreadSafe(updatedAt);
-			if (date == null) {
-				MTLog.w(this, "Date '%s' could NOT be parsed!", updatedAt);
-				return;
-			}
-			long updatedAtMs = date.getTime();
-			String title = jServiceAdvisory.optString(JSON_TITLE, StringUtils.EMPTY);
-			String body = jServiceAdvisory.optString(JSON_BODY, StringUtils.EMPTY);
-			int key = jServiceAdvisory.optInt(JSON_KEY, -1);
-			int priority = jServiceAdvisory.optInt(JSON_PRIORITY, -1);
-			String link;
-			String uuid;
-			if (key < 0) {
-				link = DEFAULT_LINK;
-				uuid = AGENCY_SOURCE_ID + updatedAtMs;
-			} else {
-				link = String.format(LINK_AND_KEY, key);
-				uuid = AGENCY_SOURCE_ID + key;
-			}
-			if (priority < 0) {
-				priority = defaultPriority;
-			}
-			StringBuilder textSb = new StringBuilder();
-			StringBuilder textHTMLSb = new StringBuilder();
-			if (!title.isEmpty()) {
-				textSb.append(title);
-				textHTMLSb.append(HtmlUtils.applyBold(title));
-			}
-			if (!body.isEmpty()) {
-				if (textSb.length() > 0) {
-					textSb.append(COLON);
-				}
-				textSb.append(HtmlUtils.fromHtmlLegacy(body));
-				if (textHTMLSb.length() > 0) {
-					textHTMLSb.append(HtmlUtils.BR);
-				}
-				textHTMLSb.append(HtmlUtils.toHTML(body));
-			}
-			if (textSb.length() == 0 || textHTMLSb.length() == 0) {
-				MTLog.w(this, "parseAgencyJSON() > skip (no text)");
-				return;
-			}
-			if (!link.isEmpty()) {
-				if (textHTMLSb.length() > 0) {
-					textHTMLSb.append(HtmlUtils.BR).append(HtmlUtils.BR);
-				}
-				textHTMLSb.append(HtmlUtils.linkify(link));
-			}
-			List<String> imageUrls = HtmlUtils.extractImagesUrls(fromURL, textHTMLSb);
-			final News newNews = new News(
-					null,
-					authority,
-					uuid,
-					priority,
-					noteworthyInMs,
-					lastUpdateInMs,
-					maxValidityInMs,
-					updatedAtMs,
-					target,
-					color,
-					authorName,
-					null,
-					AUTHOR_ICON,
-					DEFAULT_LINK,
-					textSb.toString(),
-					textHTMLSb.toString(),
-					link,
-					language,
-					AGENCY_SOURCE_ID,
-					sourceLabel,
-					imageUrls
-			);
-			news.add(newNews);
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing service advisory JSON '%s'!", s);
-		}
-	}
 
 	@NonNull
 	@Override

@@ -7,23 +7,19 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.text.style.TypefaceSpan;
 
-import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.mtransit.android.commons.ColorUtils;
-import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.StringUtils;
 
-@SuppressWarnings({"WeakerAccess", "unused"})
+@SuppressWarnings({"WeakerAccess"})
 public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
-	private static final String LOG_TAG = AvailabilityPercent.class.getSimpleName();
+	protected static final String LOG_TAG = AvailabilityPercent.class.getSimpleName();
 
 	@NonNull
 	@Override
@@ -32,51 +28,37 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	}
 
 	// the higher the status integer value is, the more important it is
-	private static final int STATUS_OK = 0;
-	private static final int STATUS_LOCKED = 1;
-	private static final int STATUS_CLOSED = 2;
-	private static final int STATUS_NOT_PUBLIC = 99;
-	private static final int STATUS_NOT_INSTALLED = 100;
+	protected static final int STATUS_OK = 0;
+	protected static final int STATUS_LOCKED = 1;
+	protected static final int STATUS_CLOSED = 2;
+	protected static final int STATUS_NOT_PUBLIC = 99;
+	protected static final int STATUS_NOT_INSTALLED = 100;
 
 	private static final int ENOUGH_AVAILABILITY = 3;
 
-	private int value1;
-	private String value1EmptyRes;
-	private String value1QuantityRes;
-	@ColorInt
-	private int value1Color;
-	@ColorInt
-	private int value1ColorBg;
+	@NonNull
+	protected final AvailabilityPercentValue value1; // includes default + sub-value
+	@Nullable
+	protected final String value1SubValueDefaultEmptyRes; // excludes sub-value
+	@Nullable
+	protected final String value1SubValueDefaultQuantityRes; // excludes sub-value
+	@Nullable
+	protected final AvailabilityPercentValue value1SubValue1; // exclude default
 
-	@Nullable
-	private String value1SubValueDefaultEmptyRes;
-	@Nullable
-	private String value1SubValueDefaultQuantityRes;
+	@NonNull
+	protected final AvailabilityPercentValue value2;
 
-	@Nullable
-	private Integer value1SubValue1;
-	@Nullable
-	private String value1SubValue1EmptyRes;
-	@Nullable
-	private String value1SubValue1QuantityRes;
-	@ColorInt
-	@Nullable
-	private Integer value1SubValue1Color;
-	@ColorInt
-	@Nullable
-	private Integer value1SubValue1ColorBg;
+	protected final int statusMsgId;
 
-	private int value2;
-	private String value2EmptyRes;
-	private String value2QuantityRes;
-	@ColorInt
-	private int value2Color;
-	@ColorInt
-	private int value2ColorBg;
-
-	private int statusMsgId = STATUS_OK;
-
-	public AvailabilityPercent(@NonNull POIStatus status) {
+	public AvailabilityPercent(
+			@NonNull POIStatus status,
+			@NonNull AvailabilityPercentValue value1,
+			@Nullable String value1SubValueDefaultEmptyRes,
+			@Nullable String value1SubValueDefaultQuantityRes,
+			@Nullable AvailabilityPercentValue value1SubValue1,
+			@NonNull AvailabilityPercentValue value2,
+			int statusMsgId
+	) {
 		this(
 				status.getId(),
 				status.getTargetUUID(),
@@ -84,19 +66,14 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 				status.getMaxValidityInMs(),
 				status.getReadFromSourceAtInMs(),
 				status.getSourceLabel(),
-				status.isNoData()
+				status.isNoData(),
+				value1,
+				value1SubValueDefaultEmptyRes,
+				value1SubValueDefaultQuantityRes,
+				value1SubValue1,
+				value2,
+				statusMsgId
 		);
-	}
-
-	public AvailabilityPercent(
-			@Nullable Integer id,
-			@NonNull String targetUUID,
-			long lastUpdateMs,
-			long maxValidityInMs,
-			long readFromSourceAtInMs,
-			@Nullable String sourceLabel
-	) {
-		this(id, targetUUID, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, false);
 	}
 
 	public AvailabilityPercent(
@@ -106,37 +83,35 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			long maxValidityInMs,
 			long readFromSourceAtInMs,
 			@Nullable String sourceLabel,
-			boolean noData
+			boolean noData,
+			@NonNull AvailabilityPercentValue value1,
+			@Nullable String value1SubValueDefaultEmptyRes,
+			@Nullable String value1SubValueDefaultQuantityRes,
+			@Nullable AvailabilityPercentValue value1SubValue1,
+			@NonNull AvailabilityPercentValue value2,
+			int statusMsgId
 	) {
 		super(id, targetUUID, POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, noData);
+		this.value1 = value1;
+		this.value1SubValueDefaultEmptyRes = value1SubValueDefaultEmptyRes;
+		this.value1SubValueDefaultQuantityRes = value1SubValueDefaultQuantityRes;
+		this.value1SubValue1 = value1SubValue1;
+		this.value2 = value2;
+		this.statusMsgId = statusMsgId;
 	}
 
 	public boolean hasValueStrictlyLowerThan(int underThisValue) {
-		return this.value1 < underThisValue || this.value2 < underThisValue;
-	}
-
-	public int getLowerValue() {
-		return Math.min(this.value1, this.value2);
+		return this.value1.getValue() < underThisValue || this.value2.getValue() < underThisValue;
 	}
 
 	public boolean isShowingLowerValue() {
 		return hasValueStrictlyLowerThan(ENOUGH_AVAILABILITY)
-				&& this.value1 != this.value2;
-	}
-
-	@ColorInt
-	public int getLowerValueColor() {
-		return this.value1 < this.value2 ? this.value1Color : this.value2Color;
-	}
-
-	@ColorInt
-	public int getLowerValueColorBg() {
-		return this.value1 < this.value2 ? this.value1ColorBg : this.value2ColorBg;
+				&& this.value1.getValue() != this.value2.getValue();
 	}
 
 	@NonNull
 	public CharSequence getLowerValueText(@NonNull Context context) {
-		if (this.value1 < this.value2) {
+		if (this.value1.getValue() < this.value2.getValue()) {
 			return getValue1Text(context);
 		} else {
 			return getValue2Text(context);
@@ -145,59 +120,39 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 	@NonNull
 	public CharSequence getValue1Text(@NonNull Context context) {
-		return getValue1Text(context, false);
-	}
-
-	@NonNull
-	public CharSequence getValue1Text(@NonNull Context context, boolean excludeSubValue1) {
-		return getValueText(context,
-				getValue1(excludeSubValue1),
-				getValue1EmptyRes(),
-				getValue1QuantityRes(),
-				getValue1Color(),
-				getValue1ColorBg(),
-				true);
+		return getValueText(
+				context,
+				getValue1(),
+				true
+		);
 	}
 
 	@NonNull
 	public CharSequence getValue1SubValueDefaultText(@NonNull Context context) {
-		return getValueText(context,
-				getValue1SubValueDefault(),
-				getValue1SubValueDefaultEmptyRes(),
-				getValue1SubValueDefaultQuantityRes(),
-				getValue1SubValueDefaultColor(),
-				getValue1SubValueDefaultColorBg(),
-				true);
+		return getValueText(
+				context,
+				AvailabilityPercentExtKt.getValue1Default(this),
+				true
+		);
 	}
 
 	@Nullable
 	public CharSequence getValue1SubValue1Text(@NonNull Context context) {
-		if (getValue1SubValue1() == null
-				|| getValue1SubValue1EmptyRes() == null
-				|| getValue1SubValue1QuantityRes() == null
-				|| getValue1SubValue1Color() == null
-				|| getValue1SubValue1ColorBg() == null) {
-			return null;
-		}
-		return getValueText(context,
+		if (getValue1SubValue1() == null) return null;
+		return getValueText(
+				context,
 				getValue1SubValue1(),
-				getValue1SubValue1EmptyRes(),
-				getValue1SubValue1QuantityRes(),
-				getValue1SubValue1Color(),
-				getValue1SubValue1ColorBg(),
 				false
 		);
 	}
 
 	@NonNull
 	public CharSequence getValue2Text(@NonNull Context context) {
-		return getValueText(context,
+		return getValueText(
+				context,
 				getValue2(),
-				getValue2EmptyRes(),
-				getValue2QuantityRes(),
-				getValue2Color(),
-				getValue2ColorBg(),
-				true);
+				true
+		);
 	}
 
 	private static final TypefaceSpan VALUE_FONT = SpanUtils.getNewTypefaceSpan(POIStatus.getStatusTextFont());
@@ -207,20 +162,20 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	@NonNull
 	private CharSequence getValueText(
 			@NonNull Context context,
-			int value,
-			String valueEmptyRes, String valueQuantityRes,
-			@ColorInt int valueColor, @ColorInt int valueColorBg,
+			AvailabilityPercentValue availabilityPercentValue,
 			boolean importantValue
 	) {
+		int value = availabilityPercentValue.getValue();
 		if (value < 0) {
 			value = 0; // never show negative values
 		}
-		SpannableStringBuilder valueTextSSB = new SpannableStringBuilder( //
-				StringUtils.getEmptyOrPluralsIdentifier(context, valueEmptyRes, valueQuantityRes, value)
+		SpannableStringBuilder valueTextSSB = new SpannableStringBuilder(
+				StringUtils.getEmptyOrPluralsIdentifier(context, availabilityPercentValue.getEmptyRes(), availabilityPercentValue.getQuantityRes(), value)
 		);
-		valueTextSSB = SpanUtils.setAll(valueTextSSB, //
+		valueTextSSB = SpanUtils.setAll(valueTextSSB,
 				VALUE_FONT, SpanUtils.getNewTextColor(
-						ColorUtils.isDarkTheme(context) ? ColorUtils.getLighterColor(valueColor, valueColorBg) : ColorUtils.getDarkerColor(valueColor, valueColorBg)));
+						ColorUtils.isDarkTheme(context) ? ColorUtils.getLighterColor(availabilityPercentValue.getColor(), availabilityPercentValue.getColorBg())
+								: ColorUtils.getDarkerColor(availabilityPercentValue.getColor(), availabilityPercentValue.getColorBg())));
 		if (importantValue && value == 0) {
 			valueTextSSB = SpanUtils.setAll(valueTextSSB, BOLD_STYLE);
 		}
@@ -275,333 +230,47 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 				getStatusTextColor(context), STATUS_STYLE, STATUS_FONT);
 	}
 
-	// VALUE 1
-
-	public void setValue1(int value1) {
-		this.value1 = value1;
-	}
-
-	public int getValue1() {
-		return getValue1(false);
-	}
-
-	public int getValue1(boolean excludeSubValue1) {
-		if (excludeSubValue1) {
-			return this.value1 - getValue1SubValue1(0);
-		}
+	@NonNull
+	public AvailabilityPercentValue getValue1() {
 		return this.value1;
 	}
 
-	public void setValue1EmptyRes(@NonNull String value1EmptyRes) {
-		this.value1EmptyRes = value1EmptyRes;
-	}
-
 	@Nullable
-	public String getValue1EmptyRes() {
-		return value1EmptyRes;
-	}
-
-	public void setValue1QuantityRes(@NonNull String value1QuantityRes) {
-		this.value1QuantityRes = value1QuantityRes;
-	}
-
-	@Nullable
-	public String getValue1QuantityRes() {
-		return value1QuantityRes;
-	}
-
-	public void setValue1Color(@ColorInt int value1Color) {
-		this.value1Color = value1Color;
-	}
-
-	@ColorInt
-	public int getValue1Color() {
-		return value1Color;
-	}
-
-	public void setValue1ColorBg(@ColorInt int value1ColorBg) {
-		this.value1ColorBg = value1ColorBg;
-	}
-
-	@ColorInt
-	public int getValue1ColorBg() {
-		return value1ColorBg;
-	}
-
-	// VALUE 1 SUB-VALUE DEFAULT
-
-	public int getValue1SubValueDefault() {
-		return getValue1(true);
-	}
-
-	public void setValue1SubValueDefaultEmptyRes(@NonNull String value1SubValueDefaultEmptyRes) {
-		this.value1SubValueDefaultEmptyRes = value1SubValueDefaultEmptyRes;
-	}
-
-	@Nullable
-	public String getValue1SubValueDefaultEmptyRes() {
-		return value1SubValueDefaultEmptyRes;
-	}
-
-	public void setValue1SubValueDefaultQuantityRes(@NonNull String value1SubValueDefaultQuantityRes) {
-		this.value1SubValueDefaultQuantityRes = value1SubValueDefaultQuantityRes;
-	}
-
-	@Nullable
-	public String getValue1SubValueDefaultQuantityRes() {
-		return value1SubValueDefaultQuantityRes;
-	}
-
-	@ColorInt
-	public int getValue1SubValueDefaultColor() {
-		return getValue1Color();
-	}
-
-	@ColorInt
-	public int getValue1SubValueDefaultColorBg() {
-		return getValue1ColorBg();
-	}
-
-	// VALUE 1 SUB-VALUE 1
-
-	public void setValue1SubValue1(@Nullable Integer value1SubValue1) {
-		this.value1SubValue1 = value1SubValue1;
-	}
-
-	@Nullable
-	public Integer getValue1SubValue1() {
+	public AvailabilityPercentValue getValue1SubValue1() {
 		return value1SubValue1;
 	}
 
-	public int getValue1SubValue1(int defaultValue1SubValue1) {
-		return value1SubValue1 == null ? defaultValue1SubValue1 : value1SubValue1;
-	}
-
-	public void setValue1SubValue1EmptyRes(@NonNull String value1SubValue1EmptyRes) {
-		this.value1SubValue1EmptyRes = value1SubValue1EmptyRes;
-	}
-
-	@Nullable
-	public String getValue1SubValue1EmptyRes() {
-		return value1SubValue1EmptyRes;
-	}
-
-	public void setValue1SubValue1QuantityRes(@NonNull String value1SubValue1QuantityRes) {
-		this.value1SubValue1QuantityRes = value1SubValue1QuantityRes;
-	}
-
-	@Nullable
-	public String getValue1SubValue1QuantityRes() {
-		return value1SubValue1QuantityRes;
-	}
-
-	public void setValue1SubValue1Color(@Nullable @ColorInt Integer value1SubValue1Color) {
-		this.value1SubValue1Color = value1SubValue1Color;
-	}
-
-	@ColorInt
-	@Nullable
-	public Integer getValue1SubValue1Color() {
-		return value1SubValue1Color;
-	}
-
-	public void setValue1SubValue1ColorBg(@Nullable @ColorInt Integer value1SubValue1ColorBg) {
-		this.value1SubValue1ColorBg = value1SubValue1ColorBg;
-	}
-
-	@ColorInt
-	@Nullable
-	public Integer getValue1SubValue1ColorBg() {
-		return value1SubValue1ColorBg;
-	}
-
-	// VALUE 2
-
-	public void setValue2(int value2) {
-		this.value2 = value2;
-	}
-
-	public int getValue2() {
-		return value2;
-	}
-
-	public void setValue2EmptyRes(@NonNull String value2EmptyRes) {
-		this.value2EmptyRes = value2EmptyRes;
-	}
-
-	@Nullable
-	public String getValue2EmptyRes() {
-		return value2EmptyRes;
-	}
-
-	public void setValue2QuantityRes(@NonNull String value2QuantityRes) {
-		this.value2QuantityRes = value2QuantityRes;
-	}
-
-	@Nullable
-	public String getValue2QuantityRes() {
-		return value2QuantityRes;
-	}
-
-	public void setValue2Color(@ColorInt int value2Color) {
-		this.value2Color = value2Color;
-	}
-
-	@ColorInt
-	public int getValue2Color() {
-		return value2Color;
-	}
-
-	public void setValue2ColorBg(@ColorInt int value2ColorBg) {
-		this.value2ColorBg = value2ColorBg;
-	}
-
-	@ColorInt
-	public int getValue2ColorBg() {
-		return value2ColorBg;
+	@NonNull
+	public AvailabilityPercentValue getValue2() {
+		return this.value2;
 	}
 
 	public int getTotalValue() {
-		return this.value1 + this.value2;
+		return this.value1.getValue() + this.value2.getValue();
 	}
 
-	public void setStatusInstalled(boolean installed) {
-		if (!installed) {
-			incStatusId(STATUS_NOT_INSTALLED);
-		}
-	}
-
-	public void setStatusPublic(boolean isPublic) {
-		if (!isPublic) {
-			incStatusId(STATUS_NOT_PUBLIC);
-		}
-	}
-
-	public void setStatusLocked(boolean locked) {
-		if (locked) {
-			incStatusId(STATUS_LOCKED);
-		}
-	}
-
-	public void setStatusClosed(boolean closed) {
-		if (closed) {
-			incStatusId(STATUS_CLOSED);
-		}
-	}
-
-	public void incStatusId(int statusId) {
-		if (this.statusMsgId < statusId) {
-			this.statusMsgId = statusId;
-		}
-	}
-
+	@SuppressWarnings("unused")
 	public int getStatusMsgId() {
 		return statusMsgId;
 	}
 
 	@Nullable
 	public static AvailabilityPercent fromCursorWithExtra(@NonNull Cursor cursor) {
-		final POIStatus status = POIStatus.fromCursor(cursor);
-		final String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
-		return fromExtraJSONString(status, extrasJSONString);
+		return fromExtraJsonString(
+				POIStatus.fromCursor(cursor),
+				POIStatus.getExtrasFromCursor(cursor)
+		);
 	}
 
 	@Nullable
-	private static AvailabilityPercent fromExtraJSONString(@NonNull POIStatus status, @Nullable String extrasJSONString) {
-		try {
-			final JSONObject json = extrasJSONString == null ? null : new JSONObject(extrasJSONString);
-			if (json == null) return null;
-			return fromExtraJSON(status, json);
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while retrieving extras information from cursor.");
-			return null;
-		}
+	private static AvailabilityPercent fromExtraJsonString(@NonNull POIStatus status, @Nullable String extrasJsonString) {
+		return AvailabilityPercentExtKt.toAvailabilityPercentOrNull(extrasJsonString, status);
 	}
-
-	@Nullable
-	private static AvailabilityPercent fromExtraJSON(@NonNull POIStatus status, @NonNull JSONObject extrasJSON) {
-		try {
-			AvailabilityPercent availabilityPercent = new AvailabilityPercent(status);
-			availabilityPercent.statusMsgId = extrasJSON.getInt(JSON_STATUS_MSG_ID);
-			availabilityPercent.value1 = extrasJSON.getInt(JSON_VALUE1);
-			availabilityPercent.value1EmptyRes = extrasJSON.getString(JSON_VALUE1_EMPTY_RES);
-			availabilityPercent.value1QuantityRes = extrasJSON.getString(JSON_VALUE1_QUANTITY_RES);
-			availabilityPercent.value1Color = extrasJSON.getInt(JSON_VALUE1_COLOR);
-			availabilityPercent.value1ColorBg = extrasJSON.getInt(JSON_VALUE1_COLOR_BG);
-			availabilityPercent.value1SubValueDefaultEmptyRes = JSONUtils.optString(extrasJSON, JSON_VALUE1_SUB_VALUE_DEFAULT_EMPTY_RES);
-			availabilityPercent.value1SubValueDefaultQuantityRes = JSONUtils.optString(extrasJSON, JSON_VALUE1_SUB_VALUE_DEFAULT_QUANTITY_RES);
-			availabilityPercent.value1SubValue1 = JSONUtils.optInt(extrasJSON, JSON_VALUE1_SUB_VALUE1);
-			availabilityPercent.value1SubValue1EmptyRes = JSONUtils.optString(extrasJSON, JSON_VALUE1_SUB_VALUE1_EMPTY_RES);
-			availabilityPercent.value1SubValue1QuantityRes = JSONUtils.optString(extrasJSON, JSON_VALUE1_SUB_VALUE1_QUANTITY_RES);
-			availabilityPercent.value1SubValue1Color = JSONUtils.optInt(extrasJSON, JSON_VALUE1_SUB_VALUE1_COLOR);
-			availabilityPercent.value1SubValue1ColorBg = JSONUtils.optInt(extrasJSON, JSON_VALUE1_SUB_VALUE1_COLOR_BG);
-			availabilityPercent.value2 = extrasJSON.getInt(JSON_VALUE2);
-			availabilityPercent.value2EmptyRes = extrasJSON.getString(JSON_VALUE2_EMPTY_RES);
-			availabilityPercent.value2QuantityRes = extrasJSON.getString(JSON_VALUE2_QUANTITY_RES);
-			availabilityPercent.value2Color = extrasJSON.getInt(JSON_VALUE2_COLOR);
-			availabilityPercent.value2ColorBg = extrasJSON.getInt(JSON_VALUE2_COLOR_BG);
-			return availabilityPercent;
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while retrieving extras information from cursor.");
-			return null;
-		}
-	}
-
-	private static final String JSON_STATUS_MSG_ID = "statusMsgId";
-	private static final String JSON_VALUE1 = "value1";
-	private static final String JSON_VALUE1_EMPTY_RES = "value1EmptyRes";
-	private static final String JSON_VALUE1_QUANTITY_RES = "value1QuantityRes";
-	private static final String JSON_VALUE1_COLOR = "value1Color";
-	private static final String JSON_VALUE1_COLOR_BG = "value1ColorBg";
-	private static final String JSON_VALUE1_SUB_VALUE_DEFAULT_EMPTY_RES = "value1SubValueDefaultEmptyRes";
-	private static final String JSON_VALUE1_SUB_VALUE_DEFAULT_QUANTITY_RES = "value1SubValueDefaultQuantityRes";
-	private static final String JSON_VALUE1_SUB_VALUE1 = "value1SubValue1";
-	private static final String JSON_VALUE1_SUB_VALUE1_EMPTY_RES = "value1SubValue1EmptyRes";
-	private static final String JSON_VALUE1_SUB_VALUE1_QUANTITY_RES = "value1SubValue1QuantityRes";
-	private static final String JSON_VALUE1_SUB_VALUE1_COLOR = "value1SubValue1Color";
-	private static final String JSON_VALUE1_SUB_VALUE1_COLOR_BG = "value1SubValue1ColorBg";
-	private static final String JSON_VALUE2 = "value2";
-	private static final String JSON_VALUE2_EMPTY_RES = "value2EmptyRes";
-	private static final String JSON_VALUE2_QUANTITY_RES = "value2QuantityRes";
-	private static final String JSON_VALUE2_COLOR = "value2Color";
-	private static final String JSON_VALUE2_COLOR_BG = "value2ColorBg";
 
 	@Nullable
 	@Override
-	public JSONObject getExtrasJSON() {
-		try {
-			JSONObject json = new JSONObject();
-			json.put(JSON_STATUS_MSG_ID, this.statusMsgId);
-			json.put(JSON_VALUE1, this.value1);
-			json.put(JSON_VALUE1_EMPTY_RES, this.value1EmptyRes);
-			json.put(JSON_VALUE1_QUANTITY_RES, this.value1QuantityRes);
-			json.put(JSON_VALUE1_COLOR, this.value1Color);
-			json.put(JSON_VALUE1_COLOR_BG, this.value1ColorBg);
-			if (this.value1SubValueDefaultEmptyRes != null
-					&& this.value1SubValueDefaultQuantityRes != null
-					&& this.value1SubValue1 != null
-					&& this.value1SubValue1EmptyRes != null
-					&& this.value1SubValue1QuantityRes != null
-					&& this.value1SubValue1Color != null
-					&& this.value1SubValue1ColorBg != null) {
-				json.put(JSON_VALUE1_SUB_VALUE_DEFAULT_EMPTY_RES, this.value1SubValueDefaultEmptyRes);
-				json.put(JSON_VALUE1_SUB_VALUE_DEFAULT_QUANTITY_RES, this.value1SubValueDefaultQuantityRes);
-				json.put(JSON_VALUE1_SUB_VALUE1, this.value1SubValue1);
-				json.put(JSON_VALUE1_SUB_VALUE1_EMPTY_RES, this.value1SubValue1EmptyRes);
-				json.put(JSON_VALUE1_SUB_VALUE1_QUANTITY_RES, this.value1SubValue1QuantityRes);
-				json.put(JSON_VALUE1_SUB_VALUE1_COLOR, this.value1SubValue1Color);
-				json.put(JSON_VALUE1_SUB_VALUE1_COLOR_BG, this.value1SubValue1ColorBg);
-			}
-			json.put(JSON_VALUE2, this.value2);
-			json.put(JSON_VALUE2_EMPTY_RES, this.value2EmptyRes);
-			json.put(JSON_VALUE2_QUANTITY_RES, this.value2QuantityRes);
-			json.put(JSON_VALUE2_COLOR, this.value2Color);
-			json.put(JSON_VALUE2_COLOR_BG, this.value2ColorBg);
-			return json;
-		} catch (Exception e) {
-			MTLog.w(LOG_TAG, e, "Error while converting object '%s' to JSON!", this);
-			return null; // no partial result
-		}
+	public String getExtrasJsonStringOrNull() {
+		return AvailabilityPercentExtKt.toJsonStringOrNull(this);
 	}
 
 	@NonNull
@@ -611,18 +280,6 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 				"value1=" + value1 +
 				", value1SubValue1=" + value1SubValue1 +
 				", value2=" + value2 +
-				", value1EmptyRes='" + value1EmptyRes + '\'' +
-				", value1QuantityRes='" + value1QuantityRes + '\'' +
-				", value1Color=" + value1Color +
-				", value1ColorBg=" + value1ColorBg +
-				", value1SubValue1EmptyRes='" + value1SubValue1EmptyRes + '\'' +
-				", value1SubValue1QuantityRes='" + value1SubValue1QuantityRes + '\'' +
-				", value1SubValue1Color=" + value1SubValue1Color +
-				", value1SubValue1ColorBg=" + value1SubValue1ColorBg +
-				", value2EmptyRes='" + value2EmptyRes + '\'' +
-				", value2QuantityRes='" + value2QuantityRes + '\'' +
-				", value2Color=" + value2Color +
-				", value2ColorBg=" + value2ColorBg +
 				", statusMsgId=" + statusMsgId +
 				'}';
 	}

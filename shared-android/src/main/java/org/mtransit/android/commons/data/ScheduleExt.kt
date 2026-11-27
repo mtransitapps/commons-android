@@ -2,17 +2,32 @@
 
 package org.mtransit.android.commons.data
 
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.long
 import org.mtransit.android.commons.Constants
+import org.mtransit.android.commons.data.Schedule.LOG_TAG
 import org.mtransit.android.commons.floorBy
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.millisToInstant
+import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.roundToNearest
 import org.mtransit.android.commons.toDateTimeLog
 import org.mtransit.android.commons.toDurationLog
 import org.mtransit.android.commons.toMillis
+import org.mtransit.commons.jsonArrayOrNull
+import org.mtransit.commons.jsonObjectOrNull
+import org.mtransit.commons.jsonPrimitiveOrNull
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+import kotlinx.serialization.json.put as putK
 
 fun makeSchedule(
     id: Int? = null,
@@ -290,3 +305,59 @@ fun Schedule.Timestamp.toStringShort() = buildString {
     }
     append("}")
 }
+
+private const val JSON_PROVIDER_PRECISION_IN_MS = "providerPrecisionInMs"
+private const val JSON_IS_NO_PICKUP = "decentOnly" // do NOT change JSON key string value!
+private const val JSON_TIMESTAMPS = "timestamps"
+private const val JSON_FREQUENCIES = "frequencies"
+private const val JSON_LOCAL_TIME_ZONE_ID = "tz"
+
+fun String?.toScheduleOrNull(status: POIStatus) = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
+    sharedJson.parseToJsonElement(this).jsonObject.toSchedule(status)
+}?.getOrNull()
+
+private fun JsonObject.toSchedule(status: POIStatus) =
+    this[JSON_TIMESTAMPS]?.jsonArrayOrNull?.mapNotNull {
+        it.jsonObjectOrNull?.toTimestamp()
+    }.orEmpty().let { timestamps ->
+        Schedule(
+            status,
+            getValue(JSON_PROVIDER_PRECISION_IN_MS).jsonPrimitive.long,
+            this[JSON_IS_NO_PICKUP]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
+            this[JSON_LOCAL_TIME_ZONE_ID]?.jsonPrimitiveOrNull?.contentOrNull
+                //noinspection DiscouragedApi
+                ?: timestamps.find { it.localTimeZoneId != null }?.localTimeZoneId
+        ).apply {
+            setTimestampsAndSort(timestamps)
+            setFrequenciesAndSort(
+                this@toSchedule[JSON_FREQUENCIES]?.jsonArrayOrNull?.mapNotNull {
+                    it.jsonObjectOrNull?.toFrequency()
+                }.orEmpty()
+            )
+        }
+    }
+
+fun Schedule.toJson() = jsonRunCatching {
+    buildJsonObject {
+        toJsonCommon(this@toJson)
+        putK(JSON_PROVIDER_PRECISION_IN_MS, this@toJson.providerPrecisionInMs)
+        putK(JSON_IS_NO_PICKUP, this@toJson.isNoPickup)
+        this@toJson.localTimeZoneId?.let { putK(JSON_LOCAL_TIME_ZONE_ID, it) }
+        put(
+            JSON_TIMESTAMPS,
+            buildJsonArray {
+                addAll(this@toJson.timestamps.mapNotNull { it.toJson() })
+            }
+        )
+        put(
+            JSON_FREQUENCIES,
+            buildJsonArray {
+                addAll(this@toJson.frequencies.mapNotNull { it.toJson() })
+            }
+        )
+    }
+}.getOrThrow()
+
+fun Schedule.toJsonStringOrNull() = jsonRunCatching {
+    sharedJson.encodeToString(this.toJson())
+}.getOrNull()

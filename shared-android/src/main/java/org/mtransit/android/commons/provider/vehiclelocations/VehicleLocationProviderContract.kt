@@ -4,19 +4,28 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import android.provider.BaseColumns
 import androidx.annotation.Discouraged
-import org.json.JSONException
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.put
 import org.mtransit.android.commons.MTLogK
-import org.mtransit.android.commons.data.DefaultPOI
 import org.mtransit.android.commons.data.Direction
 import org.mtransit.android.commons.data.POI
 import org.mtransit.android.commons.data.Route
 import org.mtransit.android.commons.data.RouteDirection
 import org.mtransit.android.commons.data.RouteDirectionStop
-import org.mtransit.android.commons.optString
+import org.mtransit.android.commons.data.toJson
+import org.mtransit.android.commons.data.toPOIOrThrow
+import org.mtransit.android.commons.data.toRoute
+import org.mtransit.android.commons.data.toRouteDirection
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.ProviderContract
+import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderFilter
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
+import org.mtransit.commons.jsonObjectOrNull
+import org.mtransit.commons.jsonPrimitiveOrNull
 import org.mtransit.commons.model.Secret
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -109,7 +118,7 @@ interface VehicleLocationProviderContract : ProviderContract {
         override val cacheValidityInMs: Long? = null,
         override val inFocus: Boolean? = null,
         override val providedEncryptKeysMap: Secret<Map<String, String>>? = null,
-        val authority: String,
+        private val authority: String,
         override val poi: POI? = null, // RouteDirectionStop or DefaultPOI
         override val route: Route? = null,
         override val routeDirection: RouteDirection? = null,
@@ -132,26 +141,21 @@ interface VehicleLocationProviderContract : ProviderContract {
             private const val JSON_ROUTE = "route"
             private const val JSON_ROUTE_DIRECTION = "routeDirection"
 
-            fun fromJSONString(jsonString: String?): Filter? {
-                try {
-                    return if (jsonString == null) null else fromJSON(JSONObject(jsonString))
-                } catch (jsone: JSONException) {
-                    MTLogK.w(LOG_TAG, "Error while parsing JSON string '$jsonString'", jsone)
-                    return null
-                }
-            }
+            fun String?.toFilterOrNull() = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
+                sharedJson.parseToJsonElement(this).jsonObject.toFilter()
+            }?.getOrNull()
 
             @SuppressLint("DiscouragedApi")
-            fun fromJSON(json: JSONObject): Filter? {
-                val poi = json.optJSONObject(JSON_POI)?.let { DefaultPOI.fromJSONStatic(it) }
-                val authority = json.optString(JSON_AUTHORITY, fallback = null) ?: poi?.authority ?: return null
-                val route = json.optJSONObject(JSON_ROUTE)?.let { Route.fromJSON(it, authority) }
-                val routeDirection = json.optJSONObject(JSON_ROUTE_DIRECTION)?.let { RouteDirection.fromJSON(it, authority) }
+            private fun JsonObject.toFilter(): Filter? {
+                val poi = this[JSON_POI]?.jsonObjectOrNull?.toPOIOrThrow()
+                val authority = this[JSON_AUTHORITY]?.jsonPrimitiveOrNull?.contentOrNull ?: poi?.authority ?: return null
+                val route = this[JSON_ROUTE]?.jsonObjectOrNull?.toRoute(authority)
+                val routeDirection = this[JSON_ROUTE_DIRECTION]?.jsonObjectOrNull?.toRouteDirection(authority)
                 return Filter(
-                    cacheOnly = getCacheOnlyFromJSON(json),
-                    cacheValidityInMs = getCacheValidityInMsFromJSON(json),
-                    inFocus = getInFocusFromJSON(json),
-                    providedEncryptKeysMap = getProvidedEncryptKeysMapFromJSON(json),
+                    cacheOnly = getCacheOnlyFromJson(),
+                    cacheValidityInMs = getCacheValidityInMsFromJson(),
+                    inFocus = getInFocusFromJson(),
+                    providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
                     authority = authority,
                     poi = poi,
                     route = route,
@@ -159,29 +163,21 @@ interface VehicleLocationProviderContract : ProviderContract {
                 )
             }
 
-            fun toJSONString(vehicleLocationFilter: Filter) =
-                toJSON(vehicleLocationFilter)?.toString()
-
-            fun toJSON(vehicleLocationFilter: Filter): JSONObject? {
-                return try {
-                    JSONObject().apply {
-                        toJSON(vehicleLocationFilter, this)
-                        put(JSON_AUTHORITY, vehicleLocationFilter.authority)
-                        vehicleLocationFilter.poi?.let { put(JSON_POI, it.toJSON()) }
-                        vehicleLocationFilter.route?.let { put(JSON_ROUTE, Route.toJSON(it)) }
-                        vehicleLocationFilter.routeDirection?.let { put(JSON_ROUTE_DIRECTION, RouteDirection.toJSON(it)) }
-                    }
-                } catch (jsone: JSONException) {
-                    MTLogK.w(LOG_TAG, "Error while making JSON object '$vehicleLocationFilter'!", jsone)
-                    null
+            fun toJson(vehicleLocationFilter: Filter) = jsonRunCatching {
+                buildJsonObject {
+                    toJsonCommon(vehicleLocationFilter)
+                    put(JSON_AUTHORITY, vehicleLocationFilter.authority)
+                    vehicleLocationFilter.poi?.let { put(JSON_POI, it.toJson()) }
+                    vehicleLocationFilter.route?.let { put(JSON_ROUTE, it.toJson()) }
+                    vehicleLocationFilter.routeDirection?.let { put(JSON_ROUTE_DIRECTION, it.toJson()) }
                 }
-            }
+            }.getOrThrow()
         }
 
         override fun getLogTag() = LOG_TAG
 
         @Suppress("unused") // used from main app
-        override fun toJSONString() = toJSONString(this)
+        override fun toJsonString() = toJson(this).toString()
 
         val rds: RouteDirectionStop? get() = poi as? RouteDirectionStop
 

@@ -12,9 +12,9 @@ class DirectionHeadSignComparatorTest {
     @Test
     fun test_compare() {
         val directions = listOf(
-            makeDirection(headsign = "Ccc"),
-            makeDirection(headsign = "Aaa"),
-            makeDirection(headsign = "Bbb"),
+            mkDirection(headsign = "Ccc"),
+            mkDirection(headsign = "Aaa"),
+            mkDirection(headsign = "Bbb"),
         )
 
         val result = directions.sortedWith(subject)
@@ -27,8 +27,8 @@ class DirectionHeadSignComparatorTest {
     @Test
     fun test_compare2() {
         val directions = listOf(
-            makeDirection(headsign = "Head-Sign 1"),
-            makeDirection(headsign = "Head-Sign 0"),
+            mkDirection(headsign = "Head-Sign 1"),
+            mkDirection(headsign = "Head-Sign 0"),
         )
 
         val result = directions.sortedWith(subject)
@@ -39,47 +39,47 @@ class DirectionHeadSignComparatorTest {
 
     @Test
     fun test_areDifferent() {
-        subject.areDifferent(makeDirection("authorityA", 10, 0, headsign = "HS 0"), makeDirection("authorityB", 20, 1, headsign = "HS 1")).let { result ->
+        subject.areDifferent(mkDirection("authorityA", 10, 0, headsign = "HS 0"), mkDirection("authorityB", 20, 1, headsign = "HS 1")).let { result ->
             assertTrue(result)
         }
-        subject.areDifferent(makeDirection("authorityA", 10, 0, headsign = "HS 0"), makeDirection("authorityA", 20, 1, headsign = "HS 1")).let { result ->
+        subject.areDifferent(mkDirection("authorityA", 10, 0, headsign = "HS 0"), mkDirection("authorityA", 20, 1, headsign = "HS 1")).let { result ->
             assertTrue(result)
         }
-        subject.areDifferent(makeDirection("authorityA", 10, 0, headsign = "HS 0"), makeDirection("authorityB", 10, 0, headsign = "HS 0")).let { result ->
+        subject.areDifferent(mkDirection("authorityA", 10, 0, headsign = "HS 0"), mkDirection("authorityB", 10, 0, headsign = "HS 0")).let { result ->
             assertFalse(result)
         }
-        subject.areDifferent(makeDirection("authorityA", 10, 0, headsign = "HS 0"), makeDirection("authorityA", 10, 1, headsign = "HS 1")).let { result ->
+        subject.areDifferent(mkDirection("authorityA", 10, 0, headsign = "HS 0"), mkDirection("authorityA", 10, 1, headsign = "HS 1")).let { result ->
             assertTrue(result)
         }
-        subject.areDifferent(makeDirection("authorityA", 10, 0, headsign = "HS 0"), makeDirection("authorityA", 10, 0, headsign = "HS 0")).let { result ->
+        subject.areDifferent(mkDirection("authorityA", 10, 0, headsign = "HS 0"), mkDirection("authorityA", 10, 0, headsign = "HS 0")).let { result ->
             assertFalse(result)
         }
     }
 
     @Test
     fun test_areComparable() {
-        subject.areComparable(makeDirection(headsign = "North"), makeDirection(headsign = "South")).let { result ->
+        subject.areComparable(mkDirection(headsign = "North"), mkDirection(headsign = "South")).let { result ->
             assertTrue(result)
         }
-        subject.areComparable(makeDirection(headsign = ""), makeDirection(headsign = "South")).let { result ->
+        subject.areComparable(mkDirection(headsign = ""), mkDirection(headsign = "South")).let { result ->
             assertTrue(result)
         }
-        subject.areComparable(makeDirection(headsign = "North"), makeDirection(headsign = "")).let { result ->
+        subject.areComparable(mkDirection(headsign = "North"), mkDirection(headsign = "")).let { result ->
             assertTrue(result)
         }
-        subject.areComparable(makeDirection(headsign = ""), makeDirection(headsign = "")).let { result ->
+        subject.areComparable(mkDirection(headsign = ""), mkDirection(headsign = "")).let { result ->
             assertTrue(result)
         }
         subject.areComparable(
-            makeDirection(headsignType = Direction.HEADSIGN_TYPE_NONE),
-            makeDirection(headsignType = Direction.HEADSIGN_TYPE_NONE)
+            mkDirection(headsignType = Direction.HEADSIGN_TYPE_NONE),
+            mkDirection(headsignType = Direction.HEADSIGN_TYPE_NONE)
         ).let { result ->
             assertTrue(result)
         }
-        subject.areComparable(makeDirection(), makeDirection(headsignType = Direction.HEADSIGN_TYPE_NONE)).let { result ->
+        subject.areComparable(mkDirection(), mkDirection(headsignType = Direction.HEADSIGN_TYPE_NONE)).let { result ->
             assertTrue(result)
         }
-        subject.areComparable(makeDirection(headsignType = Direction.HEADSIGN_TYPE_NONE), makeDirection()).let { result ->
+        subject.areComparable(mkDirection(headsignType = Direction.HEADSIGN_TYPE_NONE), mkDirection()).let { result ->
             assertTrue(result)
         }
     }

@@ -17,9 +17,9 @@ class POIAlphaComparatorTest {
     @Test
     fun test_compare_empty_direction_head_sign() {
         val poiList = buildList {
-            add(makeRDS("authority1", direction = makeDirection(headsign = "B"), stopName = "Zebra"))
-            add(makeRDS("authority2", direction = makeDirection(headsign = "C"), stopName = "Apple"))
-            add(makeRDS("authority3", direction = makeDirection(headsign = ""), stopName = "Museum"))
+            add(makeRDS("authority1", direction = mkDirection(headsign = "B"), stopName = "Zebra"))
+            add(makeRDS("authority2", direction = mkDirection(headsign = "C"), stopName = "Apple"))
+            add(makeRDS("authority3", direction = mkDirection(headsign = ""), stopName = "Museum"))
         }.shuffled()
 
         val result = poiList.sortedWith(subject)
@@ -32,22 +32,22 @@ class POIAlphaComparatorTest {
 
     @Test
     fun test_compare_empty_route_short_name_transitive_no_cycle() {
-        val sharedDirection = makeDirection(headsign = "North")
+        val sharedDirection = mkDirection(headsign = "North")
         val rdsA = makeRDS(
             authority = "authorityA",
-            route = makeRoute("authorityA", id = 1L, shortName = "1"),
+            route = mkRoute("authorityA", id = 1L, shortName = "1"),
             direction = sharedDirection,
             stopName = "Zulu",
         )
         val rdsB = makeRDS(
             authority = "authorityB",
-            route = makeRoute("authorityB", id = 1L, shortName = "2"),
+            route = mkRoute("authorityB", id = 1L, shortName = "2"),
             direction = sharedDirection,
             stopName = "Apple",
         )
         val rdsC = makeRDS(
             authority = "authorityC",
-            route = makeRoute("authorityC", id = 1L, shortName = ""),
+            route = mkRoute("authorityC", id = 1L, shortName = ""),
             direction = sharedDirection,
             stopName = "Museum",
         )
@@ -77,7 +77,7 @@ class POIAlphaComparatorTest {
         val poiList = buildList {
             add(makeRDS("authority2", routeId = 2, stopName = "Apple"))
             add(makeRDS("authority1", routeId = 1, stopName = "Zebra"))
-            add(makeBikeStation("authority3", name = "Museum"))
+            add(mkBikeStation("authority3", name = "Museum"))
         } // no shuffled, keep order
 
         val result = poiList.sortedWith(subject)
@@ -93,7 +93,7 @@ class POIAlphaComparatorTest {
         // route 1 at stop “Zebra” precedes route 2 at “Apple” by route number, “Apple” precedes bike station “Museum” by name
         val poiList = buildList {
             add(makeRDS("authority2", routeId = 2, stopName = "Apple"))
-            add(makeBikeStation("authority3", name = "Museum"))
+            add(mkBikeStation("authority3", name = "Museum"))
             add(makeRDS("authority1", routeId = 1, stopName = "Zebra"))
         } // no shuffled, keep order
 
@@ -109,7 +109,7 @@ class POIAlphaComparatorTest {
     fun test_compare_mixed_POIs_Bike_RDS_RDS() {
         // route 1 at stop “Zebra” precedes route 2 at “Apple” by route number, “Apple” precedes bike station “Museum” by name
         val poiList = buildList {
-            add(makeBikeStation("authority3", name = "Museum"))
+            add(mkBikeStation("authority3", name = "Museum"))
             add(makeRDS("authority2", routeId = 2, stopName = "Apple"))
             add(makeRDS("authority1", routeId = 1, stopName = "Zebra"))
         } // no shuffled, keep order

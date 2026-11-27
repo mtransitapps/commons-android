@@ -1,8 +1,10 @@
 package org.mtransit.android.commons.data
 
-import org.json.JSONException
-import org.json.JSONObject
-import org.mtransit.android.commons.MTLogK
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonObject
+import org.mtransit.android.commons.jsonRunCatching
+import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.provider.status.StatusProviderContract
 import org.mtransit.commons.model.Secret
 
@@ -26,42 +28,23 @@ data class AvailabilityPercentStatusFilter(
         )
 
         @JvmStatic
-        fun fromJSONString(jsonString: String?): StatusProviderContract.Filter? {
-            try {
-                return jsonString?.let { fromJSON(JSONObject(it)) }
-            } catch (jsone: JSONException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON string '$jsonString'", jsone)
-                return null
-            }
-        }
+        fun String?.toFilterOrNull() = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
+            sharedJson.parseToJsonElement(this).jsonObject.toFilter()
+        }?.getOrNull()
 
-        fun fromJSON(json: JSONObject): StatusProviderContract.Filter? {
-            try {
-                return AvailabilityPercentStatusFilter(
-                    cacheOnly = getCacheOnlyFromJSON(json),
-                    cacheValidityInMs = getCacheValidityInMsFromJSON(json),
-                    inFocus = getInFocusFromJSON(json),
-                    providedEncryptKeysMap = getProvidedEncryptKeysMapFromJSON(json),
-                    targetUUID = getTargetUUIDFromJSON(json),
-                )
-            } catch (jsone: JSONException) {
-                MTLogK.w(LOG_TAG, "Error while parsing JSON object '$json'", jsone)
-                return null
-            }
-        }
+        private fun JsonObject.toFilter() = AvailabilityPercentStatusFilter(
+            cacheOnly = getCacheOnlyFromJson(),
+            cacheValidityInMs = getCacheValidityInMsFromJson(),
+            inFocus = getInFocusFromJson(),
+            providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
+            targetUUID = getTargetUUIDFromJson(),
+        )
 
-        private fun toJSONString(statusFilter: StatusProviderContract.Filter) = toJSON(statusFilter)?.toString()
-
-        private fun toJSON(statusFilter: StatusProviderContract.Filter): JSONObject? {
-            try {
-                return JSONObject().apply {
-                    toJSON(statusFilter, this)
-                }
-            } catch (jsone: JSONException) {
-                MTLogK.w(LOG_TAG, "Error while making JSON object '$statusFilter'", jsone)
-                return null
+        private fun StatusProviderContract.Filter.toJson() = jsonRunCatching {
+            buildJsonObject {
+                toJson(this@toJson)
             }
-        }
+        }.getOrThrow()
     }
 
     override fun getLogTag() = LOG_TAG
@@ -72,9 +55,5 @@ data class AvailabilityPercentStatusFilter(
     override fun copyWithCacheOnly(cacheOnly: Boolean) =
         this.copy(cacheOnly = cacheOnly)
 
-    override fun fromJSONStringStatic(jsonString: String?) = fromJSONString(jsonString)
-
-    override fun toJSONString() = toJSONString(this)
-
-    override fun toJSONStringStatic(statusFilter: StatusProviderContract.Filter) = toJSONString(statusFilter)
+    override fun toJsonString() = sharedJson.encodeToString(this.toJson())
 }

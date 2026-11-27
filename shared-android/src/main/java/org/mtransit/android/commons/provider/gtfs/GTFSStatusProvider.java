@@ -48,7 +48,7 @@ import java.util.concurrent.TimeUnit;
 
 public class GTFSStatusProvider implements MTLog.Loggable {
 
-	private static final String LOG_TAG = GTFSStatusProvider.class.getSimpleName();
+	protected static final String LOG_TAG = GTFSStatusProvider.class.getSimpleName();
 
 	@NonNull
 	@Override

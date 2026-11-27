@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.data;
 
 import static org.mtransit.android.commons.StringUtils.EMPTY;
+import static org.mtransit.android.commons.data.StopExtKt.makeStop;
 
 import android.database.Cursor;
 import android.text.TextUtils;
@@ -8,13 +9,8 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.mtransit.android.commons.CursorExtKt;
-import org.mtransit.android.commons.JSONUtils;
-import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 
 import java.util.Objects;
@@ -22,7 +18,7 @@ import java.util.Objects;
 @SuppressWarnings("WeakerAccess")
 public class Stop {
 
-	private static final String LOG_TAG = Stop.class.getSimpleName();
+	protected static final String LOG_TAG = Stop.class.getSimpleName();
 
 	private final int id;
 
@@ -34,20 +30,21 @@ public class Stop {
 	private final double lat;
 	private final double lng;
 
+	@Accessibility.AccessibilityType
 	private final int accessible;
 
 	@Nullable
 	private final Integer originalIdHash;
 	@Nullable
-	private final String timeZoneId;
+	protected final String timeZoneId;
 
-	public Stop(
+	protected Stop(
 			int id,
 			@NonNull String code,
 			@NonNull String name,
 			double lat,
 			double lng,
-			int accessible,
+			@Accessibility.AccessibilityType int accessible,
 			@Nullable Integer originalIdHash,
 			@Nullable String timeZoneId
 	) {
@@ -61,22 +58,9 @@ public class Stop {
 		this.timeZoneId = timeZoneId;
 	}
 
-	public Stop(@NonNull Stop stop) {
-		this(
-				stop.id,
-				stop.code,
-				stop.name,
-				stop.lat,
-				stop.lng,
-				stop.accessible,
-				stop.originalIdHash,
-				stop.timeZoneId
-		);
-	}
-
 	@NonNull
 	public static Stop fromCursor(@NonNull Cursor c) {
-		return new Stop(
+		return makeStop(
 				CursorExtKt.getInt(c, GTFSProviderContract.StopColumns.T_STOP_K_ID),
 				CursorExtKt.getString(c, GTFSProviderContract.StopColumns.T_STOP_K_CODE),
 				CursorExtKt.getString(c, GTFSProviderContract.StopColumns.T_STOP_K_NAME),
@@ -101,58 +85,6 @@ public class Stop {
 				", odIDHash=" + originalIdHash +
 				", tz='" + timeZoneId + '\'' +
 				'}';
-	}
-
-	private static final String JSON_ID = "id";
-	private static final String JSON_CODE = "code";
-	private static final String JSON_NAME = "name";
-	private static final String JSON_LAT = "lat";
-	private static final String JSON_LNG = "lng";
-	private static final String JSON_ACCESSIBLE = "a11y";
-	private static final String JSON_ORIGINAL_ID_HASH = "o_id_hash";
-	private static final String JSON_TIMEZONE_ID = "tz";
-
-	@Nullable
-	public static JSONObject toJSON(@NonNull Stop stop) {
-		try {
-			final JSONObject jStop = new JSONObject()
-					.put(JSON_ID, stop.getId())
-					.put(JSON_CODE, stop.getCode())
-					.put(JSON_NAME, stop.getName())
-					.put(JSON_LAT, stop.getLat())
-					.put(JSON_LNG, stop.getLng())
-					;
-			jStop.put(JSON_ACCESSIBLE, stop.getAccessible());
-			jStop.put(JSON_ORIGINAL_ID_HASH, stop.getOriginalIdHash());
-			if (FeatureFlags.F_EXPORT_STOP_TIMEZONE_ID) {
-				if (stop.timeZoneId != null) {
-					jStop.put(JSON_TIMEZONE_ID, stop.timeZoneId);
-				}
-			}
-			return jStop;
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while converting to JSON (%s)!", stop);
-			return null;
-		}
-	}
-
-	@NonNull
-	public static Stop fromJSON(@NonNull JSONObject jStop) throws JSONException {
-		try {
-			return new Stop(
-					jStop.getInt(JSON_ID),
-					jStop.getString(JSON_CODE),
-					jStop.getString(JSON_NAME),
-					jStop.getDouble(JSON_LAT),
-					jStop.getDouble(JSON_LNG),
-					JSONUtils.optInt(jStop, JSON_ACCESSIBLE, Accessibility.DEFAULT),
-					JSONUtils.optInt(jStop, JSON_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH),
-					JSONUtils.optString(jStop, JSON_TIMEZONE_ID)
-			);
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jStop);
-			throw jsone;
-		}
 	}
 
 	public int getId() {
@@ -182,6 +114,7 @@ public class Stop {
 		return this.lng;
 	}
 
+	@Accessibility.AccessibilityType
 	public int getAccessible() {
 		return accessible;
 	}

@@ -31,7 +31,7 @@ import java.util.Map;
 
 public class GTFSRDSProvider implements MTLog.Loggable {
 
-	private static final String LOG_TAG = GTFSRDSProvider.class.getSimpleName();
+	protected static final String LOG_TAG = GTFSRDSProvider.class.getSimpleName();
 
 	@NonNull
 	@Override

@@ -136,20 +136,20 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 
 	@Nullable
 	private static StatusProviderContract.Filter extractStatusFilter(@Nullable String selection) {
-		final int type = StatusProviderContract.Filter.getTypeFromJSONString(selection);
+		final int type = StatusProviderContract.Filter.getTypeFromJsonStringN(selection);
 		StatusProviderContract.Filter statusFilter;
 		switch (type) {
 		case POI.ITEM_STATUS_TYPE_NONE:
 			statusFilter = null;
 			break;
 		case POI.ITEM_STATUS_TYPE_SCHEDULE:
-			statusFilter = ScheduleStatusFilter.fromJSONString(selection);
+			statusFilter = ScheduleStatusFilter.toFilterOrNull(selection);
 			break;
 		case POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT:
-			statusFilter = AvailabilityPercentStatusFilter.fromJSONString(selection);
+			statusFilter = AvailabilityPercentStatusFilter.toFilterOrNull(selection);
 			break;
 		case POI.ITEM_STATUS_TYPE_APP:
-			statusFilter = AppStatusFilter.fromJSONString(selection);
+			statusFilter = AppStatusFilter.toFilterOrNull(selection);
 			break;
 		default:
 			MTLog.w(LOG_TAG, "Unexpected status filter type '%s'!", type);
@@ -160,9 +160,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 
 	@NonNull
 	public static Cursor getStatusCursor(@Nullable POIStatus status) {
-		if (status == null) {
-			return ContentProviderConstants.EMPTY_CURSOR;
-		}
+		if (status == null) return ContentProviderConstants.EMPTY_CURSOR;
 		return status.toCursor();
 	}
 

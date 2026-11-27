@@ -14,10 +14,16 @@ import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.android.play.core.ktx.installStatus
 import com.google.android.play.core.ktx.isFlexibleUpdateAllowed
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import org.mtransit.android.commons.AppUpdateUtils.AppUpdateFilter.Companion.toFilterOrNull
 import org.mtransit.android.commons.provider.GTFSProvider
+import org.mtransit.android.commons.provider.common.sharedJson
 import org.mtransit.android.commons.receiver.DataChange
-import org.mtransit.commons.StringUtils
+import org.mtransit.commons.jsonObjectOrNull
+import org.mtransit.commons.jsonPrimitiveOrNull
 import java.util.concurrent.TimeUnit
 
 object AppUpdateUtils : MTLogK.Loggable {
@@ -48,15 +54,20 @@ object AppUpdateUtils : MTLogK.Loggable {
         filterS: String? = null,
     ): Int {
         return getLastAvailableVersionCode(context, -1).also { lastAvailableVersionCode ->
-            triggerRefreshIfNecessary(context, lastAvailableVersionCode, AppUpdateFilter.fromJSONString(filterS))
+            triggerRefreshIfNecessary(
+                context = context,
+                lastAvailableVersionCode = lastAvailableVersionCode,
+                filter = filterS?.toFilterOrNull()
+                    ?: AppUpdateFilter(), // DEFAULT VALUES
+            )
         }
     }
 
     @Volatile
-    private var _storage: SharedPreferences? = null
+    private var storage: SharedPreferences? = null
 
-    private fun getStorage(context: Context) = _storage ?: synchronized(this) {
-        _storage ?: PreferenceUtils.getPrefLcl(context.applicationContext).also { _storage = it }
+    private fun getStorage(context: Context) = storage ?: synchronized(this) {
+        storage ?: PreferenceUtils.getPrefLcl(context.applicationContext).also { storage = it }
     }
 
     @Suppress("unused")
@@ -198,38 +209,24 @@ object AppUpdateUtils : MTLogK.Loggable {
             private const val JSON_FORCE_REFRESH = "force_refresh"
             private const val JSON_IN_FOCUS = "in_focus"
 
-            @JvmStatic
-            fun fromJSONString(filterS: String?): AppUpdateFilter {
-                try {
-                    if (!filterS.isNullOrBlank()) {
-                        val json = JSONObject(filterS)
-                        return AppUpdateFilter(
-                            forceRefresh = json.optBoolean(JSON_FORCE_REFRESH, false),
-                            inFocus = json.optBoolean(JSON_IN_FOCUS, false)
-                        )
-                    }
-                } catch (e: Exception) {
-                    MTLogK.w(LOG_TAG, "Error while parsing app update filter '$filterS'!", e)
-                }
-                return AppUpdateFilter() // DEFAULT VALUES
-            }
+            internal fun String?.toFilterOrNull() = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
+                sharedJson.parseToJsonElement(this).jsonObjectOrNull?.toFilter()
+            }?.getOrNull()
 
-            @JvmStatic
-            fun toJSONString(filter: AppUpdateFilter?): String {
-                return try {
-                    JSONObject().apply {
-                        put(JSON_FORCE_REFRESH, filter?.forceRefresh)
-                        put(JSON_IN_FOCUS, filter?.inFocus)
-                    }.toString()
-                } catch (e: Exception) {
-                    MTLogK.w(LOG_TAG, "Error while serializing app update filter '$filter'!", e)
-                    StringUtils.EMPTY
+            private fun JsonObject.toFilter() = AppUpdateFilter(
+                forceRefresh = this[JSON_FORCE_REFRESH]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
+                inFocus = this[JSON_IN_FOCUS]?.jsonPrimitiveOrNull?.booleanOrNull ?: false,
+            )
+
+            fun AppUpdateFilter.toJson() = jsonRunCatching {
+                buildJsonObject {
+                    put(JSON_FORCE_REFRESH, this@toJson.forceRefresh)
+                    put(JSON_IN_FOCUS, this@toJson.inFocus)
                 }
-            }
+            }.getOrThrow()
         }
 
-        @Suppress("unused")
-        fun toJSONString() = toJSONString(this)
+        fun toJsonString() = sharedJson.encodeToString(this.toJson())
     }
 
     fun getLastAppUpdateInfo(context: Context, onAppUpdateInfoLoaded: (AppUpdateInfo?) -> Unit) {

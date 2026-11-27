@@ -6,15 +6,24 @@ import android.net.Uri
 import android.provider.BaseColumns
 import androidx.annotation.Discouraged
 import androidx.collection.ArrayMap
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.addAll
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.longOrNull
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
 import org.mtransit.android.commons.MTLogK
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.data.POI
 import org.mtransit.android.commons.data.RouteDirectionStop
+import org.mtransit.android.commons.jsonRunCatching
 import org.mtransit.android.commons.provider.common.ProviderContract
+import org.mtransit.android.commons.provider.common.sharedJson
+import org.mtransit.commons.jsonArrayOrNull
+import org.mtransit.commons.jsonPrimitiveOrNull
 import org.mtransit.commons.model.Secret
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -172,77 +181,40 @@ interface NewsProviderContract : ProviderContract {
             fun newTargetsUUIDsFilter(targetsUUIDs: List<String>) = Filter(targetsUUIDs = targetsUUIDs)
 
             @JvmStatic
-            fun fromJSONString(jsonString: String?): Filter? {
-                try {
-                    return jsonString?.let { fromJSON(JSONObject(it)) }
-                } catch (jsone: JSONException) {
-                    MTLogK.w(LOG_TAG, "Error while parsing JSON string '$jsonString'", jsone)
-                    return null
-                }
-            }
+            fun String?.toFilterOrNull() = this?.takeIf { it.isNotBlank() }?.jsonRunCatching(LOG_TAG) {
+                sharedJson.parseToJsonElement(this).jsonObject.toFilter()
+            }?.getOrNull()
 
             private const val JSON_ARTICLE_UUIDS = "uuids" // article UUIDs
             private const val JSON_TARGETS_UUIDS = "targets" // POI UUIDs
             private const val JSON_MIN_CREATED_AT_IN_MS = "minCreatedAtInMs"
 
-            fun fromJSON(json: JSONObject): Filter? {
-                try {
-                    //noinspection DiscouragedApi
-                    return Filter(
-                        cacheOnly = getCacheOnlyFromJSON(json),
-                        cacheValidityInMs = getCacheValidityInMsFromJSON(json),
-                        inFocus = getInFocusFromJSON(json),
-                        providedEncryptKeysMap = getProvidedEncryptKeysMapFromJSON(json),
-                        articlesUUIDs = json.optJSONArray(JSON_ARTICLE_UUIDS)?.takeIf { it.length() > 0 }?.let { jArticleUUIDs ->
-                            buildList {
-                                for (i in 0..<jArticleUUIDs.length()) {
-                                    add(jArticleUUIDs.getString(i))
-                                }
-                            }
-                        },
-                        targetsUUIDs = json.optJSONArray(JSON_TARGETS_UUIDS)?.takeIf { it.length() > 0 }?.let { jTargetUUIDs ->
-                            buildList {
-                                for (i in 0..<jTargetUUIDs.length()) {
-                                    add(jTargetUUIDs.getString(i))
-                                }
-                            }
-                        },
-                        minCreatedAtInMs = json.takeIf { it.has(JSON_MIN_CREATED_AT_IN_MS) }?.getLong(JSON_MIN_CREATED_AT_IN_MS)
-                    )
-                } catch (jsone: JSONException) {
-                    MTLogK.w(LOG_TAG, "Error while parsing JSON object '$json'", jsone)
-                    return null
-                }
-            }
+            @SuppressLint("DiscouragedApi")
+            private fun JsonObject.toFilter() = Filter(
+                cacheOnly = getCacheOnlyFromJson(),
+                cacheValidityInMs = getCacheValidityInMsFromJson(),
+                inFocus = getInFocusFromJson(),
+                providedEncryptKeysMap = getProvidedEncryptKeysMapFromJson(),
+                articlesUUIDs = this[JSON_ARTICLE_UUIDS]?.jsonArrayOrNull?.takeIf { it.isNotEmpty() }?.mapNotNull {
+                    it.jsonPrimitiveOrNull?.contentOrNull
+                },
+                targetsUUIDs = this[JSON_TARGETS_UUIDS]?.jsonArrayOrNull?.takeIf { it.isNotEmpty() }?.mapNotNull {
+                    it.jsonPrimitiveOrNull?.contentOrNull
+                },
+                minCreatedAtInMs = this[JSON_MIN_CREATED_AT_IN_MS]?.jsonPrimitiveOrNull?.longOrNull,
+            )
 
-            fun toJSONString(newsFilter: Filter) = toJSON(newsFilter)?.toString()
-
-            fun toJSON(newsFilter: Filter): JSONObject? {
-                try {
-                    return JSONObject().apply {
-                        toJSON(newsFilter, this)
-                        if (newsFilter.minCreatedAtInMs != null) {
-                            put(JSON_MIN_CREATED_AT_IN_MS, newsFilter.minCreatedAtInMs)
-                        }
-                        if (newsFilter.isArticlesUUIDFilter && newsFilter.articlesUUIDs != null) {
-                            val jArticleUUIDs = JSONArray()
-                            for (articleUUID in newsFilter.articlesUUIDs) {
-                                jArticleUUIDs.put(articleUUID)
-                            }
-                            put(JSON_ARTICLE_UUIDS, jArticleUUIDs)
-                        } else if (newsFilter.isTargetsUUIDFilter && newsFilter.targetsUUIDs != null) {
-                            val jTargetUUIDs = JSONArray()
-                            for (targetUUID in newsFilter.targetsUUIDs) {
-                                jTargetUUIDs.put(targetUUID)
-                            }
-                            put(JSON_TARGETS_UUIDS, jTargetUUIDs)
-                        }
+            fun Filter.toJson() = jsonRunCatching {
+                buildJsonObject {
+                    toJsonCommon(this@toJson)
+                    minCreatedAtInMs?.let { put(JSON_MIN_CREATED_AT_IN_MS, it) }
+                    if (isArticlesUUIDFilter && articlesUUIDs != null) {
+                        putJsonArray(JSON_ARTICLE_UUIDS) { addAll(articlesUUIDs) }
+                    } else if (isTargetsUUIDFilter && targetsUUIDs != null) {
+                        putJsonArray(JSON_TARGETS_UUIDS) { addAll(targetsUUIDs) }
                     }
-                } catch (jsone: JSONException) {
-                    MTLogK.w(LOG_TAG, "Error while making JSON object '$newsFilter'", jsone)
-                    return null
                 }
-            }
+            }.getOrThrow()
         }
 
         init {
@@ -295,6 +267,6 @@ interface NewsProviderContract : ProviderContract {
             }
         }
 
-        override fun toJSONString() = toJSONString(this)
+        override fun toJsonString() = this.toJson().toString()
     }
 }

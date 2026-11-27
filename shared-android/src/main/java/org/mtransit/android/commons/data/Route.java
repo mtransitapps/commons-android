@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.data;
 
+import static org.mtransit.android.commons.data.RouteExtKt.makeRoute;
+
 import android.database.Cursor;
 
 import androidx.annotation.ColorInt;
@@ -7,11 +9,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.CursorExtKt;
-import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 import org.mtransit.commons.GTFSCommons;
@@ -23,7 +22,7 @@ import java.util.Objects;
 
 public class Route implements Targetable, MTLog.Loggable {
 
-	private static final String LOG_TAG = Route.class.getSimpleName();
+	protected static final String LOG_TAG = Route.class.getSimpleName();
 
 	@NonNull
 	@Override
@@ -48,18 +47,7 @@ public class Route implements Targetable, MTLog.Loggable {
 	@Nullable
 	private final Integer type;
 
-	@VisibleForTesting
-	public Route(
-			@NonNull String authority,
-			long id,
-			@NonNull String shortName,
-			@NonNull String longName,
-			@NonNull String color
-	) {
-		this(authority, id, shortName, longName, color, GTFSCommons.DEFAULT_ID_HASH, GTFSCommons.DEFAULT_ROUTE_TYPE);
-	}
-
-	public Route(
+	protected Route(
 			@NonNull String authority,
 			long id,
 			@NonNull String shortName,
@@ -80,7 +68,7 @@ public class Route implements Targetable, MTLog.Loggable {
 
 	@NonNull
 	public static Route fromCursor(@NonNull Cursor c, @NonNull String authority) {
-		return new Route(
+		return makeRoute(
 				authority,
 				CursorExtKt.getLong(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_ID),
 				CursorExtKt.getString(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_SHORT_NAME),
@@ -153,52 +141,6 @@ public class Route implements Targetable, MTLog.Loggable {
 				", odIDHash=" + originalIdHash +
 				", type=" + type +
 				'}';
-	}
-
-	@Nullable
-	public static JSONObject toJSON(@NonNull Route route) {
-		try {
-			final JSONObject jRoute = new JSONObject() //
-					.put(JSON_AUTHORITY, route.getAuthority()) //
-					.put(JSON_ID, route.getId()) //
-					.put(JSON_SHORT_NAME, route.getShortName()) //
-					.put(JSON_LONG_NAME, route.getLongName()) //
-					.put(JSON_COLOR, route.getColor() //
-					);
-			jRoute.put(JSON_ORIGINAL_ID_HASH, route.getOriginalIdHash());
-			jRoute.put(JSON_TYPE, route.getType());
-			return jRoute;
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while converting to JSON (%s)!", route);
-			return null;
-		}
-	}
-
-	private static final String JSON_AUTHORITY = "authority";
-	private static final String JSON_ID = "id";
-	private static final String JSON_SHORT_NAME = "shortName";
-	private static final String JSON_LONG_NAME = "longName";
-	private static final String JSON_COLOR = "color";
-	private static final String JSON_ORIGINAL_ID_HASH = "o_id_hash";
-	private static final String JSON_TYPE = "type";
-
-	@NonNull
-	public static Route fromJSON(@NonNull JSONObject jRoute, @NonNull String authority) throws JSONException {
-		try {
-			final String routeAuthority = JSONUtils.optString(jRoute, JSON_AUTHORITY);
-			return new Route(
-					routeAuthority == null ? authority : routeAuthority,
-					jRoute.getLong(JSON_ID),
-					jRoute.getString(JSON_SHORT_NAME),
-					jRoute.getString(JSON_LONG_NAME),
-					jRoute.getString(JSON_COLOR),
-					JSONUtils.optInt(jRoute, JSON_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH),
-					JSONUtils.optInt(jRoute, JSON_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE)
-			);
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jRoute);
-			throw jsone;
-		}
 	}
 
 	@NonNull
