@@ -1,6 +1,9 @@
 package org.mtransit.android.commons.data;
 
+import static org.mtransit.android.commons.data.DirectionExtKt.makeDirection;
 import static org.mtransit.android.commons.data.RouteDirectionStopExtKt.makeRouteDirectionStop;
+import static org.mtransit.android.commons.data.RouteExtKt.makeRoute;
+import static org.mtransit.android.commons.data.StopExtKt.makeStop;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -255,7 +258,7 @@ public class RouteDirectionStop extends DefaultPOI {
 	public static RouteDirectionStop fromCursorStatic(@NonNull Cursor c, @NonNull String authority) {
 		return makeRouteDirectionStop(
 				getDataSourceTypeIdFromCursor(c),
-				new Route(
+				makeRoute(
 						authority,
 						CursorExtKt.getLong(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ID),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_SHORT_NAME),
@@ -264,14 +267,14 @@ public class RouteDirectionStop extends DefaultPOI {
 						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH),
 						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE)
 				),
-				new Direction(
+				makeDirection(
 						authority,
 						CursorExtKt.getLong(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_ID),
 						CursorExtKt.getInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_HEADSIGN_TYPE),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_HEADSIGN_VALUE),
 						CursorExtKt.getInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_ROUTE_ID)
 				),
-				new Stop(
+				makeStop(
 						CursorExtKt.getInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ID),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_CODE),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_NAME),

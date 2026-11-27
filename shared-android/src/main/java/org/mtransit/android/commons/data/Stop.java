@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.data;
 
 import static org.mtransit.android.commons.StringUtils.EMPTY;
+import static org.mtransit.android.commons.data.StopExtKt.makeStop;
 
 import android.database.Cursor;
 import android.text.TextUtils;
@@ -37,7 +38,7 @@ public class Stop {
 	@Nullable
 	protected final String timeZoneId;
 
-	public Stop(
+	protected Stop(
 			int id,
 			@NonNull String code,
 			@NonNull String name,
@@ -57,22 +58,9 @@ public class Stop {
 		this.timeZoneId = timeZoneId;
 	}
 
-	public Stop(@NonNull Stop stop) {
-		this(
-				stop.id,
-				stop.code,
-				stop.name,
-				stop.lat,
-				stop.lng,
-				stop.accessible,
-				stop.originalIdHash,
-				stop.timeZoneId
-		);
-	}
-
 	@NonNull
 	public static Stop fromCursor(@NonNull Cursor c) {
-		return new Stop(
+		return makeStop(
 				CursorExtKt.getInt(c, GTFSProviderContract.StopColumns.T_STOP_K_ID),
 				CursorExtKt.getString(c, GTFSProviderContract.StopColumns.T_STOP_K_CODE),
 				CursorExtKt.getString(c, GTFSProviderContract.StopColumns.T_STOP_K_NAME),

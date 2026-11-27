@@ -5,9 +5,24 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
+import org.mtransit.android.commons.data.Direction.HeadSignType
 import org.mtransit.android.commons.data.Direction.LOG_TAG
 import org.mtransit.android.commons.jsonRunCatching
 import kotlinx.serialization.json.put as putK
+
+fun makeDirection(
+    authority: String,
+    id: Long,
+    @HeadSignType headsignType: Int,
+    headsignValue: String,
+    routeId: Long,
+) = Direction(
+    authority,
+    id,
+    headsignType,
+    headsignValue,
+    routeId,
+)
 
 private const val JSON_ID = "id"
 private const val JSON_HEADSIGN_TYPE = "headsignType"
@@ -24,11 +39,11 @@ fun Direction.toJson() = jsonRunCatching {
 }.getOrThrow()
 
 fun JsonObject.toDirection(authority: String) = jsonRunCatching(LOG_TAG) {
-    Direction(
-        authority,
-        getValue(JSON_ID).jsonPrimitive.long,
-        getValue(JSON_HEADSIGN_TYPE).jsonPrimitive.int,
-        getValue(JSON_HEADSIGN_VALUE).jsonPrimitive.content,
-        getValue(JSON_ROUTE_ID).jsonPrimitive.long,
+    makeDirection(
+        authority = authority,
+        id = getValue(JSON_ID).jsonPrimitive.long,
+        headsignType = getValue(JSON_HEADSIGN_TYPE).jsonPrimitive.int,
+        headsignValue = getValue(JSON_HEADSIGN_VALUE).jsonPrimitive.content,
+        routeId = getValue(JSON_ROUTE_ID).jsonPrimitive.long,
     )
 }.getOrThrow()

@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.data;
 
+import static org.mtransit.android.commons.data.RouteExtKt.makeRoute;
+
 import android.database.Cursor;
 
 import androidx.annotation.ColorInt;
@@ -45,18 +47,7 @@ public class Route implements Targetable, MTLog.Loggable {
 	@Nullable
 	private final Integer type;
 
-	@VisibleForTesting
-	public Route(
-			@NonNull String authority,
-			long id,
-			@NonNull String shortName,
-			@NonNull String longName,
-			@NonNull String color
-	) {
-		this(authority, id, shortName, longName, color, GTFSCommons.DEFAULT_ID_HASH, GTFSCommons.DEFAULT_ROUTE_TYPE);
-	}
-
-	public Route(
+	protected Route(
 			@NonNull String authority,
 			long id,
 			@NonNull String shortName,
@@ -77,7 +68,7 @@ public class Route implements Targetable, MTLog.Loggable {
 
 	@NonNull
 	public static Route fromCursor(@NonNull Cursor c, @NonNull String authority) {
-		return new Route(
+		return makeRoute(
 				authority,
 				CursorExtKt.getLong(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_ID),
 				CursorExtKt.getString(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_SHORT_NAME),

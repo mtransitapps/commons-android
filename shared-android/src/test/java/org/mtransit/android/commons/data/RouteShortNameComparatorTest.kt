@@ -12,10 +12,10 @@ class RouteShortNameComparatorTest {
     @Test
     fun test_compare() {
         val routes = listOf(
-            makeRoute(shortName = "300"),
-            makeRoute(shortName = "30"),
-            makeRoute(shortName = "25"),
-            makeRoute(shortName = "200"),
+            mkRoute(shortName = "300"),
+            mkRoute(shortName = "30"),
+            mkRoute(shortName = "25"),
+            mkRoute(shortName = "200"),
         ).shuffled()
 
         val result = routes.sortedWith(subject)
@@ -29,11 +29,11 @@ class RouteShortNameComparatorTest {
     @Test
     fun test_compare_largeNumbers() {
         val routes = listOf(
-            makeRoute(shortName = "999999999999"),
-            makeRoute(shortName = "1"),
-            makeRoute(shortName = "2147483648"),
-            makeRoute(shortName = "2147483647"),
-            makeRoute(shortName = "100"),
+            mkRoute(shortName = "999999999999"),
+            mkRoute(shortName = "1"),
+            mkRoute(shortName = "2147483648"),
+            mkRoute(shortName = "2147483647"),
+            mkRoute(shortName = "100"),
         ).shuffled()
 
         val result = routes.sortedWith(subject)
@@ -48,15 +48,15 @@ class RouteShortNameComparatorTest {
     @Test
     fun test_compare_AZ19() {
         val routes = listOf(
-            makeRoute(shortName = "66"),
-            makeRoute(shortName = "A1"),
-            makeRoute(shortName = "B2"),
-            makeRoute(shortName = "C3"),
-            makeRoute(shortName = "24X"),
-            makeRoute(shortName = "25Y"),
-            makeRoute(shortName = "26Z"),
-            makeRoute(shortName = "É2"),
-            makeRoute(shortName = "E2"),
+            mkRoute(shortName = "66"),
+            mkRoute(shortName = "A1"),
+            mkRoute(shortName = "B2"),
+            mkRoute(shortName = "C3"),
+            mkRoute(shortName = "24X"),
+            mkRoute(shortName = "25Y"),
+            mkRoute(shortName = "26Z"),
+            mkRoute(shortName = "É2"),
+            mkRoute(shortName = "E2"),
         ).shuffled()
 
         val result = routes.sortedWith(subject)
@@ -76,9 +76,9 @@ class RouteShortNameComparatorTest {
 
     @Test
     fun test_compare_transitiveOrdering_noCycle() {
-        val rE2 = makeRoute(shortName = "É2")
-        val rA1 = makeRoute(shortName = "A1")
-        val rA2 = makeRoute(shortName = "A2")
+        val rE2 = mkRoute(shortName = "É2")
+        val rA1 = mkRoute(shortName = "A1")
+        val rA2 = mkRoute(shortName = "A2")
 
         // A1 vs A2: same prefix "A", digits 1 < 2 -> A1 < A2
         assertTrue(subject.compare(rA1, rA2) < 0)
@@ -102,35 +102,35 @@ class RouteShortNameComparatorTest {
 
     @Test
     fun test_areDifferent() {
-        subject.areDifferent(makeRoute("authorityA", 1, "#1"), makeRoute("authorityB", 2, "#2")).let { result ->
+        subject.areDifferent(mkRoute("authorityA", 1, "#1"), mkRoute("authorityB", 2, "#2")).let { result ->
             assertTrue(result)
         }
-        subject.areDifferent(makeRoute("authorityA", 1, "#1"), makeRoute("authorityA", 2, "#2")).let { result ->
+        subject.areDifferent(mkRoute("authorityA", 1, "#1"), mkRoute("authorityA", 2, "#2")).let { result ->
             assertTrue(result)
         }
-        subject.areDifferent(makeRoute("authorityA", 1, "#1"), makeRoute("authorityB", 1, "#1")).let { result ->
+        subject.areDifferent(mkRoute("authorityA", 1, "#1"), mkRoute("authorityB", 1, "#1")).let { result ->
             assertFalse(result)
         }
-        subject.areDifferent(makeRoute("authorityA", 1, "#1"), makeRoute("authorityA", 1, "#1")).let { result ->
+        subject.areDifferent(mkRoute("authorityA", 1, "#1"), mkRoute("authorityA", 1, "#1")).let { result ->
             assertFalse(result)
         }
     }
 
     @Test
     fun test_areComparable() {
-        subject.areComparable(makeRoute(shortName = "123"), makeRoute(shortName = "456")).let { result ->
+        subject.areComparable(mkRoute(shortName = "123"), mkRoute(shortName = "456")).let { result ->
             assertTrue(result)
         }
-        subject.areComparable(makeRoute(shortName = "123"), makeRoute(shortName = "123")).let { result ->
+        subject.areComparable(mkRoute(shortName = "123"), mkRoute(shortName = "123")).let { result ->
             assertTrue(result)
         }
-        subject.areComparable(makeRoute(shortName = ""), makeRoute(shortName = "456")).let { result ->
+        subject.areComparable(mkRoute(shortName = ""), mkRoute(shortName = "456")).let { result ->
             assertTrue(result)
         }
-        subject.areComparable(makeRoute(shortName = "123"), makeRoute(shortName = "")).let { result ->
+        subject.areComparable(mkRoute(shortName = "123"), mkRoute(shortName = "")).let { result ->
             assertTrue(result)
         }
-        subject.areComparable(makeRoute(shortName = ""), makeRoute(shortName = "")).let { result ->
+        subject.areComparable(mkRoute(shortName = ""), mkRoute(shortName = "")).let { result ->
             assertTrue(result)
         }
     }

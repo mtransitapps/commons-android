@@ -14,6 +14,27 @@ import org.mtransit.commons.FeatureFlags.F_EXPORT_STOP_TIMEZONE_ID
 import org.mtransit.commons.GTFSCommons
 import org.mtransit.commons.jsonPrimitiveOrNull
 
+@Suppress("LongParameterList")
+fun makeStop(
+    stopId: Int,
+    stopCode: String,
+    stopName: String,
+    stopLat: Double,
+    stopLng: Double,
+    @Accessibility.AccessibilityType stopAccessibility: Int = Accessibility.DEFAULT,
+    stopOriginalIdHash: Int? = GTFSCommons.DEFAULT_ID_HASH,
+    stopTimeZoneId: String? = null,
+) = Stop(
+    stopId,
+    stopCode,
+    stopName,
+    stopLat,
+    stopLng,
+    stopAccessibility,
+    stopOriginalIdHash,
+    stopTimeZoneId,
+)
+
 private const val JSON_ID = "id"
 private const val JSON_CODE = "code"
 private const val JSON_NAME = "name"
@@ -39,14 +60,14 @@ fun Stop.toJson() = jsonRunCatching {
 }.getOrThrow()
 
 fun JsonObject.toStop() = jsonRunCatching(LOG_TAG) {
-    Stop(
-        getValue(JSON_ID).jsonPrimitive.int,
-        getValue(JSON_CODE).jsonPrimitive.content,
-        getValue(JSON_NAME).jsonPrimitive.content,
-        getValue(JSON_LAT).jsonPrimitive.double,
-        getValue(JSON_LNG).jsonPrimitive.double,
-        this[JSON_ACCESSIBLE]?.jsonPrimitiveOrNull?.intOrNull ?: Accessibility.DEFAULT,
-        this[JSON_ORIGINAL_ID_HASH]?.jsonPrimitiveOrNull?.intOrNull ?: GTFSCommons.DEFAULT_ID_HASH,
-        this[JSON_TIMEZONE_ID]?.jsonPrimitiveOrNull?.contentOrNull,
+    makeStop(
+        stopId = getValue(JSON_ID).jsonPrimitive.int,
+        stopCode = getValue(JSON_CODE).jsonPrimitive.content,
+        stopName = getValue(JSON_NAME).jsonPrimitive.content,
+        stopLat = getValue(JSON_LAT).jsonPrimitive.double,
+        stopLng = getValue(JSON_LNG).jsonPrimitive.double,
+        stopAccessibility = this[JSON_ACCESSIBLE]?.jsonPrimitiveOrNull?.intOrNull ?: Accessibility.DEFAULT,
+        stopOriginalIdHash = this[JSON_ORIGINAL_ID_HASH]?.jsonPrimitiveOrNull?.intOrNull ?: GTFSCommons.DEFAULT_ID_HASH,
+        stopTimeZoneId = this[JSON_TIMEZONE_ID]?.jsonPrimitiveOrNull?.contentOrNull,
     )
 }.getOrThrow()

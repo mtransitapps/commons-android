@@ -10,16 +10,16 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mtransit.android.commons.data.DataSourceTypeId
-import org.mtransit.android.commons.data.Direction
-import org.mtransit.android.commons.data.Route
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.departureArrivalDiff
+import org.mtransit.android.commons.data.makeDirection
 import org.mtransit.android.commons.data.makeRouteDirectionStop
 import org.mtransit.android.commons.data.makeSchedule
-import org.mtransit.android.commons.data.makeStop
+import org.mtransit.android.commons.data.mkRoute
+import org.mtransit.android.commons.data.mkStop
 import org.mtransit.android.commons.data.toScheduleTimestamp
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.gtfs.GTFSDateTimeUtils.makeCal
@@ -1525,21 +1525,21 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     private fun makeRDS(stopId: Int = 1) = makeRouteDirectionStop(
         dataSourceTypeId = DataSourceTypeId.BUS,
-        route = Route(
-            "authority",
-            1,
-            "1",
-            "route 1",
-            "color"
+        route = mkRoute(
+            authority = "authority",
+            id = 1,
+            shortName = "1",
+            longName = "route 1",
+            color = "color"
         ),
-        direction = Direction(
-            "authority",
-            1,
-            1,
-            "headsign",
-            1
+        direction = makeDirection(
+            authority = "authority",
+            id = 1,
+            headsignType = 1,
+            headsignValue = "headsign",
+            routeId = 1
         ),
-        stop = makeStop(
+        stop = mkStop(
             stopId = stopId,
             stopOriginalIdHash = stopId, // "$stopId".hashCode()
             stopTimeZoneId = AGENCY_TZ_ID

@@ -48,7 +48,7 @@ fun makeRDS(
     routeId: Long = 1L,
     routeOriginalIdHash: Int? = routeId.toString().hashCode(),
     routeType: Int? = null, // custom route type != agency type
-    route: Route = makeRoute(
+    route: Route = mkRoute(
         authority = authority,
         id = routeId,
         originalIdHash = routeOriginalIdHash,
@@ -56,7 +56,7 @@ fun makeRDS(
     ),
     originalDirectionId: Int? = 1,
     directionId: Long = originalDirectionId?.let { routeId * 100L + it } ?: (routeId * 100L + 9L),
-    direction: Direction = makeDirection(
+    direction: Direction = mkDirection(
         authority = authority,
         originalId = originalDirectionId,
         id = directionId,
@@ -68,7 +68,7 @@ fun makeRDS(
     stopLat: Double = 1.0,
     stopLng: Double = 2.0,
     stopTimeZoneId: String? = "UTC",
-    stop: Stop = makeStop(
+    stop: Stop = mkStop(
         stopId = stopId,
         stopName = stopName,
         stopLat = stopLat,
@@ -87,7 +87,7 @@ fun makeRDS(
     alwaysLastTripStop = alwaysLastTripStop,
 )
 
-fun makeRoute(
+fun mkRoute(
     authority: String = "authority",
     id: Long = 1L,
     shortName: String = "#$id",
@@ -95,32 +95,32 @@ fun makeRoute(
     color: String = "color",
     originalIdHash: Int? = id.toString().hashCode(),
     type: Int? = null, // custom route type != agency type
-) = Route(
-    authority,
-    id,
-    shortName,
-    longName,
-    color,
-    originalIdHash,
-    type,
+) = makeRoute(
+    authority = authority,
+    id = id,
+    shortName = shortName,
+    longName = longName,
+    color = color,
+    originalIdHash = originalIdHash,
+    type = type,
 )
 
-fun makeDirection(
+fun mkDirection(
     authority: String = "authority",
     routeId: Long = 1L,
     originalId: Int? = 1,
     id: Long = originalId?.let { routeId * 100L + it } ?: (routeId * 100L + 9L),
     headsign: String = "Head-Sign $originalId",
     headsignType: Int = Direction.HEADSIGN_TYPE_STRING,
-) = Direction(
-    authority,
-    id,
-    headsignType,
-    headsign,
-    routeId,
+) = makeDirection(
+    authority = authority,
+    id = id,
+    headsignType = headsignType,
+    headsignValue = headsign,
+    routeId = routeId,
 )
 
-fun makeStop(
+fun mkStop(
     stopId: Int = 1,
     stopCode: String = "#$stopId",
     stopName: String = "Stop #$stopId",
@@ -129,15 +129,15 @@ fun makeStop(
     stopAccessibility: Int = Accessibility.DEFAULT,
     stopOriginalIdHash: Int? = stopId.toString().hashCode(), // stopId, // "$stopId".hashCode()
     stopTimeZoneId: String? = "UTC",
-) = Stop(
-    stopId,
-    stopCode,
-    stopName,
-    stopLat,
-    stopLng,
-    stopAccessibility,
-    stopOriginalIdHash,
-    stopTimeZoneId,
+) = makeStop(
+    stopId = stopId,
+    stopCode = stopCode,
+    stopName = stopName,
+    stopLat = stopLat,
+    stopLng = stopLng,
+    stopAccessibility = stopAccessibility,
+    stopOriginalIdHash = stopOriginalIdHash,
+    stopTimeZoneId = stopTimeZoneId,
 )
 
 fun Route.getGTFSRTTargetUUID(): String =

@@ -5,7 +5,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mtransit.android.commons.data.DirectionExtKt.makeDirection;
 import static org.mtransit.android.commons.data.RouteDirectionStopExtKt.makeRouteDirectionStop;
+import static org.mtransit.android.commons.data.RouteExtKt.makeRoute;
+import static org.mtransit.android.commons.data.StopExtKt.makeStop;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -17,7 +20,6 @@ import org.mockito.Mockito;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.data.DataSourceTypeId;
 import org.mtransit.android.commons.data.Direction;
-import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirectionStop;
@@ -47,9 +49,9 @@ public class StmInfoApiProviderTests {
 
 	private static final String SOURCE_LABEL = "example.org";
 
-	private static final Route DEFAULT_ROUTE = new Route(AUTHORITY, 1, "1", "route 1", "color");
-	private static final Direction DEFAULT_DIRECTION = new Direction(AUTHORITY, 1, Direction.HEADSIGN_TYPE_STRING, "trip 1", 1);
-	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0, 1, null);
+	private static final Route DEFAULT_ROUTE = makeRoute(AUTHORITY, 1, "1", "route 1", "color");
+	private static final Direction DEFAULT_DIRECTION = makeDirection(AUTHORITY, 1, Direction.HEADSIGN_TYPE_STRING, "trip 1", 1);
+	private static final Stop DEFAULT_STOP = makeStop(1, "1", "stop 1", 0, 0, 0, 1, null);
 
 	private final Context context = mock();
 	private final Resources resources = mock();
@@ -212,7 +214,7 @@ public class StmInfoApiProviderTests {
 		String routeShortName = "10";
 		rds = makeRouteDirectionStop(
 				DataSourceTypeId.BUS,
-				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
+				makeRoute(AUTHORITY, 1, routeShortName, "route 1", "color"),
 				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
@@ -279,7 +281,7 @@ public class StmInfoApiProviderTests {
 		String routeShortName = "10";
 		rds = makeRouteDirectionStop(
 				DataSourceTypeId.BUS,
-				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
+				makeRoute(AUTHORITY, 1, routeShortName, "route 1", "color"),
 				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
@@ -346,7 +348,7 @@ public class StmInfoApiProviderTests {
 		String routeShortName = "37";
 		rds = makeRouteDirectionStop(
 				DataSourceTypeId.BUS,
-				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
+				makeRoute(AUTHORITY, 1, routeShortName, "route 1", "color"),
 				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
@@ -481,7 +483,7 @@ public class StmInfoApiProviderTests {
 		String routeShortName = "747";
 		rds = makeRouteDirectionStop(
 				DataSourceTypeId.BUS,
-				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
+				makeRoute(AUTHORITY, 1, routeShortName, "route 1", "color"),
 				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
@@ -568,7 +570,7 @@ public class StmInfoApiProviderTests {
 		String routeShortName = "14";
 		rds = makeRouteDirectionStop(
 				DataSourceTypeId.BUS,
-				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
+				makeRoute(AUTHORITY, 1, routeShortName, "route 1", "color"),
 				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
@@ -622,8 +624,8 @@ public class StmInfoApiProviderTests {
 		String headsignValue = "ABCD";
 		rds = makeRouteDirectionStop(
 				DataSourceTypeId.BUS,
-				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
-				new Direction(AUTHORITY, 1, Direction.HEADSIGN_TYPE_STRING, headsignValue, 1),
+				makeRoute(AUTHORITY, 1, routeShortName, "route 1", "color"),
+				makeDirection(AUTHORITY, 1, Direction.HEADSIGN_TYPE_STRING, headsignValue, 1),
 				DEFAULT_STOP,
 				false);
 		long newLastUpdateInMs = System.currentTimeMillis();
@@ -653,7 +655,7 @@ public class StmInfoApiProviderTests {
 				DataSourceTypeId.BUS,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
-				new Stop(1, stopCode, "stop 1", 0, 0, 0, 1, null),
+				makeStop(1, stopCode, "stop 1", 0, 0, 0, 1, null),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP;
 		// Act
@@ -673,7 +675,7 @@ public class StmInfoApiProviderTests {
 				DataSourceTypeId.BUS,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
-				new Stop(1, stopCode, "stop 1", 0, 0, 0, 1, null),
+				makeStop(1, stopCode, "stop 1", 0, 0, 0, 1, null),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
@@ -693,7 +695,7 @@ public class StmInfoApiProviderTests {
 				DataSourceTypeId.BUS,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
-				new Stop(1, "67890", "stop 1", 0, 0, 0, 1, null),
+				makeStop(1, "67890", "stop 1", 0, 0, 0, 1, null),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP;
 		// Act
@@ -713,7 +715,7 @@ public class StmInfoApiProviderTests {
 				DataSourceTypeId.BUS,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
-				new Stop(1, "67890", "stop 1", 0, 0, 0, 1, null),
+				makeStop(1, "67890", "stop 1", 0, 0, 0, 1, null),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
@@ -731,7 +733,7 @@ public class StmInfoApiProviderTests {
 				DataSourceTypeId.BUS,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
-				new Stop(1, "12345", "stop 1", 0, 0, 0, 1, null),
+				makeStop(1, "12345", "stop 1", 0, 0, 0, 1, null),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP;
 		// Act
@@ -749,7 +751,7 @@ public class StmInfoApiProviderTests {
 				DataSourceTypeId.BUS,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
-				new Stop(1, "12345", "stop 1", 0, 0, 0, 1, null),
+				makeStop(1, "12345", "stop 1", 0, 0, 0, 1, null),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
